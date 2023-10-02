@@ -21,16 +21,15 @@ def qr_code_generator(request):
         form = ReviewForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data["qr_text"]
-            sanitized_data = data.replace("/", "_")  # Replace '/' with '_'
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(sanitized_data)
+            qr.add_data(data)
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             home_dir = os.path.expanduser("~")
             save_dir = os.path.join(home_dir, "Downloads")
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-            filename = f"qrcode_{sanitized_data}.png"
+            filename = "qrcode.png"
             full_path = os.path.join(save_dir, filename)
             img.save(full_path)
 
