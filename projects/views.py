@@ -37,23 +37,3 @@ def qr_code_generator(request):
                 response = HttpResponse(f.read(), content_type="image/png")
                 response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
                 return response
-            print(
-                "The QR code was successfully created and downloaded to the default downloads folder."
-            )
-            """
-            return render(
-                request, "projects/qr_code_generator.html", context={"form": form}
-            )
-    else:
-        form = ReviewForm
-    return render(request, "projects/qr_code_generator.html", context={"form": form})
-
-
-def contact(request):
-    return render(request, "projects/contact.html")
-
-
-"""
-def thank_you(request):
-    return render(request, "projects/qr_code_generator.html")
-"""
