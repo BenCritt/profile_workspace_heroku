@@ -29,7 +29,7 @@ def qr_code_generator(request):
             save_dir = os.path.join(home_dir, "Downloads")
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-            filename = f"qrcode_{data}.png"
+            filename = "qrcode.png"
             full_path = os.path.join(save_dir, filename)
             img.save(full_path)
 
@@ -37,7 +37,6 @@ def qr_code_generator(request):
                 response = HttpResponse(f.read(), content_type="image/png")
                 response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
                 return response
-            """
             print(
                 "The QR code was successfully created and downloaded to the default downloads folder."
             )
