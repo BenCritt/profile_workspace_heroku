@@ -27,4 +27,5 @@ should be accessible:
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("projects/", include("projects.urls")),
+    path("", include("projects.urls")),
 ]
