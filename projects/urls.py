@@ -8,5 +8,4 @@ urlpatterns = [
     path("resume/", views.resume, name="resume"),
     path("qr_code_generator/", views.qr_code_generator, name="qr_code_generator"),
     path("contact/", views.contact, name="contact"),
-    path("", views.home, name="home"),
 ]
