@@ -9,4 +9,9 @@ urlpatterns = [
     path("qr_code_generator/", views.qr_code_generator, name="qr_code_generator"),
     path("contact/", views.contact, name="contact"),
     path("", views.home, name="home"),
+    path(
+        "monte_carlo_simulator/",
+        views.monte_carlo_simulator,
+        name="monte_carlo_simulator",
+    ),
 ]
