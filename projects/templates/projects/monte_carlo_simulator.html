@@ -15,13 +15,26 @@
     <title>Monte Carlo Simulator</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-        <script>
-        $( document ).ready(function() {
-            $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
-        });
-        </script>
-</head>
 
+    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+      // Initially hide the second data range fields
+      $('#two-range-fields').hide();
+    
+      // Show/hide fields based on radio button selection
+      $('input[type=radio][name=data-range]').change(function() {
+        if (this.value === 'one') {
+          $('#one-range-fields').show();
+          $('#two-range-fields').hide();
+        } else if (this.value === 'two') {
+          $('#one-range-fields').show();
+          $('#two-range-fields').show();
+        }
+      });
+    });
+    </script>
+</head>
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
@@ -40,16 +53,54 @@
         </div>
       </nav>
     <br>
-
     <center><h3>Monte Carlo Simulator by Ben Crittenden</h3><br>
         <h5>Enter your parameters below and click "Run Simulation":</h5>
+          <br>
           <div class = "container" style = "width: 100%; max-width: 750px;">
+
             <form method="post" action="{% url 'projects:monte_carlo_simulator' %}">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Run Simulation</button>
-            </form>
+              {% csrf_token %}
+              {% for error in form.sim_quantity.errors %}
+              {{ error|escape }}
+              {% endfor %}
+              <br>
+              {% for error in form.second_sim_quantity.errors %}
+              {{ error|escape }}
+              {% endfor %}
+              <br>
+              <label for="one-range">One Range</label>
+              <input type="radio" name="data-range" id="one-range" value="one" checked>
+              <br><br>
+              <label for="two-ranges">Two Ranges</label>
+              <input type="radio" name="data-range" id="two-ranges" value="two">
+              <br>
+              <br>
+              <div id="one-range-fields">
+              <!-- Form fields for one data range -->
+              {{ form.sim_quantity.label_tag }} <br>
+              {{ form.sim_quantity }} <br>
+              {{ form.min_val.label_tag }} <br>
+              {{ form.min_val }} <br>
+              {{ form.max_val.label_tag }} <br>
+              {{ form.max_val }} <br>
+              {{ form.target_val.label_tag }} <br>
+              {{ form.target_val }} <br>
+              </div>
+              <div id="two-range-fields">
+              <!-- Form fields for the second data range -->
+              {{ form.second_sim_quantity.label_tag }} <br>
+              {{ form.second_sim_quantity }} <br>
+              {{ form.second_min_val.label_tag }} <br>
+              {{ form.second_min_val }} <br>
+              {{ form.second_max_val.label_tag }} <br>
+              {{ form.second_max_val }} <br>
+              {{ form.second_target_val.label_tag }} <br>
+              {{ form.second_target_val }} <br>
+              </div>
+              <button type="submit">Run Simulation</button>
+          </form>
           </div>
+
           <p>Your graph will be downloaded and placed into your default downloads folder.</p>
           <br>
         <a href = "https://github.com/BenCritt/Monte_Carlo_Simulator" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
