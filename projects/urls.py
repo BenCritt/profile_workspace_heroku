@@ -14,4 +14,6 @@ urlpatterns = [
         views.monte_carlo_simulator,
         name="monte_carlo_simulator",
     ),
+    path("weather/", views.weather, name="weather"),
+    path("weather_results/", views.weather, name="weather"),
 ]
