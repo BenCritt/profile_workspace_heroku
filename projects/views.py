@@ -186,23 +186,104 @@ def weather(request):
             city_name, state_name = get_city_and_state(zip_code)
             latitude, longitude = coordinates
         API_KEY_WEATHER = "7e805bf42d5f1713e20456904be7155c"
-        API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=metric"
+        API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
         response = requests.get(API_URL)
         data = json.loads(response.content)
+        icon_code_current = data["current"]["weather"][0]["icon"]
+        icon_url_current = f"https://openweathermap.org/img/wn/{icon_code_current}.png"
+        """
+        # I can currently only get icons working with current weather.
+        # This fix will be on my to-do list.
+        icon_codes_daily = []
+        for day in data["daily"]:
+            icon_codes_daily.append(day["weather"][0]["icon"])
+        icon_url_daily = f"https://openweathermap.org/img/wn/{icon_codes_daily}.png"
+        """
+        current_weather = data["current"]
+        day = data["daily"]
+        current_weather_report = []
+        current_weather_report.append(
+            {
+                "icon_url_current": icon_url_current,
+                "current_temperature": int(current_weather["temp"]),
+                "current_description": data["current"]["weather"][0]["description"],
+                "current_humidity": current_weather.get("humidity", "N/A"),
+                "current_rain": current_weather.get("rain", "No Rain"),
+                "current_snow": current_weather.get("snow", "No Snow"),
+                "current_wind_gust": current_weather.get("wind_gust", "N/A"),
+                "current_wind_speed": current_weather.get("wind_speed", "N/A"),
+                "current_wind_direction": current_weather.get("wind_deg", "N/A"),
+                "current_cloud": current_weather.get("clouds", "N/A"),
+                "current_uv": current_weather.get("uvi", "N/A"),
+                "current_dew": int(current_weather["dew_point"]),
+                "current_visibility": int((current_weather["visibility"]) * 0.00062137),
+                "current_sunrise": datetime.datetime.fromtimestamp(
+                    current_weather["sunrise"]
+                ),
+                "current_sunset": datetime.datetime.fromtimestamp(
+                    current_weather["sunset"]
+                ),
+            }
+        )
+        """
+        # I want to eventually add a Moon phase feature.
+        # I can do this by reporting phase numbers.
+        # I want to report descriptive strings instead of numbers.
+        # This will take some time.
+        # I will likely devote this feature to it's own app, since it's outside the scope of "weather."
+        moon_phase = data["daily"][0]["moon_phase"]
+
+        if moon_phase == 1 or moon_phase == 0:
+            moon_phase = "New Moon"
+        elif moon_phase == 0.25:
+            moon_phase = "First Quarter Moon"
+        elif moon_phase == 0.50:
+            moon_phase = "Full Moon"
+        elif moon_phase == 0.75:
+            moon_phase = "Last Quarter Moon"
+        elif moon_phase < 0.25:
+            moon_phase = "Waxing Crescent Moon"
+        elif 0.25 < moon_phase < 0.5:
+            moon_phase = "Waxing Gibbous Moon"
+        elif 0.5 < moon_phase < 0.75:
+            moon_phase = "Waning Gibbous Moon"
+        elif 0.75 < moon_phase < 1:
+            moon_phase = "Waning Crescent Moon"
+        """
         daily_forecast = []
         for day in data["daily"]:
             daily_forecast.append(
                 {
                     "date": datetime.datetime.fromtimestamp(day["dt"]),
-                    "high_temp": int(day["temp"]["max"] * 9 / 5 + 32),
-                    "low_temp": int(day["temp"]["min"] * 9 / 5 + 32),
+                    "high_temp": int(day["temp"]["max"]),
+                    "low_temp": int(day["temp"]["min"]),
+                    "morn_temp": int(day["temp"]["morn"]),
+                    "morn_temp_feel": int(day["feels_like"]["morn"]),
+                    "day_temp": int(day["temp"]["day"]),
+                    "day_temp_feel": int(day["feels_like"]["day"]),
+                    "eve_temp": int(day["temp"]["eve"]),
+                    "eve_temp_feel": int(day["feels_like"]["eve"]),
+                    "night_temp": int(day["temp"]["night"]),
+                    "night_temp_feel": int(day["feels_like"]["night"]),
+                    "summary": day["summary"],
+                    "sunrise": datetime.datetime.fromtimestamp(day["sunrise"]),
+                    "sunset": datetime.datetime.fromtimestamp(day["sunset"]),
+                    "dew_point": day["dew_point"],
+                    "humidity": day["humidity"],
+                    "precipitation_chance": day["pop"],
+                    # "icon_url_daily": icon_url_daily,
+                    # "moon:phase": moon_phase,
+                    # "moon_phase": day["moon_phase"],
+                    # "moonrise": datetime.datetime.fromtimestamp(day["moonrise"]),
+                    # "moonset": datetime.datetime.fromtimestamp(day["moonset"]),
                 }
             )
 
         context = {
-            "daily_forecast": daily_forecast[:8],
+            "daily_forecast": daily_forecast,
             "city_name": city_name,
             "state_name": state_name,
+            "current_weather_report": current_weather_report,
         }
 
         return render(request, "projects/weather_results.html", context)
