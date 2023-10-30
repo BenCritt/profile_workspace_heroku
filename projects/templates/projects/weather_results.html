@@ -200,27 +200,6 @@
             </tbody>
         </table>
         <br>
-        <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
-          <caption>Sunrise and Sunset</caption>
-            <thead>
-            <tr>
-                <th>Sunrise</th>
-                <th>Sunset</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for day in daily_forecast %}
-                <tr>
-                <td>{{day.sunrise }}</td>
-                <td>{{day.sunset }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
         {% endif %}
       </div>
         {% endblock %}
