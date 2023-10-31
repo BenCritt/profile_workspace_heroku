@@ -11,6 +11,11 @@ from pyzipcode import ZipCodeDatabase
 import numpy as np
 import matplotlib.pyplot as plt
 from .forms import MonteCarloForm
+from django.shortcuts import redirect
+
+
+def view_404(request, exception):
+    return redirect("/")
 
 
 def home(request):
