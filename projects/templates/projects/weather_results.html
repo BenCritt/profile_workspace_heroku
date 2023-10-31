@@ -1,61 +1,39 @@
 <html lang="en" data-bs-theme="dark">
-    <head>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-64B7LMZXKN');
-        </script>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Weather Forecast</title>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-            <script>
-            $( document ).ready(function() {
-                $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
-            });
-            </script>
-        <style>.table td {
-          vertical-align: middle;
-        }</style>
-    </head>
+  <head>
+    <!-- This code is for Google Analytics tools. -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-64B7LMZXKN');
+    </script>
+
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+
+    <!-- This is table formatting for when the weather data is displayed to the user. -->
+    <style>.table td {
+      vertical-align: middle;
+      caption-side: top;
+      text-align: center;
+    }</style>
+    <title>Weather Forecast</title>
+  </head>
     <body>
-        <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
-            <div class="container-fluid">
-              <a class="navbar-brand" href="/projects/home/">Ben Crittenden</a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav">
-                  <a class="nav-link" href="/projects/resume/">Résumé</a>
-                  <a class="nav-link" href="/projects/qr_code_generator/">QR Code Generator</a>
-                  <a class="nav-link" href="/projects/monte_carlo_simulator/">Monte Carlo Simulator</a>
-                  <a class="nav-link" href="/projects/weather/">Weather Forecast</a>
-                  <a class="nav-link" href="/projects/contact/">Contact</a>
-                </div>
-              </div>
-            </div>
-        </nav>
-        <br>
         <center>
-        {% block content %}
-        <br><br><br><br><br>
-        <h3>Weather Forecast by Ben Crittenden</h3>
+        <h3>Weather Forecast App by Ben Crittenden</h3>
         <br>
         <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
         <br>
         <div class = "container" style = "width: 100%; max-width: 750px;">
         {% if current_weather_report %}
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
           <caption>Current Overview</caption>
             <thead>
             <tr>
@@ -71,14 +49,11 @@
                   <td>{{ current.current_temperature }} °F</td>
                   <td>{{ current.current_humidity }}%</td>
                 </tr>
-            {% endfor %}
+              {% endfor %}
             </tbody>
         </table>
         <br>
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
           <caption>Current Wind Information</caption>
             <thead>
             <tr>
@@ -95,14 +70,11 @@
                   <td>{{ current.current_wind_direction }}°</td>
 
                 </tr>
-            {% endfor %}
+              {% endfor %}
             </tbody>
         </table>
         <br>
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
           <caption>Other Current Information</caption>
             <thead>
             <tr>
@@ -126,9 +98,6 @@
         {% endif %}
         {% if daily_forecast %}
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
           <caption>Basic Forecast</caption>
             <thead>
             <tr>
@@ -151,9 +120,6 @@
         </table>
         <br>
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
           <caption>Morning, Day, Evening and Night Temperatures (Feels Like)</caption>
             <thead>
             <tr>
@@ -178,10 +144,7 @@
         </table>
         <br>
         <table class="table table-striped">
-          <style>.table {
-            caption-side: top;
-          }</style>
-          <caption>Basic Forecast</caption>
+          <caption>Humidity and Dew Point Forecast</caption>
             <thead>
             <tr>
                 <th>Date</th>
@@ -202,7 +165,6 @@
         <br>
         {% endif %}
       </div>
-        {% endblock %}
         <br>
         <button type="button" class="btn btn-secondary" onclick="window.location.href='/projects/weather/'">Check Weather Again</button>
         <br><br><br>
@@ -211,4 +173,5 @@
         </svg></a>
     </center>
     </body>
+    {% endblock content %}
 </html>
