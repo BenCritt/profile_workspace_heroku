@@ -16,4 +16,5 @@ urlpatterns = [
     ),
     path("weather/", views.weather, name="weather"),
     path("weather_results/", views.weather, name="weather"),
+    path("all_projects/", views.all_projects, name="all_projects"),
 ]

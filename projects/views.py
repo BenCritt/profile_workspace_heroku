@@ -282,3 +282,7 @@ def weather(request):
             "form": form,
         }
         return render(request, "projects/weather.html", context)
+
+
+def all_projects(request):
+    return render(request, "projects/all_projects.html")
