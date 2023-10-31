@@ -1,20 +1,16 @@
 from django import forms
-from .models import Review
-from django.forms import ModelForm
 from django.core.exceptions import ValidationError
 from pyzipcode import ZipCodeDatabase
+from django import forms
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class ReviewForm(forms.Form):
+class QRForm(forms.Form):
     qr_text = forms.CharField(
         label="",
         max_length=8000,
         widget=forms.TextInput(attrs={"class": "myform", "size": 80}),
     )
-
-
-from django import forms
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class MonteCarloForm(forms.Form):

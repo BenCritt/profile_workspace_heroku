@@ -1,6 +1,5 @@
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from .forms import ReviewForm
+from django.shortcuts import render
+from .forms import QRForm
 import os
 import qrcode
 from django.http import HttpResponse
@@ -8,9 +7,10 @@ from .forms import WeatherForm
 import requests
 import json
 import datetime
-from django.shortcuts import render
-from django.core.exceptions import ValidationError
 from pyzipcode import ZipCodeDatabase
+import numpy as np
+import matplotlib.pyplot as plt
+from .forms import MonteCarloForm
 
 
 def home(request):
@@ -23,7 +23,7 @@ def resume(request):
 
 def qr_code_generator(request):
     if request.method == "POST":
-        form = ReviewForm(request.POST)
+        form = QRForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data["qr_text"]
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -42,25 +42,13 @@ def qr_code_generator(request):
                 response = HttpResponse(f.read(), content_type="image/png")
                 response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
                 return response
-            return render(
-                request,
-                "projects/qr_code_generator.html",
-                context={"form": form},
-            )
     else:
-        form = ReviewForm
+        form = QRForm
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
 
 def contact(request):
     return render(request, "projects/contact.html")
-
-
-from django.shortcuts import render
-from pathlib import Path
-import numpy as np
-import matplotlib.pyplot as plt
-from .forms import MonteCarloForm
 
 
 def monte_carlo_simulator(request):

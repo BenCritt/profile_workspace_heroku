@@ -18,11 +18,17 @@
     {% block content %}
 
     <!-- This is table formatting for when the weather data is displayed to the user. -->
-    <style>.table td {
+    <!-- This isn't working for captions right now and I don't know why. -->
+    <style>
+      .table td {
       vertical-align: middle;
       caption-side: top;
       text-align: center;
-    }</style>
+    }
+      .table th {
+        text-align: center;
+    }
+    </style>
     <title>Weather Forecast</title>
   </head>
     <body>
