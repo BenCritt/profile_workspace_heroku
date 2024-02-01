@@ -131,7 +131,7 @@ def monte_carlo_simulator(request):
 
 
 def get_coordinates(zip_code):
-    API_KEY_LOCATION = "AIzaSyDgTeYWJgkaaINk79nGU3zCMbqCGTiqwNk"
+    API_KEY_LOCATION = "AIzaSyD0xBXRANSgMPe8HvaE2rSmm7u8E8QYAyM"
     API_URL = f"https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={API_KEY_LOCATION}"
     response = requests.get(API_URL)
     data = json.loads(response.content)
@@ -143,7 +143,7 @@ def get_coordinates(zip_code):
 
 
 def get_city_and_state(zip_code):
-    API_KEY_CITY = "AIzaSyDgTeYWJgkaaINk79nGU3zCMbqCGTiqwNk"
+    API_KEY_CITY = "AIzaSyD0xBXRANSgMPe8HvaE2rSmm7u8E8QYAyM"
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={API_KEY_CITY}"
     response = requests.get(url)
     data = json.loads(response.content)
