@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://bencrittenden.com",
-    "https://www.bencrittenden.com/",
+    "https://www.bencrittenden.com",
     "https://bencritt-14166e04de86.herokuapp.com/",
     "https://bencritt.net",
     "https://www.betncritt.net",
