@@ -27,9 +27,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-8r3!59w$m@=4692d!+*)z$=em068%#kxmj#s98_akxrudag*-#"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://bencrittenden.com",
+    "https://www.bencrittenden.com/",
+    "https://bencritt-14166e04de86.herokuapp.com/",
+    "https://bencritt.net",
+    "https://www.betncritt.net",
+]
 """
 "127.0.0.1", "localhost", 
 """
