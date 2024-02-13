@@ -36,7 +36,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.bencrittenden.com",
     "https://bencritt-14166e04de86.herokuapp.com/",
     "https://bencritt.net",
-    "https://www.betncritt.net",
+    "https://www.bencritt.net",
     "https://bencritt.com",
     "https://www.betncritt.com",
     "https://bencritt.org",
