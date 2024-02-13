@@ -31,17 +31,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://bencrittenden.com",
-    "https://www.bencrittenden.com",
-    "https://bencritt-14166e04de86.herokuapp.com/",
-    "https://bencritt.net",
-    "https://www.betncritt.net",
-    "https://bencritt.com",
-    "https://www.betncritt.com",
-    "https://bencritt.org",
-    "https://www.betncritt.org",
-]
+CSRF_TRUSTED_ORIGINS = ["*"]
 """
 "127.0.0.1", "localhost", 
 """
