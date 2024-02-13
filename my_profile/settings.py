@@ -32,12 +32,11 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://bencritt.net",
+    "https://www.bencritt.net",
     "https://bencrittenden.com",
     "https://www.bencrittenden.com",
     "https://bencritt-14166e04de86.herokuapp.com/",
-    "https://bencritt.net",
-    "https://www.bencritt.net",
-    "https://bencritt.com",
     "https://www.betncritt.com",
     "https://bencritt.org",
     "https://www.betncritt.org",
@@ -49,10 +48,11 @@ CSRF_TRUSTED_ORIGINS = [
 """
 "127.0.0.1", "localhost", 
 """
-
+"""
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_USE_SESSIONS = True
+"""
 
 
 # Application definition
