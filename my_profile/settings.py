@@ -43,6 +43,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.betncritt.org",
     "opaque-goldfish-bxnapirfpwq30j0v5z7f7gqc.herokudns.com",
     "angular-skunk-ee1kbbd962x9npzz6gjgrxk7.herokudns.com",
+    "bencritt.net",
+    "www.bencritt.net",
 ]
 """
 "127.0.0.1", "localhost", 
