@@ -31,7 +31,19 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
-CSRF_TRUSTED_ORIGINS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://bencrittenden.com",
+    "https://www.bencrittenden.com",
+    "https://bencritt-14166e04de86.herokuapp.com/",
+    "https://bencritt.net",
+    "https://www.betncritt.net",
+    "https://bencritt.com",
+    "https://www.betncritt.com",
+    "https://bencritt.org",
+    "https://www.betncritt.org",
+    "opaque-goldfish-bxnapirfpwq30j0v5z7f7gqc.herokudns.com",
+    "angular-skunk-ee1kbbd962x9npzz6gjgrxk7.herokudns.com",
+]
 """
 "127.0.0.1", "localhost", 
 """
