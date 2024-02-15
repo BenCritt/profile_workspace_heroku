@@ -10,7 +10,6 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
-
     <meta name="viewport">
     <meta name="description" content="Projects made by Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
@@ -18,6 +17,32 @@
     <meta property="og:title" content="Projects made by Ben Crittenden" />
     <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, and a simple wealther app.  They are coded in Python." />
     <title>Ben Crittenden's Projects</title>
+    <style>
+      .container h2 {
+          text-align: center;
+        }
+      .container .col-lg-6 h2 {
+          text-align: center;
+          margin: 0 auto;
+        }
+      .container .col-lg-6.order-lg-last {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+        .container img {
+          max-width: 100%;
+          height: auto;
+        }
+      .container .col-lg-6.order-lg-last h2 {
+          text-align: center;
+          margin: 0 auto;
+        }
+      .container img {
+          display: block;
+          margin: 0 auto;
+        }
+  </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -35,42 +60,15 @@
         ]
       }
       </script>
+    <!-- This centers all app name headers over their images. -->
+  </head>
+  <body>
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
     {% load static %}
-
+    
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-    <!-- This centers all app name headers over their images. -->
-    <style>
-        .container h2 {
-            text-align: center;
-          }
-        .container .col-lg-6 h2 {
-            text-align: center;
-            margin: 0 auto;
-          }
-        .container .col-lg-6.order-lg-last {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-          }
-          .container img {
-            max-width: 100%;
-            height: auto;
-          }
-        .container .col-lg-6.order-lg-last h2 {
-            text-align: center;
-            margin: 0 auto;
-          }
-          
-        .container img {
-            display: block;
-            margin: 0 auto;
-          }
-    </style>
-  </head>
-  <body>
     <center><h1>Ben Crittenden's Projects</h1></center>
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">

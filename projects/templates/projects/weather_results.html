@@ -35,12 +35,6 @@
         ]
       }
     </script>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
 
     <!-- This is table formatting for when the weather data is displayed to the user. -->
     <!-- This isn't working for captions right now and I don't know why. -->
@@ -55,12 +49,18 @@
     }
     </style>
   </head>
-    <body>
-        <center>
-        <h1>Weather Forecast App by Ben Crittenden</h1>
-        <br>
-        <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
-        <br>
+  <body>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+    
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <center>
+     <h1>Weather Forecast App by Ben Crittenden</h1>
+      <br>
+      <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
+      <br>
         <div class = "container" style = "width: 100%; max-width: 750px;">
         {% if current_weather_report %}
         <table class="table table-striped">

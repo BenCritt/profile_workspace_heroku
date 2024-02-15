@@ -35,12 +35,6 @@
         ]
       }
     </script>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <!-- This allows the user to select one of two options for number of simulations. -->
     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -62,6 +56,12 @@
     </script>
   </head>
   <body>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+    
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
     <center><h1>Monte Carlo Simulator by Ben Crittenden</h1><br>
         <h5>Enter your parameters below and click "Run Simulation":</h5>
           <br>
