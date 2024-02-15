@@ -10,8 +10,7 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
-
-    <meta name="viewport">
+    <meta name="viewport" "content="width=device-width, initial-scale=1>
     <meta name="description" content="Weather Forecast App by Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Weather, Ben Crittenden">
     <meta name="author" content="Ben Crittenden">
@@ -35,12 +34,6 @@
         ]
       }
     </script>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <!-- This prevents the error message from displaying as a bullet point. -->
     <style>
       .errorlist {
@@ -49,6 +42,12 @@
     </style>
   </head>
   <body>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+    
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
     <br>
     <center>
       <h1>Weather Forecast App by Ben Crittenden</h1>
