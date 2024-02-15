@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <!-- This code is for Google Analytics tools. -->
@@ -9,6 +10,13 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
+
+    <meta name="viewport">
+    <meta name="description" content="Projects made by Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
+    <meta name="author" content="Ben Crittenden">
+    <meta property="og:title" content="Projects made by Ben Crittenden" />
+    <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, and a simple wealther app.  They are coded in Python." />
 
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
@@ -43,11 +51,12 @@
             display: block;
             margin: 0 auto;
           }
+
+         h1 { 
+          font-size: 90%; 
+        }
     </style>
     <title>Ben Crittenden's Projects</title>
-    <meta name="description" content="Projects made by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

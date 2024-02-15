@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <!-- This code is for Google Analytics tools. -->
@@ -10,6 +11,13 @@
       gtag('config', 'G-64B7LMZXKN');
     </script>
 
+    <meta name="viewport">
+    <meta name="description" content="Monte Carlo Simulator by Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, Monte Carlo Simulator, Ben Crittenden">
+    <meta name="author" content="Ben Crittenden">
+    <meta property="og:title" content="Monte Carlo Simulator by Ben Crittenden" />
+    <meta property="og:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device." />
+
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
     {% load static %}
@@ -17,9 +25,9 @@
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <title>Monte Carlo Simulator</title>
-    <meta name="description" content="Monte Carlo Simulator by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Monte Carlo Simulator, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
+    <style>
+      h1 { font-size: 85%; }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -36,7 +44,7 @@
 
         ]
       }
-      </script>
+    </script>
     <!-- This allows the user to select one of two options for number of simulations. -->
     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -58,7 +66,7 @@
     </script>
   </head>
   <body>
-    <center><h3>Monte Carlo Simulator by Ben Crittenden</h3><br>
+    <center><h1>Monte Carlo Simulator by Ben Crittenden</h1><br>
         <h5>Enter your parameters below and click "Run Simulation":</h5>
           <br>
           <div class = "container" style = "width: 100%; max-width: 750px;">

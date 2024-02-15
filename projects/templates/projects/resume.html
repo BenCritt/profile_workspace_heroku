@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <!-- This code is for Google Analytics tools. -->
@@ -10,6 +11,13 @@
       gtag('config', 'G-64B7LMZXKN');
     </script>
 
+    <meta name="viewport">
+    <meta name="description" content="The documented qualifications of Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, Resume, Qualifications, Ben Crittenden">
+    <meta name="author" content="Ben Crittenden">
+    <meta property="og:title" content="Ben Crittenden's Qualifications" />
+    <meta property="og:description" content="This page leads to documentation of my qualifications." />
+
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
     {% load static %}
@@ -17,9 +25,9 @@
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <title>My Résumé</title>
-    <meta name="description" content="The documented qualifications of Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Resume, Qualifications, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
+    <style>
+      h1 { font-size: 85%; }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -41,7 +49,7 @@
   <body>
     <br>
     <center>
-      <h3>The links below lead to documentation of my qualifications.</h3><br>
+      <h1>The links below lead to documentation of my qualifications.</h1><br>
       <p>
         <a class = "btn btn-secondary" href = "https://drive.google.com/file/d/10gtfHDHaSBWZE-Yo7kPb6DoMjFCwqA1C/view?usp=drive_link" target="_blank" rel="noopener noreferrer">Résumé</a>
         <a class = "btn btn-secondary" href = "https://drive.google.com/drive/folders/1OEtUG7cDOXsB2OWAuOSbQkT4fl3gwKzj?usp=drive_link" target="_blank" rel="noopener noreferrer">Credentials</a>

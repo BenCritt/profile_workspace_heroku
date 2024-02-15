@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <!-- This code is for Google Analytics tools. -->
@@ -10,6 +11,13 @@
       gtag('config', 'G-64B7LMZXKN');
     </script>
 
+    <meta name="viewport">
+    <meta name="description" content="QR Code Generator by Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, QR Code Generator, Ben Crittenden">
+    <meta name="author" content="Ben Crittenden">
+    <meta property="og:title" content="QR Code Generator by Ben Crittenden" />
+    <meta property="og:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device." />
+
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
     {% load static %}
@@ -17,9 +25,9 @@
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <title>QR Code Generator</title>
-    <meta name="description" content="QR Code Generator by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, QR Code Generator, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
+    <style>
+      h1 { font-size: 85%; }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -39,7 +47,7 @@
       </script>
   </head>
   <body>
-    <center><h3>QR Code Generator by Ben Crittenden</h3><br>
+    <center><h1>QR Code Generator by Ben Crittenden</h1><br>
       <h5>Enter your text below and click submit:</h5>
         <div class = "container" style = "width: 100%; max-width: 750px;">
             <form method = "POST">

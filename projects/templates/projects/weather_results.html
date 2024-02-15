@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
     <!-- This code is for Google Analytics tools. -->
@@ -9,6 +10,13 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
+
+    <meta name="viewport">
+    <meta name="description" content="Weather Forecast App by Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, Weather, Ben Crittenden">
+    <meta name="author" content="Ben Crittenden">
+    <meta property="og:title" content="Weather Forecast App by Ben Crittenden" />
+    <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information." />
 
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
@@ -28,11 +36,11 @@
       .table th {
         text-align: center;
     }
+      h1 { 
+      font-size: 85%; 
+    }
     </style>
     <title>Weather Forecast</title>
-    <meta name="description" content="Weather Forecast App by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Weather, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -53,7 +61,7 @@
   </head>
     <body>
         <center>
-        <h3>Weather Forecast App by Ben Crittenden</h3>
+        <h1>Weather Forecast App by Ben Crittenden</h1>
         <br>
         <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
         <br>
