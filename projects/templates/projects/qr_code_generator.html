@@ -17,13 +17,6 @@
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="QR Code Generator by Ben Crittenden" />
     <meta property="og:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device." />
-
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <title>QR Code Generator</title>
     <script type="application/ld+json">
       {
@@ -42,6 +35,13 @@
         ]
       }
       </script>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+
   </head>
   <body>
     <center><h1>QR Code Generator by Ben Crittenden</h1><br>

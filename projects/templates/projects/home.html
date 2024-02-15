@@ -10,20 +10,12 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
-
     <meta name="viewport">
     <meta name="description" content="The professional profile of Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Ben Crittenden">
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Ben Crittenden's Professional Profile" />
     <meta property="og:description" content="This is the professional profile of Ben Crittenden." />
-
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <title>Ben Crittenden's Professional Profile</title>
     <script type="application/ld+json">
       {
@@ -42,6 +34,12 @@
         ]
       }
       </script>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
   </head>
   <body>
       <center>

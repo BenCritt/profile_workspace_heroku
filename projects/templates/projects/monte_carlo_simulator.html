@@ -17,13 +17,6 @@
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Monte Carlo Simulator by Ben Crittenden" />
     <meta property="og:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device." />
-
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <title>Monte Carlo Simulator</title>
     <script type="application/ld+json">
       {
@@ -42,6 +35,12 @@
         ]
       }
     </script>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
     <!-- This allows the user to select one of two options for number of simulations. -->
     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>

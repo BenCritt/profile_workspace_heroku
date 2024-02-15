@@ -10,20 +10,12 @@
       gtag('js', new Date());
       gtag('config', 'G-64B7LMZXKN');
     </script>
-
     <meta name="viewport">
     <meta name="description" content="The documented qualifications of Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Resume, Qualifications, Ben Crittenden">
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Ben Crittenden's Qualifications" />
     <meta property="og:description" content="This page leads to documentation of my qualifications." />
-
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <title>My Résumé</title>
     <script type="application/ld+json">
       {
@@ -41,7 +33,13 @@
 
         ]
       }
-      </script>
+    </script>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
   </head>
   <body>
     <br>

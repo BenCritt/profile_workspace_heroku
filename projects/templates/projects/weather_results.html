@@ -17,7 +17,24 @@
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Weather Forecast App by Ben Crittenden" />
     <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information." />
+    <title>Weather Forecast</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net",
+        "sameAs": [
+          "https://www.linkedin.com/in/bencritt/",
+          "https://github.com/BenCritt",
+          "https://stackoverflow.com/users/21613304/ben-crittenden",
+          "https://www.bencritt.com",
+          "https://www.bencritt.org",
+          "https://www.bencrittenden.com"
 
+        ]
+      }
+    </script>
     <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
     {% extends "projects/base.html" %}
     {% load static %}
@@ -37,24 +54,6 @@
         text-align: center;
     }
     </style>
-    <title>Weather Forecast</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net",
-        "sameAs": [
-          "https://www.linkedin.com/in/bencritt/",
-          "https://github.com/BenCritt",
-          "https://stackoverflow.com/users/21613304/ben-crittenden",
-          "https://www.bencritt.com",
-          "https://www.bencritt.org",
-          "https://www.bencrittenden.com"
-
-        ]
-      }
-      </script>
   </head>
     <body>
         <center>

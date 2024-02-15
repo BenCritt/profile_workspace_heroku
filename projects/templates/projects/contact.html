@@ -17,15 +17,7 @@
     <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Ben Crittenden's Contact Information" />
     <meta property="og:description" content="This is how you can contact me." />
-
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
     <title>Contact</title>
-
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -43,6 +35,13 @@
         ]
       }
       </script>
+    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+    {% extends "projects/base.html" %}
+    {% load static %}
+
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+
   </head>
   <body>
     <table class="table">
