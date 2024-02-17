@@ -1,205 +1,171 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-  <head>
-    <!-- This code is for Google Analytics tools. -->
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-64B7LMZXKN');
-    </script>
-    <meta name="viewport" "content="width=device-width, initial-scale=1>
-    <meta name="description" content="Weather Forecast App by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Weather, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
-    <meta property="og:title" content="Weather Forecast App by Ben Crittenden" />
-    <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information." />
-    <title>Weather Forecast</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net",
-        "sameAs": [
-          "https://www.linkedin.com/in/bencritt/",
-          "https://github.com/BenCritt",
-          "https://stackoverflow.com/users/21613304/ben-crittenden",
-          "https://www.bencritt.com",
-          "https://www.bencritt.org",
-          "https://www.bencrittenden.com"
-
-        ]
-      }
-    </script>
-    <!-- This is table formatting for when the weather data is displayed to the user. -->
-    <!-- This isn't working for captions right now and I don't know why. -->
-    <style>
-      .table td {
-      vertical-align: middle;
-      caption-side: top;
-      text-align: center;
-    }
-      .table th {
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+<!-- {% load static %} -->
+      {% block page_head %}
+      <!-- This is table formatting for when the weather data is displayed to the user. -->
+      <!-- This isn't working for captions right now and I don't know why. -->
+      <style>
+        .table td {
+        vertical-align: middle;
+        caption-side: top;
         text-align: center;
-    }
-    </style>
-  </head>
-  <body>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-    
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
-    <center>
-     <h1>Weather Forecast App by Ben Crittenden</h1>
-      <br>
-      <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
-      <br>
-        <div class = "container" style = "width: 100%; max-width: 750px;">
-        {% if current_weather_report %}
-        <table class="table table-striped">
-          <caption>Current Overview</caption>
-            <thead>
-            <tr>
-                <th>Current Description</th>
-                <th>Current Temperature</th>
-                <th>Current Humidity</th>
-            </tr>
-            </thead>
-            <tbody>
-              {% for current in current_weather_report %}
-                <tr>
-                  <td><img src="{{ current.icon_url_current }}"><br>{{ current.current_description }}</td>
-                  <td>{{ current.current_temperature }} °F</td>
-                  <td>{{ current.current_humidity }}%</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-        </table>
+      }
+        .table th {
+          text-align: center;
+      }
+      </style>
+      <meta name="description" content="Weather Forecast App by Ben Crittenden.">
+      <meta name="keywords" content="Crittenden, Professional, Profile, Weather, Ben Crittenden">
+      <meta property="og:title" content="Weather Forecast App by Ben Crittenden" />
+      <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information." />
+      {% block title %}Weather Forecast{% endblock title %}
+      {% endblock page_head %}
+      <!-- This begins the contents that are unique to this page. -->
+      {% block content %}
+      <center>
+      <h1>Weather Forecast App by Ben Crittenden</h1>
         <br>
-        <table class="table table-striped">
-          <caption>Current Wind Information</caption>
-            <thead>
-            <tr>
-                <th>Current Wind Speed</th>
-                <th>Current Wind Gusts</th>
-                <th>Current Wind Direction</th>
-            </tr>
-            </thead>
-            <tbody>
-              {% for current in current_weather_report %}
-                <tr>
-                  <td>{{ current.current_wind_speed }} mph</td>
-                  <td>{{ current.current_wind_gust }} mph</td>
-                  <td>{{ current.current_wind_direction }}°</td>
+        <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
+        <br>
+          <div class = "container" style = "width: 100%; max-width: 750px;">
+          {% if current_weather_report %}
+          <table class="table table-striped">
+            <caption>Current Overview</caption>
+              <thead>
+              <tr>
+                  <th>Current Description</th>
+                  <th>Current Temperature</th>
+                  <th>Current Humidity</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for current in current_weather_report %}
+                  <tr>
+                    <td><img src="{{ current.icon_url_current }}"><br>{{ current.current_description }}</td>
+                    <td>{{ current.current_temperature }} °F</td>
+                    <td>{{ current.current_humidity }}%</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+          <br>
+          <table class="table table-striped">
+            <caption>Current Wind Information</caption>
+              <thead>
+              <tr>
+                  <th>Current Wind Speed</th>
+                  <th>Current Wind Gusts</th>
+                  <th>Current Wind Direction</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for current in current_weather_report %}
+                  <tr>
+                    <td>{{ current.current_wind_speed }} mph</td>
+                    <td>{{ current.current_wind_gust }} mph</td>
+                    <td>{{ current.current_wind_direction }}°</td>
 
-                </tr>
+                  </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+          <br>
+          <table class="table table-striped">
+            <caption>Other Current Information</caption>
+              <thead>
+              <tr>
+                  <th>UV Index</th>
+                  <th>Dew Point</th>
+                  <th>Visibility</th>
+                  <th>Cloud Coverage</th>
+              </tr>
+              </thead>
+              <tbody>
+                {% for current in current_weather_report %}
+                  <tr>
+                    <td>{{ current.current_uv }}</td>
+                    <td>{{ current.current_dew }} °F</td>
+                    <td>{{ current.current_visibility }} miles</td>
+                    <td>{{ current.current_cloud }}%</td>
+                  </tr>
               {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <table class="table table-striped">
-          <caption>Other Current Information</caption>
-            <thead>
-            <tr>
-                <th>UV Index</th>
-                <th>Dew Point</th>
-                <th>Visibility</th>
-                <th>Cloud Coverage</th>
-            </tr>
-            </thead>
-            <tbody>
-              {% for current in current_weather_report %}
-                <tr>
-                  <td>{{ current.current_uv }}</td>
-                  <td>{{ current.current_dew }} °F</td>
-                  <td>{{ current.current_visibility }} miles</td>
-                  <td>{{ current.current_cloud }}%</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% endif %}
-        {% if daily_forecast %}
-        <table class="table table-striped">
-          <caption>Basic Forecast</caption>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>High/Low Temp</th>
-                <th>Precipitation Chance</th>
-                <th>Forecast Summary</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for day in daily_forecast %}
-                <tr>
-                <td>{{ day.date|date:"F d, Y" }}</td>
-                <td>H: {{ day.high_temp }} °F / L: {{ day.low_temp }}°F</td>
-                <td>{{day.precipitation_chance}}%</td>
-                <td>{{day.summary }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <table class="table table-striped">
-          <caption>Morning, Day, Evening and Night Temperatures (Feels Like)</caption>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Morning</th>
-                <th>Day</th>
-                <th>Evening</th>
-                <th>Night</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for day in daily_forecast %}
-                <tr>
-                <td>{{ day.date|date:"F d, Y" }}</td>
-                <td>{{ day.morn_temp }} °F ({{ day.morn_temp_feel }} °F)</td>
-                <td>{{ day.day_temp }} °F ({{ day.day_temp_feel }} °F)</td>
-                <td>{{ day.eve_temp }} °F ({{ day.eve_temp_feel }} °F)</td>
-                <td>{{ day.night_temp }} °F ({{ day.night_temp_feel }} °F)</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <table class="table table-striped">
-          <caption>Humidity and Dew Point Forecast</caption>
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Humidity</th>
-                <th>Dew Point</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for day in daily_forecast %}
-                <tr>
-                <td>{{ day.date|date:"F d, Y" }}</td>
-                <td>{{day.humidity}}%</td>
-                <td>{{day.dew_point}} °F</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        {% endif %}
-      </div>
-        <br>
-        <button type="button" class="btn btn-secondary" onclick="window.location.href='/projects/weather/'">Check Weather Again</button>
-        <br><br><br>
-        <a href = "https://github.com/BenCritt/Weather_Forecast_App" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-        </svg></a>
-    </center>
-    </body>
-    {% endblock content %}
-</html>
+              </tbody>
+          </table>
+          {% endif %}
+          {% if daily_forecast %}
+          <table class="table table-striped">
+            <caption>Basic Forecast</caption>
+              <thead>
+              <tr>
+                  <th>Date</th>
+                  <th>High/Low Temp</th>
+                  <th>Precipitation Chance</th>
+                  <th>Forecast Summary</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for day in daily_forecast %}
+                  <tr>
+                  <td>{{ day.date|date:"F d, Y" }}</td>
+                  <td>H: {{ day.high_temp }} °F / L: {{ day.low_temp }}°F</td>
+                  <td>{{day.precipitation_chance}}%</td>
+                  <td>{{day.summary }}</td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+          <br>
+          <table class="table table-striped">
+            <caption>Morning, Day, Evening and Night Temperatures (Feels Like)</caption>
+              <thead>
+              <tr>
+                  <th>Date</th>
+                  <th>Morning</th>
+                  <th>Day</th>
+                  <th>Evening</th>
+                  <th>Night</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for day in daily_forecast %}
+                  <tr>
+                  <td>{{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.morn_temp }} °F ({{ day.morn_temp_feel }} °F)</td>
+                  <td>{{ day.day_temp }} °F ({{ day.day_temp_feel }} °F)</td>
+                  <td>{{ day.eve_temp }} °F ({{ day.eve_temp_feel }} °F)</td>
+                  <td>{{ day.night_temp }} °F ({{ day.night_temp_feel }} °F)</td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+          <br>
+          <table class="table table-striped">
+            <caption>Humidity and Dew Point Forecast</caption>
+              <thead>
+              <tr>
+                  <th>Date</th>
+                  <th>Humidity</th>
+                  <th>Dew Point</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for day in daily_forecast %}
+                  <tr>
+                  <td>{{ day.date|date:"F d, Y" }}</td>
+                  <td>{{day.humidity}}%</td>
+                  <td>{{day.dew_point}} °F</td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+          <br>
+          {% endif %}
+        </div>
+          <br>
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='/projects/weather/'">Check Weather Again</button>
+          <br><br><br>
+          <a href = "https://github.com/BenCritt/Weather_Forecast_App" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg></a>
+      </center>
+  {% endblock content %}

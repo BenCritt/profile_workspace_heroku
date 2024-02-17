@@ -1,22 +1,11 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-  <head>
-    <!-- This code is for Google Analytics tools. -->
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-64B7LMZXKN');
-    </script>
-    <meta name="viewport" "content="width=device-width, initial-scale=1>
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+<!-- {% load static %} -->
+    {% block page_head %}
     <meta name="description" content="Projects made by Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Projects made by Ben Crittenden" />
     <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, and a simple wealther app.  They are coded in Python." />
-    <title>Ben Crittenden's Projects</title>
     <style>
       .container h2 {
           text-align: center;
@@ -42,39 +31,22 @@
           display: block;
           margin: 0 auto;
         }
-  </style>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net",
-        "sameAs": [
-          "https://www.linkedin.com/in/bencritt/",
-          "https://github.com/BenCritt",
-          "https://stackoverflow.com/users/21613304/ben-crittenden",
-          "https://www.bencritt.com",
-          "https://www.bencritt.org",
-          "https://www.bencrittenden.com"
+    </style>
+    {% block title %}Ben Crittenden's Projects{% endblock title %}
+    {% endblock page_head %}
 
-        ]
-      }
-      </script>
-    <!-- This centers all app name headers over their images. -->
-  </head>
-  <body>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-    
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <center><h1>Ben Crittenden's Projects</h1></center>
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
             <div class="col-lg-6">
-                <h2 class="fw-bolder">Monte Carlo Simulator</h2>
-                <div class="container"><a href = "/projects/monte_carlo_simulator/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/mcs_logo.png' %}" alt="..." /></a></div>
+                <div class="text-center">
+                  <h2 class="fw-bolder">Monte Carlo Simulator</h2>
+                    <a href="/projects/monte_carlo_simulator/">
+                        <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/mcs_logo.png' %}" alt="..." />
+                    </a>
+                </div>
             </div>
             <div class="col-lg-6">
                 <br>
@@ -86,12 +58,16 @@
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
           <div class="col-lg-6 order-lg-last">
-            <h2 class="fw-bolder">QR Code Generator</h2>
-            <a href = "/projects/qr_code_generator/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/qrcode_logo.png' %}" alt="..." /></a>
+              <div class="text-center">
+                <h2 class="fw-bolder">QR Code Generator</h2>
+                  <a href="/projects/qr_code_generator/">
+                      <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/qrcode_logo.png' %}" alt="..." />                    
+                  </a>
+              </div>
           </div>
           <div class="col-lg-6">
-            <br>
-            <p class="lead fw-normal text-muted mb-0">The QR Code Generator can generate a QR code out of any characters you submit.  Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder. </p>
+              <br>
+              <p class="lead fw-normal text-muted mb-0">The QR Code Generator can generate a QR code out of any characters you submit.  Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder. </p>
           </div>
         </div>
       </div>
@@ -99,9 +75,11 @@
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
             <div class="col-lg-6">
-                <h2 class="fw-bolder">Weather Forecast App</h2>
-                <div class="container">
-                    <a href = "/projects/weather/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/weather_logo.png' %}" alt="..." /></a>
+                <div class="text-center">
+                  <h2 class="fw-bolder">Weather Forecast App</h2>
+                    <a href="/projects/weather/">
+                        <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/weather_logo.png' %}" alt="..." />                        
+                    </a>
                 </div>
             </div>
             <div class="col-lg-6">
@@ -110,5 +88,47 @@
             </div>
         </div>
     </div>
-{% endblock content %}
-</html>
+    <!--
+      <center><h1>Ben Crittenden's Projects</h1></center>
+      <div class="container px-5 my-5">
+          <div class="row gx-5 align-items-center">
+              <div class="col-lg-6">
+                  <h2 class="fw-bolder">Monte Carlo Simulator</h2>
+                  <div class="container"><a href = "/projects/monte_carlo_simulator/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/mcs_logo.png' %}" alt="..." /></a></div>
+              </div>
+              <div class="col-lg-6">
+                  <br>
+                  <p class="lead fw-normal text-muted mb-0">The Monte Carlo Simulator allows you to take one or two number ranges, randomly generate values within those ranges, select target values, and graph them out onto a PDF file that is downloaded to your computer and placed in your default downloads folder. </p>
+              </div>
+          </div>
+      </div>
+      <br>
+      <div class="container px-5 my-5">
+          <div class="row gx-5 align-items-center">
+            <div class="col-lg-6 order-lg-last">
+              <h2 class="fw-bolder">QR Code Generator</h2>
+              <a href = "/projects/qr_code_generator/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/qrcode_logo.png' %}" alt="..." /></a>
+            </div>
+            <div class="col-lg-6">
+              <br>
+              <p class="lead fw-normal text-muted mb-0">The QR Code Generator can generate a QR code out of any characters you submit.  Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder. </p>
+            </div>
+          </div>
+        </div>
+        <br>
+      <div class="container px-5 my-5">
+          <div class="row gx-5 align-items-center">
+              <div class="col-lg-6">
+                  <h2 class="fw-bolder">Weather Forecast App</h2>
+                  <div class="container">
+                      <a href = "/projects/weather/"><img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'projects/weather_logo.png' %}" alt="..." /></a>
+                  </div>
+              </div>
+              <div class="col-lg-6">
+                  <br>
+                  <p class="lead fw-normal text-muted mb-0">The Weather Forecast App takes the ZIP code of the area you want forecasted and returns a page containing the information you desire.  This app uses two different APIs; the Google Maps Platform API and the OpenWeatherMap One Call API.  The former API converts the ZIP code into latitude and longitude coordinates, while the latter takes those coordinates to retrieve the weather forecast for that area. </p>
+              </div>
+          </div>
+      </div>
+    -->
+    {% endblock content %}

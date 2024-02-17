@@ -1,46 +1,14 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-  <head>
-    <!-- This code is for Google Analytics tools. -->
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-64B7LMZXKN');
-    </script>
-    <meta name="viewport" "content="width=device-width, initial-scale=1> 
-    <meta name="description" content="Monte Carlo Simulator by Ben Crittenden.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Monte Carlo Simulator, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
-    <meta property="og:title" content="Monte Carlo Simulator by Ben Crittenden" />
-    <meta property="og:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device." />
-    <title>Monte Carlo Simulator</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net",
-        "sameAs": [
-          "https://www.linkedin.com/in/bencritt/",
-          "https://github.com/BenCritt",
-          "https://stackoverflow.com/users/21613304/ben-crittenden",
-          "https://www.bencritt.com",
-          "https://www.bencritt.org",
-          "https://www.bencrittenden.com"
-
-        ]
-      }
-    </script>
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+<!-- {% load static %} -->
+    {% block page_head %}
     <!-- This allows the user to select one of two options for number of simulations. -->
     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     $(document).ready(function() {
       // Initially hide the second data range fields
       $('#two-range-fields').hide();
-    
+        
       // Show/hide fields based on radio button selection
       $('input[type=radio][name=data-range]').change(function() {
         if (this.value === 'one') {
@@ -53,67 +21,65 @@
       });
     });
     </script>
-  </head>
-  <body>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-    
+    <meta name="description" content="Monte Carlo Simulator by Ben Crittenden.">
+    <meta name="keywords" content="Crittenden, Professional, Profile, Monte Carlo Simulator, Ben Crittenden">
+    <meta property="og:title" content="Monte Carlo Simulator by Ben Crittenden" />
+    <meta property="og:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device." />
+    {% block title %}Monte Carlo Simulator{% endblock title %}
+    {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-    <center><h1>Monte Carlo Simulator by Ben Crittenden</h1><br>
-        <h5>Enter your parameters below and click "Run Simulation":</h5>
-          <br>
-          <div class = "container" style = "width: 100%; max-width: 750px;">
+      <center><h1>Monte Carlo Simulator by Ben Crittenden</h1><br>
+          <h5>Enter your parameters below and click "Run Simulation":</h5>
+            <br>
+            <div class = "container" style = "width: 100%; max-width: 750px;">
 
-            <form method="post" action="{% url 'projects:monte_carlo_simulator' %}">
-              {% csrf_token %}
-              {% for error in form.sim_quantity.errors %}
-              {{ error|escape }}
-              {% endfor %}
-              <br>
-              {% for error in form.second_sim_quantity.errors %}
-              {{ error|escape }}
-              {% endfor %}
-              <br>
-              <label for="one-range">One Range</label>
-              <input type="radio" name="data-range" id="one-range" value="one" checked>
-              <br><br>
-              <label for="two-ranges">Two Ranges</label>
-              <input type="radio" name="data-range" id="two-ranges" value="two">
-              <br>
-              <br>
-              <div id="one-range-fields">
-              <!-- Form fields for one data range -->
-              {{ form.sim_quantity.label_tag }} <br>
-              {{ form.sim_quantity }} <br>
-              {{ form.min_val.label_tag }} <br>
-              {{ form.min_val }} <br>
-              {{ form.max_val.label_tag }} <br>
-              {{ form.max_val }} <br>
-              {{ form.target_val.label_tag }} <br>
-              {{ form.target_val }} <br>
-              </div>
-              <div id="two-range-fields">
-              <!-- Form fields for the second data range -->
-              {{ form.second_sim_quantity.label_tag }} <br>
-              {{ form.second_sim_quantity }} <br>
-              {{ form.second_min_val.label_tag }} <br>
-              {{ form.second_min_val }} <br>
-              {{ form.second_max_val.label_tag }} <br>
-              {{ form.second_max_val }} <br>
-              {{ form.second_target_val.label_tag }} <br>
-              {{ form.second_target_val }} <br>
-              </div>
-              <button type="submit">Run Simulation</button>
-          </form>
-          </div>
+              <form method="post" action="{% url 'projects:monte_carlo_simulator' %}">
+                {% csrf_token %}
+                {% for error in form.sim_quantity.errors %}
+                {{ error|escape }}
+                {% endfor %}
+                <br>
+                {% for error in form.second_sim_quantity.errors %}
+                {{ error|escape }}
+                {% endfor %}
+                <br>
+                <label for="one-range">One Range</label>
+                <input type="radio" name="data-range" id="one-range" value="one" checked>
+                <br><br>
+                <label for="two-ranges">Two Ranges</label>
+                <input type="radio" name="data-range" id="two-ranges" value="two">
+                <br>
+                <br>
+                <div id="one-range-fields">
+                <!-- Form fields for one data range -->
+                {{ form.sim_quantity.label_tag }} <br>
+                {{ form.sim_quantity }} <br>
+                {{ form.min_val.label_tag }} <br>
+                {{ form.min_val }} <br>
+                {{ form.max_val.label_tag }} <br>
+                {{ form.max_val }} <br>
+                {{ form.target_val.label_tag }} <br>
+                {{ form.target_val }} <br>
+                </div>
+                <div id="two-range-fields">
+                <!-- Form fields for the second data range -->
+                {{ form.second_sim_quantity.label_tag }} <br>
+                {{ form.second_sim_quantity }} <br>
+                {{ form.second_min_val.label_tag }} <br>
+                {{ form.second_min_val }} <br>
+                {{ form.second_max_val.label_tag }} <br>
+                {{ form.second_max_val }} <br>
+                {{ form.second_target_val.label_tag }} <br>
+                {{ form.second_target_val }} <br>
+                </div>
+                <button type="submit">Run Simulation</button>
+            </form>
+            </div>
 
-          <p>Your graph will be downloaded and placed into your default downloads folder.</p>
-          <br>
-        <a href = "https://github.com/BenCritt/Monte_Carlo_Simulator" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-        </svg></a>
-  </body>
-  {% endblock content %}
-</html>
+            <p>Your graph will be downloaded and placed into your default downloads folder.</p>
+            <br>
+          <a href = "https://github.com/BenCritt/Monte_Carlo_Simulator" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg></a>
+    {% endblock content %}
