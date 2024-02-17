@@ -1,6 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-  <head>
     {% block page_head %}
     <meta name="description" content="Projects made by Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
@@ -31,14 +30,12 @@
           display: block;
           margin: 0 auto;
         }
-  </style>
+    </style>
     <title>Ben Crittenden's Projects</title>
     {% endblock page_head %}
-  </head>
-  <body>
+
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-    <main>
       <center><h1>Ben Crittenden's Projects</h1></center>
       <div class="container px-5 my-5">
           <div class="row gx-5 align-items-center">
@@ -80,6 +77,4 @@
               </div>
           </div>
       </div>
-    </main>
     {% endblock content %}
-  </body>

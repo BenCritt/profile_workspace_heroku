@@ -1,6 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-  <head>
     {% block page_head %}
     <meta name="description" content="The documented qualifications of Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Resume, Qualifications, Ben Crittenden">
@@ -8,11 +7,8 @@
     <meta property="og:description" content="This page leads to documentation of my qualifications." />
     <title>My Résumé</title>
     {% endblock page_head %}
-  </head>
-  <body>
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-    <main>
       <br>
       <center>
         <h3>The links below lead to documentation of my qualifications.</h3><br>
@@ -22,7 +18,4 @@
             <a class = "btn btn-secondary" href = "https://drive.google.com/drive/folders/0B1zSx21s0Mm8aXpLd2VuMWRHWEk?resourcekey=0-map79EfW6nZXfhSTJFMjiw&usp=drive_link" target="_blank" rel="noopener noreferrer">Transcripts</a>
           </p>
       </center>
-    </main>
     {% endblock content %}
-  </body>
-

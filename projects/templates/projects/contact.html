@@ -1,6 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-  <head>
     {% block page_head %}
     <meta name="description" content="How to contact Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Contact, Ben Crittenden">
@@ -8,11 +7,8 @@
     <meta property="og:description" content="This is how you can contact me." />
     <title>Contact</title>
     {% endblock page_head %}
-  </head>
-  <body>
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-    <main>
     <table class="table">
       <thead>
         <tr>
@@ -48,9 +44,4 @@
           </tr>
         </tbody>
       </table>
-    </main>
-    {%endblock content%}
-  </body>
-
-
-
+    {% endblock content %}

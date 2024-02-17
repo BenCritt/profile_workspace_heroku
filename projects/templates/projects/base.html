@@ -14,7 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Ben Crittenden">
-    <link rel="stylesheet" href="{% static 'footer_style.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'footer_style.css' %}"> -->
     <!-- In between these blocks is where each different page <head> content is loaded. -->
     {% block extra_head %}
     {% endblock extra_head %}
@@ -72,9 +72,22 @@
       </nav>
     </header>
     <!-- In between these blocks is where each different page <main> <body> content is loaded. -->
+    <main>
     {% block content %} 
     {% endblock content %}
+    </main>
     <footer class="d-flex flex-wrap justify-content-between align-items-center  border-top">
+      <style>
+        footer {
+          width: 100%;
+          background-color: rgba(0, 0, 0, 0.9);
+          margin: 0 auto;
+          padding: 1rem 0;
+          position: fixed;
+          bottom: 0;
+          border-top: 1px solid #ccc;
+        }
+      </style>
       <!-- These breaks make sure the GitHub link at the bottom of the project pages is reachable. -->
       <br><br><br><br><br><br><br><br>
       <div class="col-md-4 d-flex align-items-center">
@@ -110,4 +123,3 @@
     </footer>
   </body>
 </html>
-
