@@ -1,5 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
+{% load static %}
     {% block page_head %}
     <meta name="description" content="QR Code Generator by Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, QR Code Generator, Ben Crittenden">
@@ -9,7 +10,6 @@
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-      <main>
       <center><h1>QR Code Generator by Ben Crittenden</h1><br>
         <h5>Enter your text below and click submit:</h5>
           <div class = "container" style = "width: 100%; max-width: 750px;">
