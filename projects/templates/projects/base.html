@@ -14,27 +14,6 @@
       $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
         });
     </script>
-
-  <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->    
-  <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/projects/home/">Ben Crittenden</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
-            <a class="nav-link" href="/projects/resume/">Résumé</a>
-            <a class="nav-link" href="/projects/all_projects/">Projects Overview</a>
-            <a class="nav-link" href="/projects/qr_code_generator/">QR Code Generator</a>
-            <a class="nav-link" href="/projects/monte_carlo_simulator/">Monte Carlo Simulator</a>
-            <a class="nav-link" href="/projects/weather/">Weather Forecast</a>
-            <a class="nav-link" href="/projects/contact/">Contact</a>
-          </div>
-        </div>
-      </div>
-  </nav>
-
   <!-- This is the style for the footer.  It fixes it at the bottom of the user's screen. -->
   <style>
     footer {
@@ -48,16 +27,37 @@
     }
   </style>
 </header>
-
 <!-- These breaks are neccessary for the headers to be readable.  Otherwise, they are "above" the user's screen behind the navbar. -->
 <br><br><br>
-
+<body>
+  <header>
+    <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->    
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/projects/home/">Ben Crittenden</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-link" href="/projects/resume/">Résumé</a>
+              <a class="nav-link" href="/projects/all_projects/">Projects Overview</a>
+              <a class="nav-link" href="/projects/qr_code_generator/">QR Code Generator</a>
+              <a class="nav-link" href="/projects/monte_carlo_simulator/">Monte Carlo Simulator</a>
+              <a class="nav-link" href="/projects/weather/">Weather Forecast</a>
+              <a class="nav-link" href="/projects/contact/">Contact</a>
+            </div>
+          </div>
+        </div>
+    </nav>
+  </header>
+  <main>
 <!-- In between these blocks is where each different page is loaded. -->
 {% block content %} 
 {% endblock content %}
-
-<!-- These breaks make sure the GitHub link at the bottom of the project pages is reachable. -->
-<br><br><br><br><br><br><br><br>
+  <!-- These breaks make sure the GitHub link at the bottom of the project pages is reachable. -->
+  <br><br><br><br><br><br><br><br>
+  </main>
   <footer class="d-flex flex-wrap justify-content-between align-items-center  border-top">
     <div class="col-md-4 d-flex align-items-center">
       <a href="/projects/home/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
@@ -89,3 +89,4 @@
       </li>
     </ul>
   </footer>
+</body>
