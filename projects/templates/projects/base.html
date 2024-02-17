@@ -14,18 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Ben Crittenden">
-    <!-- This is the style for the footer.  It fixes it at the bottom of the user's screen. -->
-    <style>
-      footer {
-        width: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        margin: 0 auto;
-        padding: 1rem 0;
-        position: fixed;
-        bottom: 0;
-        border-top: 1px solid #ccc;
-      }
-    </style>
+    <link rel="stylesheet" href="{% static 'footer_style.css' %}">
     <!-- In between these blocks is where each different page <head> content is loaded. -->
     {% block extra_head %}
     {% endblock extra_head %}

@@ -1,0 +1,11 @@
+/* footer_style.css */
+
+footer {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      margin: 0 auto;
+      padding: 1rem 0;
+      position: fixed;
+      bottom: 0;
+      border-top: 1px solid #ccc;
+    }
