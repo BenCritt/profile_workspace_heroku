@@ -1,47 +1,18 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
   <head>
-    <!-- This code is for Google Analytics tools. -->
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-64B7LMZXKN"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-64B7LMZXKN');
-    </script>
-    <meta name="viewport" "content="width=device-width, initial-scale=1>
+    {% block page_head %}
     <meta name="description" content="How to contact Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Contact, Ben Crittenden">
-    <meta name="author" content="Ben Crittenden">
     <meta property="og:title" content="Ben Crittenden's Contact Information" />
     <meta property="og:description" content="This is how you can contact me." />
     <title>Contact</title>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net",
-        "sameAs": [
-          "https://www.linkedin.com/in/bencritt/",
-          "https://github.com/BenCritt",
-          "https://stackoverflow.com/users/21613304/ben-crittenden",
-          "https://www.bencritt.com",
-          "https://www.bencritt.org",
-          "https://www.bencrittenden.com"
-
-        ]
-      }
-      </script>
+    {% endblock page_head %}
   </head>
   <body>
-    <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-    {% extends "projects/base.html" %}
-    {% load static %}
-    
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
+    <main>
     <table class="table">
       <thead>
         <tr>
@@ -77,8 +48,9 @@
           </tr>
         </tbody>
       </table>
-</body>
-{%endblock content%}
-</html>
+    </main>
+    {%endblock content%}
+  </body>
+
 
 
