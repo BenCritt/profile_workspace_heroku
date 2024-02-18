@@ -89,6 +89,12 @@
           position: fixed;
           bottom: 0;
           border-top: 1px solid #ccc;
+
+          @media (max-width: 768px) {
+            .social-icons {
+              display: flex;
+              justify-content: center;
+            }
         }
       </style>
       <div class="col-md-4 d-flex align-items-center">
@@ -97,7 +103,7 @@
         </a>
       <span class="mb-3 mb-md-0 text-body-secondary">Ben Crittenden's Professional Profile</span>
       </div>
-      <ul class="nav col-md-4 justify-content-center list-unstyled d-flex"> <!-- class="nav col-md-4 justify-content-end list-unstyled d-flex" -->
+      <ul class="nav col-md-4 justify-content-end list-unstyled d-flex social-icons">
         <li class="ms-3">
           <a href = "mailto:bencritt@uwalumni.com" target="_blank" rel = "noopenner noreferrer" data-toggle="tooltip" title="Send me an email.">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-envelope-at-fill" viewBox="0 0 16 16">
