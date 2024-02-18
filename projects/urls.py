@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
 from django.contrib.sitemaps.views import sitemap
-from .sitemap import StaticViewSitemap
+from .sitemap import StaticViewSitemap, RootSitemap
 
 
 app_name = "projects"
 
 sitemaps = {
+    "root": RootSitemap,
     "static": StaticViewSitemap,
 }
 
