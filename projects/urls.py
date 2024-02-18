@@ -1,7 +1,14 @@
 from django.urls import path
 from . import views
+from django.contrib.sitemaps.views import sitemap
+from .sitemap import StaticViewSitemap
+
 
 app_name = "projects"
+
+sitemaps = {
+    "static": StaticViewSitemap,
+}
 
 urlpatterns = [
     path("home/", views.home, name="home"),
@@ -17,4 +24,10 @@ urlpatterns = [
     path("weather/", views.weather, name="weather"),
     path("weather_results/", views.weather, name="weather"),
     path("all_projects/", views.all_projects, name="all_projects"),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
 ]
