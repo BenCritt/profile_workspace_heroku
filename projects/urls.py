@@ -25,10 +25,5 @@ urlpatterns = [
     path("weather/", views.weather, name="weather"),
     path("weather_results/", views.weather, name="weather"),
     path("all_projects/", views.all_projects, name="all_projects"),
-    path(
-        "sitemap.xml",
-        sitemap,
-        {"sitemaps": sitemaps},
-        name="django.contrib.sitemaps.views.sitemap",
-    ),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 ]

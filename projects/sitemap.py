@@ -31,4 +31,4 @@ class StaticViewSitemap(sitemaps.Sitemap):
         ]  # Add more URLs as needed
 
     def location(self, item):
-        return reverse(item)
+        return reverse("projects:" + item)
