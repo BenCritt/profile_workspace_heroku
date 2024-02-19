@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
+from django.views.generic import RedirectView
 
 # register_converter(HTTPSConverter, "https")
 
@@ -14,7 +15,8 @@ sitemaps = {
 
 urlpatterns = [
     # path("home/", views.home, name="home"),
-    path("", views.home, name="home"),
+    # path("", views.home, name="home"),
+    path("", RedirectView.as_view(url="https://www.bencritt.net/", permanent=True)),
     path("resume/", views.resume, name="resume"),
     path("qr_code_generator/", views.qr_code_generator, name="qr_code_generator"),
     path("contact/", views.contact, name="contact"),
