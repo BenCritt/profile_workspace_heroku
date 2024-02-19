@@ -15,8 +15,7 @@ sitemaps = {
 
 urlpatterns = [
     # path("home/", views.home, name="home"),
-    # path("", views.home, name="home"),
-    path("", RedirectView.as_view(url="https://www.bencritt.net/", permanent=True)),
+    path("", views.home, name="home"),
     path("resume/", views.resume, name="resume"),
     path("qr_code_generator/", views.qr_code_generator, name="qr_code_generator"),
     path("contact/", views.contact, name="contact"),
