@@ -13,7 +13,7 @@ class RootSitemap(Sitemap):
         return ["home"]  # This is the homepage.
 
     def location(self, item):
-        return "/"  # This is the root URL
+        return "/", "https"  # This is the root URL
 
 
 class StaticViewSitemap(sitemaps.Sitemap):
@@ -31,4 +31,4 @@ class StaticViewSitemap(sitemaps.Sitemap):
         ]  # Add more URLs as needed
 
     def location(self, item):
-        return reverse("projects:" + item)
+        return reverse("projects:" + item, scheme="https")
