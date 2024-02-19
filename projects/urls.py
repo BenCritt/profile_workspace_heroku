@@ -1,5 +1,4 @@
-from django.urls import path, register_converter
-from django.urls.converters import HTTPSConverter
+from django.urls import path
 from . import views
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
@@ -15,7 +14,7 @@ sitemaps = {
 
 urlpatterns = [
     # path("home/", views.home, name="home"),
-    path("", views.home, name="home"),  # , scheme="https"
+    path("", views.home, name="home"),
     path("resume/", views.resume, name="resume"),
     path("qr_code_generator/", views.qr_code_generator, name="qr_code_generator"),
     path("contact/", views.contact, name="contact"),

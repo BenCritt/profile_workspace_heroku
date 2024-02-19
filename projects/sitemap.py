@@ -14,7 +14,6 @@ class RootSitemap(Sitemap):
 
     def location(self, item):
         return "/"  # This is the root URL
-        # return "https://www.bencritt.net/"
 
 
 class StaticViewSitemap(sitemaps.Sitemap):
@@ -33,4 +32,3 @@ class StaticViewSitemap(sitemaps.Sitemap):
 
     def location(self, item):
         return reverse("projects:" + item)
-        # return f"https://www.bencritt.net/projects/{item}/"
