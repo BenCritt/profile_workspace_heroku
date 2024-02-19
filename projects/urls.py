@@ -4,6 +4,7 @@ from . import views
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 
+register_converter(HTTPSConverter, "https")
 
 app_name = "projects"
 
