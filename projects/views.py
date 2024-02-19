@@ -14,6 +14,14 @@ from .forms import MonteCarloForm
 from django.shortcuts import redirect
 
 
+def robots_txt(request):
+    # Open and read the content of your robots.txt file
+    with open("/robots.txt", "r") as f:
+        robots_txt_content = f.read()
+    # Return the content as HttpResponse with content type 'text/plain'
+    return HttpResponse(robots_txt_content, content_type="text/plain")
+
+
 def view_404(request, exception):
     return redirect("/")
 
