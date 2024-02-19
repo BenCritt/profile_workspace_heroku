@@ -104,9 +104,9 @@ def monte_carlo_simulator(request):
 
                 with open(full_path, "rb") as f:
                     response = HttpResponse(f.read(), content_type="pdf")
-                    response[
-                        "Content-Disposition"
-                    ] = 'attachment; filename="probability_graph.pdf"'
+                    response["Content-Disposition"] = (
+                        'attachment; filename="probability_graph.pdf"'
+                    )
                     return response
 
             elif form.cleaned_data["second_sim_quantity"] is None:
@@ -117,9 +117,9 @@ def monte_carlo_simulator(request):
 
                 with open(full_path, "rb") as f:
                     response = HttpResponse(f.read(), content_type="pdf")
-                    response[
-                        "Content-Disposition"
-                    ] = 'attachment; filename="probability_graph.pdf"'
+                    response["Content-Disposition"] = (
+                        'attachment; filename="probability_graph.pdf"'
+                    )
                     return response
 
     else:
