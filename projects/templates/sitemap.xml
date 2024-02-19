@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     {% for url in urlset %}
     <url>
-        <loc>{{ url.location }}</loc>
+        <loc>https://{{ url.location }}</loc>
         <changefreq>{{ url.changefreq }}</changefreq>
         <priority>{{ url.priority }}</priority>
     </url>
