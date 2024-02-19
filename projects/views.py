@@ -13,13 +13,27 @@ import matplotlib.pyplot as plt
 from .forms import MonteCarloForm
 from django.shortcuts import redirect
 
+from django.conf import settings
 
+
+def robots_txt(request):
+    # Construct the absolute path to the robots.txt file
+    robots_txt_path = os.path.join(settings.BASE_DIR, "robots.txt")
+    # Open and read the content of the robots.txt file
+    with open(robots_txt_path, "r") as f:
+        robots_txt_content = f.read()
+    # Return the content as HttpResponse with content type 'text/plain'
+    return HttpResponse(robots_txt_content, content_type="text/plain")
+
+
+"""
 def robots_txt(request):
     # Open and read the content of your robots.txt file
     with open("/robots.txt", "r") as f:
         robots_txt_content = f.read()
     # Return the content as HttpResponse with content type 'text/plain'
     return HttpResponse(robots_txt_content, content_type="text/plain")
+"""
 
 
 def view_404(request, exception):
