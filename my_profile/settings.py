@@ -45,7 +45,7 @@ CSRF_TRUSTED_ORIGINS = [
     "bencritt.net",
     "www.bencritt.net",
 ]
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 # SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 """
 "127.0.0.1", "localhost", 
