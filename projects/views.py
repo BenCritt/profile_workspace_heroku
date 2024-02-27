@@ -41,7 +41,26 @@ def view_404(request, exception):
 
 
 def home(request):
+    # Set the canonical URL
+    canonical_url = "https://www.bencritt.net/"
+
+    # Render the template
+    context = {}
+    rendered_template = render(request, "projects/home.html", context)
+
+    # Create the HTTP response
+    response = HttpResponse(rendered_template)
+
+    # Set the canonical URL in the HTTP header
+    response["Link"] = '<{}>; rel="canonical"'.format(canonical_url)
+
+    return response
+
+
+"""
+def home(request):
     return render(request, "projects/home.html")
+"""
 
 
 def resume(request):
