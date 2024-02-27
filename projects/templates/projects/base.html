@@ -17,6 +17,10 @@
     <!-- <link rel="stylesheet" href="{% static 'footer_style.css' %}"> -->
     <!-- In between these blocks is where each different page <head> content is loaded. -->
     {% block extra_head %}
+    {% block meta_tags %}
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    {% endblock link_tags %}
     <title>{% block title %}{% endblock title %}</title>
     {% endblock extra_head %}
     <!-- This is the code to import the Bootstrap designs I'm using for this site. -->
