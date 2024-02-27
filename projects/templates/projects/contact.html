@@ -2,11 +2,15 @@
 {% extends "projects/base.html" %}
 <!-- {% load static %} -->
     {% block page_head %}
+    {% block meta_tags %}
     <meta name="description" content="How to contact Ben Crittenden.">
     <meta name="keywords" content="Crittenden, Professional, Profile, Contact, Ben Crittenden">
     <meta property="og:title" content="Ben Crittenden's Contact Information" />
     <meta property="og:description" content="This is how you can contact me." />
+    {% endblock meta_tags %}
+    {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/contact/">
+    {% endblock link_tags %}
     {% block title %}Contact{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->

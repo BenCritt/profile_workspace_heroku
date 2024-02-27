@@ -2,11 +2,15 @@
 {% extends "projects/base.html" %}
 <!-- {% load static %} -->
     {% block page_head %}
+    {% block meta_tags %}
     <meta name="description" content="The QR Code Generator can generate a QR code out of any characters you submit. Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder.">
     <meta name="keywords" content="Crittenden, Professional, Profile, QR Code Generator, Ben Crittenden">
     <meta property="og:title" content="QR Code Generator by Ben Crittenden" />
     <meta property="og:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device." />
+    {% endblock meta_tags %}
+    {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/qr_code_generator/">
+    {% endblock link_tags %}
     {% block title %}QR Code Generator{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->

@@ -40,6 +40,7 @@ def view_404(request, exception):
     return redirect("/")
 
 
+"""
 def home(request):
     # Set the canonical URL
     canonical_url = "https://www.bencritt.net/"
@@ -55,12 +56,11 @@ def home(request):
     response["Link"] = '<{}>; rel="canonical"'.format(canonical_url)
 
     return response
-
-
 """
+
+
 def home(request):
     return render(request, "projects/home.html")
-"""
 
 
 def resume(request):
