@@ -9,7 +9,7 @@ class QRForm(forms.Form):
     qr_text = forms.CharField(
         label="",
         max_length=8000,
-        widget=forms.TextInput(attrs={"class": "myform", "size": 80}),
+        widget=forms.TextInput(attrs={"class": "myform", "size": 50}),
     )
 
 

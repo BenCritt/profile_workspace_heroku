@@ -4,10 +4,11 @@
     {% block page_head %}
     {% block meta_tags %}
     <meta name="description" content="These are projects made by Ben Crittenden.  They are a Monte Carlo simulator, a QR code generator, and a weather forecast app.">
-    <meta name="keywords" content="Crittenden, Professional, Profile, Projects, Ben Crittenden">
+    <meta name="keywords" content="Ben Crittenden's Projects, Projects, Portfolio">
     <meta property="og:title" content="Projects made by Ben Crittenden" />
     <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, and a simple wealther app.  They are coded in Python." />
     {% endblock meta_tags %}
+    {% block styles %}
     <style>
       .container h2 {
           text-align: center;
@@ -34,6 +35,7 @@
           margin: 0 auto;
         }
     </style>
+    {% endblock styles %}
     {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/all_projects/">
     {% endblock link_tags %}
