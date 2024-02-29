@@ -219,7 +219,8 @@ def weather(request):
         else:
             city_name, state_name = get_city_and_state(zip_code)
             latitude, longitude = coordinates
-        API_KEY_WEATHER = "7e805bf42d5f1713e20456904be7155c"
+        API_KEY_WEATHER = "49372bd312fbced940386aa2826ada9d"
+        '''"7e805bf42d5f1713e20456904be7155c"'''
         API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
         response = requests.get(API_URL)
         data = json.loads(response.content)
