@@ -65,10 +65,16 @@
     {% endblock scripts %}
     {% block styles %}
     <style>
-      .accordion-button:not(.collapsed) {
-          background-color: #076CF6; /* Replace with desired color */
+      /* Increase specificity */
+      .accordion .accordion-button:not(.collapsed) {
+          background-color: #076CF6;
       }
-  </style>
+      
+      /* Alternatively, use !important */
+      .accordion-button:not(.collapsed) {
+          background-color: #076CF6 !important;
+      }
+    </style>
     {% endblock styles %}
     {% block meta_tags %}
     <meta name="description" content="This is the professional profile of Ben Crittenden.  On this website, you will find web appllications and documentation showcasing Ben Crittenden's skills and qualifications.">
