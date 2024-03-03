@@ -23,11 +23,12 @@ class StaticViewSitemap(sitemaps.Sitemap):
 
     def items(self):
         return [
-            "resume",
             "all_projects",
             "qr_code_generator",
             "monte_carlo_simulator",
             "weather",
+            "grade_level_analyzer",
+            "resume",
             "contact",
         ]  # Add more URLs as needed
 
