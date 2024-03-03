@@ -69,6 +69,26 @@ def robots_txt(request):
     return HttpResponse(robots_txt_content, content_type="text/plain")
 
 
+def requirements_txt(request):
+    # Construct the absolute path to the requirements.txt file
+    requirements_txt_path = os.path.join(settings.BASE_DIR, "requirements.txt")
+    # Open and read the content of the requirements.txt file
+    with open(requirements_txt_path, "r") as f:
+        requirements_txt_content = f.read()
+    # Return the content as HttpResponse with content type 'text/plain'
+    return HttpResponse(requirements_txt_content, content_type="text/plain")
+
+
+def runtime_txt(request):
+    # Construct the absolute path to the runtime.txt file
+    runtime_txt_path = os.path.join(settings.BASE_DIR, "runtime.txt")
+    # Open and read the content of the runtime.txt file
+    with open(runtime_txt_path, "r") as f:
+        runtime_txt_content = f.read()
+    # Return the content as HttpResponse with content type 'text/plain'
+    return HttpResponse(runtime_txt_content, content_type="text/plain")
+
+
 """
 def robots_txt(request):
     # Open and read the content of your robots.txt file
