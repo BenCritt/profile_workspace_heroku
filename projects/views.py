@@ -28,17 +28,22 @@ def grade_level_analyzer(request):
                 "coleman_liau_index": textstat.coleman_liau_index(input_text),
             }
             # Calculate the weighted average of the scores
-            average_score = (
+            average_score = round(
                 (0.5 * results["flesch_kincaid_grade"])
                 + (0.3 * results["gunning_fog"])
-                + (0.2 * results["coleman_liau_index"])
+                + (0.2 * results["coleman_liau_index"]),
+                1,
             )
             # Calculate the uniform average of the scores
-            uniform_average_score = (
-                results["flesch_kincaid_grade"]
-                + results["gunning_fog"]
-                + results["coleman_liau_index"]
-            ) / 3
+            uniform_average_score = round(
+                (
+                    results["flesch_kincaid_grade"]
+                    + results["gunning_fog"]
+                    + results["coleman_liau_index"]
+                )
+                / 3,
+                1,
+            )
             # Add the average scores to the results dictionary
             results["average_score"] = average_score
             results["uniform_average_score"] = uniform_average_score
