@@ -30,4 +30,9 @@ urlpatterns = [
     path("weather_results/", views.weather, name="weather_results"),
     path("all_projects/", views.all_projects, name="all_projects"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path(
+        "grade_level_analyzer/",
+        views.grade_level_analyzer,
+        name="grade_level_analyzer",
+    ),
 ]
