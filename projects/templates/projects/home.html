@@ -1,8 +1,9 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-<!-- {% load static %} -->
+<!-- Begin defining the head section where scripts, styles, meta tags, and title will be included. -->
     {% block page_head %}
-    {% block scripts %}    
+    {% block scripts %}
+    <!-- Structured data (i.e. schema) using JSON-LD to provide information about the page's subject (Ben Crittenden) to search engines. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -64,7 +65,8 @@
     </script>
     {% endblock scripts %}
     {% block styles %}
-    <!--background-color: #076CF6;-->
+    <!-- Custom styles for the page, specifically targeting the accordion component. -->
+    <!--background-color: #076CF6; This is an alternative color I want to save as a comment for now. -->
     <style>
       /* Increase specificity */
       /* Alternate background color C5050C */
@@ -79,23 +81,26 @@
     </style>
     {% endblock styles %}
     {% block meta_tags %}
+    <!-- Meta tags for providing basic information about the website to search engines and social media platforms. -->
     <meta name="description" content="This is the professional profile of Ben Crittenden.  On this website, you will find web appllications and documentation showcasing Ben Crittenden's skills and qualifications.">
     <meta name="keywords" content="Ben Crittenden, Crittenden, Professional, Profile, Portfolio">
     <meta property="og:title" content="Ben Crittenden's Professional Profile" />
     <meta property="og:description" content="This is the professional profile of Ben Crittenden.  On this website, you will find web appllications and documentation showcasing Ben Crittenden's skills and qualifications." />
     {% endblock meta_tags %}
     {% block link_tags %}
+    <!-- Canonical URL to prevent duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net">
     {% endblock link_tags %}
     {% block title %}Ben Crittenden - IT Services, Software Development, Data Analytics{% endblock title %}
     {% endblock page_head %}
+    <!-- This begins the contents that are unique to the body of this page. -->
     {% block content %}
-    <!-- This begins the contents that are unique to this page. -->
       <center>
       <h1>Professional Profile of Ben Crittenden</h1>
       </center>
       <br>
       <br>
+      <!-- Various sections describing Ben Crittenden, using an accordion for organized presentation. -->
       <div class="accordion accordion-flush" id="accordionFlushExample" style="width: 100%; max-width: 650px; margin:0 auto;">
         <div class="accordion-item">
           <h2 class="accordion-header">

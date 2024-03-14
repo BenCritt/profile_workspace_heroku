@@ -45,18 +45,6 @@ CSRF_TRUSTED_ORIGINS = [
     "bencritt.net",
     "www.bencritt.net",
 ]
-"""
-"127.0.0.1", "localhost", 
-"""
-"""
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-"""
-
 
 # Application definition
 
