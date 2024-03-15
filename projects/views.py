@@ -289,9 +289,6 @@ def get_city_and_state(zip_code):
         return None
 
 
-zdb = ZipCodeDatabase()
-
-
 # This is the code for the Weather Forecast app.
 def weather(request):
     # Initialize the weather form, allowing for POST or None (for GET requests).

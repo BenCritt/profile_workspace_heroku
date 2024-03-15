@@ -2,11 +2,13 @@
 {% extends "projects/base.html" %}
     {% block page_head %}
     {% block meta_tags %}
+    <!-- Meta tags providing essential information about the page to search engines. -->
     <meta name="description" content="These are projects made by Ben Crittenden.  They are a Monte Carlo simulator, a QR code generator, and a weather forecast app.">
     <meta name="keywords" content="Ben Crittenden's Projects, Projects, Portfolio">
     <meta property="og:title" content="Projects made by Ben Crittenden" />
     <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, and a simple wealther app.  They are coded in Python." />
     {% endblock meta_tags %}
+    <!-- Custom styles for the page. -->
     {% block styles %}
     <style>
       .container h2 {
@@ -44,9 +46,11 @@
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <center><h1>Ben Crittenden's Projects</h1></center>
+    <!-- Each container represents a project with its description and an image. -->
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
             <div class="col-lg-6">
+              <!-- Project link and image. -->
                 <div class="text-center">
                   <a href="/projects/monte_carlo_simulator/" style="text-decoration: none; color: inherit;">
                     <h2 class="fw-bolder">Monte Carlo Simulator</h2>
@@ -66,6 +70,7 @@
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
           <div class="col-lg-6 order-lg-last">
+            <!-- Project link and image. -->
               <div class="text-center">
                 <a href="/projects/qr_code_generator/" style="text-decoration: none; color: inherit;">
                   <h2 class="fw-bolder">QR Code Generator</h2>
@@ -77,6 +82,7 @@
           </div>
           <div class="col-lg-6">
               <br>
+              <!-- Project description. -->
               <p class="lead fw-normal text-muted mb-0">The QR Code Generator can generate a QR code out of any characters you submit.  Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder. </p>
           </div>
         </div>
@@ -85,6 +91,7 @@
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
             <div class="col-lg-6">
+              <!-- Project link and image. -->
                 <div class="text-center">
                   <a href="/projects/weather/" style="text-decoration: none; color: inherit;">
                     <h2 class="fw-bolder">Weather Forecast App</h2>
@@ -96,6 +103,7 @@
             </div>
             <div class="col-lg-6">
                 <br>
+                <!-- Project description. -->
                 <p class="lead fw-normal text-muted mb-0">The Weather Forecast App takes the ZIP code of the area you want forecasted and returns a page containing the information you desire.  This app uses two different APIs; the Google Maps Platform API and the OpenWeatherMap One Call API.  The former API converts the ZIP code into latitude and longitude coordinates, while the latter takes those coordinates to retrieve the weather forecast for that area. </p>
             </div>
         </div>
@@ -104,6 +112,7 @@
     <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
           <div class="col-lg-6 order-lg-last">
+            <!-- Project link and image. -->
               <div class="text-center">
                 <a href="/projects/grade_level_analyzer/" style="text-decoration: none; color: inherit;">
                   <h2 class="fw-bolder">Grade Level Text Analyzer</h2>
@@ -115,6 +124,7 @@
           </div>
           <div class="col-lg-6">
               <br>
+              <!-- Project description. -->
               <p class="lead fw-normal text-muted mb-0">The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.</p>
           </div>
         </div>
