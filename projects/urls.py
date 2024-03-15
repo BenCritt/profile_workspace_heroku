@@ -5,8 +5,6 @@ from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
 from .views import robots_txt, requirements_txt, runtime_txt
 
-# register_converter(HTTPSConverter, "https")
-
 app_name = "projects"
 
 sitemaps = {
@@ -15,7 +13,7 @@ sitemaps = {
 }
 
 urlpatterns = [
-    # path("home/", views.home, name="home"),
+    # path("home/", views.home, name="home"), I only want the homepage shown at the root.
     path("robots.txt", robots_txt, name="robots_txt"),
     path("requirements.txt", requirements_txt, name="requirements_txt"),
     path("runtime.txt", runtime_txt, name="runtime_txt"),

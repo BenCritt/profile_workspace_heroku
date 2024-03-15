@@ -1,7 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-<!-- {% load static %} -->
     {% block page_head %}
+    <!-- SEO and social media sharing meta tags specific to this page. -->
     {% block meta_tags %}
     <meta name="description" content="This web page contains the documented qualifications of Ben Crittenden.">
     <meta name="keywords" content="Resume, Résumé, Qualifications">
@@ -9,6 +9,7 @@
     <meta property="og:description" content="This page leads to documentation of my qualifications." />
     {% endblock meta_tags %}
     {% block link_tags %}
+    <!-- Canonical URL to help prevent duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/resume/">
     {% endblock link_tags %}
     {% block title %}My Résumé{% endblock title %}
@@ -18,6 +19,7 @@
       <br>
       <center>
         <h3>The links below lead to documentation of my qualifications.</h3><br>
+          <!-- Links to Ben's résumé, credentials, and transcripts. -->
           <p>
             <a class = "btn btn-secondary" href = "https://drive.google.com/file/d/10gtfHDHaSBWZE-Yo7kPb6DoMjFCwqA1C/view?usp=drive_link" target="_blank" rel="noopener noreferrer">Résumé</a>
             <a class = "btn btn-secondary" href = "https://drive.google.com/drive/folders/1OEtUG7cDOXsB2OWAuOSbQkT4fl3gwKzj?usp=drive_link" target="_blank" rel="noopener noreferrer">Credentials</a>
