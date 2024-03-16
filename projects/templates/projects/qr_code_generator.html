@@ -24,8 +24,8 @@
           <div class = "container" style = "width: 100%; max-width: 750px;">
               <!-- POST method form to submit data to the server. -->
               <form method = "POST">
-                  <!-- Security token to prevent CSRF attacks. -->
-                  {% csrf_token %}
+                  <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
+                  {% csrf_token %} 
                   <!-- Dynamically generate form fields. -->
                   {% for field in form %}
                   <div class = "mb-3">

@@ -39,7 +39,7 @@
           <div class = "container" style = "width: 100%; max-width: 750px;">
               <!-- Form to submit the ZIP code for the weather forecast. -->
               <form action="{% url 'projects:weather' %}" method="post">
-                  {% csrf_token %}
+                  {% csrf_token %} <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
                   {{ form.as_p }} <!-- Render form fields as paragraphs -->
                   <input type="submit" value="Submit">
               </form>

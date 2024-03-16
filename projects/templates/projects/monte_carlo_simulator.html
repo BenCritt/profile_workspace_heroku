@@ -44,7 +44,7 @@
             <div class = "container" style = "width: 100%; max-width: 750px;">
               <!-- Form submission setup. -->
               <form method="post" action="{% url 'projects:monte_carlo_simulator' %}">
-                {% csrf_token %}
+                {% csrf_token %} <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
                 <!-- Display form errors if they exist. -->
                 {% for error in form.sim_quantity.errors %}
                 {{ error|escape }}

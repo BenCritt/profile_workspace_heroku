@@ -28,10 +28,10 @@
 {% endif %}
 <!-- Form for submitting text to be analyzed. -->
 <form method="post" action="{% url 'projects:grade_level_analyzer' %}">
-    {% csrf_token %}    <!-- Form for submitting text to be analyzed. -->
+    {% csrf_token %}    <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
     {{ form.text }}     <!-- Text input field for the user's text sample. -->
     <br>
-    <button type="submit">Analyze</button>  <!-- Submit button for the form. -->
+    <button type="submit" id="analyze-button-id">Analyze</button>  <!-- Submit button for the form. -->
 </form>
 <br>
 <!-- Link to the GitHub repository containing the source code. -->
