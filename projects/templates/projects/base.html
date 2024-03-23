@@ -53,6 +53,18 @@
         $('[data-toggle="tooltip"]').tooltip({'placement': 'top'});
       });
     </script>
+    <!-- If installing PWA, this includes all assets for offline functionality. -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/projects/service-worker.js')
+          .then(function(registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(function(err) {
+            console.log('Service Worker registration failed:', err);
+          });
+      }
+    </script>
   </head>
   <body>
     <!-- Google Tag Manager for tracking with JavaScript disabled. -->

@@ -36,4 +36,5 @@ urlpatterns = [
         name="grade_level_analyzer",
     ),
     path("site.webmanifest", views.manifest, name="manifest"),
+    path("service-worker.js", views.service_worker, name="service_worker"),
 ]

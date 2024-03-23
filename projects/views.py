@@ -13,6 +13,81 @@ from django.conf import settings
 import textstat
 
 
+# This allows the PWA to run offline.
+# This is done by saving site assets to the clocal device.
+# The only app that doesn't run offline is the weather app.
+# Accessing linked documents on the "Me Résumé" page also doesn't work offline.
+def service_worker(request):
+    script = """
+    const CACHE_NAME = 'dynamic-v1';
+    const urlsToCache = [
+      '/',
+      'https://www.bencritt.net/projects/all_projects/',
+      'https://www.bencritt.net/projects/qr_code_generator/',
+      'https://www.bencritt.net/projects/monte_carlo_simulator/',
+      'https://www.bencritt.net/projects/weather/',
+      'https://www.bencritt.net/projects/grade_level_analyzer/',
+      'https://www.bencritt.net/projects/resume/',
+      'https://www.bencritt.net/projects/contact/',
+      'https://www.bencritt.net/projects/grade_level_results.html',
+      'https://www.bencritt.net/projects/weather_results.html',
+      'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
+      'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
+      'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js',
+      'https://i.imgur.com/g3CnrTi.png',
+      'https://i.imgur.com/qkKW1uj.png',
+      'https://i.imgur.com/CAp7t9W.png',
+      'https://i.imgur.com/wznaxeu.png',
+    ];
+
+    self.addEventListener('install', event => {
+      event.waitUntil(
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            console.log('Opened cache');
+            return cache.addAll(urlsToCache);
+          })
+      );
+    });
+
+    self.addEventListener('fetch', event => {
+      event.respondWith(
+        caches.match(event.request)
+          .then(response => {
+            if (response) {
+              return response;
+            }
+            return fetch(event.request).then(response => {
+              let responseToCache = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                if (event.request.url.indexOf('http') === 0) {
+                  cache.put(event.request, responseToCache);
+                }
+              });
+              return response;
+            });
+          })
+      );
+    });
+
+    self.addEventListener('activate', event => {
+      const cacheWhitelist = ['dynamic-v1'];
+      event.waitUntil(
+        caches.keys().then(cacheNames => {
+          return Promise.all(
+            cacheNames.map(cacheName => {
+              if (cacheWhitelist.indexOf(cacheName) === -1) {
+                return caches.delete(cacheName);
+              }
+            })
+          );
+        })
+      );
+    });
+    """
+    return HttpResponse(script, content_type="application/javascript")
+
+
 # This is code for generating favicons on Android devices.
 # This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.
 def manifest(request):
