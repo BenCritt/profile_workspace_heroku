@@ -17,8 +17,8 @@ import textstat
 # This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.
 def manifest(request):
     manifest_json = {
-        "short_name": "App",
-        "name": "Application",
+        "short_name": "BenCritt",
+        "name": "Ben Crittenden's PWA",
         "icons": [
             {
                 "src": "https://i.imgur.com/o7ZaHGO.png",
