@@ -56,7 +56,7 @@
     <!-- If installing PWA, this includes all assets for offline functionality. -->
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/projects/service-worker.js')
+        navigator.serviceWorker.register('/service-worker.js')
           .then(function(registration) {
             console.log('Service Worker registered with scope:', registration.scope);
           })

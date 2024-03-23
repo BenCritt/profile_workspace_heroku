@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
+import logging
 
 
 # This allows the PWA to run offline.
@@ -18,19 +19,20 @@ import textstat
 # The only app that doesn't run offline is the weather app.
 # Accessing linked documents on the "Me Résumé" page also doesn't work offline.
 def service_worker(request):
+    # logging.debug("Service worker endpoint hit") #I might add logging later.  This needs to be added to settings.py first.
     script = """
     const CACHE_NAME = 'dynamic-v1';
     const urlsToCache = [
       '/',
-      'https://www.bencritt.net/projects/all_projects/',
-      'https://www.bencritt.net/projects/qr_code_generator/',
-      'https://www.bencritt.net/projects/monte_carlo_simulator/',
-      'https://www.bencritt.net/projects/weather/',
-      'https://www.bencritt.net/projects/grade_level_analyzer/',
-      'https://www.bencritt.net/projects/resume/',
-      'https://www.bencritt.net/projects/contact/',
-      'https://www.bencritt.net/projects/grade_level_results.html',
-      'https://www.bencritt.net/projects/weather_results.html',
+      '/projects/all_projects/',
+      '/projects/qr_code_generator/',
+      '/projects/monte_carlo_simulator/',
+      '/projects/weather/',
+      '/projects/grade_level_analyzer/',
+      '/projects/resume/',
+      '/projects/contact/',
+      '/projects/grade_level_results.html',
+      '/projects/weather_results.html',
       'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
       'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
       'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js',
