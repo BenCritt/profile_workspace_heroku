@@ -35,4 +35,5 @@ urlpatterns = [
         views.grade_level_analyzer,
         name="grade_level_analyzer",
     ),
+    path("site.webmanifest", views.manifest, name="manifest"),
 ]

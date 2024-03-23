@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from .forms import QRForm, MonteCarloForm, WeatherForm, TextForm
 import os
 import qrcode
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import requests
 import json
 import datetime
@@ -11,6 +11,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
+
+
+# This is code for generating favicons on Android devices.
+# This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.
+def manifest(request):
+    manifest_json = {
+        "short_name": "App",
+        "name": "Application",
+        "icons": [
+            {
+                "src": "https://i.imgur.com/o7ZaHGO.png",
+                "sizes": "192x192",
+                "type": "image/png",
+            },
+            {
+                "src": "https://i.imgur.com/TEf3wAa.png",
+                "sizes": "512x512",
+                "type": "image/png",
+            },
+        ],
+        "start_url": "/",
+        "display": "standalone",
+        "theme_color": "#000000",
+        "background_color": "#ffffff",
+    }
+    return JsonResponse(manifest_json)
 
 
 # This is the code for the Grade Level Analyzer.
