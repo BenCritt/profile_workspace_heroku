@@ -4,29 +4,23 @@
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
-      {
-        "@context": "http://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Weather Forecast App",
-        "description": "The Weather Forecast App provides detailed weather forecasts based on the user's ZIP code input. It utilizes the Google Maps Platform API to convert ZIP codes into latitude and longitude coordinates and the OpenWeatherMap One Call API to fetch and display weather information.",
-        "url": "https://www.bencritt.net/projects/weather/",
-        "applicationCategory": "Weather Forecasting Software",
-        "operatingSystem": "Web-based",
-        "features": [
-          "Provides weather forecasts based on ZIP code input",
-          "Utilizes Google Maps Platform API for geolocation",
-          "Fetches weather data using OpenWeatherMap One Call API"
-        ],
-        "image": "https://i.imgur.com/CAp7t9W.png",
-        "creator": {
-          "@type": "Person",
-          "name": "Ben Crittenden",
-          "url": "https://www.bencritt.net"
-        }
+    {
+      "@context": "http://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Weather Forecast App",
+      "description": "The Weather Forecast App provides detailed weather forecasts based on the user's ZIP code input. It utilizes the Google Maps Platform API to convert ZIP codes into latitude and longitude coordinates and the OpenWeatherMap One Call API to fetch and display weather information.",
+      "url": "https://www.bencritt.net/projects/weather/",
+      "applicationCategory": "Weather Forecasting Software",
+      "operatingSystem": "Web-based",
+      "image": "https://i.imgur.com/CAp7t9W.png",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
       }
-      
+    }
     </script>
-    {% endblock scripts %}
+    {% endblock scripts %}    
     {% block styles %}    
     <!-- This prevents the error message from displaying as a bullet point. -->
     <style>

@@ -5,25 +5,21 @@
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
-      {
-        "@context": "http://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "QR Code Generator",
-        "description": "The QR Code Generator is a web-based application that allows users to input any characters and generates a QR code. The generated QR code is provided as a downloadable PNG file, placed in the user's default downloads folder.",
-        "url": "https://www.bencritt.net/projects/qr_code_generator/",
-        "applicationCategory": "Utility Software",
-        "operatingSystem": "Web-based",
-        "features": [
-          "Generates QR codes from user-inputted text.",
-          "Provides downloadable QR code in PNG format."
-        ],
-        "image": "https://i.imgur.com/qkKW1uj.png",
-        "creator": {
-          "@type": "Person",
-          "name": "Ben Crittenden",
-          "url": "https://www.bencritt.net"
-        }
-      }      
+    {
+      "@context": "http://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "QR Code Generator",
+      "description": "The QR Code Generator is a web-based application that allows users to input any characters and generate a QR code as a downloadable PNG file, placed in the user's default downloads folder.",
+      "url": "https://www.bencritt.net/projects/qr_code_generator/",
+      "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "image": "https://i.imgur.com/qkKW1uj.png",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
+      }
+    }      
     </script>
     {% endblock scripts %}
     {% block meta_tags %}
