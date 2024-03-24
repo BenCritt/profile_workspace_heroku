@@ -10,43 +10,39 @@
       "name": "Ben Crittenden's Projects",
       "description": "A collection of software projects including a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.",
       "url": "https://www.bencritt.net/projects/all_projects/",
-      "hasPart": {
-        "@type": "ItemList",
-        "itemListElement": [
-          {
-            "@type": "SoftwareApplication",
-            "name": "Monte Carlo Simulator",
-            "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
-            "applicationCategory": "Simulation software",
-            "url": "https://www.bencritt.net/projects/monte_carlo_simulator/"
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "QR Code Generator",
-            "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
-            "applicationCategory": "Utility software",
-            "url": "https://www.bencritt.net/projects/qr_code_generator/"
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Weather Forecast App",
-            "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
-            "applicationCategory": "Weather Forecasting Software",
-            "url": "https://www.bencritt.net/projects/weather/"
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Grade Level Text Analyzer",
-            "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
-            "applicationCategory": "Educational Software",
-            "url": "https://www.bencritt.net/projects/grade_level_analyzer/"
-          }
-        ]
-      }
+      "hasPart": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "Monte Carlo Simulator",
+          "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
+          "applicationCategory": "Simulation software",
+          "url": "https://www.bencritt.net/projects/monte_carlo_simulator/"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "QR Code Generator",
+          "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
+          "applicationCategory": "Utility software",
+          "url": "https://www.bencritt.net/projects/qr_code_generator/"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Weather Forecast App",
+          "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
+          "applicationCategory": "Weather Forecasting Software",
+          "url": "https://www.bencritt.net/projects/weather/"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Grade Level Text Analyzer",
+          "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
+          "applicationCategory": "Educational Software",
+          "url": "https://www.bencritt.net/projects/grade_level_analyzer/"
+        }
+      ]
     }
     </script>
     {% endblock scripts %}
-    
     {% block meta_tags %}
     <!-- Meta tags providing essential information about the page to search engines. -->
     <!-- Facebook Meta Tags -->
