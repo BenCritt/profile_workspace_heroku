@@ -2,11 +2,23 @@
 {% extends "projects/base.html" %}
 {% block page_head %}
 {% block meta_tags %}
+<!-- Meta tags providing essential information about the page to search engines. -->
 <meta name="description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.">
 <meta name="keywords" content="readability, grade level, grade-level, text, reading, Flesch-Kincaid, Gunning Fog, Coleman-Liau">
-<meta property="og:title" content="Grade Level Text Analyzer" />
-<meta property="og:description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages." />
-<!-- Define meta tags for SEO and social media sharing. -->
+<!-- Facebook Meta Tags -->
+<meta property="og:url" content="https://www.bencritt.net/projects/grade_level_analyzer/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Grade Level Text Analyzer">
+<meta property="og:description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.">
+<meta property="og:image" content="https://i.imgur.com/wznaxeu.png">
+<!-- Twitter Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:domain" content="bencritt.net">
+<meta property="twitter:url" content="https://www.bencritt.net/projects/grade_level_analyzer/">
+<meta name="twitter:title" content="Grade Level Text Analyzer">
+<meta name="twitter:description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.">
+<meta name="twitter:image" content="https://i.imgur.com/wznaxeu.png">
+<meta name="twitter:creator" content="@bencritt89"/>
 {% endblock meta_tags %}
 {% block link_tags %}
 <!-- Canonical URL to avoid duplicate content issues. -->

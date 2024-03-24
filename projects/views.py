@@ -11,7 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
-import logging
+
+# import logging # I might add logging later.  This needs to be added to settings.py first.
 
 
 # This allows the PWA to run offline.
@@ -19,7 +20,7 @@ import logging
 # The only app that doesn't run offline is the weather app.
 # Accessing linked documents on the "Me Résumé" page also doesn't work offline.
 def service_worker(request):
-    # logging.debug("Service worker endpoint hit") #I might add logging later.  This needs to be added to settings.py first.
+    # logging.debug("Service worker endpoint hit") # I might add logging later.  This needs to be added to settings.py first.
     script = """
     const CACHE_NAME = 'dynamic-v1';
     const urlsToCache = [
