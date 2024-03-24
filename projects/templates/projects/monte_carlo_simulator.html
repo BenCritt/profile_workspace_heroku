@@ -21,6 +21,31 @@
       });
     });
     </script>
+    <!-- This is schema to help with SEO. -->
+    <script>
+      {
+        "@context": "http://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Monte Carlo Simulator",
+        "description": "The Monte Carlo Simulator is a web-based tool that allows users to conduct simulations with one or two number ranges, randomly generate values within those ranges, select target values, and graph the outcomes. The results are graphically presented in a PDF file, which is downloadable to the user's device.",
+        "url": "https://www.bencritt.net/projects/monte_carlo_simulator/",
+        "applicationCategory": "Simulation Software",
+        "operatingSystem": "Web-based",
+        "features": [
+          "Supports one or two number range simulations.",
+          "Generates random values within specified ranges.",
+          "Allows selection of target values.",
+          "Graphs the simulation results onto a PDF file for download."
+        ],
+        "image": "https://i.imgur.com/g3CnrTi.png",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        }
+      }
+      
+    </script>
     {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta tags providing essential information about the page to search engines. -->

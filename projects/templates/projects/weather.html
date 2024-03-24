@@ -1,6 +1,32 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
     {% block page_head %}
+    {% block scripts %}
+    <!-- This is schema to help with SEO. -->
+    <script>
+      {
+        "@context": "http://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Weather Forecast App",
+        "description": "The Weather Forecast App provides detailed weather forecasts based on the user's ZIP code input. It utilizes the Google Maps Platform API to convert ZIP codes into latitude and longitude coordinates and the OpenWeatherMap One Call API to fetch and display weather information.",
+        "url": "https://www.bencritt.net/projects/weather/",
+        "applicationCategory": "Weather Forecasting Software",
+        "operatingSystem": "Web-based",
+        "features": [
+          "Provides weather forecasts based on ZIP code input",
+          "Utilizes Google Maps Platform API for geolocation",
+          "Fetches weather data using OpenWeatherMap One Call API"
+        ],
+        "image": "https://i.imgur.com/CAp7t9W.png",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        }
+      }
+      
+    </script>
+    {% endblock scripts %}
     {% block styles %}    
     <!-- This prevents the error message from displaying as a bullet point. -->
     <style>
@@ -16,14 +42,14 @@
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/weather/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Weather Forecast App by Ben Crittenden">
+    <meta property="og:title" content="Weather Forecast App">
     <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
     <meta property="og:image" content="https://i.imgur.com/CAp7t9W.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/weather/">
-    <meta name="twitter:title" content="Weather Forecast App by Ben Crittenden">
+    <meta name="twitter:title" content="Weather Forecast App">
     <meta name="twitter:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
     <meta name="twitter:image" content="https://i.imgur.com/CAp7t9W.png">
     <meta name="twitter:creator" content="@bencritt89"/>

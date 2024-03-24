@@ -1,6 +1,31 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% block page_head %}
+{% block scripts %}
+<!-- This is schema to help with SEO. -->
+<script>
+    {
+    "@context": "http://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Grade Level Text Analyzer",
+    "description": "The Grade Level Text Analyzer is an application that takes a text excerpt and determines the appropriate grade level for the text. It utilizes three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau, providing all three scores along with uniform and weighted averages.",
+    "url": "https://www.bencritt.net/projects/grade_level_analyzer/",
+    "applicationCategory": "Educational Software",
+    "operatingSystem": "Web-based",
+    "features": [
+        "Analyzes text excerpts to determine grade level",
+        "Utilizes Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices",
+        "Provides detailed readability scores and averages"
+    ],
+    "image": "https://i.imgur.com/wznaxeu.png",
+    "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
+    }
+    }
+</script>
+{% endblock scripts %}
 {% block meta_tags %}
 <!-- Meta tags providing essential information about the page to search engines. -->
 <meta name="description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.">

@@ -2,6 +2,30 @@
 {% extends "projects/base.html" %}
     <!-- Block to define specific meta tags, links, and titles for the head section of the page. -->
     {% block page_head %}
+    {% block scripts %}
+    <!-- This is schema to help with SEO. -->
+    <script>
+      {
+        "@context": "http://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "QR Code Generator",
+        "description": "The QR Code Generator is a web-based application that allows users to input any characters and generates a QR code. The generated QR code is provided as a downloadable PNG file, placed in the user's default downloads folder.",
+        "url": "https://www.bencritt.net/projects/qr_code_generator/",
+        "applicationCategory": "Utility Software",
+        "operatingSystem": "Web-based",
+        "features": [
+          "Generates QR codes from user-inputted text.",
+          "Provides downloadable QR code in PNG format."
+        ],
+        "image": "https://i.imgur.com/qkKW1uj.png",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        }
+      }      
+    </script>
+    {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
     <meta name="description" content="The QR Code Generator can generate a QR code out of any characters you submit. Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder.">
