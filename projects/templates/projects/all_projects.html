@@ -16,28 +16,88 @@
           "name": "Monte Carlo Simulator",
           "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
           "applicationCategory": "Simulation software",
-          "url": "https://www.bencritt.net/projects/monte_carlo_simulator/"
+          "url": "https://www.bencritt.net/projects/monte_carlo_simulator/",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden"
+          },
+          "operatingSystem": "Web-based",
+          "runtimePlatform": "Python",
+          "programmingModel": "Object-oriented",
+          "featureList": [
+            "Supports simulations with single or dual number ranges, accommodating a variety of statistical modeling needs.",
+            "Enables users to specify target values for their simulations, adding precision and relevance to the analysis.",
+            "Generates random values within user-defined ranges, facilitating robust and comprehensive Monte Carlo simulations.",
+            "Graphically presents simulation outcomes, offering intuitive and accessible visual data interpretation.",
+            "Provides downloadable PDF output, allowing users to easily save and share their simulation results.",
+            "Web-based platform ensures accessibility from any device with an internet connection, without the need for software installation.",
+            "Built on a Python backend with an object-oriented programming model, ensuring reliable performance and scalability."
+            ]
         },
         {
           "@type": "SoftwareApplication",
           "name": "QR Code Generator",
           "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
           "applicationCategory": "Utility software",
-          "url": "https://www.bencritt.net/projects/qr_code_generator/"
+          "url": "https://www.bencritt.net/projects/qr_code_generator/",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden"
+          },
+          "operatingSystem": "Web-based",
+          "runtimePlatform": "Python",
+          "programmingModel": "Object-oriented",
+          "featureList": [
+            "Enables users to create QR codes from any text input, offering a versatile tool for various data encoding needs.",
+            "Generates high-quality QR codes as downloadable PNG files, ensuring compatibility with a wide range of devices and applications.",
+            "Automatically places the generated QR code in the user's default downloads folder, simplifying the retrieval process.",
+            "User-friendly interface allows for quick and easy generation of QR codes, enhancing user experience and efficiency.",
+            "Web-based application, accessible from any device with an internet connection, eliminating the need for software installation.",
+            "Supports a wide range of characters, enabling the encoding of diverse information types within QR codes.",
+            "Built with Python and an object-oriented programming model, ensuring reliability, scalability, and ease of maintenance."
+          ]
         },
         {
           "@type": "SoftwareApplication",
           "name": "Weather Forecast App",
           "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
           "applicationCategory": "Weather Forecasting Software",
-          "url": "https://www.bencritt.net/projects/weather/"
+          "url": "https://www.bencritt.net/projects/weather/",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden"
+          },
+          "operatingSystem": "Web-based",
+          "runtimePlatform": "Python",
+          "programmingModel": "Object-oriented",
+          "featureList": [
+            "Provides accurate and detailed weather forecasts based on user-provided ZIP code inputs, offering localized weather information.",
+            "Utilizes the Google Maps Platform API to accurately convert ZIP codes into geographical coordinates, ensuring precise weather data retrieval.",
+            "Leverages the OpenWeatherMap One Call API to provide comprehensive weather details, including temperature, precipitation, wind speed, and more.",
+            "Displays weather forecasts in a user-friendly interface, allowing users to easily understand and interpret weather conditions.",
+            "Web-based application ensures accessibility from any device with an internet connection, facilitating on-the-go weather checks.",
+            "Offers real-time weather updates, enabling users to receive the most current weather information available.",
+            "Built with a focus on reliability and efficiency, using Python and an object-oriented programming model for optimal performance."
+          ]
         },
         {
           "@type": "SoftwareApplication",
           "name": "Grade Level Text Analyzer",
           "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
           "applicationCategory": "Educational Software",
-          "url": "https://www.bencritt.net/projects/grade_level_analyzer/"
+          "url": "https://www.bencritt.net/projects/grade_level_analyzer/",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden"
+          },
+          "operatingSystem": "Web-based",
+          "runtimePlatform": "Python",
+          "programmingModel": "Object-oriented",
+          "featureList": [
+          "Calculates readability scores using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices",
+          "Provides uniform and weighted averages for a comprehensive analysis",
+          "User-friendly interface with quick processing"
+          ]
         }
       ]
     }
@@ -45,18 +105,20 @@
     {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description" content="These are projects made by Ben Crittenden.  They are a Monte Carlo simulator, a QR code generator, a weather forecaster, and a grade level text analyzer.">
+    <meta name="keywords" content="Ben Crittenden's Projects, Projects, Portfolio">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/all_projects/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Projects made by Ben Crittenden">
-    <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.  They are coded in Python.">
+    <meta property="og:description" content="These apps are a Monte Carlo simulator, a QR code generator, a weather forecaster, and a grade level text analyzer.  They are coded in Python.">
     <meta property="og:image" content="https://i.imgur.com/g3CnrTi.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/all_projects/">
     <meta name="twitter:title" content="Projects made by Ben Crittenden">
-    <meta name="twitter:description" content="These apps are a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.  They are coded in Python.">
+    <meta name="twitter:description" content="These apps are a Monte Carlo simulator, a QR code generator, a weather forecaster, and a grade level text analyzer.  They are coded in Python.">
     <meta name="twitter:image" content="https://i.imgur.com/g3CnrTi.png">
     <meta name="twitter:creator" content="@bencritt89"/>
     {% endblock meta_tags %}
