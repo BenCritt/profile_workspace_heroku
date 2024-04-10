@@ -6,7 +6,6 @@ from django.http import HttpResponse, JsonResponse
 import requests
 import json
 import datetime
-from pyzipcode import ZipCodeDatabase
 import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
@@ -17,7 +16,7 @@ import textstat
 
 # This allows the PWA to run offline.
 # This is done by saving site assets to the clocal device.
-# The only app that doesn't run offline is the weather app.
+# Apps relying on Python won't run offline.
 # Accessing linked documents on the "Me Résumé" page also doesn't work offline.
 def service_worker(request):
     # logging.debug("Service worker endpoint hit") # I might add logging later.  This needs to be added to settings.py first.
@@ -188,7 +187,7 @@ def requirements_txt(request):
     return HttpResponse(requirements_txt_content, content_type="text/plain")
 
 
-# This is the code for the viwe for the view for the txt file containing my website's runtime.
+# This is the code for the view for the view for the txt file containing my website's runtime.
 def runtime_txt(request):
     # Construct the absolute path to the runtime.txt file.
     runtime_txt_path = os.path.join(settings.BASE_DIR, "runtime.txt")
