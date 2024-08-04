@@ -30,6 +30,19 @@
         ]
     }      
     </script>
+    <!-- Add JavaScript to refresh CSRF token -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+          document.querySelector('form').addEventListener('submit', function(event) {
+              const token = document.querySelector('[name=csrfmiddlewaretoken]');
+              if (token.value !== csrftoken) {
+                  token.value = csrftoken;
+              }
+          });
+      });
+    </script>
     {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
