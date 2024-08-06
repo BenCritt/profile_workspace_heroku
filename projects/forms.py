@@ -109,3 +109,10 @@ class WeatherForm(forms.Form):
             )
         # If no exception is raised, return the validated zip_code.
         return zip_code
+
+    # New Code Begin
+    class DNSLookupForm(forms.Form):
+        domain_name = forms.CharField(label="Domain Name or URL", max_length=255)
+
+
+# New Code End

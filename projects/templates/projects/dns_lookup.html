@@ -1,0 +1,18 @@
+<h1>DNS Lookup Tool</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Lookup</button>
+</form>
+
+{% if results %}
+    <h2>DNS Lookup Results:</h2>
+    {% for record, answers in results.items %}
+        <h3>{{ record }} Records:</h3>
+        <ul>
+            {% for answer in answers %}
+                <li>{{ answer }}</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+{% endif %}
