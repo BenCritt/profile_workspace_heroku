@@ -10,8 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
-import dns.resolver
-from .forms import DNSLookupForm
 
 # import logging # I might add logging later.  This needs to be added to settings.py first.
 
