@@ -500,30 +500,3 @@ def weather(request):
 # This is the code for the page containing information on all of my projects.
 def all_projects(request):
     return render(request, "projects/all_projects.html")
-
-
-# New Code Begin
-def dns_lookup(request):
-    results = {}
-    if request.method == "POST":
-        form = DNSLookupForm(request.POST)
-        if form.is_valid():
-            domain_name = form.cleaned_data["domain_name"]
-            record_types = ["A", "MX", "NS", "TXT", "CNAME", "SOA", "AAAA"]
-            for record in record_types:
-                try:
-                    answers = dns.resolver.resolve(domain_name, record)
-                    results[record] = answers
-                except Exception as e:
-                    results[record] = str(e)
-    else:
-        form = DNSLookupForm()
-
-    return render(
-        request,
-        "projects/dns_lookup.html",
-        {"form": form, "results": results},
-    )
-
-
-# New Code End

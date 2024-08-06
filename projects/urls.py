@@ -37,5 +37,4 @@ urlpatterns = [
     ),
     path("site.webmanifest", views.manifest, name="manifest"),
     path("service-worker.js", views.service_worker, name="service_worker"),
-    path("dns-lookup/", views.dns_lookup, name="dns_lookup"),
 ]
