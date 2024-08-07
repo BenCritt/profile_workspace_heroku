@@ -52,6 +52,10 @@
     </style>
     {% endblock styles %}
     {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
     <meta name="description" content="The Weather Forecast App takes the ZIP code of the area you want forecasted and returns a page containing the information you desire. This app uses two different APIs; the Google Maps Platform API and the OpenWeatherMap One Call API. The former API converts the ZIP code into latitude and longitude coordinates, while the latter takes those coordinates to retrieve the weather forecast for that area.">
     <meta name="keywords" content="Weather, Weather Forecast">

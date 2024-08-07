@@ -29,7 +29,7 @@
           "Built with Python and an object-oriented programming model, ensuring reliability, scalability, and ease of maintenance."
         ]
     }      
-    </script>
+    </script> 
     <!-- Add JavaScript to refresh CSRF token -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -45,6 +45,10 @@
     </script>
     {% endblock scripts %}
     {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
     <meta name="description" content="The QR Code Generator can generate a QR code out of any characters you submit. Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder.">
     <meta name="keywords" content="QR Code Generator, QR Code, QR">

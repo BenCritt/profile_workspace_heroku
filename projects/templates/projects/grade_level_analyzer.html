@@ -40,6 +40,10 @@
 </script>
 {% endblock scripts %}
 {% block meta_tags %}
+<!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <!-- Meta tags providing essential information about the page to search engines. -->
 <meta name="description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages.">
 <meta name="keywords" content="readability, grade level, grade-level, text, reading, Flesch-Kincaid, Gunning Fog, Coleman-Liau">

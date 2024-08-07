@@ -17,7 +17,9 @@ import textstat
 # This allows the PWA to run offline.
 # This is done by saving site assets to the clocal device.
 # Apps relying on Python won't run offline.
-# Accessing linked documents on the "Me Résumé" page also doesn't work offline.
+# Accessing linked documents on the "My Résumé" page also doesn't work offline.
+# I've commented out the Service Worker to prevent CSRF issues.
+'''
 def service_worker(request):
     # logging.debug("Service worker endpoint hit") # I might add logging later.  This needs to be added to settings.py first.
     script = """
@@ -88,6 +90,7 @@ def service_worker(request):
     });
     """
     return HttpResponse(script, content_type="application/javascript")
+'''
 
 
 # This is code for generating favicons on Android devices.
