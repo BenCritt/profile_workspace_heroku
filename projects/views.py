@@ -475,7 +475,8 @@ def weather(request):
                     "sunset": datetime.datetime.fromtimestamp(day["sunset"]),
                     "dew_point": day["dew_point"],
                     "humidity": day["humidity"],
-                    "precipitation_chance": day["pop"],
+                    # "precipitation_chance": day["pop"],
+                    "precipitation_chance": round(day["pop"] * 100),
                 }
             )
 
