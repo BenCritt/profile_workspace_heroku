@@ -112,7 +112,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
-                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d" }}</td>
                   <td>H: {{ day.high_temp }} °F / L: {{ day.low_temp }}°F</td>
                   <td>{{day.precipitation_chance}}%</td>
                   </tr>
@@ -131,7 +131,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
-                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d" }}</td>
                   <td>{{day.summary }}</td>
                   </tr>
               {% endfor %}
@@ -152,7 +152,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
-                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d" }}</td>
                   <td>{{ day.morn_temp }} °F</td>
                   <td>{{ day.day_temp }} °F</td>
                   <td>{{ day.eve_temp }} °F</td>
@@ -176,7 +176,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
-                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d" }}</td>
                   <td>{{ day.morn_temp_feel }} °F</td>
                   <td>{{ day.day_temp_feel }} °F</td>
                   <td>{{ day.eve_temp_feel }} °F</td>
@@ -198,7 +198,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
-                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d, Y" }}</td>
+                  <td>{{ day.day_of_week }}, {{ day.date|date:"F d" }}</td>
                   <td>{{day.humidity}}%</td>
                   <td>{{day.dew_point}} °F</td>
                   </tr>
