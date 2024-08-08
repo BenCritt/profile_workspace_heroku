@@ -459,6 +459,9 @@ def weather(request):
         for day in data["daily"]:
             daily_forecast.append(
                 {
+                    "day_of_week": datetime.datetime.fromtimestamp(day["dt"]).strftime(
+                        "%A"
+                    ),
                     "date": datetime.datetime.fromtimestamp(day["dt"]),
                     "high_temp": int(day["temp"]["max"]),
                     "low_temp": int(day["temp"]["min"]),

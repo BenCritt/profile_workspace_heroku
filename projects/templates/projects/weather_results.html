@@ -104,6 +104,7 @@
             <caption>Basic Forecast</caption>
               <thead>
               <tr>
+                  <th>Day</th>
                   <th>Date</th>
                   <th>High/Low Temp</th>
                   <th>Precipitation Chance</th>
@@ -113,6 +114,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
+                  <td>{{ day.day_of_week }}</td>
                   <td>{{ day.date|date:"F d, Y" }}</td>
                   <td>H: {{ day.high_temp }} °F / L: {{ day.low_temp }}°F</td>
                   <td>{{day.precipitation_chance}}%</td>
@@ -126,6 +128,7 @@
             <caption>Morning, Day, Evening and Night Temperatures (Feels Like)</caption>
               <thead>
               <tr>
+                  <th>Day</th>
                   <th>Date</th>
                   <th>Morning</th>
                   <th>Day</th>
@@ -136,6 +139,7 @@
               <tbody>
               {% for day in daily_forecast %}
                   <tr>
+                  <td>{{ day.day_of_week }}</td>
                   <td>{{ day.date|date:"F d, Y" }}</td>
                   <td>{{ day.morn_temp }} °F ({{ day.morn_temp_feel }} °F)</td>
                   <td>{{ day.day_temp }} °F ({{ day.day_temp_feel }} °F)</td>
