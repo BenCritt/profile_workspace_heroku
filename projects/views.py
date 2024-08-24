@@ -491,6 +491,7 @@ def ip_tool(request):
         form = IPForm(request.POST)
         if form.is_valid():
             ip_address = form.cleaned_data["ip_address"]
+            # PTR Record Lookup
             try:
                 rev_name = dns.reversename.from_address(ip_address)
                 ptr_records = dns.resolver.resolve(rev_name, "PTR")
@@ -498,6 +499,44 @@ def ip_tool(request):
             except Exception as e:
                 results["PTR"] = [f"Error retrieving PTR records: {str(e)}"]
                 error_message = "An error occurred while retrieving PTR records."
+
+            # Geolocation and ISP Information (Example using ip-api.com)
+            try:
+                response = requests.get(f"http://ip-api.com/json/{ip_address}")
+                geo_data = response.json()
+                if geo_data["status"] == "success":
+                    results["Geolocation"] = {
+                        "Country": geo_data.get("country"),
+                        "Region": geo_data.get("regionName"),
+                        "City": geo_data.get("city"),
+                        "Latitude": geo_data.get("lat"),
+                        "Longitude": geo_data.get("lon"),
+                        "ISP": geo_data.get("isp"),
+                        "Organization": geo_data.get("org"),
+                        "AS": geo_data.get("as"),
+                    }
+                else:
+                    results["Geolocation"] = ["Failed to retrieve geolocation data."]
+            except Exception as e:
+                results["Geolocation"] = [
+                    f"Error retrieving geolocation data: {str(e)}"
+                ]
+
+            # Blacklist Check (Example using DNS-based blacklist lookup)
+            try:
+                blacklist_servers = ["zen.spamhaus.org", "bl.spamcop.net"]
+                blacklist_results = []
+                for server in blacklist_servers:
+                    try:
+                        dns.resolver.resolve(rev_name.to_text() + "." + server, "A")
+                        blacklist_results.append(f"Listed on {server}")
+                    except dns.resolver.NXDOMAIN:
+                        blacklist_results.append(f"Not listed on {server}")
+                    except Exception as e:
+                        blacklist_results.append(f"Error checking {server}: {str(e)}")
+                results["Blacklist"] = blacklist_results
+            except Exception as e:
+                results["Blacklist"] = [f"Error checking blacklists: {str(e)}"]
 
     return render(
         request,
