@@ -524,11 +524,13 @@ def ip_tool(request):
 
             # Blacklist Check (Example using DNS-based blacklist lookup)
             try:
+                reversed_ip = ".".join(reversed(ip_address.split(".")))
                 blacklist_servers = ["zen.spamhaus.org", "bl.spamcop.net"]
                 blacklist_results = []
                 for server in blacklist_servers:
+                    query = f"{reversed_ip}.{server}"
                     try:
-                        dns.resolver.resolve(rev_name.to_text() + "." + server, "A")
+                        dns.resolver.resolve(query, "A")
                         blacklist_results.append(f"Listed on {server}")
                     except dns.resolver.NXDOMAIN:
                         blacklist_results.append(f"Not listed on {server}")
