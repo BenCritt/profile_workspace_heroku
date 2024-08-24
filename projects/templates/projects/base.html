@@ -25,6 +25,10 @@
     <!-- Block for injecting additional head content in child templates. -->
     {% block extra_head %}
     {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     {% endblock meta_tags %}
     {% block link_tags %}
     {% endblock link_tags %}
