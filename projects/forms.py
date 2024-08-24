@@ -119,13 +119,13 @@ from django import forms
 
 class DomainForm(forms.Form):
     domain = forms.CharField(
-        label="Enter Domain Name:",
+        label="Domain Name:",
         max_length=253,
-        help_text="Enter a valid domain name (e.g., example.com).",
+        # help_text="Enter a valid domain name (e.g., example.com).",
     )
 
 
-# Thi sis the form for the IP Tool app.
+# This is the form for the IP Tool app.
 from django import forms
 import ipaddress
 
@@ -134,7 +134,7 @@ class IPForm(forms.Form):
     ip_address = forms.CharField(
         label="Enter IP Address:",
         max_length=45,
-        help_text="Enter a valid IPv4 or IPv6 address.",
+        # help_text="Enter a valid IPv4 or IPv6 address.",
     )
 
     def clean_ip_address(self):

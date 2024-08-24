@@ -10,6 +10,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
+import dns.resolver
+from .forms import DomainForm
+import dns.resolver
+import dns.reversename
+from .forms import IPForm
 
 
 # This is code for generating favicons on Android devices.
@@ -427,12 +432,7 @@ def all_projects(request):
 
 
 # NEW
-# This is the code for the DNS Tool app.
-import dns.resolver
-from django.shortcuts import render
-from .forms import DomainForm
-
-
+# This is the code for the DNS Lookup Tool app.
 def dns_tool(request):
     results = {}
     error_message = None
@@ -479,13 +479,7 @@ def dns_tool(request):
     )
 
 
-# This is the code for the IP Tool app.
-import dns.resolver
-import dns.reversename
-from django.shortcuts import render
-from .forms import IPForm
-
-
+# This is the code for the IP Lookup Tool app.
 def ip_tool(request):
     results = {}
     error_message = None

@@ -55,16 +55,36 @@
         }
     </style>
     -->
-    <style>
-        .table td {
-        vertical-align: middle;   /* Align table data vertically in the middle */
-        caption-side: top;        /* Position table captions at the top */
-        text-align: center;       /* Center text alignment for table data */
-      }
+      <style>
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 12px;  /* Increase padding for better readability */
+            text-align: center;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+        }
         .table th {
-          text-align: center;     /* Center text alignment for table headers */
-      }
-      </style>
+            background-color: #f2f2f2;
+        }
+        .table tr:nth-child(even) {  /* Alternating row colors for readability */
+            background-color: #f9f9f9;
+        }
+        .table tr:hover {  /* Hover effect for better interactivity */
+            background-color: #f1f1f1;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+            list-style-type: none;  /* Removes bullet points from the list */
+        }
+        .centered-content {
+            text-align: center;
+        }
+    </style>
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
