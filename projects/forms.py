@@ -109,3 +109,38 @@ class WeatherForm(forms.Form):
             )
         # If no exception is raised, return the validated zip_code.
         return zip_code
+
+
+# NEW
+# This is the form for the DNS Tool app.
+
+from django import forms
+
+
+class DomainForm(forms.Form):
+    domain = forms.CharField(
+        label="Enter Domain Name:",
+        max_length=253,
+        help_text="Enter a fully qualified domain name (e.g., example.com).",
+    )
+
+
+# Thi sis the form for the IP Tool app.
+from django import forms
+import ipaddress
+
+
+class IPForm(forms.Form):
+    ip_address = forms.CharField(
+        label="Enter IP Address:",
+        max_length=45,
+        help_text="Enter a valid IPv4 or IPv6 address (e.g., 192.168.1.1 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334).",
+    )
+
+    def clean_ip_address(self):
+        ip = self.cleaned_data["ip_address"]
+        try:
+            ipaddress.ip_address(ip)
+        except ValueError:
+            raise forms.ValidationError("Enter a valid IP address.")
+        return ip

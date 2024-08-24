@@ -1,0 +1,72 @@
+<!-- ip_tool/ip_lookup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP Lookup Tool</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        @media (max-width: 600px) {
+            table, th, td {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>IP Lookup Tool</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Lookup</button>
+    </form>
+
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+
+    {% if results %}
+        <h2>PTR Records for {{ form.cleaned_data.ip_address }}:</h2>
+        <table>
+            <caption>PTR records for the IP address provided by the user.</caption>
+            <thead>
+                <tr>
+                    <th>Record Type</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>PTR Records</td>
+                    <td>
+                        {% if results.PTR %}
+                            <ul>
+                                {% for record in results.PTR %}
+                                    <li>{{ record }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            No PTR records found
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>

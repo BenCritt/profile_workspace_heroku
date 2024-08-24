@@ -424,3 +424,87 @@ def weather(request):
 # This is the code for the page containing information on all of my projects.
 def all_projects(request):
     return render(request, "projects/all_projects.html")
+
+
+# NEW
+# This is the code for the DNS Tool app.
+import dns.resolver
+from django.shortcuts import render
+from .forms import DomainForm
+
+
+def dns_tool(request):
+    results = {}
+    error_message = None
+    form = DomainForm()
+
+    if request.method == "POST":
+        form = DomainForm(request.POST)
+        if form.is_valid():
+            domain = form.cleaned_data["domain"]
+            record_types = [
+                "A",
+                "AAAA",
+                "MX",
+                "NS",
+                "CNAME",
+                "TXT",
+                "SOA",
+                "SRV",
+                "CAA",
+            ]
+
+            for record_type in record_types:
+                try:
+                    answers = dns.resolver.resolve(domain, record_type)
+                    results[record_type] = [r.to_text() for r in answers]
+                except dns.resolver.NoAnswer:
+                    results[record_type] = ["No records found"]
+                except dns.resolver.NXDOMAIN:
+                    results[record_type] = ["Domain does not exist"]
+                except dns.resolver.Timeout:
+                    results[record_type] = ["DNS query timed out"]
+                except Exception as e:
+                    results[record_type] = [
+                        f"Error retrieving {record_type} records: {str(e)}"
+                    ]
+                    error_message = (
+                        "An unexpected error occurred while retrieving DNS records."
+                    )
+
+    return render(
+        request,
+        "projects/dns_tool.html",
+        {"form": form, "results": results, "error_message": error_message},
+    )
+
+
+# This is the code for the IP Tool app.
+import dns.resolver
+import dns.reversename
+from django.shortcuts import render
+from .forms import IPForm
+
+
+def ip_tool(request):
+    results = {}
+    error_message = None
+    form = IPForm()
+
+    if request.method == "POST":
+        form = IPForm(request.POST)
+        if form.is_valid():
+            ip_address = form.cleaned_data["ip_address"]
+            try:
+                rev_name = dns.reversename.from_address(ip_address)
+                ptr_records = dns.resolver.resolve(rev_name, "PTR")
+                results["PTR"] = [r.to_text() for r in ptr_records]
+            except Exception as e:
+                results["PTR"] = [f"Error retrieving PTR records: {str(e)}"]
+                error_message = "An error occurred while retrieving PTR records."
+
+    return render(
+        request,
+        "projects/ip_tool.html",
+        {"form": form, "results": results, "error_message": error_message},
+    )

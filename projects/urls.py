@@ -36,4 +36,6 @@ urlpatterns = [
         name="grade_level_analyzer",
     ),
     path("site.webmanifest", views.manifest, name="manifest"),
+    path("dns_tool/", views.dns_tool, name="dns_tool"),
+    path("ip_tool/", views.ip_tool, name="ip_tool"),
 ]
