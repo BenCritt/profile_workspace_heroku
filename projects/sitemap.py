@@ -35,6 +35,8 @@ class StaticViewSitemap(sitemaps.Sitemap):
             "monte_carlo_simulator",
             "weather",
             "grade_level_analyzer",
+            "dns_tool",
+            "ip_tool",
             "resume",
             "contact",
         ]  # Add more URLs as needed, but only for pages you want indexed.
