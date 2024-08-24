@@ -121,7 +121,7 @@ class DomainForm(forms.Form):
     domain = forms.CharField(
         label="Enter Domain Name:",
         max_length=253,
-        help_text="Enter a fully qualified domain name (e.g., example.com).",
+        help_text="Enter a valid domain name (e.g., example.com).",
     )
 
 
@@ -134,7 +134,7 @@ class IPForm(forms.Form):
     ip_address = forms.CharField(
         label="Enter IP Address:",
         max_length=45,
-        help_text="Enter a valid IPv4 or IPv6 address (e.g., 192.168.1.1 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334).",
+        help_text="Enter a valid IPv4 or IPv6 address.",
     )
 
     def clean_ip_address(self):
