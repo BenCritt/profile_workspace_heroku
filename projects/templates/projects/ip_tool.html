@@ -7,8 +7,8 @@
         {
           "@context": "http://schema.org",
           "@type": "SoftwareApplication",
-          "name": "IP Tool",
-          "description": "The IP Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.",
+          "name": "IP Lookup Tool",
+          "description": "The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.",
           "url": "https://www.bencritt.net/projects/ip_tool/",
           "applicationCategory": "Network Utility",
           "operatingSystem": "Web-based",
@@ -29,6 +29,7 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
+    <!--
     <style>
         table {
             width: 100%;
@@ -53,6 +54,17 @@
             }
         }
     </style>
+    -->
+    <style>
+        .table td {
+        vertical-align: middle;   /* Align table data vertically in the middle */
+        caption-side: top;        /* Position table captions at the top */
+        text-align: center;       /* Center text alignment for table data */
+      }
+        .table th {
+          text-align: center;     /* Center text alignment for table headers */
+      }
+      </style>
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
@@ -60,20 +72,20 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description" content="The IP Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.">
+    <meta name="description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.">
     <meta name="keywords" content="IP, Addnress, Lookup, tool">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/ip_tool/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="IP Tool">
-    <meta property="og:description" content="The IP Tool enables users to perform reverse DNS lookups.">
+    <meta property="og:title" content="IP Lookup Tool">
+    <meta property="og:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups.">
     <meta property="og:image" content="">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/ip_tool/">
-    <meta name="twitter:title" content="IP Tool">
-    <meta name="twitter:description" content="The IP Tool enables users to perform reverse DNS lookups.">
+    <meta name="twitter:title" content="IP Lookup Tool">
+    <meta name="twitter:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups.">
     <meta name="twitter:image" content="">
     <meta name="twitter:creator" content="@bencritt89"/>
     {% endblock meta_tags %}
@@ -81,14 +93,14 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/ip_tool/">
     {% endblock link_tags %}
-    {% block title %}IP Tool {% endblock title %}
+    {% block title %}IP Lookup Tool {% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>
         <br>
         <center>
-            <h1>IP Tool</h1>
+            <h1>IP Lookup Tool</h1>
                 <form method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
@@ -100,8 +112,9 @@
                 {% endif %}
 
                 {% if results %}
-                    <h2>PTR Records for {{ form.cleaned_data.ip_address }}:</h2>
-                    <table>
+                    <h5>PTR Records for {{ form.cleaned_data.ip_address }}:</h5>
+                    <div class = "container" style = "width: 100%; max-width: 750px;">
+                    <table class="table">
                         <caption>PTR records for the IP address provided by the user.</caption>
                         <thead>
                             <tr>
@@ -126,6 +139,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 {% endif %}
                 <br><br>
                 <!-- Link to the GitHub repository for the project. -->
