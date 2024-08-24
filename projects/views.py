@@ -45,6 +45,7 @@ def manifest(request):
 
 
 # This is the code for the Grade Level Analyzer.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def grade_level_analyzer(request):
     # Check if the request method is POST.
     if request.method == "POST":
@@ -132,16 +133,19 @@ def view_404(request, exception):
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def home(request):
     return render(request, "projects/home.html")
 
 
 # This is the code for the page holding links to my résumé.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def resume(request):
     return render(request, "projects/resume.html")
 
 
 # This is the code for the QR Code Generator.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
     # Check if the request method is POST.
     if request.method == "POST":
@@ -184,11 +188,13 @@ def qr_code_generator(request):
 
 
 # This is the code for the page containing methods of contacting me.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def contact(request):
     return render(request, "projects/contact.html")
 
 
 # This is the code for the Monte Carlo Simulator.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def monte_carlo_simulator(request):
     # Check if the request method is POST.
     if request.method == "POST":
@@ -321,6 +327,7 @@ def get_city_and_state(zip_code):
 
 
 # This is the code for the Weather Forecast app.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
     # Initialize the weather form, allowing for POST or None (for GET requests).
     form = WeatherForm(request.POST or None)
@@ -428,6 +435,7 @@ def weather(request):
 
 
 # This is the code for the page containing information on all of my projects.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def all_projects(request):
     return render(request, "projects/all_projects.html")
 
@@ -473,11 +481,18 @@ def dns_tool(request):
                         "An unexpected error occurred while retrieving DNS records."
                     )
 
-    return render(
+    response = render(
         request,
         "projects/dns_tool.html",
         {"form": form, "results": results, "error_message": error_message},
     )
+
+    # Sets additional anti-caching headers directly on the response object
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    return response
 
 
 # This is the code for the IP Lookup Tool app.
@@ -540,8 +555,15 @@ def ip_tool(request):
             except Exception as e:
                 results["Blacklist"] = [f"Error checking blacklists: {str(e)}"]
 
-    return render(
+    response = render(
         request,
         "projects/ip_tool.html",
         {"form": form, "results": results, "error_message": error_message},
     )
+
+    # Sets additional anti-caching headers directly on the response object
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    return response
