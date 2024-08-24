@@ -12,7 +12,7 @@
           "url": "https://www.bencritt.net/projects/ip_tool/",
           "applicationCategory": "Network Utility",
           "operatingSystem": "Web-based",
-          "image": "",  // Replace with actual image URL if available
+          "image": "https://i.imgur.com/Odba4md.png",
           "creator": {
             "@type": "Person",
             "name": "Ben Crittenden",
@@ -29,32 +29,6 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
-    <!--
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        @media (max-width: 600px) {
-            table, th, td {
-                font-size: 14px;
-            }
-        }
-    </style>
-    -->
     <style>
         .table {
             width: 100%;
@@ -92,21 +66,21 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.">
+    <meta name="description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
     <meta name="keywords" content="IP, Addnress, Lookup, tool">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/ip_tool/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="IP Lookup Tool">
-    <meta property="og:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups.">
-    <meta property="og:image" content="">
+    <meta property="og:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
+    <meta property="og:image" content="https://i.imgur.com/Odba4md.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/ip_tool/">
     <meta name="twitter:title" content="IP Lookup Tool">
-    <meta name="twitter:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups.">
-    <meta name="twitter:image" content="">
+    <meta name="twitter:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
+    <meta name="twitter:image" content="https://i.imgur.com/Odba4md.png">
     <meta name="twitter:creator" content="@bencritt89"/>
     {% endblock meta_tags %}
     {% block link_tags %}
@@ -203,39 +177,6 @@
                     </table>
                 </div>
             {% endif %}
-
-                <!--
-                {% if results %}
-                    <br>
-                    <h5>Records for {{ form.cleaned_data.ip_address }}:</h5>
-                    <div class = "container" style = "width: 100%; max-width: 750px;">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Record Type</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>PTR Records</td>
-                                <td>
-                                    {% if results.PTR %}
-                                        <ul>
-                                            {% for record in results.PTR %}
-                                                <li>{{ record }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% else %}
-                                        No PTR records found
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
-                {% endif %}
-                -->
                 <br><br>
                 <!-- Link to the GitHub repository for the project. -->
                 <a href = "https://github.com/BenCritt/IP_Lookup_Tool" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
