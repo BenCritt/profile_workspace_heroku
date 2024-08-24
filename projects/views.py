@@ -15,6 +15,7 @@ from .forms import DomainForm
 import dns.resolver
 import dns.reversename
 from .forms import IPForm
+from django.views.decorators.cache import cache_control
 
 
 # This is code for generating favicons on Android devices.
@@ -431,8 +432,8 @@ def all_projects(request):
     return render(request, "projects/all_projects.html")
 
 
-# NEW
 # This is the code for the DNS Lookup Tool app.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def dns_tool(request):
     results = {}
     error_message = None
@@ -480,6 +481,7 @@ def dns_tool(request):
 
 
 # This is the code for the IP Lookup Tool app.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ip_tool(request):
     results = {}
     error_message = None
