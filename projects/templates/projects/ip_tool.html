@@ -125,6 +125,7 @@
                     {% csrf_token %}
                     {{ form.as_p }}
                     <button type="submit">Lookup</button>
+                    <br>
                 </form>
 
                 {% if error_message %}
@@ -132,7 +133,7 @@
                 {% endif %}
 
                 {% if results %}
-                    <h5>PTR Records for {{ form.cleaned_data.ip_address }}:</h5>
+                    <h5>Records for {{ form.cleaned_data.ip_address }}:</h5>
                     <div class = "container" style = "width: 100%; max-width: 750px;">
                     <table class="table">
                         <caption>PTR records for the IP address provided by the user.</caption>
