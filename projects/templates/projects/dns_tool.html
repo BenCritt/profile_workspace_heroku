@@ -29,36 +29,50 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
-      <style>
+    <style>
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
+        }
         .table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: auto; /* Allow table to adjust automatically */
         }
         .table th, .table td {
-            padding: 12px;  /* Increase padding for better readability */
-            text-align: center;
+            padding: 8px;  /* Adjusted padding for better readability */
+            text-align: left;
             border: 1px solid #ddd;
             vertical-align: middle;
+            word-break: break-word; /* Break long words to fit within the cell */
         }
         .table th {
             background-color: #f2f2f2;
         }
-        .table tr:nth-child(even) {  /* Alternating row colors for readability */
+        .table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .table tr:hover {  /* Hover effect for better interactivity */
+        .table tr:hover {
             background-color: #f1f1f1;
         }
         ul {
             margin: 0;
             padding-left: 20px;
-            list-style-type: none;  /* Removes bullet points from the list */
+            list-style-type: none; /* Removes bullet points from the list */
         }
         .centered-content {
             text-align: center;
         }
-    </style>
+    
+        /* Media Query for Smaller Screens */
+        @media (max-width: 600px) {
+            .table th, .table td {
+                font-size: 12px; /* Smaller font size for better fit */
+                padding: 6px; /* Reduced padding */
+            }
+        }
+    </style>        
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
@@ -111,7 +125,7 @@
                 <br>
                     <h5>DNS Information for {{ form.cleaned_data.domain }}:</h5>
                     <center>
-                    <div class = "container" style = "width: 100%; max-width: 750px;">
+                    <div class = "table-container" style = "width: 100%; max-width: 750px;">
                     <table class="table">
                         <thead>
                             <tr>
