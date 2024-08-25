@@ -40,15 +40,20 @@
             margin-top: 20px;   /* Adds space above the table */
             table-layout: auto; /* Allow table to adjust automatically */
         }
-        .table th, .table td {
+        .table th {
             padding: 8px;  /* Adjusted padding for better readability */
-            text-align: left;   /* Aligns text to the left */
+            text-align: center;   /* Aligns text to the center for table headers */
             border: 1px solid #ddd; /* Adds border around cells */
             vertical-align: middle; /* Aligns content vertically in the middle */
             word-break: break-word; /* Break long words to fit within the cell */
-        }
-        .table th {
             background-color: #f2f2f2;  /* Sets background color for table headers */
+        }
+        .table td {
+            padding: 8px;  /* Adjusted padding for better readability */
+            text-align: left;   /* Aligns text to the left for table data cells */
+            border: 1px solid #ddd; /* Adds border around cells */
+            vertical-align: middle; /* Aligns content vertically in the middle */
+            word-break: break-word; /* Break long words to fit within the cell */
         }
         .table tr:nth-child(even) {
             background-color: #f9f9f9;  /* Alternates row colors for readability */
@@ -64,14 +69,14 @@
         .centered-content {
             text-align: center; /* Centers the content */
         }
-    
+        
         /* Media Query for Smaller Screens */
         @media (max-width: 600px) {
             .table th, .table td {
                 font-size: 12px; /* Smaller font size for better fit */
                 padding: 6px; /* Reduced padding */
             }
-        }
+        }        
     </style>        
     {% endblock styles %}
     {% block meta_tags %}
