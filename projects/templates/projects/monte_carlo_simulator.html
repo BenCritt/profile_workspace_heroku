@@ -27,7 +27,7 @@
         "@context": "http://schema.org",
         "@type": "SoftwareApplication",
         "name": "Monte Carlo Simulator",
-        "description": "The Monte Carlo Simulator is a web-based tool that allows users to conduct simulations with one or two number ranges, randomly generate values within those ranges, select target values, and graph the outcomes. The results are graphically presented in a PDF file, which is downloadable to the user's device.",
+        "description": "A web-based Monte Carlo Simulator that allows users to perform simulations with one or two data ranges, generate random values, and graph the results in a downloadable PDF format.",
         "url": "https://www.bencritt.net/projects/monte_carlo_simulator/",
         "applicationCategory": "Simulation Software",
         "operatingSystem": "Web-based",
@@ -38,15 +38,15 @@
           "url": "https://www.bencritt.net"
         },
         "featureList": [
-          "Supports simulations with single or dual number ranges, accommodating a variety of statistical modeling needs.",
-          "Enables users to specify target values for their simulations, adding precision and relevance to the analysis.",
-          "Generates random values within user-defined ranges, facilitating robust and comprehensive Monte Carlo simulations.",
-          "Graphically presents simulation outcomes, offering intuitive and accessible visual data interpretation.",
-          "Provides downloadable PDF output, allowing users to easily save and share their simulation results.",
-          "Web-based platform ensures accessibility from any device with an internet connection, without the need for software installation.",
-          "Built on a Python backend with an object-oriented programming model, ensuring reliable performance and scalability."
-        ]
-      }
+          "Supports one or two data ranges for simulation.",
+          "Generates random values within specified ranges.",
+          "Allows setting of target values for precise analysis.",
+          "Visualizes results through graphs and exports them as PDFs.",
+          "Accessible from any device without installation."
+        ],
+        "softwareVersion": "1.0",
+        "applicationSubCategory": "Statistical Analysis"
+      }      
     </script>
     {% endblock scripts %}
     {% block meta_tags %}
@@ -56,18 +56,18 @@
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
     <meta name="description" content="The Monte Carlo Simulator allows you to take one or two number ranges, randomly generate values within those ranges, select target values, and graph them out onto a PDF file that is downloaded to your computer and placed in your default downloads folder.">
-    <meta name="keywords" content="Monte Carlo Simulator, graph, simulations, probability">
+    <meta name="keywords" content="Monte Carlo simulation, data range simulation, statistical modeling, PDF graph download, web-based simulation tool, probability analysis">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/monte_carlo_simulator/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Monte Carlo Simulator by Ben Crittenden">
+    <meta property="og:title" content="Monte Carlo Simulator">
     <meta property="og:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device.">
     <meta property="og:image" content="https://i.imgur.com/g3CnrTi.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/monte_carlo_simulator/">
-    <meta name="twitter:title" content="Monte Carlo Simulator by Ben Crittenden">
+    <meta name="twitter:title" content="Monte Carlo Simulator">
     <meta name="twitter:description" content="This Monte Carlo simulator can take one or two data ranges, execute a choen number of simulations, and graphs the results out onto a PDF that is downloaded to your device.">
     <meta name="twitter:image" content="https://i.imgur.com/g3CnrTi.png">
     <meta name="twitter:creator" content="@bencritt89"/>
@@ -76,13 +76,11 @@
     <!-- Canonical URL for the page to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/monte_carlo_simulator/">
     {% endblock link_tags %}
-    {% block title %}Monte Carlo Simulator{% endblock title %}
+    {% block title %}Monte Carlo Simulator - Simulate Data Ranges and Generate Graphs{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
-      <center><h1>Monte Carlo Simulator</h1><br>
-          <h5>Enter your parameters below and click "Run Simulation":</h5>
-            <br>
+      <center><h1>Monte Carlo Simulator - Generate and Analyze Data Simulations</h1><br>
             <!-- Container for the form. -->
             <div class = "container" style = "width: 100%; max-width: 750px;">
               <!-- Form submission setup. -->

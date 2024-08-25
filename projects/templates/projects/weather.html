@@ -4,30 +4,31 @@
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
-    {
-      "@context": "http://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Weather Forecast App",
-      "description": "The Weather Forecast App provides detailed weather forecasts based on the user's ZIP code input. It utilizes the Google Maps Platform API to convert ZIP codes into latitude and longitude coordinates and the OpenWeatherMap One Call API to fetch and display weather information.",
-      "url": "https://www.bencritt.net/projects/weather/",
-      "applicationCategory": "Weather Forecasting Software",
-      "operatingSystem": "Web-based",
-      "image": "https://i.imgur.com/CAp7t9W.png",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net"
-      },
-      "featureList": [
-            "Provides accurate and detailed weather forecasts based on user-provided ZIP code inputs, offering localized weather information.",
-            "Utilizes the Google Maps Platform API to accurately convert ZIP codes into geographical coordinates, ensuring precise weather data retrieval.",
-            "Leverages the OpenWeatherMap One Call API to provide comprehensive weather details, including temperature, precipitation, wind speed, and more.",
-            "Displays weather forecasts in a user-friendly interface, allowing users to easily understand and interpret weather conditions.",
-            "Web-based application ensures accessibility from any device with an internet connection, facilitating on-the-go weather checks.",
-            "Offers real-time weather updates, enabling users to receive the most current weather information available.",
-            "Built with a focus on reliability and efficiency, using Python and an object-oriented programming model for optimal performance."
-          ]
-    }
+      {
+        "@context": "http://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Weather Forecast App",
+        "description": "A web-based application that provides detailed weather forecasts based on ZIP code input using Google Maps and OpenWeatherMap APIs.",
+        "url": "https://www.bencritt.net/projects/weather/",
+        "applicationCategory": "Weather Forecasting Software",
+        "operatingSystem": "Web-based",
+        "image": "https://i.imgur.com/CAp7t9W.png",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        },
+        "featureList": [
+          "Accurate weather forecasts based on ZIP code input.",
+          "Uses Google Maps Platform API for geographic coordinates.",
+          "Fetches weather data using OpenWeatherMap One Call API.",
+          "User-friendly interface with real-time weather updates.",
+          "Accessible from any device with internet connection."
+        ],
+        "softwareVersion": "1.0",
+        "applicationSubCategory": "Weather Forecasting"
+      }
+      
     </script>
     {% endblock scripts %}    
     {% block styles %}    
@@ -44,8 +45,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description" content="The Weather Forecast App takes the ZIP code of the area you want forecasted and returns a page containing the information you desire. This app uses two different APIs; the Google Maps Platform API and the OpenWeatherMap One Call API. The former API converts the ZIP code into latitude and longitude coordinates, while the latter takes those coordinates to retrieve the weather forecast for that area.">
-    <meta name="keywords" content="Weather, Weather Forecast">
+    <meta name="description" content="Get accurate and detailed weather forecasts with our Weather Forecast App. Enter a ZIP code to receive real-time weather updates, including temperature, precipitation, and more. Powered by Google Maps and OpenWeatherMap APIs.">
+    <meta name="keywords" content="Weather Forecast, ZIP Code Weather, Real-time Weather, Weather Updates">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/weather/">
     <meta property="og:type" content="website">
@@ -65,14 +66,13 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/weather/">
     {% endblock link_tags %}
-    {% block title %}Weather Forecast{% endblock title %}
+    {% block title %}Weather Forecast App - Accurate Weather Updates by ZIP Code{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>
-      <br>
       <center>
-        <h1>Weather Forecast App</h1>
+        <h1>Weather Forecast App - Accurate ZIP Code Weather Updates</h1>
           <br>
           <!-- Display error messages if any. -->
           {% if error_message %}

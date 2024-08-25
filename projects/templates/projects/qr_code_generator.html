@@ -5,30 +5,31 @@
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
-    {
-      "@context": "http://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "QR Code Generator",
-      "description": "The QR Code Generator is a web-based application that allows users to input any characters and generate a QR code as a downloadable PNG file, placed in the user's default downloads folder.",
-      "url": "https://www.bencritt.net/projects/qr_code_generator/",
-      "applicationCategory": "Utility Software",
-      "operatingSystem": "Web-based",
-      "image": "https://i.imgur.com/qkKW1uj.png",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net"
-      },
-      "featureList": [
-          "Enables users to create QR codes from any text input, offering a versatile tool for various data encoding needs.",
-          "Generates high-quality QR codes as downloadable PNG files, ensuring compatibility with a wide range of devices and applications.",
-          "Automatically places the generated QR code in the user's default downloads folder, simplifying the retrieval process.",
-          "User-friendly interface allows for quick and easy generation of QR codes, enhancing user experience and efficiency.",
-          "Web-based application, accessible from any device with an internet connection, eliminating the need for software installation.",
-          "Supports a wide range of characters, enabling the encoding of diverse information types within QR codes.",
-          "Built with Python and an object-oriented programming model, ensuring reliability, scalability, and ease of maintenance."
-        ]
-    }      
+      {
+        "@context": "http://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "QR Code Generator",
+        "description": "A web-based QR Code Generator that allows users to create QR codes from text inputs and download them as PNG files.",
+        "url": "https://www.bencritt.net/projects/qr_code_generator/",
+        "applicationCategory": "Utility Software",
+        "operatingSystem": "Web-based",
+        "image": "https://i.imgur.com/qkKW1uj.png",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        },
+        "featureList": [
+          "Generate QR codes from any text input.",
+          "Download QR codes as high-quality PNG files.",
+          "User-friendly interface for easy operation.",
+          "Instantly save QR codes to your default downloads folder.",
+          "Accessible from any device with internet connectivity."
+        ],
+        "softwareVersion": "1.0",
+        "applicationSubCategory": "Utility Software"
+      }
+           
     </script> 
     {% endblock scripts %}
     {% block meta_tags %}
@@ -37,19 +38,19 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
-    <meta name="description" content="The QR Code Generator can generate a QR code out of any characters you submit. Your QR code will be downloaded to your computer as a PNG file and placed in your default downloads folder.">
-    <meta name="keywords" content="QR Code Generator, QR Code, QR">
+    <meta name="description" content="Create and download custom QR codes easily with our online QR Code Generator. Enter your text, generate a QR code, and download it as a PNG file directly to your computer. Quick, efficient, and user-friendly.">
+    <meta name="keywords" content="QR Code Generator, create QR code, online QR code tool, QR code PNG download, generate QR code">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/qr_code_generator/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="QR Code Generator by Ben Crittenden">
+    <meta property="og:title" content="QR Code Generator">
     <meta property="og:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device.">
     <meta property="og:image" content="https://i.imgur.com/qkKW1uj.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/qr_code_generator/">
-    <meta name="twitter:title" content="QR Code Generator by Ben Crittenden">
+    <meta name="twitter:title" content="QR Code Generator">
     <meta name="twitter:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device.">
     <meta name="twitter:image" content="https://i.imgur.com/qkKW1uj.png">
     <meta name="twitter:creator" content="@bencritt89"/>
@@ -58,13 +59,12 @@
     <!-- Canonical link to help prevent duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/qr_code_generator/">
     {% endblock link_tags %}
-    {% block title %}QR Code Generator{% endblock title %}
+    {% block title %}QR Code Generator - Create and Download Custom QR Codes Online{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to the body of this page. -->
     {% block content %}
       <!-- Page heading and instructions. -->
-      <center><h1>QR Code Generator</h1><br>
-        <h5>Enter your text below and click submit:</h5>
+      <center><h1>QR Code Generator - Create and Download Your Custom QR Codes</h1><br>
           <!-- Form container. -->
           <div class = "container" style = "width: 100%; max-width: 750px;">
               <!-- POST method form to submit data to the server. -->

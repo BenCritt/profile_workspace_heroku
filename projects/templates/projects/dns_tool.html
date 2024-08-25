@@ -5,27 +5,26 @@
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
         {
-          "@context": "http://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "DNS Lookup Tool",
-          "description": "The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
-          "url": "https://www.bencritt.net/projects/dns_tool/",
-          "applicationCategory": "Network Utility",
-          "operatingSystem": "Web-based",
-          "image": "https://i.imgur.com/jiKZkIp.png",
-          "creator": {
-            "@type": "Person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net"
-          },
-          "featureList": [
-            "Allows users to perform DNS lookups for various DNS record types including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA.",
-            "Provides detailed DNS record information for domain names, useful for network troubleshooting and domain management.",
-            "Web-based application, accessible from any device with an internet connection.",
-            "Offers a user-friendly interface for entering domain names and viewing results.",
-            "Built using Python and Django, leveraging robust libraries for DNS resolution and error handling."
-          ]
-        }
+            "@context": "http://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "DNS Lookup Tool",
+            "description": "Perform DNS lookups for various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
+            "url": "https://www.bencritt.net/projects/dns_tool/",
+            "applicationCategory": "Network Utility",
+            "operatingSystem": "Web-based",
+            "image": "https://i.imgur.com/jiKZkIp.png",
+            "creator": {
+              "@type": "Person",
+              "name": "Ben Crittenden",
+              "url": "https://www.bencritt.net"
+            },
+            "featureList": [
+              "Perform DNS lookups for various DNS record types.",
+              "Retrieve detailed DNS information useful for network troubleshooting and domain management.",
+              "Accessible from any web-enabled device with a user-friendly interface.",
+              "Developed with Python and Django for reliable DNS resolution."
+            ]
+          }          
     </script>
     {% endblock scripts %}    
     {% block styles %} 
@@ -81,8 +80,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description" content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.">
-    <meta name="keywords" content="DNS, Lookup, Tool">
+    <meta name="description" content="The DNS Lookup Tool allows users to perform detailed DNS lookups for domain names, retrieving various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. Use it for network troubleshooting and domain management.">
+    <meta name="keywords" content="DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/dns_lookup/">
     <meta property="og:type" content="website">
@@ -102,14 +101,13 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/dns_tool/">
     {% endblock link_tags %}
-    {% block title %}DNS Lookup Tool{% endblock title %}
+    {% block title %}DNS Lookup Tool - Perform DNS Lookups for A, MX, NS, and More{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>
-        <br>
         <center>
-            <h1>DNS Lookup Tool</h1>
+            <h1>DNS Lookup Tool - Perform DNS Lookups for A, MX, NS, and More</h1>
             <br>
                 <!-- Form for submitting domain name -->
                 <form method="post">

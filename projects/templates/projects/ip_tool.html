@@ -7,8 +7,8 @@
         {
           "@context": "http://schema.org",
           "@type": "SoftwareApplication",
-          "name": "IP Lookup Tool",
-          "description": "The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.",
+          "name": "IP Address Lookup Tool",
+          "description": "The IP Adress Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.",
           "url": "https://www.bencritt.net/projects/ip_tool/",
           "applicationCategory": "Network Utility",
           "operatingSystem": "Web-based",
@@ -29,7 +29,7 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
-    <!-- Custom CSS styles for the IP Lookup Tool -->
+    <!-- Custom CSS styles for the IP Address Lookup Tool -->
     <style>
         .table {
             width: 100%;
@@ -67,20 +67,20 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
+    <meta name="description" content="Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.">
     <meta name="keywords" content="IP, Addnress, Lookup, tool">
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.bencritt.net/projects/ip_tool/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="IP Lookup Tool">
-    <meta property="og:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
+    <meta property="og:title" content="IP Address Lookup Tool">
+    <meta property="og:description" content="The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
     <meta property="og:image" content="https://i.imgur.com/3ikMQJN.png">
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/ip_tool/">
-    <meta name="twitter:title" content="IP Lookup Tool">
-    <meta name="twitter:description" content="The IP Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
+    <meta name="twitter:title" content="IP Address Lookup Tool">
+    <meta name="twitter:description" content="The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
     <meta name="twitter:image" content="https://i.imgur.com/3ikMQJN.png">
     <meta name="twitter:creator" content="@bencritt89"/>
     {% endblock meta_tags %}
@@ -88,13 +88,13 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/ip_tool/">
     {% endblock link_tags %}
-    {% block title %}IP Lookup Tool {% endblock title %}
+    {% block title %}IP Address Lookup Tool - Reverse DNS, Geolocation, and More{% endblock title %}
     {% endblock page_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>
         <div class="centered-content">
-            <h1>IP Lookup Tool</h1>
+            <h1>IP Address Lookup Tool - Perform Reverse DNS and Network Diagnostics</h1>
             <!-- Form for submitting IP address -->
             <form method="post">
                 {% csrf_token %}
