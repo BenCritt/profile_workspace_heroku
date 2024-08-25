@@ -29,34 +29,35 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
+    <!-- Custom CSS styles for the IP Lookup Tool -->
     <style>
         .table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: collapse;  /* Merges table borders */
+            margin-top: 20px;   /* Adds space above the table */
         }
         .table th, .table td {
             padding: 12px;  /* Increase padding for better readability */
-            text-align: center;
-            border: 1px solid #ddd;
-            vertical-align: middle;
+            text-align: center; /* Centers text */
+            border: 1px solid #ddd; /* Adds border around cells */
+            vertical-align: middle;  /* Aligns content vertically in the middle */
         }
         .table th {
-            background-color: #f2f2f2;
+            background-color: #f2f2f2;  /* Sets background color for table headers */
         }
         .table tr:nth-child(even) {  /* Alternating row colors for readability */
             background-color: #f9f9f9;
         }
         .table tr:hover {  /* Hover effect for better interactivity */
-            background-color: #f1f1f1;
+            background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
         }
         ul {
-            margin: 0;
-            padding-left: 20px;
+            margin: 0;  /* Removes margin */
+            padding-left: 20px; /* Adds padding to the left */
             list-style-type: none;  /* Removes bullet points from the list */
         }
         .centered-content {
-            text-align: center;
+            text-align: center; /* Centers the content */
         }
     </style>
     {% endblock styles %}
@@ -94,20 +95,24 @@
     <main>
         <div class="centered-content">
             <h1>IP Lookup Tool</h1>
+            <!-- Form for submitting IP address -->
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit">Lookup</button>
             </form>
     
+            <!-- Error message display -->
             {% if error_message %}
                 <p style="color: red;">{{ error_message }}</p>
             {% endif %}
     
+            <!-- Display results if they exist -->
             {% if results %}
                 <br>
                 <h5>Information for {{ form.cleaned_data.ip_address }}:</h5>
                 <div class="container" style="width: 100%; max-width: 750px;">
+                    <!-- Table displaying various types of IP-related information -->
                     <table class="table">
                         <thead>
                             <tr>

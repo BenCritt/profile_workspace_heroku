@@ -29,40 +29,41 @@
     </script>
     {% endblock scripts %}    
     {% block styles %} 
+    <!-- Custom CSS styles for the DNS Lookup Tool -->
     <style>
         .table-container {
-            width: 100%;
+            width: 100%;    /* Ensures the container takes the full width */
             overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
         }
         .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            width: 100%;    /* Table takes the full width of the container */
+            border-collapse: collapse;  /* Merges table borders */
+            margin-top: 20px;   /* Adds space above the table */
             table-layout: auto; /* Allow table to adjust automatically */
         }
         .table th, .table td {
             padding: 8px;  /* Adjusted padding for better readability */
-            text-align: left;
-            border: 1px solid #ddd;
-            vertical-align: middle;
+            text-align: left;   /* Aligns text to the left */
+            border: 1px solid #ddd; /* Adds border around cells */
+            vertical-align: middle; /* Aligns content vertically in the middle */
             word-break: break-word; /* Break long words to fit within the cell */
         }
         .table th {
-            background-color: #f2f2f2;
+            background-color: #f2f2f2;  /* Sets background color for table headers */
         }
         .table tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f9f9f9;  /* Alternates row colors for readability */
         }
         .table tr:hover {
-            background-color: #f1f1f1;
+            background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
         }
         ul {
-            margin: 0;
-            padding-left: 20px;
+            margin: 0;  /* Removes margin */
+            padding-left: 20px; /* Adds padding to the left */
             list-style-type: none; /* Removes bullet points from the list */
         }
         .centered-content {
-            text-align: center;
+            text-align: center; /* Centers the content */
         }
     
         /* Media Query for Smaller Screens */
@@ -110,41 +111,54 @@
         <center>
             <h1>DNS Lookup Tool</h1>
             <br>
+                <!-- Form for submitting domain name -->
                 <form method="post">
                     {% csrf_token %}
+                    <!-- Renders form fields with paragraph tags -->
                     {{ form.as_p }}
+                    <!-- Submit button for form -->
                     <button type="submit">Lookup</button>
                     <br>
                 </form>
 
+                <!-- Error message display -->
                 {% if error_message %}
                     <p style="color: red;">{{ error_message }}</p>
                 {% endif %}
 
+                <!-- Display results if they exist -->
                 {% if results %}
                 <br>
+                    <!-- Header for results -->
                     <h5>DNS Information for {{ form.cleaned_data.domain }}:</h5>
                     <center>
                     <div class = "table-container" style = "width: 100%; max-width: 750px;">
+                    <!-- Table displaying DNS information -->
                     <table class="table">
                         <thead>
                             <tr>
+                                <!-- Column header for record type -->
                                 <th>Record Type</th>
+                                <!-- Column header for details -->
                                 <th>Details</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Loop through the results to display each record type and its details -->
                             {% for record_type, records in results.items %}
                                 <tr>
+                                    <!-- Displays the record type -->
                                     <td>{{ record_type }} Records</td>
                                     <td>
                                         {% if records %}
                                             <ul>
                                                 {% for record in records %}
+                                                    <!-- Displays each record in a list item -->
                                                     <li>{{ record }}</li>
                                                 {% endfor %}
                                             </ul>
                                         {% else %}
+                                            <!-- Message if no records are found -->
                                             No records found
                                         {% endif %}
                                     </td>
@@ -161,4 +175,5 @@
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
                 </svg></a>
         </center>
+    </main>
     {% endblock content %}
