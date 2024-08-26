@@ -22,13 +22,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Ben Crittenden">
-    <!-- Block for injecting additional head content in child templates. -->
-    {% block extra_head %}
-    {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <!-- Block for injecting additional head content in child templates. -->
+    {% block extra_head %}
+    {% block meta_tags %}
     {% endblock meta_tags %}
     {% block link_tags %}
     {% endblock link_tags %}
@@ -40,6 +40,22 @@
     {% endblock extra_head %}
     <!-- Bootstrap CSS for styling and layout. -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Custom styles for padding to prevent navbar and footer overlaps -->
+    <style>
+      body {
+        padding-top: 60px; /* Adjust based on your navbar height */
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding-top: 90px; /* Adjust if the navbar height changes on smaller screens */
+        }
+      }
+
+      main {
+        padding-bottom: 60px; /* Adjust based on your footer height */
+      }
+    </style>
     <!-- Favicon code. -->
     <link rel="apple-touch-icon" sizes="180x180" href="https://i.imgur.com/IL86O35.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://i.imgur.com/kgaswEI.png">
@@ -48,9 +64,10 @@
     <!-- Bootstrap Bundle JS for interactive components. -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <!-- This code makes the data toggles look better. -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-     <!-- Bootstrap JS for interactive components, ensuring they look and function correctly. -->
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Bootstrap JS for interactive components, ensuring they look and function correctly. -->
+    <!-- <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script> -->
     <script>
       // Initialize tooltips on elements with the data-toggle="tooltip" attribute.
       $( document ).ready(function() {
@@ -78,9 +95,10 @@
     <!-- Header with navigation bar fixed at the top. -->
     <header>
       <!-- These breaks are neccessary for the headings to be readable.  Otherwise, they are "above" the user's screen behind the navbar. -->
-      <br><br><br>
+      <!-- <br><br><br> -->
       <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->    
-      <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+      <!--  <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top"> -->
+      <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
         <div class="container-fluid">
           <a class="navbar-brand" href="/">Professional Profile</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +125,7 @@
     {% block content %} 
     {% endblock content %}
     <!-- These breaks make sure the GitHub link at the bottom of the project pages is reachable. -->
-    <br><br><br><br><br><br><br><br>
+    <!-- <br><br><br><br><br><br><br><br> -->
     </main>
     <!-- Footer for site-wide information and links -->
     <footer class="d-flex flex-wrap justify-content-between align-items-center  border-top">
