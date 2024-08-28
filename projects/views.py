@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import QRForm, MonteCarloForm, WeatherForm, TextForm
+from .forms import QRForm, MonteCarloForm, WeatherForm, TextForm, IPForm, DomainForm
 import os
 import qrcode
 from django.http import HttpResponse, JsonResponse
@@ -11,10 +11,7 @@ import matplotlib.pyplot as plt
 from django.conf import settings
 import textstat
 import dns.resolver
-from .forms import DomainForm
-import dns.resolver
 import dns.reversename
-from .forms import IPForm
 from django.views.decorators.cache import cache_control
 
 
@@ -514,7 +511,7 @@ def dns_tool(request):
     return response
 
 
-# This is the code for the IP Lookup Tool app.
+# This is the code for the IP Address Lookup Tool app.
 # Decorator to set cache control headers to prevent caching of the page
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ip_tool(request):
