@@ -14,43 +14,46 @@
 {% block content %}
 <center>
 <h1>Grade Level Text Analyzer</h1><br>
-<div class = "table-container" style = "width: 100%; max-width: 750px;">
-  <table class="table">
-    <tr>
-        <th>Readability Test</th>
-        <th>Score</th>
-    </tr>
-    <tr>
-        <td><strong>Flesch-Kincaid Grade Level</strong></td>
-        <td>{{ results.flesch_kincaid_grade }}</td>
-    </tr>
-    <tr>
-        <td><strong>Gunning Fog Index</strong></td>
-        <td>{{ results.gunning_fog }}</td>
-    </tr>
-    <tr>
-        <td><strong>Coleman-Liau Index</strong></td>
-        <td>{{ results.coleman_liau_index }}</td>
-    </tr>
-  </table>
-</div>
-<br>
-<div class = "table-container" style = "width: 100%; max-width: 750px;">
-  <table class="table">
-    <tr>
-        <th>Average</th>
-        <th>Score</th>
-    </tr>
-    <tr>
-        <td><strong>Weighted</strong></td>
-        <td>{{ results.average_score }}</td>
-    </tr>
-    <tr>
-        <td><strong>Uniform</strong></td>
-        <td>{{ results.uniform_average_score }}</td>
-    </tr>
-  </table>
-</div>
+<center>
+  <h4>Analysis Results</h4><br>
+  <div class = "table-container" style = "width: 100%; max-width: 750px;">
+    <table class="table">
+      <tr>
+          <th>Readability Test</th>
+          <th>Score</th>
+      </tr>
+      <tr>
+          <td><strong>Flesch-Kincaid Grade Level</strong></td>
+          <td>{{ results.flesch_kincaid_grade }}</td>
+      </tr>
+      <tr>
+          <td><strong>Gunning Fog Index</strong></td>
+          <td>{{ results.gunning_fog }}</td>
+      </tr>
+      <tr>
+          <td><strong>Coleman-Liau Index</strong></td>
+          <td>{{ results.coleman_liau_index }}</td>
+      </tr>
+    </table>
+  </div>
+  <br>
+  <div class = "table-container" style = "width: 100%; max-width: 750px;">
+    <table class="table">
+      <tr>
+          <th>Average</th>
+          <th>Score</th>
+      </tr>
+      <tr>
+          <td><strong>Weighted</strong></td>
+          <td>{{ results.average_score }}</td>
+      </tr>
+      <tr>
+          <td><strong>Uniform</strong></td>
+          <td>{{ results.uniform_average_score }}</td>
+      </tr>
+    </table>
+  </div>
+</center>
 <br>
 <h4>Analysis results:</h4><br>
 <!-- Displays the scores from various readability tests. -->
