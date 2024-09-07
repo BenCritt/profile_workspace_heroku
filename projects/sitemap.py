@@ -39,7 +39,7 @@ class StaticViewSitemap(sitemaps.Sitemap):
             "ip_tool",
             "resume",
             "contact",
-        ]  # Add more URLs as needed, but only for pages you want indexed.
+        ]
 
     # Define how to determine the location (URL) for each item, using the 'reverse' function to find URLs by their name.
     def location(self, item):
