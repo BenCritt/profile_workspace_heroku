@@ -1,0 +1,29 @@
+<!-- ssl_verifier/templates/ssl_verifier/ssl_check.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSL Verification Tool</title>
+</head>
+<body>
+    <h1>SSL Verification Tool</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Check SSL</button>
+    </form>
+
+    {% if result %}
+        <h2>Results for {{ url }}</h2>
+        {% if result.error %}
+            <p>Error: {{ result.error }}</p>
+        {% else %}
+            <p><strong>Subject:</strong> {{ result.subject }}</p>
+            <p><strong>Issuer:</strong> {{ result.issuer }}</p>
+            <p><strong>Serial Number:</strong> {{ result.serial_number }}</p>
+            <p><strong>Valid From:</strong> {{ result.not_before }}</p>
+            <p><strong>Valid Until:</strong> {{ result.not_after }}</p>
+        {% endif %}
+    {% endif %}
+</body>
+</html>

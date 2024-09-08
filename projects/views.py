@@ -1,5 +1,13 @@
 from django.shortcuts import render, redirect
-from .forms import QRForm, MonteCarloForm, WeatherForm, TextForm, IPForm, DomainForm
+from .forms import (
+    QRForm,
+    MonteCarloForm,
+    WeatherForm,
+    TextForm,
+    IPForm,
+    DomainForm,
+    SSLCheckForm,
+)
 import os
 import qrcode
 from django.http import HttpResponse, JsonResponse
@@ -13,6 +21,7 @@ import textstat
 import dns.resolver
 import dns.reversename
 from django.views.decorators.cache import cache_control
+from .utils import verify_ssl
 
 
 # This is code for generating favicons on Android devices.
@@ -613,3 +622,24 @@ def ip_tool(request):
 
     # Return the HTTP response
     return response
+
+
+# This is the form for the SSL Certificate Checker app.
+# Decorator to set cache control headers to prevent caching of the page
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def ssl_check(request):
+    form = SSLCheckForm()
+    result = None
+    url = None
+
+    if request.method == "POST":
+        form = SSLCheckForm(request.POST)
+        if form.is_valid():
+            url = form.cleaned_data["url"]
+            result = verify_ssl(url)
+
+    return render(
+        request,
+        "ssl_verifier/ssl_check.html",
+        {"form": form, "result": result, "url": url},
+    )

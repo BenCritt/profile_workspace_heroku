@@ -38,4 +38,5 @@ urlpatterns = [
     path("site.webmanifest", views.manifest, name="manifest"),
     path("dns_tool/", views.dns_tool, name="dns_tool"),
     path("ip_tool/", views.ip_tool, name="ip_tool"),
+    path("ssl_check/", views.ssl_check, name="ssl_check"),
 ]
