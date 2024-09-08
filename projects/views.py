@@ -637,9 +637,16 @@ def ssl_check(request):
         if form.is_valid():
             url = form.cleaned_data["url"]
             result = verify_ssl(url)
-
-    return render(
+    # Render the template with form, results, and error message
+    response = render(
         request,
-        "ssl_verifier/ssl_check.html",
+        "projects/ssl_check.html",
         {"form": form, "result": result, "url": url},
     )
+    # Sets additional anti-caching headers directly on the response object
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    # Return the HTTP response
+    return response
