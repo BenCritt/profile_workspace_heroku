@@ -1,29 +1,144 @@
-<!-- ssl_verifier/templates/ssl_verifier/ssl_check.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SSL Verification Tool</title>
-</head>
-<body>
-    <h1>SSL Verification Tool</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Check SSL</button>
-    </form>
-
-    {% if result %}
-        <h2>Results for {{ url }}</h2>
-        {% if result.error %}
-            <p>Error: {{ result.error }}</p>
-        {% else %}
-            <p><strong>Subject:</strong> {{ result.subject }}</p>
-            <p><strong>Issuer:</strong> {{ result.issuer }}</p>
-            <p><strong>Serial Number:</strong> {{ result.serial_number }}</p>
-            <p><strong>Valid From:</strong> {{ result.not_before }}</p>
-            <p><strong>Valid Until:</strong> {{ result.not_after }}</p>
-        {% endif %}
-    {% endif %}
-</body>
-</html>
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+    {% block page_head %}
+    {% block scripts %}
+    {% endblock scripts %}    
+    {% block styles %}
+        <!-- Custom CSS styles for the SSL Verification Tool -->
+        <style>
+            .table-container {
+                width: 100%;    /* Ensures the container takes the full width */
+                overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
+            }
+            .table {
+                width: 100%;    /* Table takes the full width of the container */
+                border-collapse: collapse;  /* Merges table borders */
+                margin-top: 20px;   /* Adds space above the table */
+                table-layout: auto; /* Allow table to adjust automatically */
+            }
+            .table th {
+                padding: 8px;  /* Adjusted padding for better readability */
+                text-align: center;   /* Aligns text to the center for table headers */
+                border: 1px solid #ddd; /* Adds border around cells */
+                vertical-align: middle; /* Aligns content vertically in the middle */
+                word-break: break-word; /* Break long words to fit within the cell */
+                background-color: #f2f2f2;  /* Sets background color for table headers */
+            }
+            .table td {
+                padding: 8px;  /* Adjusted padding for better readability */
+                text-align: left;   /* Aligns text to the left for table data cells */
+                border: 1px solid #ddd; /* Adds border around cells */
+                vertical-align: middle; /* Aligns content vertically in the middle */
+                word-break: break-word; /* Break long words to fit within the cell */
+            }
+            .table tr:nth-child(even) {
+                background-color: #f9f9f9;  /* Alternates row colors for readability */
+            }
+            .table tr:hover {
+                background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
+            }
+            ul {
+                margin: 0;  /* Removes margin */
+                padding-left: 20px; /* Adds padding to the left */
+                list-style-type: none; /* Removes bullet points from the list */
+            }
+            .centered-content {
+                text-align: center; /* Centers the content */
+            }
+            
+            /* Media Query for Smaller Screens */
+            @media (max-width: 600px) {
+                .table th, .table td {
+                    font-size: 12px; /* Smaller font size for better fit */
+                    padding: 6px; /* Reduced padding */
+                }
+            }        
+        </style>        
+        {% endblock styles %}
+        {% block meta_tags %}
+            <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+            <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+            <meta http-equiv="Pragma" content="no-cache">
+            <meta http-equiv="Expires" content="0">
+            <!-- Meta tags providing essential information about the page to search engines. -->
+            <meta name="description" content="Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.">
+            <meta name="keywords" content="SSL verification, SSL checker, verify SSL certificate, website security, SSL certificate tool, SSL certificate expiration, check SSL, SSL details, secure website, SSL issuer">
+            <!-- Facebook Meta Tags -->
+            <meta property="og:url" content="https://www.bencritt.net/projects/ssl_check/">
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="SSL Verification Tool">
+            <meta property="og:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
+            <meta property="og:image" content="">
+            <!-- Twitter Meta Tags -->
+            <meta name="twitter:card" content="summary_large_image">
+            <meta property="twitter:domain" content="bencritt.net">
+            <meta property="twitter:url" content="https://www.bencritt.net/projects/ssl_check/">
+            <meta name="twitter:title" content="SSL Verification Tool">
+            <meta name="twitter:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
+            <meta name="twitter:image" content="">
+            <meta name="twitter:creator" content="@bencritt89"/>
+        {% endblock meta_tags %}
+        {% block link_tags %}
+            <!-- Canonical link to help avoid duplicate content issues. -->
+            <link rel="canonical" href="https://www.bencritt.net/projects/ssl_check/">
+        {% endblock link_tags %}
+        {% block title %}SSL Verification Tool | Check SSL Certificate Validity and Security Online{% endblock title %}
+        {% endblock page_head %}
+        <!-- This begins the contents that are unique to this page. -->
+        {% block content %}
+        <main>
+            <center>
+                <h1>SSL Verification Tool</h1>
+                <br>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit">Check SSL</button>
+                </form>
+                {% if result %}
+                <h2>Results for {{ url }}</h2>
+                {% if result.error %}
+                    <p>Error: {{ result.error }}</p>
+                {% else %}
+                    <div class="table-container" style="width: 100%; max-width: 750px;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Subject</td>
+                                    <td>{{ result.subject }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Issuer</td>
+                                    <td>{{ result.issuer }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Serial Number</td>
+                                    <td>{{ result.serial_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Valid From</td>
+                                    <td>{{ result.not_before }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Valid Until</td>
+                                    <td>{{ result.not_after }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            {% endif %}
+                <br><br>
+                <!-- Link to the GitHub repository for the project. -->
+                <a href = "https://github.com/BenCritt/" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                </svg></a>
+            </center>
+        </main>
+        {% endblock content %}
