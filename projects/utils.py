@@ -41,8 +41,8 @@ def verify_ssl(url):
             "subject": dict(x509.get_subject().get_components()),
             "issuer": dict(x509.get_issuer().get_components()),
             "serial_number": x509.get_serial_number(),
-            "not_before": x509.get_notBefore().decode("utf-8"),
-            "not_after": x509.get_notAfter().decode("utf-8"),
+            "not_before": not_before,
+            "not_after": not_after,
         }
 
         return cert_info
