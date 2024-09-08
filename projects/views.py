@@ -21,7 +21,7 @@ import textstat
 import dns.resolver
 import dns.reversename
 from django.views.decorators.cache import cache_control
-from .utils import verify_ssl
+from .utils import verify_ssl, get_coordinates, get_city_and_state
 
 
 # This is code for generating favicons on Android devices.
@@ -288,6 +288,7 @@ def monte_carlo_simulator(request):
     )
 
 
+"""
 # This is the code for the Weather Forecast app.
 def get_coordinates(zip_code):
     # API key for accessing the Google Geocoding API.
@@ -330,6 +331,7 @@ def get_city_and_state(zip_code):
     else:
         # Return None if the API call was unsuccessful or if no results were found.
         return None
+"""
 
 
 # This is the code for the Weather Forecast app.
