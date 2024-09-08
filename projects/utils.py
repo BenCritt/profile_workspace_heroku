@@ -2,6 +2,7 @@ import ssl
 import socket
 from OpenSSL import crypto
 from urllib.parse import urlparse
+from datetime import datetime
 
 
 def verify_ssl(url):
@@ -26,6 +27,14 @@ def verify_ssl(url):
 
         # Load the certificate using pyOpenSSL
         x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, cert)
+
+        # Convert ASN.1 time format to datetime
+        not_before = datetime.strptime(
+            x509.get_notBefore().decode("utf-8"), "%Y%m%d%H%M%SZ"
+        )
+        not_after = datetime.strptime(
+            x509.get_notAfter().decode("utf-8"), "%Y%m%d%H%M%SZ"
+        )
 
         # Extract certificate details
         cert_info = {
