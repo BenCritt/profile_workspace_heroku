@@ -2,6 +2,30 @@
 {% extends "projects/base.html" %}
     {% block page_head %}
     {% block scripts %}
+    <script type="application/ld+json">
+        {
+          "@context": "http://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "SSL Verification Tool",
+          "description": "The SSL Verification Tool allows users to verify SSL certificates for any website, retrieving information about the certificate's issuer, validity period, and expiration dates to ensure secure online connections.",
+          "url": "https://www.bencritt.net/projects/ssl_check/",
+          "applicationCategory": "Network Utility",
+          "operatingSystem": "Web-based",
+          "image": "https://i.imgur.com/1nAms2M.png",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden",
+            "url": "https://www.bencritt.net"
+          },
+          "featureList": [
+            "Quickly verifies SSL certificates for any website.",
+            "Displays detailed SSL certificate information, including issuer, validity period, and expiration dates.",
+            "Helps ensure websites maintain secure connections by verifying SSL configurations.",
+            "Web-based application, accessible from any device with an internet connection.",
+            "Simple interface for easy SSL checks and certificate verification."
+          ]
+        }
+    </script>
     {% endblock scripts %}    
     {% block styles %}
         <!-- Custom CSS styles for the SSL Verification Tool -->
@@ -68,14 +92,14 @@
             <meta property="og:type" content="website">
             <meta property="og:title" content="SSL Verification Tool">
             <meta property="og:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
-            <meta property="og:image" content="">
+            <meta property="og:image" content="https://i.imgur.com/1nAms2M.png">
             <!-- Twitter Meta Tags -->
             <meta name="twitter:card" content="summary_large_image">
             <meta property="twitter:domain" content="bencritt.net">
             <meta property="twitter:url" content="https://www.bencritt.net/projects/ssl_check/">
             <meta name="twitter:title" content="SSL Verification Tool">
             <meta name="twitter:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
-            <meta name="twitter:image" content="">
+            <meta name="twitter:image" content="https://i.imgur.com/1nAms2M.png">
             <meta name="twitter:creator" content="@bencritt89"/>
         {% endblock meta_tags %}
         {% block link_tags %}
