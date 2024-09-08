@@ -122,12 +122,14 @@
                                     <td>{{ result.serial_number }}</td>
                                 </tr>
                                 <tr>
+                                    <!-- Format to human-readable display. -->
+                                    <!-- F=Month, j=Day of Month, Y=year, g=hour, i=minutes, a=am/pm disctinction -->
                                     <td>Valid From</td>
-                                    <td>{{ result.not_before }}</td>
+                                    <td>{{ result.not_before|date:"F j, Y, g:i a" }}</td>
                                 </tr>
                                 <tr>
                                     <td>Valid Until</td>
-                                    <td>{{ result.not_after }}</td>
+                                    <td>{{ result.not_after|date:"F j, Y, g:i a" }}</td>
                                 </tr>
                             </tbody>
                         </table>
