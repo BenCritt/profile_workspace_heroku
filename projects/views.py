@@ -584,15 +584,22 @@ def ip_tool(request):
 # Decorator to set cache control headers to prevent caching of the page
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
+    # Initialize the form and result variables
     form = SSLCheckForm()
     result = None
     url = None
 
+    # Check if the request method is POST
     if request.method == "POST":
+        # Bind the form with POST data
         form = SSLCheckForm(request.POST)
+        # Validate the form
         if form.is_valid():
+            # Extract the URL from the form data
             url = form.cleaned_data["url"]
+            # Verify the SSL certificate for the given URL
             result = verify_ssl(url)
+
     # Render the template with form, results, and error message
     response = render(
         request,
