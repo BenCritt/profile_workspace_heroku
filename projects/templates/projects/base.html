@@ -42,12 +42,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <!-- Custom styles for padding to prevent navbar and footer overlaps -->
     <style>
-      header {
-        padding-top: 60px;
-      }
-
       body {
-        padding-top: 80px; /* Adjust based on your navbar height */
+        padding-top: 60px; /* Adjust based on your navbar height */
       }
 
       @media (max-width: 768px) {
@@ -98,6 +94,8 @@
     <!-- End Google Tag Manager (noscript). -->
     <!-- Header with navigation bar fixed at the top. -->
     <header>
+      <!-- These breaks are neccessary for the headings to be readable.  Otherwise, they are "above" the user's screen behind the navbar. -->
+      <br><br><br>
       <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->    
       <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
       <!--  <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top"> -->
@@ -125,33 +123,21 @@
     <main>
     {% block content %} 
     {% endblock content %}
+    <!-- These breaks make sure the GitHub link at the bottom of the project pages is reachable. -->
+    <br><br><br><br><br><br><br><br>
     </main>
     <!-- Footer for site-wide information and links -->
     <footer class="d-flex flex-wrap justify-content-between align-items-center  border-top">
       <style>
         footer {
-          background-color: #333;
-          color: #fff;
-          padding: 20px 0;
-          text-align: center;
-          border-top: 1px solid #ccc;
-          position: sticky;
+          width: 100%;
+          background-color: rgba(0, 0, 0, 0.9);
+          margin: 0 auto;
+          padding: 1rem 0;
+          position: fixed;
           bottom: 0;
-        }
-
-        footer a {
-          color: #fff;
-        }
-
-        footer ul {
-          padding: 0;
-          list-style-type: none;
-        }
-
-        footer ul li {
-          display: inline-block;
-          margin-right: 20px;
-        }
+          border-top: 1px solid #ccc;
+          }
       </style>
       <div class="col-md-4 d-flex align-items-center">
           <!-- This empty image container forces the text to the right.  There's probably a better way to do this, but whatever it works. -->
