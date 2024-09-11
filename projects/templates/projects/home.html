@@ -77,67 +77,18 @@
       .icon-container a {
         display: inline-block;
       }
-        /* Overall container for sections */
-      .section-container {
-        width: 100%;
-        max-width: 750px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      /* Section headers */
-      h2 {
-        font-family: 'Arial', sans-serif;
-        font-size: 1.8rem;
-        color: #076cf6;
-        border-bottom: 2px solid #076cf6;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-      }
-
-      /* Section paragraphs */
-      .section-container p {
-        font-size: 1.1rem;
-        line-height: 1.8;
-        color: #555;
-        margin-bottom: 30px;
-      }
-
-      /* Highlighted text */
-      .section-container p strong {
-        color: #333;
-        font-weight: bold;
-      }
-
-      /* Section styles */
       section {
-        padding: 20px;
-        background: #ffffff;
-        border-radius: 8px;
-        margin-bottom: 30px;
+        margin-bottom: 30px; /* Adds spacing between sections */
       }
-
-      /* Icon styling for additional visual appeal */
-      .section-icon {
-        font-size: 2rem;
-        color: #076cf6;
-        margin-right: 10px;
+      /* Increase specificity */
+      /* Alternate background color C5050C */
+      .accordion .accordion-button:not(.collapsed) {
+          color: #ffffff;
       }
-
-      /* Responsive adjustments */
-      @media (max-width: 768px) {
-        .section-container {
-          padding: 10px;
-        }
-        h2 {
-          font-size: 1.5rem;
-        }
-        .section-container p {
-          font-size: 1rem;
-        }
+      
+      /* Alternatively, use !important */
+      .accordion-button:not(.collapsed) {
+          color: #ffffff !important;
       }
     </style>
     {% endblock styles %}
@@ -175,7 +126,7 @@
       <br>
       <center>
       <!-- Various sections describing Ben Crittenden, using an accordion for organized presentation. -->
-      <div class="section-container">
+      <div style="width: 100%; max-width: 750px; margin: 0 auto; padding: 20px;">
       <section id="about-ben-crittenden">
         <h2>Who is Ben Crittenden?</h2>
         <p><strong>My professional interests are IT Services, Software Development, and Data Analytics.</strong>  My name is Ben Crittenden, and I have a passion for developing and deploying technology that enables people to be more productive in their work and to have more meaningful experiences in their lives.  Python is a tool I particularly enjoy using, both for the fun of creating interesting projects as well as for its ability to increase productivity.  Working with technology is something I find as fun as much as I find it important.</p>
