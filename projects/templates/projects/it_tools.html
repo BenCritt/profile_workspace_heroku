@@ -10,21 +10,49 @@
 <main>
     <center>
         <h1>IT Tools</h1>
+        <br>
+        <!-- Cards Container -->
+        <div class="card-container" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+
+            <!-- SSL Verification Tool Card -->
+            <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+                <img src="https://i.imgur.com/51PpOfA.png" alt="SSL Verification Tool" style="width: 100%; height: auto; border-radius: 8px;">
+                <h2>SSL Verification Tool</h2>
+                <p>Verify SSL certificates and check for expiration to ensure secure connections.</p>
+                <a href="/projects/ssl_check/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use SSL Tool</a>
+            </div>
+
+            <!-- IP Address Lookup Tool Card -->
+            <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+                <img src="https://i.imgur.com/3ikMQJN.png" alt="IP Address Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">
+                <h2>IP Address Lookup Tool</h2>
+                <p>Perform reverse DNS lookups and retrieve PTR records for IP addresses.</p>
+                <a href="/projects/ip_tool/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use IP Address Lookup Tool</a>
+            </div>
+
+            <!-- DNS Lookup Tool Card -->
+            <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+                <img src="https://i.imgur.com/jiKZkIp.png" alt="DNS Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">
+                <h2>DNS Lookup Tool</h2>
+                <p>Perform DNS lookups for various DNS records, including A, MX, and TXT records.</p>
+                <a href="/projects/dns_tool/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use DNS Lookup Tool</a>
+            </div>
+
+        </div>
+
+        <!--
+        I eventually want to have each app directly accesible via iframes on this page.
         <p>Select from the tools below and interact with them directly on this page:</p>
-        
-        <!-- SSL Verification Tool -->
+        <br>
         <h2>SSL Verification Tool</h2>
         <iframe src="/projects/ssl_check/" style="width: 100%; height: 600px; border: none;"></iframe>
         <br><br>
-        
-        <!-- IP Address Lookup Tool -->
         <h2>IP Address Lookup Tool</h2>
         <iframe src="/projects/ip_tool/" style="width: 100%; height: 600px; border: none;"></iframe>
         <br><br>
-        
-        <!-- DNS Lookup Tool -->
         <h2>DNS Lookup Tool</h2>
         <iframe src="/projects/dns_tool/" style="width: 100%; height: 600px; border: none;"></iframe>
+        -->
     </center>
 </main>
 {% endblock content %}
