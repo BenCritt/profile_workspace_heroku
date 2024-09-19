@@ -1,10 +1,87 @@
 {% extends "projects/base.html" %}
     {% block page_head %}
     {% block scripts %}
+    <script type="application/ld+json">
+        {
+          "@context": "http://schema.org",
+          "@type": "CollectionPage",
+          "name": "IT Tools",
+          "description": "Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.",
+          "url": "https://www.bencritt.net/projects/it_tools/",
+          "hasPart": [
+            {
+              "@type": "SoftwareApplication",
+              "name": "DNS Lookup Tool",
+              "description": "The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name, retrieving various DNS records such as A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
+              "applicationCategory": "Network Utility",
+              "url": "https://www.bencritt.net/projects/dns_tool/",
+              "creator": {
+                "@type": "Person",
+                "name": "Ben Crittenden"
+              },
+              "operatingSystem": "Web-based",
+              "featureList": [
+                "Perform DNS lookups for various DNS record types.",
+                "Retrieve detailed DNS information for network troubleshooting and domain management.",
+                "Accessible from any web-enabled device with a user-friendly interface."
+              ]
+            },
+            {
+              "@type": "SoftwareApplication",
+              "name": "IP Address Lookup Tool",
+              "description": "The IP Address Lookup Tool enables users to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address.",
+              "applicationCategory": "Network Utility",
+              "url": "https://www.bencritt.net/projects/ip_tool/",
+              "creator": {
+                "@type": "Person",
+                "name": "Ben Crittenden"
+              },
+              "operatingSystem": "Web-based",
+              "featureList": [
+                "Perform reverse DNS lookups to retrieve PTR records.",
+                "Retrieve geolocation and blacklist status for IP addresses.",
+                "User-friendly interface accessible from any web-enabled device."
+              ]
+            },
+            {
+              "@type": "SoftwareApplication",
+              "name": "SSL Verification Tool",
+              "description": "The SSL Verification Tool allows users to quickly verify SSL certificates for any website, retrieving detailed information such as the certificate issuer, validity period, and expiration dates.",
+              "applicationCategory": "Network Utility",
+              "url": "https://www.bencritt.net/projects/ssl_check/",
+              "creator": {
+                "@type": "Person",
+                "name": "Ben Crittenden"
+              },
+              "operatingSystem": "Web-based",
+              "featureList": [
+                "Quickly verify SSL certificates for any website.",
+                "Retrieve detailed SSL information including issuer, validity period, and expiration dates.",
+                "Ensure your website is secure for users by verifying SSL configurations.",
+                "Accessible from any web-enabled device with a user-friendly interface."
+              ]
+            }
+          ]
+        }
+        </script>        
     {% endblock scripts %}
     {% block meta_tags %}
         <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
         <meta name="keywords" content="SSL Verification, IP Address Lookup, DNS Lookup, Network Tools, IT Tools">
+        <!-- Facebook Meta Tags -->
+        <meta property="og:url" content="https://www.bencritt.net/projects/it_tools/">
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="IT Tools">
+        <meta property="og:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+        <meta property="og:image" content="">
+        <!-- Twitter Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta property="twitter:domain" content="bencritt.net">
+        <meta property="twitter:url" content="https://www.bencritt.net/projects/it_tools/">
+        <meta name="twitter:title" content="IT Tools">
+        <meta name="twitter:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+        <meta name="twitter:image" content="">
+        <meta name="twitter:creator" content="@bencritt89"/>
     {% block link_tags %}
         <!-- Canonical link to help avoid duplicate content issues. -->
         <link rel="canonical" href="https://www.bencritt.net/projects/it_tools/">
@@ -50,7 +127,7 @@
                 <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
                     <h2>DNS Lookup Tool</h2>
                     <img src="https://i.imgur.com/jiKZkIp.png" alt="DNS Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                    <p>DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records</p>
+                    <p>DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records. It's essential for domain management and network troubleshooting.</p>
                     <a href="/projects/dns_tool/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use DNS Lookup Tool</a>
                 </div>
 
