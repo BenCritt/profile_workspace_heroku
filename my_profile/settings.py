@@ -30,6 +30,8 @@ SECRET_KEY = "django-insecure-8r3!59w$m@=4692d!+*)z$=em068%#kxmj#s98_akxrudag*-#
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+X_FRAME_OPTIONS = "ALLOWALL"  # To allow embedding for iframes everywhere
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://bencritt.net",
