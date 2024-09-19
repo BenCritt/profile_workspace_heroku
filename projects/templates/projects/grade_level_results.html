@@ -104,21 +104,6 @@
   </table>
 </div>
 <br>
-<h4>Flesch-Kincaid Grade Level</h4>
-<div class="progress">
-    <div class="progress-bar" role="progressbar" style="width: {{ results.flesch_kincaid_grade * 10 }}%" aria-valuenow="{{ results.flesch_kincaid_grade }}" aria-valuemin="0" aria-valuemax="20">{{ results.flesch_kincaid_grade }}</div>
-</div>
-
-<h4>Gunning Fog Index</h4>
-<div class="progress">
-    <div class="progress-bar bg-success" role="progressbar" style="width: {{ results.gunning_fog * 5 }}%" aria-valuenow="{{ results.gunning_fog }}" aria-valuemin="0" aria-valuemax="20">{{ results.gunning_fog }}</div>
-</div>
-
-<h4>Coleman-Liau Index</h4>
-<div class="progress">
-    <div class="progress-bar bg-info" role="progressbar" style="width: {{ results.coleman_liau_index * 5 }}%" aria-valuenow="{{ results.coleman_liau_index }}" aria-valuemin="0" aria-valuemax="20">{{ results.coleman_liau_index }}</div>
-</div>
-<br>
 <!-- Displays the scores from various readability tests. -->
 <p><strong>Flesch-Kincaid Grade Level: </strong>{{ results.flesch_kincaid_grade }}</p>
 <p><strong>Gunning Fog Index: </strong>{{ results.gunning_fog }}</p>
