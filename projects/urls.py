@@ -39,4 +39,5 @@ urlpatterns = [
     path("dns_tool/", views.dns_tool, name="dns_tool"),
     path("ip_tool/", views.ip_tool, name="ip_tool"),
     path("ssl_check/", views.ssl_check, name="ssl_check"),
+    path("projects/it_tools/", views.it_tools, name="it_tools"),
 ]

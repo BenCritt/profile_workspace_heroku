@@ -1,0 +1,30 @@
+{% extends "projects/base.html" %}
+{% block page_head %}
+    <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+    <meta name="keywords" content="SSL Verification, IP Address Lookup, DNS Lookup, Network Tools, IT Tools">
+    <link rel="canonical" href="https://www.bencritt.net/projects/it_tools/">
+    <title>IT Tools | SSL Verification, IP Address Lookup, DNS Lookup</title>
+{% endblock page_head %}
+
+{% block content %}
+<main>
+    <center>
+        <h1>IT Tools</h1>
+        <p>Select from the tools below and interact with them directly on this page:</p>
+        
+        <!-- SSL Verification Tool -->
+        <h2>SSL Verification Tool</h2>
+        <iframe src="{% url 'ssl_check' %}" style="width: 100%; height: 600px; border: none;"></iframe>
+        <br><br>
+        
+        <!-- IP Address Lookup Tool -->
+        <h2>IP Address Lookup Tool</h2>
+        <iframe src="{% url 'ip_tool' %}" style="width: 100%; height: 600px; border: none;"></iframe>
+        <br><br>
+        
+        <!-- DNS Lookup Tool -->
+        <h2>DNS Lookup Tool</h2>
+        <iframe src="{% url 'dns_tool' %}" style="width: 100%; height: 600px; border: none;"></iframe>
+    </center>
+</main>
+{% endblock content %}

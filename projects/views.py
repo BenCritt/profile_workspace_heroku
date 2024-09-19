@@ -580,7 +580,7 @@ def ip_tool(request):
     return response
 
 
-# This is the form for the SSL Certificate Checker app.
+# This is the code for the SSL Verification Tool app.
 # Decorator to set cache control headers to prevent caching of the page
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
@@ -613,3 +613,10 @@ def ssl_check(request):
 
     # Return the HTTP response
     return response
+
+
+# This is the view for the IT Tools page.
+# Decorator to set cache control headers to prevent caching of the page
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def it_tools(request):
+    return render(request, "projects/it_tools.html")
