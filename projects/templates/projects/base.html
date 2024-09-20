@@ -19,11 +19,20 @@
     })(window,document,'script','dataLayer','GTM-54T3B3G3');</script>
     <!-- This code is for removing the navbar and footer when a page is loaded instide of an iframe. -->
     <script>
-      if (window.self !== window.top) {
-        document.querySelector('nav').style.display = 'none';
-        document.querySelector('footer').style.display = 'none';
-      }
-    </script>    
+      document.addEventListener("DOMContentLoaded", function() {
+        if (window.self !== window.top) {
+          // Hide the navbar and footer when inside an iframe
+          const navbar = document.querySelector('nav');
+          const footer = document.querySelector('footer');
+          if (navbar) {
+            navbar.style.display = 'none';
+          }
+          if (footer) {
+            footer.style.display = 'none';
+          }
+        }
+      });
+    </script>       
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
