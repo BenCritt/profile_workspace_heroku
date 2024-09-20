@@ -24,7 +24,8 @@
           // Hide the navbar and footer when inside an iframe
           const navbar = document.querySelector('nav');
           const footer = document.querySelector('footer');
-          
+          const secondaryButtons = document.querySelectorAll('.btn.btn-secondary'); // Select secondary buttons
+    
           if (navbar) {
             navbar.style.display = 'none';
           }
@@ -32,9 +33,14 @@
           if (footer) {
             footer.style.cssText = 'display: none !important;';
           }
+          
+          // Loop through all secondary buttons and hide them
+          secondaryButtons.forEach(function(button) {
+            button.style.display = 'none';
+          });
         }
       });
-    </script>    
+    </script>       
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
