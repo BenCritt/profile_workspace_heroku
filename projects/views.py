@@ -507,7 +507,7 @@ def ip_tool(request):
             except Exception as e:
                 # Handle any exceptions during PTR lookup
                 results["PTR"] = [f"Error retrieving PTR records: {str(e)}"]
-                error_message = "An error occurred while retrieving PTR records."
+                # error_message = "An error occurred while retrieving PTR records."
 
             # Geolocation and ISP Information (Example using ip-api.com)
             try:
