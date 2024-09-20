@@ -27,12 +27,19 @@
           if (navbar) {
             navbar.style.display = 'none';
           }
+        }
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if (window.self !== window.top) {
+          const footer = document.querySelector('.d-flex.flex-wrap.justify-content-between.align-items-center');
           if (footer) {
             footer.style.display = 'none';
           }
         }
       });
-    </script>       
+    </script>
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
@@ -143,7 +150,7 @@
     <br><br><br><br><br><br><br><br>
     </main>
     <!-- Footer for site-wide information and links -->
-    <footer class="d-flex flex-wrap justify-content-between align-items-center  border-top">
+    <footer class="d-flex flex-wrap justify-content-between align-items-center border-top">
       <style>
         footer {
           width: 100%;
