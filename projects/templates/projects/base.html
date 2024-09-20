@@ -17,6 +17,13 @@
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-54T3B3G3');</script>
+    <!-- This code is for removing the navbar and footer when a page is loaded instide of an iframe. -->
+    <script>
+      if (window.self !== window.top) {
+        document.querySelector('nav').style.display = 'none';
+        document.querySelector('footer').style.display = 'none';
+      }
+    </script>    
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
