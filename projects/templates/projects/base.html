@@ -82,21 +82,21 @@
 
       @media (min-width: 768px) {
         .non-iframe-cards {
-          display: none; /* Hide non-iframe cards on larger screens */
+            display: none !important; /* Hide non-iframe cards on larger screens */
         }
         .iframe-cards {
-          display: flex; /* Show iframe cards on larger screens */
+            display: flex !important; /* Show iframe cards on larger screens */
         }
-      }
+    }
     
-      @media (max-width: 767px) {
+    @media (max-width: 767px) {
         .iframe-cards {
-          display: none; /* Hide iframe cards on smaller screens */
+            display: none !important; /* Hide iframe cards on smaller screens */
         }
         .non-iframe-cards {
-          display: flex; /* Show non-iframe cards on smaller screens */
+            display: flex !important; /* Show non-iframe cards on smaller screens */
         }
-      }
+    }
     </style>
     <!-- Favicon code. -->
     <link rel="apple-touch-icon" sizes="180x180" href="https://i.imgur.com/IL86O35.png">

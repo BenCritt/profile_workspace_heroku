@@ -105,11 +105,11 @@
         <center>
             <h1>IT Professional Toolkit</h1>
             <br>
-            <!-- Cards Container -->
+            <!-- Non-iframe Cards -->
             <div class="card-container non-iframe-cards" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
 
               <!-- SSL Verification Tool Card -->
-              <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
                   <h2>SSL Verification Tool</h2>
                   <img src="https://i.imgur.com/51PpOfA.png" alt="SSL Verification Tool" style="width: 100%; height: auto; border-radius: 8px;">                
                   <p>Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.</p>
@@ -117,7 +117,7 @@
               </div>
 
               <!-- IP Address Lookup Tool Card -->
-              <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
                   <h2>IP Address Lookup Tool</h2>
                   <img src="https://i.imgur.com/3ikMQJN.png" alt="IP Address Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">
                   <p>Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.</p>
@@ -125,7 +125,7 @@
               </div>
 
               <!-- DNS Lookup Tool Card -->
-              <div class="card" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
+              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
                   <h2>DNS Lookup Tool</h2>
                   <img src="https://i.imgur.com/jiKZkIp.png" alt="DNS Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">                
                   <p>Use the DNS Lookup Tool to perform DNS lookups and retrieve various DNS records, such as A, MX, NS, CNAME, TXT, SOA, SRV, and CAA Records. It's essential for domain management and network troubleshooting.</p>
@@ -134,46 +134,31 @@
 
             </div>  
             <br>
-            <!-- Cards Container with iframes -->          
+            <!-- Iframe Cards -->          
             <div class="card-container iframe-cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
 
               <!-- SSL Verification Tool Card -->
-              <div class="card" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+              <div class="card iframe-cards" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
                   <div class="card-body">
                       <iframe src="/projects/ssl_check/" style="width: 100%; height: 500px; border: none;"></iframe>
                   </div>
               </div>
           
               <!-- IP Address Lookup Tool Card -->
-              <div class="card" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+              <div class="card iframe-cards" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
                   <div class="card-body">
                       <iframe src="/projects/ip_tool/" style="width: 100%; height: 500px; border: none;"></iframe>
                   </div>
               </div>
           
               <!-- DNS Lookup Tool Card -->
-              <div class="card" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+              <div class="card iframe-cards" style="width: 100%; max-width: 375px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
                   <div class="card-body">
                       <iframe src="/projects/dns_tool/" style="width: 100%; height: 500px; border: none;"></iframe>
                   </div>
               </div>
-          
           </div>
-          
             <br>
-            <!--
-            I eventually want to have each app directly accesible via iframes on this page.
-            <p>Select from the tools below and interact with them directly on this page:</p>
-            <br>
-            <h2>SSL Verification Tool</h2>
-            <iframe src="/projects/ssl_check/" style="width: 100%; height: 600px; border: none;"></iframe>
-            <br><br>
-            <h2>IP Address Lookup Tool</h2>
-            <iframe src="/projects/ip_tool/" style="width: 100%; height: 600px; border: none;"></iframe>
-            <br><br>
-            <h2>DNS Lookup Tool</h2>
-            <iframe src="/projects/dns_tool/" style="width: 100%; height: 600px; border: none;"></iframe>
-            -->
         </center>
     </main>
     {% endblock content %}
