@@ -185,7 +185,7 @@
                 {% if results %}
                 <br>
                     <!-- Header for results -->
-                    <h5>DNS Information for {{ form.cleaned_data.domain }}:</h5>
+                    <h5>DNS Information for {{ form.cleaned_data.domain }}</h5>
                     <center>
                     <div class = "table-container" style = "width: 100%; max-width: 750px;">
                     <!-- Table displaying DNS information -->
@@ -203,7 +203,7 @@
                             {% for record_type, records in results.items %}
                                 <tr>
                                     <!-- Displays the record type -->
-                                    <td>{{ record_type }} Records</td>
+                                    <td>{{ record_type }}</td>
                                     <td>
                                         {% if records %}
                                             <ul>
