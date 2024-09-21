@@ -113,6 +113,7 @@ class WeatherForm(forms.Form):
         return zip_code
 
 
+"""
 # This is the form for the DNS Tool app.
 class DomainForm(forms.Form):
     # Define a form field for the domain input
@@ -122,6 +123,22 @@ class DomainForm(forms.Form):
         # Maximum length of the input string
         max_length=253,
         # help_text="Enter a valid domain name (e.g., example.com).",
+    )
+"""
+
+
+# This is the form for the DNS Tool app.
+class DomainForm(forms.Form):
+    # Define a form field for the domain input
+    domain = forms.CharField(
+        # Label that will be displayed with the input field
+        label="Domain",
+        # Maximum length of the input string
+        max_length=253,
+        widget=forms.TextInput(
+            # Placeholder text to provide an example of the expected input
+            attrs={"placeholder": "bencritt.net"}
+        ),
     )
 
 
