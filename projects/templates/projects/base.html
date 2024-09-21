@@ -49,7 +49,25 @@
         }
       });
     </script>
-         
+    <!-- This adjusts iframe height as needed by the page content.-->
+    <script>
+      function resizeIframe(iframe) {
+        // Set the iframe's height based on its content's height
+        iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+      }
+    
+      document.addEventListener("DOMContentLoaded", function() {
+        // Get all iframes on the page
+        const iframes = document.querySelectorAll('iframe');
+        
+        // Resize each iframe when it's fully loaded
+        iframes.forEach(function(iframe) {
+          iframe.onload = function() {
+            resizeIframe(iframe);
+          };
+        });
+      });
+    </script>    
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
