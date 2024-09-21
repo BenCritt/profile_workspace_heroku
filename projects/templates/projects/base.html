@@ -82,13 +82,19 @@
 
       @media (min-width: 768px) {
         .non-iframe-cards {
-          display: none;
+          display: none; /* Hide non-iframe cards on larger screens */
+        }
+        .iframe-cards {
+          display: flex; /* Show iframe cards on larger screens */
         }
       }
-      
+    
       @media (max-width: 767px) {
         .iframe-cards {
-          display: none;
+          display: none; /* Hide iframe cards on smaller screens */
+        }
+        .non-iframe-cards {
+          display: flex; /* Show non-iframe cards on smaller screens */
         }
       }
     </style>
