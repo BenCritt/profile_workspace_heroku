@@ -179,10 +179,40 @@
       <!--
       <br><br><br>
       -->
-      <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->    
+      <!-- This is the site navigation bar. It is fixed to the top of the user's screen.-->
       <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
-      <!--  <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top"> -->
         <div class="container-fluid">
+          <a class="navbar-brand" href="/">Professional Profile</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-link" href="/projects/all_projects/">All Projects</a>
+              <a class="nav-link" href="/projects/qr_code_generator/">QR Code Generator</a>
+              <a class="nav-link" href="/projects/monte_carlo_simulator/">Monte Carlo Simulator</a>
+              <a class="nav-link" href="/projects/weather/">Weather Forecast</a>
+              <a class="nav-link" href="/projects/grade_level_analyzer/">Grade Level Text Analyzer</a>
+              <!-- IT Tools Dropdown -->
+              <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="/projects/it_tools/" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  IT Tools
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li><a class="dropdown-item" href="/projects/ssl_check/">SSL Verification Tool</a></li>
+                  <li><a class="dropdown-item" href="/projects/ip_tool/">IP Address Lookup Tool</a></li>
+                  <li><a class="dropdown-item" href="/projects/dns_tool/">DNS Lookup Tool</a></li>
+                </ul>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </nav>     
+      <!-- <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top"> -->
+      <!--  <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top"> -->
+      <!--
+      <div class="container-fluid">
           <a class="navbar-brand" href="/">Professional Profile</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
@@ -201,6 +231,7 @@
             </div>
           </div>
       </nav>
+      -->
     </header>
     <!-- In between these blocks is where each different page <main> <body> content is loaded. -->
     <main>
