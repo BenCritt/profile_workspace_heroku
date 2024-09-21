@@ -1,6 +1,7 @@
 {% extends "projects/base.html" %}
     {% block page_head %}
     {% block scripts %}
+    <!-- Schema for SEO -->
     <script type="application/ld+json">
         {
           "@context": "http://schema.org",
@@ -70,6 +71,7 @@
     </script>        
     {% endblock scripts %}
     {% block meta_tags %}
+        <!-- Meta tags for SEO -->
         <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
         <meta name="keywords" content="SSL Verification, IP Address Lookup, DNS Lookup, Network Tools, IT Tools">
         <!-- Facebook Meta Tags -->
@@ -93,6 +95,7 @@
     {% endblock link_tags %}
     {% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
     {% block styles %} 
+        <!-- CSS to make the cards display well -->
         <style>
             @media (max-width: 600px) {
                 .card {
@@ -138,7 +141,7 @@
 
             </div>  
             <br>
-            <!-- Iframe Cards -->          
+            <!-- Iframe cards for displaying apps inline -->          
             <div class="card-container iframe-cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
 
               <!-- SSL Verification Tool Card -->
