@@ -40,7 +40,16 @@
           });
         }
       });
-    </script>       
+    </script>
+    <!-- This is code to help remove padding within iframes. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if (window.self !== window.top) {
+          document.body.classList.add("in-iframe");
+        }
+      });
+    </script>
+         
     <!-- End Google Tag Manager -->
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
@@ -80,10 +89,16 @@
         padding-bottom: 150px; /* Adjust based on your footer height */
       }
 
-      /* Remove padding when inside iframe */
+      /* Remove all padding and margins when inside an iframe */
       body.in-iframe {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+      
+      main.in-iframe {
+        padding: 0 !important;
+        margin: 0 !important;
       }
 
       @media (min-width: 768px) {
