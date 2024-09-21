@@ -80,6 +80,12 @@
         padding-bottom: 150px; /* Adjust based on your footer height */
       }
 
+      /* Remove padding when inside iframe */
+      body.in-iframe {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
       @media (min-width: 768px) {
         .non-iframe-cards {
             display: none !important; /* Hide non-iframe cards on larger screens */
@@ -87,7 +93,7 @@
         .iframe-cards {
             display: flex !important; /* Show iframe cards on larger screens */
         }
-    }
+      }
     
     @media (max-width: 767px) {
         .iframe-cards {
