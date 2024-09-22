@@ -97,20 +97,24 @@
           {% endif %}
           <br>
           <!-- Display weather forcast inside an accordion. -->
+          <h2>Daily Forecast</h2>
+          <br>
           <div class="accordion" id="dailyForecastAccordion">
             {% for day in daily_forecast %}
             <div class="accordion-item">
-              <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+              <h3 class="accordion-header" id="heading{{ forloop.counter }}">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
                   {{ day.day_of_week }}, {{ day.date|date:"F d" }}
                 </button>
-              </h2>
+              </h3>
               <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
                 <div class="accordion-body">
+                  <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
                   <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
                   <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
                   <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
-                  <p><strong>Forecast Summary:</strong> {{ day.summary }}</p>
+                  <p><strong>Humidity:</strong> {{day.humidity}}%</p>
+                  <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
                   <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F</p>
                   <p><strong>Day Temp:</strong> {{ day.day_temp }}°F</p>
                   <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F</p>
