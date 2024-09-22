@@ -58,7 +58,7 @@
         <br>
         <h5>Weather Forecast for {{ city_name }}, {{ state_name }}</h5>
         <br>
-          <!-- Container for the weather data tables. -->
+          <!-- Container for the weather data. -->
           <div class = "container" style = "width: 100%; max-width: 750px;">
           <!-- Display current weather information within a card. -->
           {% if current_weather_report %}
@@ -107,7 +107,7 @@
                   {{ day.day_of_week }}, {{ day.date|date:"F d" }}
                 </button>
               </h3>
-              <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
+              <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
                 <div class="accordion-body">
                   <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
                   <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
@@ -115,21 +115,20 @@
                   <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
                   <p><strong>Humidity:</strong> {{day.humidity}}%</p>
                   <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
-                  <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F</p>
-                  <p><strong>Day Temp:</strong> {{ day.day_temp }}°F</p>
-                  <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F</p>
-                  <p><strong>Night Temp:</strong> {{ day.night_temp }}°F</p>
+                  <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F <span class="text-muted">(Feels like: {{ day.morn_temp_feel }}°F)</p>
+                  <p><strong>Day Temp:</strong> {{ day.day_temp }}°F <span class="text-muted">(Feels like: {{ day.day_temp_feel }}°F)</p>
+                  <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F <span class="text-muted">(Feels like: {{ day.eve_temp_feel }}°F)</p>
+                  <p><strong>Night Temp:</strong> {{ day.night_temp }}°F <span class="text-muted">(Feels like: {{ day.night_temp_feel }}°F)</p>
                 </div>
               </div>
             </div>
             {% endfor %}
           </div>
           <br>
-          <!-- Display current weather information if available. -->
+          <!--
           {% if current_weather_report %}
           <table class="table table-striped">
             <caption>Current Overview</caption>
-              <!-- Table headers for current weather overview. -->
               <thead>
               <tr>
                   <th>Current Description</th>
@@ -137,7 +136,6 @@
                   <th>Current Humidity</th>
               </tr>
               </thead>
-              <!-- Table body for current weather data. -->
               <tbody>
                 {% for current in current_weather_report %}
                   <tr>
@@ -300,6 +298,7 @@
           </table>
           <br>
           {% endif %}
+          -->
         </div>
           <br>
           <!-- Button to return to the weather input page. -->
