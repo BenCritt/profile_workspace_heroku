@@ -108,7 +108,7 @@
               </h3>
               <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
                 <div class="accordion-body">
-                  <p><strong>Forecast Summary:</strong><img src="{{ day.icon_url }}" alt="Weather Icon"> {{ day.summary }}.</p>
+                  <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
                   <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
                   <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
                   <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
