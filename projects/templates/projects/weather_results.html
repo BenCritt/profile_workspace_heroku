@@ -12,6 +12,34 @@
         .table th {
           text-align: center;     /* Center text alignment for table headers */
       }
+      .card {
+        margin-bottom: 20px;
+      }
+      .card-header {
+        font-size: 1.25rem;
+        font-weight: bold;
+        background-color: #007bff;
+        color: white;
+      }
+      .card-body p {
+        margin: 5px 0;
+      }
+      .weather-icon {
+        width: 50px;
+        margin-right: 10px;
+      }
+      hr {
+        border: 0;
+        height: 1px;
+        background-color: #ddd;
+      }
+      .accordion-body p {
+        margin-bottom: 10px;
+      }
+      .weather-icon {
+        width: 50px;
+        margin-right: 15px;
+      }       
       </style>
       {% endblock styles %}
       {% block meta_tags %}
@@ -32,6 +60,67 @@
         <br>
           <!-- Container for the weather data tables. -->
           <div class = "container" style = "width: 100%; max-width: 750px;">
+          <!-- Display current weather information within a card. -->
+          {% if current_weather_report %}
+          <div class="card">
+            <div class="card-header">
+              Current Weather Overview
+            </div>
+            <div class="card-body">
+              <!-- Loop through current weather report -->
+              {% for current in current_weather_report %}
+              <div class="d-flex align-items-center mb-3">
+                <img src="{{ current.icon_url_current }}" alt="Weather Icon" class="weather-icon">
+                <div>
+                  <p><strong>Description:</strong> {{ current.current_description }}</p>
+                  <p><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
+                  <p><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
+                  <p><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
+                  <p><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>UV Index:</strong> {{ current.current_uv }}</p>
+                  <p><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
+                  <p><strong>Visibility:</strong> {{ current.current_visibility }} miles</p>
+                  <p><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          <br>
+          <!-- Display weather forcast inside an accordion. -->
+          <div class="accordion" id="dailyForecastAccordion">
+            {% for day in daily_forecast %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                  {{ day.day_of_week }}, {{ day.date|date:"F d" }}
+                </button>
+              </h2>
+              <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
+                <div class="accordion-body">
+                  <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
+                  <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
+                  <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
+                  <p><strong>Forecast Summary:</strong> {{ day.summary }}</p>
+                  <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F</p>
+                  <p><strong>Day Temp:</strong> {{ day.day_temp }}°F</p>
+                  <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F</p>
+                  <p><strong>Night Temp:</strong> {{ day.night_temp }}°F</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <br>
           <!-- Display current weather information if available. -->
           {% if current_weather_report %}
           <table class="table table-striped">
