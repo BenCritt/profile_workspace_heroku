@@ -2,6 +2,7 @@
 {% extends "projects/base.html" %}
     {% block page_head %}
     {% block scripts %}
+    <!-- Schema for SEO -->
     <script type="application/ld+json">
         {
           "@context": "http://schema.org",
@@ -114,11 +115,13 @@
             <center>
                 <h1>SSL Verification Tool</h1>
                 <br>
+                <!-- Form for submitting SSL verification requests -->
                 <form method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
                     <input type="submit" id="ssl-lookup-btn" class="btn btn-primary" value="Look Up SSL Certificate Info">
                     <br>
+                    <!-- Link to navigate back to the IT Tools section -->
                     <a href="/projects/it_tools/" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
                 </form>
                 <br>
@@ -128,6 +131,7 @@
                     <p>Error: {{ result.error }}</p>
                 {% else %}
                     <div class="table-container" style="width: 100%; max-width: 750px;">
+                        <!-- Table displaying the SSL certificate details -->
                         <table class="table">
                             <thead>
                                 <tr>
