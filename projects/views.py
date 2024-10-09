@@ -10,7 +10,7 @@ from .forms import (
 )
 import os
 import qrcode
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
 import requests
 import json
 import datetime
@@ -135,7 +135,22 @@ def runtime_txt(request):
 
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
 def view_404(request, exception):
+    # If the request is for a static file (including the service worker)
+    if (
+        request.path.startswith(settings.STATIC_URL)
+        or request.path == "/service-worker.js"
+    ):
+        # Return the default 404 response for static files
+        return HttpResponseNotFound("File not found")
+
+    # Otherwise, redirect to the homepage
     return redirect("/")
+
+
+"""
+def view_404(request, exception):
+    return redirect("/")
+"""
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
