@@ -4,6 +4,7 @@ from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
 from .views import robots_txt, requirements_txt, runtime_txt
+from django.views.generic import TemplateView
 
 app_name = "projects"
 
@@ -40,4 +41,10 @@ urlpatterns = [
     path("ip_tool/", views.ip_tool, name="ip_tool"),
     path("ssl_check/", views.ssl_check, name="ssl_check"),
     path("projects/it_tools/", views.it_tools, name="it_tools"),
+    path(
+        "service-worker.js",
+        TemplateView.as_view(
+            template_name="service-worker.js", content_type="application/javascript"
+        ),
+    ),
 ]
