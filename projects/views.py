@@ -28,19 +28,17 @@ import requests
 from django.http import JsonResponse
 
 
+# This is the code for the view for the view for the txt file containing my website's runtime.
 def indexnow_notify(request):
-    # Construct the absolute path to the .txt file
+    # Construct the absolute path to the runtime.txt file.
     key_file_path = os.path.join(
         settings.BASE_DIR, "755bdd6541d1424c9553f5674ece4ebc.txt"
     )
-
-    # Check if the file exists before trying to open it
-    if os.path.exists(key_file_path):
-        # Open and read the content of the .txt file
-        with open(key_file_path, "r") as f:
-            key_file_content = f.read()
-        # Return the content as an HttpResponse with content type 'text/plain'
-        return HttpResponse(key_file_content, content_type="text/plain")
+    # Open and read the content of the runtime.txt file.
+    with open(key_file_path, "r") as f:
+        key_file_content = f.read()
+    # Return the content as HttpResponse with content type 'text/plain'.
+    return HttpResponse(key_file_content, content_type="text/plain")
     """
     api_url = "https://api.indexnow.org/indexnow"
     data = {
