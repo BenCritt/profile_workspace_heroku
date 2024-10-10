@@ -29,15 +29,18 @@ from django.http import JsonResponse
 
 
 def indexnow_notify(request):
+    # Construct the absolute path to the .txt file
     key_file_path = os.path.join(
         settings.BASE_DIR, "755bdd6541d1424c9553f5674ece4ebc.txt"
     )
-    try:
+
+    # Check if the file exists before trying to open it
+    if os.path.exists(key_file_path):
+        # Open and read the content of the .txt file
         with open(key_file_path, "r") as f:
             key_file_content = f.read()
+        # Return the content as an HttpResponse with content type 'text/plain'
         return HttpResponse(key_file_content, content_type="text/plain")
-    except FileNotFoundError:
-        return HttpResponse("File not found.", status=404)
     """
     api_url = "https://api.indexnow.org/indexnow"
     data = {
