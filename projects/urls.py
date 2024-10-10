@@ -47,5 +47,7 @@ urlpatterns = [
             template_name="service-worker.js", content_type="application/javascript"
         ),
     ),
-    path("indexnow-notify/", indexnow_notify, name="indexnow_notify"),
+    path(
+        "755bdd6541d1424c9553f5674ece4ebc.txt/", indexnow_notify, name="indexnow_notify"
+    ),
 ]
