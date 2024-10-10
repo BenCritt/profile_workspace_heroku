@@ -29,6 +29,16 @@ from django.http import JsonResponse
 
 
 def indexnow_notify(request):
+    key_file_path = os.path.join(
+        settings.BASE_DIR, "755bdd6541d1424c9553f5674ece4ebc.txt"
+    )
+    try:
+        with open(key_file_path, "r") as f:
+            key_file_content = f.read()
+        return HttpResponse(key_file_content, content_type="text/plain")
+    except FileNotFoundError:
+        return HttpResponse("File not found.", status=404)
+    """
     api_url = "https://api.indexnow.org/indexnow"
     data = {
         "host": "www.bencritt.net",
@@ -45,6 +55,7 @@ def indexnow_notify(request):
         return JsonResponse(
             {"status": "Error", "message": response.text}, status=response.status_code
         )
+    """
 
 
 # This is code for generating favicons on Android devices.
