@@ -47,4 +47,11 @@ urlpatterns = [
             template_name="service-worker.js", content_type="application/javascript"
         ),
     ),
+    path(
+        "755bdd6541d1424c9553f5674ece4ebc.txt",
+        TemplateView.as_view(
+            template_name="755bdd6541d1424c9553f5674ece4ebc.txt",
+            content_type="text/plain",
+        ),
+    ),
 ]
