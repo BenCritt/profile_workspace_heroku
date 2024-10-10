@@ -28,37 +28,6 @@ import requests
 from django.http import JsonResponse
 
 
-# This is the code for the view for the view for the txt file containing my website's runtime.
-def indexnow_notify(request):
-    # Construct the absolute path to the runtime.txt file.
-    key_file_path = os.path.join(
-        settings.BASE_DIR, "755bdd6541d1424c9553f5674ece4ebc.txt"
-    )
-    # Open and read the content of the runtime.txt file.
-    with open(key_file_path, "r") as f:
-        key_file_content = f.read()
-    # Return the content as HttpResponse with content type 'text/plain'.
-    return HttpResponse(key_file_content, content_type="text/plain")
-    """
-    api_url = "https://api.indexnow.org/indexnow"
-    data = {
-        "host": "www.bencritt.net",
-        "key": "755bdd6541d1424c9553f5674ece4ebc",
-        "keyLocation": "https://www.bencritt.net/755bdd6541d1424c9553f5674ece4ebc.txt",
-        "urlList": ["https://www.bencritt.net"],
-    }
-
-    response = requests.post(api_url, json=data)
-
-    if response.status_code == 200:
-        return JsonResponse({"status": "Success", "data": response.json()})
-    else:
-        return JsonResponse(
-            {"status": "Error", "message": response.text}, status=response.status_code
-        )
-    """
-
-
 # This is code for generating favicons on Android devices.
 # This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.
 def manifest(request):
