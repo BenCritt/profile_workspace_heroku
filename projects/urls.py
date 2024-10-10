@@ -48,6 +48,6 @@ urlpatterns = [
         ),
     ),
     path(
-        "755bdd6541d1424c9553f5674ece4ebc.txt/", indexnow_notify, name="indexnow_notify"
+        "755bdd6541d1424c9553f5674ece4ebc.txt", indexnow_notify, name="indexnow_notify"
     ),
 ]
