@@ -3,7 +3,7 @@ from . import views
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
-from .views import robots_txt, requirements_txt, runtime_txt
+from .views import robots_txt, requirements_txt, runtime_txt, indexnow_notify
 from django.views.generic import TemplateView
 
 app_name = "projects"
@@ -47,11 +47,5 @@ urlpatterns = [
             template_name="service-worker.js", content_type="application/javascript"
         ),
     ),
-    path(
-        "755bdd6541d1424c9553f5674ece4ebc.txt",
-        TemplateView.as_view(
-            template_name="755bdd6541d1424c9553f5674ece4ebc.txt",
-            content_type="text/plain",
-        ),
-    ),
+    path("indexnow-notify/", indexnow_notify, name="indexnow_notify"),
 ]
