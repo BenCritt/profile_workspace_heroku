@@ -101,14 +101,21 @@ def get_fmcsa_carrier_data_by_usdot(usdot_number):
     fcsr_webkey = "d4cf8cc419e2ba88e590a957140c86abe8b79f97"
     url = f"https://mobile.fmcsa.dot.gov/qc/services/carriers/{usdot_number}?webKey={fcsr_webkey}"
 
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
 
-    if response.status_code == 200:
         response_data = response.json()
         print("Full Response Data:", response_data)
 
-        # Accessing nested fields under 'carrier' inside 'content'
-        carrier_data = response_data.get("content", {}).get("carrier", {})
+        # Ensure 'content' exists and contains 'carrier'
+        content_data = response_data.get("content")
+        if not content_data:
+            return None  # 'content' missing, return None
+
+        carrier_data = content_data.get("carrier")
+        if not carrier_data:
+            return None  # 'carrier' missing, return None
 
         # Apply the helper function to replace None values with "N/A"
         cleaned_carrier_data = replace_none_with_na(carrier_data)
@@ -167,8 +174,10 @@ def get_fmcsa_carrier_data_by_usdot(usdot_number):
         }
 
         return carrier_info
-    else:
-        print("Error:", response.text)
+
+    except requests.exceptions.RequestException as e:
+        # Handle any request-related exceptions
+        print(f"There was an error fetching data for USDOT {usdot_number}: {e}")
         return None
 
 

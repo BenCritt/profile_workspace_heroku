@@ -21,7 +21,7 @@ class CarrierSearchForm(forms.Form):
 
         # Ensure the USDOT number is numeric
         if not data.isdigit():
-            raise forms.ValidationError("Please enter a valid numeric USDOT number.")
+            raise forms.ValidationError("Please enter a valid USDOT number.")
 
         return data
 
