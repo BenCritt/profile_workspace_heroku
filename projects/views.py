@@ -7,6 +7,7 @@ from .forms import (
     IPForm,
     DomainForm,
     SSLCheckForm,
+    CarrierSearchForm,
 )
 import os
 import qrcode
@@ -21,7 +22,12 @@ import textstat
 import dns.resolver
 import dns.reversename
 from django.views.decorators.cache import cache_control
-from .utils import verify_ssl, get_coordinates, get_city_and_state
+from .utils import (
+    verify_ssl,
+    get_coordinates,
+    get_city_and_state,
+    get_fmcsa_carrier_data_by_usdot,
+)
 
 # This is code for Bing IndexNow because their Cloudflare integration doesn't work.
 import requests
@@ -52,6 +58,47 @@ def manifest(request):
         "background_color": "#000000",
     }
     return JsonResponse(manifest_json)
+
+
+# This is the code for the Freight Carrier Safety Reporter
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_safety(request):
+    form = CarrierSearchForm(request.POST or None)
+    carrier = None
+    error = None
+    # safety_score = None ~ I'm still working on this feature.
+
+    if request.method == "POST" and form.is_valid():
+        search_value = form.cleaned_data["search_value"]
+
+        # Ensure the search is conducted only with a DOT number
+        carrier = get_fmcsa_carrier_data_by_usdot(search_value)
+
+        if not carrier:
+            error = "Carrier not found in FMCSA."
+
+        """
+        I'm still working on this feature.
+        
+        if carrier:
+            safety_score = calculate_safety_score(carrier)  # Calculate the safety score
+            
+            # Check if the user clicked the 'Download PDF' button
+            if 'download_pdf' in request.POST:
+                return generate_pdf(carrier, safety_score)  # Trigger the PDF generation
+        else:
+            error = "Carrier not found in FMCSA."
+        """
+
+    return render(
+        request,
+        "projects/freight_safety.html",
+        {
+            "form": form,
+            "carrier": carrier,
+            "error": error,
+        },  # "safety_score": safety_score
+    )
 
 
 # This is the code for the Grade Level Analyzer.

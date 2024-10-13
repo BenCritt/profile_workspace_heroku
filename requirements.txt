@@ -35,3 +35,5 @@ dnspython==2.6.1
 python-whois==0.9.4
 pyOpenSSL==24.2.1
 cryptography==43.0.1
+plotly
+reportlab

@@ -47,4 +47,5 @@ urlpatterns = [
             template_name="service-worker.js", content_type="application/javascript"
         ),
     ),
+    path("freight_safety/", views.freight_safety, name="freight_safety"),
 ]

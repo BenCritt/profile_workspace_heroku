@@ -11,6 +11,11 @@ import ipaddress
 from urllib.parse import urlparse
 
 
+# Freight Carrier Safety Reporter
+class CarrierSearchForm(forms.Form):
+    search_value = forms.CharField(label="Enter USDOT Number", max_length=50)
+
+
 # This is the form for the Grade Level Text Analyzer.
 class TextForm(forms.Form):
     # Create a CharField to hold the text input, using a textarea widget for multiline input.

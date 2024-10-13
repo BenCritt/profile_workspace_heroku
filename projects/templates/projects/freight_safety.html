@@ -1,0 +1,228 @@
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+    {% block page_head %}
+    {% block scripts %}
+    <!-- This is schema to help with SEO. -->
+    <script type="application/ld+json">
+        {
+            "@context": "http://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Freight Safety Tool",
+            "description": "Generate safety reports and scores for freight carriers, including safety ratings, crash statistics, and driver inspections.",
+            "url": "https://www.bencritt.net/projects/freight_safety/",
+            "applicationCategory": "Transportation Utility",
+            "operatingSystem": "Web-based",
+            "image": "",
+            "creator": {
+              "@type": "Person",
+              "name": "Ben Crittenden",
+              "url": "https://www.bencritt.net"
+            },
+            "featureList": [
+              "Generate comprehensive safety reports for freight carriers.",
+              "Calculate safety scores based on crash statistics, inspections, and safety ratings.",
+              "Retrieve detailed safety-related information for carriers using USDOT numbers.",
+              "Accessible via any web-enabled device with a user-friendly interface.",
+              "Developed with Python and Django for reliable safety report generation."
+            ]
+        }
+        </script>
+        
+    {% endblock scripts %}    
+    {% block styles %} 
+    <!-- Custom CSS styles for the DNS Lookup Tool -->
+    <style>
+        .table-container {
+            width: 100%;    /* Ensures the container takes the full width */
+            overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
+        }
+        .table {
+            width: 100%;    /* Table takes the full width of the container */
+            border-collapse: collapse;  /* Merges table borders */
+            margin-top: 20px;   /* Adds space above the table */
+            table-layout: auto; /* Allow table to adjust automatically */
+        }
+        .table th {
+            padding: 8px;  /* Adjusted padding for better readability */
+            text-align: center;   /* Aligns text to the center for table headers */
+            border: 1px solid #ddd; /* Adds border around cells */
+            vertical-align: middle; /* Aligns content vertically in the middle */
+            word-break: break-word; /* Break long words to fit within the cell */
+            background-color: #f2f2f2;  /* Sets background color for table headers */
+        }
+        .table td {
+            padding: 8px;  /* Adjusted padding for better readability */
+            text-align: left;   /* Aligns text to the left for table data cells */
+            border: 1px solid #ddd; /* Adds border around cells */
+            vertical-align: middle; /* Aligns content vertically in the middle */
+            word-break: break-word; /* Break long words to fit within the cell */
+        }
+        .table tr:nth-child(even) {
+            background-color: #f9f9f9;  /* Alternates row colors for readability */
+        }
+        .table tr:hover {
+            background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
+        }
+        ul {
+            margin: 0;  /* Removes margin */
+            padding-left: 20px; /* Adds padding to the left */
+            list-style-type: none; /* Removes bullet points from the list */
+        }
+        .centered-content {
+            text-align: center; /* Centers the content */
+        }
+        
+        /* Media Query for Smaller Screens */
+        @media (max-width: 600px) {
+            .table th, .table td {
+                font-size: 12px; /* Smaller font size for better fit */
+                padding: 6px; /* Reduced padding */
+            }
+        }        
+    </style>
+    {% endblock styles %}
+    {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description" content="The Freight Carrier Safety Reporter allows users to generate comprehensive safety reports for freight carriers, providing safety scores based on crash statistics, inspections, and safety ratings. Ideal for freight brokers and assessing carrier performance.">
+    <meta name="keywords" content="Freight Carrier Safety, Carrier Safety Reports, Safety Score, Crash Statistics, Driver Inspections, Carrier Performance, USDOT Number, Freight Brokers">
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://www.bencritt.net/projects/freight_safety/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Freight Carrier Safety Reporter">
+    <meta property="og:description" content="Generate comprehensive safety reports for freight carriers, calculate safety scores, and retrieve important safety information for freight operations.">
+    <meta property="og:image" content="">
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/freight_safety/">
+    <meta name="twitter:title" content="Freight Carrier Safety Reporter">
+    <meta name="twitter:description" content="Generate safety reports and scores for freight carriers, with insights into crash statistics, driver inspections, and safety ratings.">
+    <meta name="twitter:image" content="">
+    <meta name="twitter:creator" content="@bencritt89"/>
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    <!-- Canonical link to help avoid duplicate content issues. -->
+    <link rel="canonical" href="https://www.bencritt.net/projects/freight_safety/">
+    {% endblock link_tags %}
+    {% block title %}Freight Carrier Safety Reporter | Generate Comprehensive Safety Reports for Freight Carriers{% endblock title %}
+    {% endblock page_head %}
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <main>
+        <center>
+            <h1>Freight Carrier Safety Reporter</h1>
+            <br>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" id="dns-lookup-btn" class="btn btn-primary" value="Generate Safety Report">
+            </form>
+            <br>
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+
+            {% if carrier %}
+                <h2>Freight Carrier Safety Report for {{ carrier.name }}</h2>
+
+                <!-- Table 1: Non-Safety Information -->
+                <br>
+                <!-- Safety Score Chart -->
+                <!-- I'm still working on this feature. -->
+                <!--
+                <h3>Safety Score</h3>
+                <div id="safety-score-chart"></div>
+                <script>
+                    var data = [
+                        {
+                            type: "indicator",
+                            mode: "gauge+number",
+                            value: {{ safety_score|default:"0" }},
+                            gauge: {
+                                axis: { range: [0, 100] },
+                                steps: [
+                                    { range: [0, 50], color: "red" },
+                                    { range: [50, 75], color: "yellow" },
+                                    { range: [75, 100], color: "green" }
+                                ],
+                                threshold: {
+                                    line: { color: "black", width: 4 },
+                                    thickness: 0.75,
+                                    value: {{ safety_score|default:"0" }}
+                                }
+                            }
+                        }
+                    ];
+
+                    var layout = { 
+                        width: 400, 
+                        height: 300, 
+                        margin: { t: 0, b: 0 } 
+                    };
+
+                    Plotly.newPlot('safety-score-chart', data, layout);
+                </script>
+                -->
+                <h3>Basic Carrier Information</h3>
+                <div class = "table-container" style = "width: 100%; max-width: 750px;">
+                    <table class="table">
+                        <tr><td><strong>Physical Address</strong></td><td>{{ carrier.phyStreet }}, {{ carrier.phyCity }}, {{ carrier.phyState }} {{ carrier.phyZipcode }}</td></tr>
+                        <tr><td><strong>USDOT Number</strong></td><td>{{ carrier.dotNumber }}</td></tr>
+                        <tr><td><strong>MC Number</strong></td><td>{{ carrier.mcNumber }}</td></tr>
+                        <tr><td><strong>Employer Identification Number (EIN)</strong></td><td>{{ carrier.ein }}</td></tr>
+                        <tr><td><strong>Allowed to Operate</strong></td><td>{{ carrier.allowedToOperate }}</td></tr>
+                        <tr><td><strong>BIPD Insurance on File</strong></td><td>{{ carrier.bipdInsuranceOnFile }}</td></tr>
+                        <tr><td><strong>BIPD Insurance Required</strong></td><td>{{ carrier.bipdInsuranceRequired }}</td></tr>
+                        <tr><td><strong>Bond Insurance on File</strong></td><td>{{ carrier.bondInsuranceOnFile }}</td></tr>
+                        <tr><td><strong>Broker Authority Status</strong></td><td>{{ carrier.brokerAuthorityStatus }}</td></tr>
+                        <tr><td><strong>Cargo Insurance on File</strong></td><td>{{ carrier.cargoInsuranceOnFile }}</td></tr>
+                        <tr><td><strong>Carrier Operation Description</strong></td><td>{{ carrier.carrierOperationDesc }}</td></tr>
+                        <tr><td><strong>Common Authority Status</strong></td><td>{{ carrier.commonAuthorityStatus }}</td></tr>
+                        <tr><td><strong>Contract Authority Status</strong></td><td>{{ carrier.contractAuthorityStatus }}</td></tr>
+                        <tr><td><strong>Review Date</strong></td><td>{{ carrier.reviewDate }}</td></tr>
+                        <tr><td><strong>Total Drivers</strong></td><td>{{ carrier.totalDrivers }}</td></tr>
+                        <tr><td><strong>Total Power Units</strong></td><td>{{ carrier.totalPowerUnits }}</td></tr>
+                    </table>
+                </div>
+                <br>
+                <!-- Table 2: Safety Information -->
+                <h3>Safety Report</h3>
+                <div class = "table-container" style = "width: 100%; max-width: 750px;">
+                    <table class="table">
+                        <tr><td><strong>Total Crashes</strong></td><td>{{ carrier.crashTotal }}</td></tr>
+                        <tr><td><strong>Total Driver Inspections</strong></td><td>{{ carrier.driverInsp }}</td></tr>
+                        <tr><td><strong>Total Driver Out-of-Service Inspections</strong></td><td>{{ carrier.driverOosInsp }}</td></tr>
+                        <tr><td><strong>Driver Out-of-Service Rate</strong></td><td>{{ carrier.driverOosRate }}</td></tr>
+                        <tr><td><strong>Total Fatal Crashes</strong></td><td>{{ carrier.fatalCrash }}</td></tr>
+                        <tr><td><strong>Total Injury Crashes</strong></td><td>{{ carrier.injCrash }}</td></tr>
+                        <tr><td><strong>Towaway Crashes</strong></td><td>{{ carrier.towawayCrash }}</td></tr>
+                        <tr><td><strong>Total Hazmat Inspections</strong></td><td>{{ carrier.hazmatInsp }}</td></tr>
+                        <tr><td><strong>Total Hazmat Out-of-Service Inspections</strong></td><td>{{ carrier.hazmatOosInsp }}</td></tr>
+                        <tr><td><strong>Hazmat Out-of-Service Rate</strong></td><td>{{ carrier.hazmatOosRate }}</td></tr>
+                        <tr><td><strong>Total Vehicle Inspections</strong></td><td>{{ carrier.vehicleInsp }}</td></tr>
+                        <tr><td><strong>Total Vehicle Out-of-Service Inspections</strong></td><td>{{ carrier.vehicleOosInsp }}</td></tr>
+                        <tr><td><strong>Vehicle Out-of-Service Rate</strong></td><td>{{ carrier.vehicleOosRate }}</td></tr>
+                        <tr><td><strong>Safety Rating</strong></td><td>{{ carrier.safetyRating }}</td></tr>
+                        <tr><td><strong>Safety Rating Date</strong></td><td>{{ carrier.safetyRatingDate }}</td></tr>
+                    </table>
+                </div>
+                <!-- Add a button to download the report as a PDF - I'm still working on this feature. -->
+                <!--
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="submit" id="download_pdf" class="btn btn-secondary" value="Download PDF">
+                </form>
+                -->
+            {% endif %}
+            <br><br>
+            <!-- Link to the GitHub repository for the project. -->
+            <a href = "https://github.com/BenCritt/freight_carrier_safety_reporter" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg></a>
+        </center>
+    </main>
+{% endblock content %}
