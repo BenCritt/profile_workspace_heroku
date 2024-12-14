@@ -128,8 +128,6 @@
 
             {% if carrier %}
                 <h2>Freight Carrier Safety Report for {{ carrier.name }}</h2>
-
-                <!-- Table 1: Non-Safety Information -->
                 <br>
                 <!-- Safety Score Chart -->
                 <!-- I'm still working on this feature. -->
@@ -167,6 +165,7 @@
                     Plotly.newPlot('safety-score-chart', data, layout);
                 </script>
                 -->
+                <!-- Table 1: Non-Safety Information -->
                 <h3>Basic Carrier Information</h3>
                 <div class = "table-container" style = "width: 100%; max-width: 750px;">
                     <table class="table">
@@ -180,6 +179,7 @@
                         <tr><td><strong>Bond Insurance on File</strong></td><td>{{ carrier.bondInsuranceOnFile }}</td></tr>
                         <tr><td><strong>Broker Authority Status</strong></td><td>{{ carrier.brokerAuthorityStatus }}</td></tr>
                         <tr><td><strong>Cargo Insurance on File</strong></td><td>{{ carrier.cargoInsuranceOnFile }}</td></tr>
+                        <tr><td><strong>Carrier Operation Code</strong></td><td>{{ carrier.carrierOperationCode }}</td></tr>
                         <tr><td><strong>Carrier Operation Description</strong></td><td>{{ carrier.carrierOperationDesc }}</td></tr>
                         <tr><td><strong>Common Authority Status</strong></td><td>{{ carrier.commonAuthorityStatus }}</td></tr>
                         <tr><td><strong>Contract Authority Status</strong></td><td>{{ carrier.contractAuthorityStatus }}</td></tr>
@@ -206,8 +206,8 @@
                         <tr><td><strong>Total Vehicle Inspections</strong></td><td>{{ carrier.vehicleInsp }}</td></tr>
                         <tr><td><strong>Total Vehicle Out-of-Service Inspections</strong></td><td>{{ carrier.vehicleOosInsp }}</td></tr>
                         <tr><td><strong>Vehicle Out-of-Service Rate</strong></td><td>{{ carrier.vehicleOosRate }}</td></tr>
-                        <tr><td><strong>Safety Rating</strong></td><td>{{ carrier.safetyRating }}</td></tr>
-                        <tr><td><strong>Safety Rating Date</strong></td><td>{{ carrier.safetyRatingDate }}</td></tr>
+                        <tr><td><strong>FMCSA Safety Rating</strong></td><td>{{ carrier.safetyRating }}</td></tr>
+                        <tr><td><strong>FMCSA Safety Rating Date</strong></td><td>{{ carrier.safetyRatingDate }}</td></tr>
                     </table>
                 </div>
                 <!-- Add a button to download the report as a PDF - I'm still working on this feature. -->

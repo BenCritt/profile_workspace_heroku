@@ -141,7 +141,20 @@ def get_fmcsa_carrier_data_by_usdot(usdot_number):
             "cargoInsuranceOnFile": cleaned_carrier_data.get(
                 "cargoInsuranceOnFile", "N/A"
             ),
-            "carrierOperationDesc": cleaned_carrier_data.get("carrierOperation", "N/A"),
+            "carrierOperationCode": (
+                cleaned_carrier_data.get("carrierOperation", {}).get(
+                    "carrierOperationCode", "N/A"
+                )
+                if isinstance(cleaned_carrier_data.get("carrierOperation"), dict)
+                else "N/A"
+            ),
+            "carrierOperationDesc": (
+                cleaned_carrier_data.get("carrierOperation", {}).get(
+                    "carrierOperationDesc", "N/A"
+                )
+                if isinstance(cleaned_carrier_data.get("carrierOperation"), dict)
+                else "N/A"
+            ),
             "commonAuthorityStatus": cleaned_carrier_data.get(
                 "commonAuthorityStatus", "N/A"
             ),

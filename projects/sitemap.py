@@ -39,6 +39,7 @@ class StaticViewSitemap(sitemaps.Sitemap):
             "ip_tool",
             "ssl_check",
             "it_tools",
+            "freight_safety",
         ]
 
     # Define how to determine the location (URL) for each item, using the 'reverse' function to find URLs by their name.
