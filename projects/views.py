@@ -8,6 +8,7 @@ from .forms import (
     DomainForm,
     SSLCheckForm,
     CarrierSearchForm,
+    SitemapForm,
 )
 import os
 import qrcode
@@ -27,11 +28,60 @@ from .utils import (
     get_coordinates,
     get_city_and_state,
     get_fmcsa_carrier_data_by_usdot,
+    process_sitemap,
 )
 
-# This is code for Bing IndexNow because their Cloudflare integration doesn't work.
-import requests
-from django.http import JsonResponse
+
+# This is the code for the SEO Head Checker.
+def seo_head_checker(request):
+    """
+    Handle form submissions for the SEO Head Checker app.
+    """
+    if request.method == "POST":
+        form = SitemapForm(request.POST)
+        if form.is_valid():
+            sitemap_url = form.cleaned_data["sitemap_url"]
+            # User-selected output file type (CSV or Excel.)
+            file_type = form.cleaned_data["file_type"]
+            try:
+                # Generate the report.
+                output_file = process_sitemap(sitemap_url)
+
+                # Serve the file based on the selected file type.
+                if file_type == "excel":
+                    # Convert the CSV to Excel if the user selected Excel.
+                    import pandas as pd
+
+                    df = pd.read_csv(output_file)
+                    response = HttpResponse(
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                    response["Content-Disposition"] = (
+                        'attachment; filename="seo_report.xlsx"'
+                    )
+                    df.to_excel(response, index=False, engine="openpyxl")
+                    return response
+
+                elif file_type == "csv":
+                    # Serve the CSV file directly
+                    with open(output_file, "r", encoding="utf-8") as csv_file:
+                        response = HttpResponse(csv_file, content_type="text/csv")
+                        response["Content-Disposition"] = (
+                            'attachment; filename="seo_report.csv"'
+                        )
+                        return response
+
+            except ValueError as e:
+                # Handle sitemap processing errors
+                return render(
+                    request,
+                    "projects/seo_head_checker.html",
+                    {"error": str(e), "form": form},
+                )
+    else:
+        form = SitemapForm()
+
+    return render(request, "projects/seo_head_checker.html", {"form": form})
 
 
 # This is code for generating favicons on Android devices.

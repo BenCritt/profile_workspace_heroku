@@ -7,10 +7,212 @@ import requests
 import json
 from django.shortcuts import render
 from django.http import HttpResponse
+from bs4 import BeautifulSoup
+import chardet
+import csv
+import gc
+from concurrent.futures import ThreadPoolExecutor
 
 # from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas
 # import plotly
+
+
+def normalize_url(url):
+    """
+    Normalize a URL by adding missing schemes (e.g., https://) or www if necessary.
+
+    Args:
+        url (str): The input URL.
+
+    Returns:
+        str: The normalized URL in a valid format.
+    """
+    parsed_url = urlparse(url)
+
+    # Add scheme (https://) if missing.
+    if not parsed_url.scheme:
+        url = f"https://{url}"
+
+    # # Re-parse after adding the scheme to ensure netloc is valid.
+    parsed_url = urlparse(url)
+
+    # Add www if netloc is missing but path looks like a domain.
+    if not parsed_url.netloc and parsed_url.path:
+        url = f"https://www.{parsed_url.path}"
+
+    return url
+
+
+def fetch_head_section(url):
+    """
+    Fetch and return the <head> section of a webpage.
+
+    Args:
+        url (str): The URL to fetch.
+
+    Returns:
+        BeautifulSoup.Tag or None: The parsed <head> section or None if an error occurs.
+    """
+    try:
+        # Use a persistent session for efficiency.
+        with requests.Session() as session:
+            response = session.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+
+            # Accumulate streamed content until </head> is found.
+            head_content = b""
+            for chunk in response.iter_content(chunk_size=1024):
+                head_content += chunk
+                if b"</head>" in head_content:
+                    break
+
+            # Detect encoding of the content.
+            detected_encoding = chardet.detect(head_content)["encoding"]
+            if not detected_encoding:
+                raise ValueError(f"Encoding detection failed for URL: {url}")
+
+            # Decode and extract the <head> section.
+            decoded_content = head_content.decode(detected_encoding, errors="replace")
+            head_html = decoded_content.split("</head>")[0] + "</head>"
+
+            # Parse the <head> section.
+            soup = BeautifulSoup(head_html, "html.parser")  # Use lightweight parser
+            return soup.find("head")
+
+    except Exception as e:
+        print(f"Error fetching <head> for URL {url}: {e}")
+        return None
+
+
+def process_single_url(url):
+    """
+    Extract SEO elements from the <head> of a single URL.
+
+    Args:
+        url (str): The URL to process.
+
+    Returns:
+        dict: A dictionary with the URL, status, and SEO elements found.
+    """
+    head = fetch_head_section(url)
+    if not head:
+        return {"URL": url, "Status": "No head section"}
+
+    # Extract and indicate the presence of various SEO elements.
+    return {
+        "URL": url,
+        "Status": "Success",
+        "Title Tag": "Present" if head.title else "Missing",
+        "Meta Description": (
+            "Present" if head.find("meta", attrs={"name": "description"}) else "Missing"
+        ),
+        "Canonical Tag": "Present" if head.find("link", rel="canonical") else "Missing",
+        "Meta Robots Tag": (
+            "Present" if head.find("meta", attrs={"name": "robots"}) else "Missing"
+        ),
+        "Open Graph Tags": (
+            "Present"
+            if head.find(
+                "meta", attrs={"property": lambda p: p and p.startswith("og:")}
+            )
+            else "Missing"
+        ),
+        "Twitter Card Tags": (
+            "Present"
+            if head.find(
+                "meta", attrs={"name": lambda p: p and p.startswith("twitter:")}
+            )
+            else "Missing"
+        ),
+        "Hreflang Tags": (
+            "Present"
+            if head.find("link", rel="alternate", hreflang=True)
+            else "Missing"
+        ),
+        "Structured Data": (
+            "Present" if head.find("script", type="application/ld+json") else "Missing"
+        ),
+        "Charset Declaration": (
+            "Present" if head.find("meta", charset=True) else "Missing"
+        ),
+        "Viewport Tag": (
+            "Present" if head.find("meta", attrs={"name": "viewport"}) else "Missing"
+        ),
+        "Favicon": "Present" if head.find("link", rel="icon") else "Missing",
+    }
+
+
+def process_sitemap(sitemap_url):
+    """
+    Process a sitemap URL and generate a report in parallel.
+
+    Args:
+        sitemap_url (str): The sitemap URL to process.
+
+    Returns:
+        str: The path to the generated file.
+
+    Raises:
+        ValueError: If the sitemap cannot be processed.
+    """
+    output_file = "seo_report.csv"
+    try:
+        # Fetch and parse the sitemap.
+        with requests.get(sitemap_url, timeout=10) as response:
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, "lxml-xml")
+            urls = [loc.text for loc in soup.find_all("loc")]
+
+            if not urls:
+                raise ValueError("No URLs found in the sitemap.")
+
+        # Initialize an empty list, to be populated below.
+        results = []
+        # Process URLs in parallel.
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = list(executor.map(process_single_url, urls))
+
+        # Write results to CSV.
+        with open(output_file, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(
+                file,
+                fieldnames=[
+                    "URL",
+                    "Status",
+                    "Title Tag",
+                    "Meta Description",
+                    "Canonical Tag",
+                    "Meta Robots Tag",
+                    "Open Graph Tags",
+                    "Twitter Card Tags",
+                    "Hreflang Tags",
+                    "Structured Data",
+                    "Charset Declaration",
+                    "Viewport Tag",
+                    "Favicon",
+                ],
+            )
+            writer.writeheader()
+            writer.writerows(results)
+
+        return output_file
+
+    except requests.exceptions.ConnectionError:
+        raise ValueError(
+            "Unable to connect to the provided URL. Please ensure it is valid and accessible."
+        )
+    except requests.exceptions.Timeout:
+        raise ValueError(
+            "The request timed out. Heroku limits me to 30 seconds per request."
+        )
+    except requests.exceptions.RequestException:
+        raise ValueError(
+            "An error occurred while fetching the sitemap. Please verify the URL and try again."
+        )
+    except Exception as e:
+        raise ValueError(f"Failed to process sitemap: {e}")
+
 
 """
 https://mobile.fmcsa.dot.gov/QCDevsite/docs/qcApi

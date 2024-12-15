@@ -1,0 +1,86 @@
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
+{% extends "projects/base.html" %}
+    {% block page_head %}
+    {% block scripts %}
+    <!-- Schema for SEO -->
+    <script type="application/ld+json">
+        {
+          "@context": "http://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "SEO Head Checker",
+          "description": "The SEO Head Checker allows users to analyze the <head> section of webpages for SEO elements, ensuring proper meta tags, canonical tags, Open Graph tags, and more to optimize their website's performance in search engines.",
+          "url": "https://www.bencritt.net/projects/seo_head_checker/",
+          "applicationCategory": "SEO Utility",
+          "operatingSystem": "Web-based",
+          "image": "",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden",
+            "url": "https://www.bencritt.net"
+          },
+          "featureList": [
+            "Analyzes the <head> section of webpages for critical SEO elements.",
+            "Checks for meta tags, canonical tags, Open Graph tags, Twitter Card tags, and more.",
+            "Provides detailed reports on present and missing SEO elements.",
+            "Web-based application accessible from any device with an internet connection.",
+            "Helps optimize websites for better search engine performance."
+          ]
+        }
+        </script>
+        
+    {% endblock scripts %}    
+    {% block styles %} 
+    <!-- Custom CSS styles for the table. -->
+    <style>
+        .centered-content {
+            text-align: center; /* Centers the content */
+        }       
+    </style>
+    {% endblock styles %}
+    {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description" content="Analyze the <head> section of your webpages with the SEO Head Checker Tool. Check for meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your website for search engines.">
+    <meta name="keywords" content="SEO Head Checker, Analyze <head> section, SEO tags checker, meta tags analyzer, canonical tags checker, Open Graph tags, Twitter Card tags, SEO optimization tool, website SEO analysis">
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://www.bencritt.net/projects/seo_head_checker/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="SEO Head Checker">
+    <meta property="og:description" content="Analyze the <head> section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
+    <meta property="og:image" content="">
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/seo_head_checker/">
+    <meta name="twitter:title" content="SEO Head Checker">
+    <meta name="twitter:description" content="Analyze the <head> section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
+    <meta name="twitter:image" content="">
+    <meta name="twitter:creator" content="@bencritt89">
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    <!-- Canonical link to help avoid duplicate content issues. -->
+    <link rel="canonical" href="https://www.bencritt.net/projects/seo_head_checker/">
+    {% endblock link_tags %}
+    {% block title %}SEO Head Checker | Free Tool to Analyze SEO Head Elements{% endblock title %}
+    {% endblock page_head %}
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <main>
+        <center>
+            <h1>SEO Head Checker</h1>
+            <br>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button cid="seo-head-btn" class="btn btn-primary" type="submit">Generate SEO Report</button>
+            </form>
+            <br>
+            {% if error %}
+                <p>{{ error }}</p>
+            {% endif %}
+        </center>
+    </main>
+{% endblock content %}

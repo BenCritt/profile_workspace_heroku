@@ -9,6 +9,53 @@ from django.core.validators import (
 )
 import ipaddress
 from urllib.parse import urlparse
+from .utils import normalize_url
+
+
+# SEO Head Checker
+class SitemapForm(forms.Form):
+    sitemap_url = forms.CharField(
+        # Label displayed on the form with SEO-friendly lanaguage.
+        label="Enter Sitemap URL",
+        # Make this field mandatory.
+        required=True,
+        # Provide a placeholder so the expected input is made clear to the user.
+        widget=forms.TextInput(attrs={"placeholder": "bencritt.net/sitemap.xml"}),
+    )
+    file_type = forms.ChoiceField(
+        # Options for output file format.
+        choices=[("excel", "Excel"), ("csv", "CSV")],
+        # Render as radio buttons.
+        widget=forms.RadioSelect,
+        # Label displayed on the form with SEO-friendly language.
+        label="Select your preferred file type below.",
+        # Default selected option.
+        initial="excel",
+    )
+
+    def clean_sitemap_url(self):
+        """
+        Normalize and validate the input sitemap URL.
+
+        Returns:
+            str: The normalized URL if valid.
+
+        Raises:
+            forms.ValidationError: If the URL is not valid.
+        """
+        # Get the raw input.
+        url = self.cleaned_data["sitemap_url"]
+
+        # Normalize the URL (e.g., add https:// if missing.)
+        normalized_url = normalize_url(url)
+
+        # Validate the normalized URL to ensure it has a scheme and domain.
+        parsed_url = urlparse(normalized_url)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            raise forms.ValidationError("Please enter a valid sitemap URL.")
+
+        # Return the validated and normalized URL.
+        return normalized_url
 
 
 # Freight Carrier Safety Reporter

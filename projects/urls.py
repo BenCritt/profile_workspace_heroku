@@ -48,4 +48,5 @@ urlpatterns = [
         ),
     ),
     path("freight_safety/", views.freight_safety, name="freight_safety"),
+    path("seo_head_checker/", views.seo_head_checker, name="seo_head_checker"),
 ]
