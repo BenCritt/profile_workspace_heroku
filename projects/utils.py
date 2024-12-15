@@ -57,7 +57,7 @@ def fetch_head_section(url):
     try:
         # Use a persistent session for efficiency.
         with requests.Session() as session:
-            response = session.get(url, stream=True, timeout=30)
+            response = session.get(url, stream=True, timeout=29)
             response.raise_for_status()
 
             # Accumulate streamed content until </head> is found.
