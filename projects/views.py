@@ -28,11 +28,81 @@ from .utils import (
     get_coordinates,
     get_city_and_state,
     get_fmcsa_carrier_data_by_usdot,
-    process_sitemap,
+    process_sitemap,  # Only needed if not using the view with the timeout.
+    process_sitemap_with_timeout,
 )
 
 
-# This is the code for the SEO Head Checker.
+def seo_head_checker(request):
+    """
+    Handle form submissions for the SEO Head Checker app.
+    This function processes sitemap URLs submitted by the user,
+    validates the form data, and generates an SEO report in the user-selected format (CSV or Excel).
+    """
+    if request.method == "POST":
+        # Instantiate the form with the submitted POST data.
+        form = SitemapForm(request.POST)
+
+        # Validate the form input.
+        if form.is_valid():
+            # Extract the cleaned sitemap URL and desired output format from the form.
+            sitemap_url = form.cleaned_data["sitemap_url"]
+            # User-selected output format.
+            file_type = form.cleaned_data["file_type"]
+
+            try:
+                # Call a function to process the sitemap with a hard 29-second timeout.
+                # This prevents Heroku's 30-second timeout from crashing the app.
+                output_file = process_sitemap_with_timeout(sitemap_url, timeout=29)
+
+                # Serve the generated report file based on the user's selected format.
+                if file_type == "excel":
+                    # If the user selects Excel, use pandas to convert the CSV to Excel format.
+                    import pandas as pd
+
+                    # Read the generated CSV file into a pandas DataFrame.
+                    df = pd.read_csv(output_file)
+
+                    # Create an HTTP response with the appropriate content type for Excel.
+                    response = HttpResponse(
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                    # Set the Content-Disposition header to trigger a download with the specified filename.
+                    response["Content-Disposition"] = (
+                        'attachment; filename="seo_report.xlsx"'
+                    )
+                    # Write the DataFrame to the response as an Excel file.
+                    df.to_excel(response, index=False, engine="openpyxl")
+                    return response
+
+                elif file_type == "csv":
+                    # If the user selects CSV, serve the file directly as a response.
+                    with open(output_file, "r", encoding="utf-8") as csv_file:
+                        response = HttpResponse(csv_file, content_type="text/csv")
+                        # Set the Content-Disposition header for downloading the CSV.
+                        response["Content-Disposition"] = (
+                            'attachment; filename="seo_report.csv"'
+                        )
+                        return response
+
+            except ValueError as e:
+                # Handle errors during sitemap processing, such as timeouts or invalid input.
+                # Render the form page with the error message displayed to the user.
+                return render(
+                    request,
+                    "projects/seo_head_checker.html",
+                    {"error": str(e), "form": form},
+                )
+    else:
+        # If the request is not a POST request (e.g., GET), display the empty form to the user.
+        form = SitemapForm()
+
+    # Render the HTML template with the form (and any error messages, if present.)
+    return render(request, "projects/seo_head_checker.html", {"form": form})
+
+
+'''
+# This is the code for the SEO Head Checker without the 29 second cutoff.
 def seo_head_checker(request):
     """
     Handle form submissions for the SEO Head Checker app.
@@ -82,6 +152,7 @@ def seo_head_checker(request):
         form = SitemapForm()
 
     return render(request, "projects/seo_head_checker.html", {"form": form})
+'''
 
 
 # This is code for generating favicons on Android devices.

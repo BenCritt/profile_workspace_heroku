@@ -12,10 +12,129 @@ import chardet
 import csv
 import gc
 from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Process, Queue
+import time
 
 # from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas
 # import plotly
+
+
+def process_sitemap_task(sitemap_url, queue):
+    """
+    Task function to process the sitemap and put results in the queue.
+    This function runs in a separate process to handle sitemap processing,
+    ensuring that results or errors can be communicated back to the main process.
+
+    Args:
+        sitemap_url (str): The URL of the sitemap to process.
+        queue (multiprocessing.Queue): A queue to store results or errors.
+    """
+    # Attempt to fetch the sitemap from the provided URL.
+    try:
+        # 10-second timeout for the request.
+        response = requests.get(sitemap_url, timeout=10)
+        # Raise an HTTPError for bad responses (4xx or 5xx).
+        response.raise_for_status()
+
+        # Parse the sitemap XML content.
+        soup = BeautifulSoup(response.content, "lxml-xml")
+        # Extract <loc> tags containing URLs.
+        urls = [loc.text for loc in soup.find_all("loc")]
+
+        # If no URLs are found in the sitemap, return an error via the queue.
+        if not urls:
+            queue.put(ValueError("No URLs found in the sitemap."))
+            return
+
+        # List to store results of URL processing.
+        results = []
+
+        # Process a subset of the URLs (up to 500 for testing).
+        for url in urls[:500]:
+            # Process each URL individually.
+            result = process_single_url(url)
+            results.append(result)
+
+        # Save the processing results to a CSV file.
+        output_file = "seo_report.csv"
+        with open(output_file, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(
+                file,
+                fieldnames=[
+                    "URL",
+                    "Status",
+                    "Title Tag",
+                    "Meta Description",
+                    "Canonical Tag",
+                    "Meta Robots Tag",
+                    "Open Graph Tags",
+                    "Twitter Card Tags",
+                    "Hreflang Tags",
+                    "Structured Data",
+                    "Charset Declaration",
+                    "Viewport Tag",
+                    "Favicon",
+                ],
+            )
+            # Write column headers.
+            writer.writeheader()
+            # Write each processed URL's data.
+            writer.writerows(results)
+
+        # Send the path to the generated file back to the main process.
+        queue.put(output_file)
+
+    except Exception as e:
+        # If an error occurs, send the exception back to the main process via the queue.
+        queue.put(e)
+
+
+def process_sitemap_with_timeout(sitemap_url, timeout=29):
+    """
+    Process a sitemap URL with a strict timeout using multiprocessing.
+    This function ensures that sitemap processing will stop if it exceeds the specified timeout.
+
+    Args:
+        sitemap_url (str): The URL of the sitemap to process.
+        timeout (int): Maximum time (in seconds) allowed for the process to complete.
+
+    Returns:
+        str: The path to the generated report file.
+
+    Raises:
+        ValueError: If the process times out or encounters an error.
+    """
+
+    # Create a queue to facilitate communication between the main process and the worker process.
+    queue = Queue()
+
+    # Initialize a separate process to handle sitemap processing.
+    process = Process(target=process_sitemap_task, args=(sitemap_url, queue))
+    # Start the worker process.
+    process.start()
+
+    # Wait for the process to finish or timeout.
+    process.join(timeout)
+
+    if process.is_alive():
+        # If the process exceeds the timeout, terminate it forcefully.
+        process.terminate()
+        # Ensure the process is fully stopped.
+        process.join()
+        raise ValueError(
+            "Processing took too long and was stopped. Heroku limits me to 30 seconds. Please try a smaller sitemap."
+        )
+
+    # Retrieve the result from the queue.
+    result = queue.get()
+    if isinstance(result, Exception):
+        # If an exception was raised in the worker process, propagate it as a ValueError.
+        raise ValueError(
+            "Failed to process sitemap.  Please make sure you've entered a valid sitemap URL."
+        )
+    # Return the file path of the successfully generated report.
+    return result
 
 
 def normalize_url(url):
