@@ -33,12 +33,9 @@ from .utils import (
 )
 
 
+# This is the code for the SEO Head Checker
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_head_checker(request):
-    """
-    Handle form submissions for the SEO Head Checker app.
-    This function processes sitemap URLs submitted by the user,
-    validates the form data, and generates an SEO report in the user-selected format (CSV or Excel).
-    """
     if request.method == "POST":
         # Instantiate the form with the submitted POST data.
         form = SitemapForm(request.POST)
