@@ -90,7 +90,7 @@ def process_sitemap_task(sitemap_url, queue):
         queue.put(e)
 
 
-def process_sitemap_with_timeout(sitemap_url, timeout=25):
+def process_sitemap_with_timeout(sitemap_url, timeout=20):
     """
     Process a sitemap URL with a strict timeout using multiprocessing.
     This function ensures that sitemap processing will stop if it exceeds the specified timeout.
@@ -176,7 +176,7 @@ def fetch_head_section(url):
     try:
         # Use a persistent session for efficiency.
         with requests.Session() as session:
-            response = session.get(url, stream=True, timeout=25)
+            response = session.get(url, stream=True, timeout=20)
             response.raise_for_status()
 
             # Accumulate streamed content until </head> is found.
