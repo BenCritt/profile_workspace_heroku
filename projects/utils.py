@@ -39,6 +39,14 @@ def process_sitemap_task(sitemap_url, queue):
 
         # Parse the sitemap XML content.
         soup = BeautifulSoup(response.content, "lxml-xml")
+        # Check for <sitemap> tags to identify sitemap indexes.  This app doesn't support sitemap indexes.
+        if soup.find("sitemap"):
+            queue.put(
+                ValueError(
+                    "Sitemap indexes are not supported. Please submit a standard sitemap containing URLs."
+                )
+            )
+            return
         # Extract <loc> tags containing URLs.
         urls = [loc.text for loc in soup.find_all("loc")]
 
