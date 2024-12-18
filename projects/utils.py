@@ -58,8 +58,8 @@ def process_sitemap_task(sitemap_url, queue):
         # List to store results of URL processing.
         results = []
 
-        # Process a subset of the URLs (up to 50 due to Heroku's limitations).
-        for url in urls[:25]:
+        # Process a subset of the URLs (up to 20 due to Heroku's limitations).
+        for url in urls[:20]:
             # Process each URL individually.
             result = process_single_url(url)
             results.append(result)
@@ -297,7 +297,7 @@ def process_sitemap(sitemap_url):
         # Initialize an empty list, to be populated below.
         results = []
         # Process URLs in parallel.  With max_workers set to 25, this will process 25 URLs at once.
-        with ThreadPoolExecutor(max_workers=25) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             results = list(executor.map(process_single_url, urls))
 
         # Write results to CSV.
