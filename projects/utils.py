@@ -59,7 +59,7 @@ def process_sitemap_task(sitemap_url, queue):
         results = []
 
         # Process a subset of the URLs (up to 50 due to Heroku's limitations).
-        for url in urls[:50]:
+        for url in urls[:25]:
             # Process each URL individually.
             result = process_single_url(url)
             results.append(result)
