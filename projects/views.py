@@ -157,6 +157,10 @@ def start_sitemap_processing(request):
         # Function to process sitemap URLs in the background.
         def process_task(task_id, sitemap_url):
             try:
+                # This identifies my app so website administrators know who is crawling their website.
+                headers = {
+                    "User-Agent": "SEO Head Checker by Ben Crittenden (https://www.bencritt.net)"
+                }
                 # Initialize task progress.
                 task = cache.get(task_id)
                 if task:
@@ -165,7 +169,7 @@ def start_sitemap_processing(request):
                     cache.set(task_id, task, timeout=60 * 60)
 
                 # Fetch and parse the sitemap XML to extract URLs.
-                response = requests.get(sitemap_url, timeout=10)
+                response = requests.get(sitemap_url, headers=headers, timeout=10)
                 response.raise_for_status()  # Raise an error for HTTP failures.
                 soup = BeautifulSoup(response.content, "lxml-xml")
                 urls = [

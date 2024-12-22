@@ -252,6 +252,12 @@ def fetch_head_section(url):
     try:
         # Use a persistent session for efficiency.
         with requests.Session() as session:
+            # This identifies my app so website administrators know who is crawling their website.
+            session.headers.update(
+                {
+                    "User-Agent": "SEO Head Checker by Ben Crittenden (https://www.bencritt.net)"
+                }
+            )
             response = session.get(url, stream=True, timeout=3000)
             response.raise_for_status()
 
