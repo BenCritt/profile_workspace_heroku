@@ -336,13 +336,16 @@ def seo_head_checker(request):
             # Extract the cleaned sitemap URL and desired output format from the form.
             sitemap_url = form.cleaned_data["sitemap_url"]
             # User-selected output format.
-            file_type = form.cleaned_data["file_type"]
+            # file_type = form.cleaned_data["file_type"]
+            # Fix filetype to CSV. Support for Excel coming in the future.
+            file_type = "csv"
 
             try:
                 # Call a function to process the sitemap with a hard 5 minute timeout.
                 output_file = process_sitemap_with_timeout(sitemap_url, timeout=3000)
 
                 # Serve the generated report file based on the user's selected format.
+                # This will eventually work. For now, there is no option for the user to select.
                 if file_type == "excel":
                     # If the user selects Excel, use pandas to convert the CSV to Excel format.
                     import pandas as pd

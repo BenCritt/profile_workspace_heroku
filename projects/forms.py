@@ -52,6 +52,8 @@ class SitemapForm(forms.Form):
             }
         ),
     )
+    """
+    # Allowing users to select a file type is a work-in-progress.
     file_type = forms.ChoiceField(
         # Options for output file format.
         choices=[("excel", "Excel"), ("csv", "CSV")],
@@ -62,6 +64,7 @@ class SitemapForm(forms.Form):
         # Default selected option.
         initial="excel",
     )
+    """
 
     def clean_sitemap_url(self):
         """
