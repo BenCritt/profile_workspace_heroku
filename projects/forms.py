@@ -1,14 +1,30 @@
+# Provides the base Form class and form field classes for building and validating form data across all apps.
 from django import forms
+
+# Used to raise custom validation errors for invalid user inputs, such as in the WeatherForm and IPForm.
 from django.core.exceptions import ValidationError
+
+# Provides access to ZIP code data for validation in the WeatherForm, ensuring users input valid ZIP codes.
 from pyzipcode import ZipCodeDatabase
+
+# Provides built-in validation for form fields:
+# - MinValueValidator and MaxValueValidator: Used in MonteCarloForm to ensure numerical fields stay within specified ranges.
+# - MinLengthValidator and MaxLengthValidator: Used in TextForm to ensure text fields meet character length requirements.
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
     MinLengthValidator,
     MaxLengthValidator,
 )
+
+# Used in IPForm to validate whether the input is a valid IPv4 or IPv6 address.
 import ipaddress
+
+# Used in various form cleaning methods, such as SitemapForm and SSLCheckForm, to parse and validate URLs.
 from urllib.parse import urlparse
+
+# Imports a custom utility function to normalize URLs, adding schemes like "https://" if missing.
+# Utilized in the clean methods of forms like SitemapForm and SSLCheckForm.
 from .utils import normalize_url
 
 

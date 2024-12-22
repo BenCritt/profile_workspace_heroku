@@ -1,42 +1,102 @@
+# Used to render templates for various views (e.g., forms, results) and handle redirects to other views/pages.
 from django.shortcuts import render, redirect
+
+# Custom forms used across different views.
 from .forms import (
+    # QRForm is used in the QR Code Generator.
     QRForm,
+    # MonteCarloForm is used in the Monte Carlo Simulator.
     MonteCarloForm,
+    # WeatherForm is used in the Weather Forecast app.
     WeatherForm,
+    # TextForm is used in the Grade Level Analyzer.
     TextForm,
+    # IPForm is used in the IP Address Lookup Tool.
     IPForm,
+    # DomainForm is used in the DNS Lookup Tool.
     DomainForm,
+    # SSLCheckForm is used in the SSL Verification Tool.
     SSLCheckForm,
+    # CarrierSearchForm is used in the Freight Carrier Safety Reporter.
     CarrierSearchForm,
+    # SitemapForm is used in the SEO Head Checker.
     SitemapForm,
 )
+
+# Provides operating system-dependent functionality, such as file path handling and directory management.
 import os
+
+# Used in the QR Code Generator app to create QR codes from user-provided data.
 import qrcode
+
+# HttpResponse: Sends raw data back to the user (e.g., for file downloads).
+# JsonResponse: Sends JSON responses for AJAX requests, such as progress tracking in SEO Head Checker.
+# HttpResponseNotFound: Returns a 404 error for static files or invalid paths.
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
+
+# Used for making HTTP requests in apps such as:
+# - Fetching weather data for the Weather Forecast app.
+# - Performing API calls for geolocation in the IP Address Lookup Tool.
+# - Retrieving carrier data in the Freight Carrier Safety Reporter.
+# - Fetching sitemap URLs in the SEO Head Checker.
 import requests
+
+# Used for parsing and generating JSON data, such as handling request bodies or responses in AJAX calls.
 import json
+
+# Handles date and time operations, such as formatting timestamps in the Weather Forecast app.
 import datetime
+
+# Used in the Monte Carlo Simulator for generating random simulations and numerical calculations.
 import numpy as np
+
+# Used in the Monte Carlo Simulator for creating visualizations (e.g., histograms).
 import matplotlib.pyplot as plt
+
+# Accesses project-wide settings, such as the base directory, used in file path construction (e.g., robots.txt, requirements.txt).
 from django.conf import settings
+
+# Used in the Grade Level Analyzer to calculate various readability scores.
 import textstat
+
+# Performs DNS queries, such as resolving A, MX, and other record types in the DNS Lookup Tool.
 import dns.resolver
+
+# Converts IP addresses to reverse DNS names, used in the IP Address Lookup Tool for PTR lookups.
 import dns.reversename
+
+# Sets caching policies for views, ensuring dynamic content is always up-to-date (e.g., no-cache for tools and results pages).
 from django.views.decorators.cache import cache_control
+
+# Imports utility functions shared across apps.
 from .utils import (
+    # verify_ssl: Verifies SSL certificates in the SSL Verification Tool.
     verify_ssl,
+    # get_coordinates, get_city_and_state: Geocoding utilities for the Weather Forecast app.
     get_coordinates,
     get_city_and_state,
+    # get_fmcsa_carrier_data_by_usdot: Retrieves carrier data for the Freight Carrier Safety Reporter.
     get_fmcsa_carrier_data_by_usdot,
+    # process_sitemap_with_timeout: Handles sitemap processing in the SEO Head Checker with a timeout.
     process_sitemap_with_timeout,
+    # process_single_url: Processes individual URLs for SEO analysis.
     process_single_url,
 )
-import uuid  # For generating unique task IDs.
-import csv  # For writing results to CSV files.
-from threading import Thread  # To handle background processing.
-from urllib.parse import urlparse  # For validating and normalizing URLs.
-import json
-from bs4 import BeautifulSoup  # To parse the sitemap XML.
+
+# Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
+import uuid
+
+# Writes results to CSV files, such as SEO analysis reports in the SEO Head Checker.
+import csv
+
+# Runs background tasks in parallel to the main thread, such as sitemap processing in the SEO Head Checker.
+from threading import Thread
+
+# Validates and parses URLs (e.g., normalizing sitemap URLs in the SEO Head Checker).
+from urllib.parse import urlparse
+
+# Parses XML/HTML content, such as extracting <loc> tags from sitemaps in the SEO Head Checker.
+from bs4 import BeautifulSoup
 
 # Dictionary to store task statuses. In production, use a persistent database.
 from django.core.cache import cache
@@ -206,6 +266,7 @@ def get_task_status(request, task_id):
     )
 
 
+# I don't know why, but I have to have these repeated for download_task_file to run properly.
 import os
 from django.http import HttpResponse, JsonResponse
 

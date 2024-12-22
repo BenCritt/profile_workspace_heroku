@@ -1,23 +1,63 @@
+# Used in the SSL Verification Tool to create SSL contexts for secure communication and certificate verification.
 import ssl
+
+# Provides low-level network communication capabilities, used in the SSL Verification Tool to establish secure connections.
 import socket
+
+# Used in the SSL Verification Tool to parse and extract details from SSL certificates.
 from OpenSSL import crypto
+
+# urlparse: Breaks down URLs into components for validation and processing (e.g., in the SEO Head Checker and SSL Verification Tool).
+# urlunparse: Reassembles parsed URLs into strings after modification.
 from urllib.parse import urlparse
+
+# Handles date and time operations, such as parsing and formatting certificate expiration dates in the SSL Verification Tool.
 from datetime import datetime
+
+# Used for making HTTP requests across multiple apps:
+# - Fetching weather data for the Weather Forecast app.
+# - Performing API calls in the IP Address Lookup Tool and DNS Lookup Tool.
+# - Retrieving and processing sitemap data in the SEO Head Checker.
+# - Accessing the FMCMSA API in the Freight Carrier Safety Reporter.
 import requests
+
+# Used for parsing and generating JSON data, such as handling API responses and request bodies.
 import json
+
+# Renders templates for various apps, such as displaying forms and results.
 from django.shortcuts import render
+
+# Sends raw data responses to users, such as file downloads and dynamically generated content.
 from django.http import HttpResponse
+
+# Parses HTML and XML content. Specifically used in the SEO Head Checker for extracting URLs from sitemap files.
 from bs4 import BeautifulSoup
+
+# Detects character encodings, ensuring accurate decoding of web page content in the SEO Head Checker.
 import chardet
+
+# Writes and reads CSV files. Used to generate reports in apps like the SEO Head Checker.
 import csv
+
+# Provides garbage collection functionality, potentially used to free memory during heavy processing tasks.
 import gc
+
+# Enables multi-threaded parallel execution of tasks, such as processing multiple URLs concurrently in the SEO Head Checker.
 from concurrent.futures import ThreadPoolExecutor
+
+# Process: Creates separate processes for tasks, such as time-limited sitemap processing in the SEO Head Checker.
+# Queue: Facilitates inter-process communication, allowing results or errors to be passed back to the main process.
 from multiprocessing import Process, Queue
+
+# Provides time-related functions, such as enforcing delays or measuring execution time.
 import time
 
+# The following commented imports are placeholders for future functionalities:
 # from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas
+# - Intended for PDF generation, possibly in the Freight Carrier Safety Reporter or similar apps.
 # import plotly
+# - Placeholder for potential data visualization features.
 
 
 # Function to process the sitemap and return results via a queue.
