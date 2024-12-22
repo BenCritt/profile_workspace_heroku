@@ -27,7 +27,6 @@
           ]
         }
         </script>
-        
     {% endblock scripts %}    
     {% block styles %} 
     <!-- Custom CSS styles for the table. -->
@@ -72,21 +71,159 @@
         <center>
             <h1>SEO Head Checker</h1>
             <br>
-            <form method="POST">
+            <div style="width: 100%; max-width: 500px;">
+                <p>Due to the limitations of the server, results are limited to the first 1,000 pages listed in the sitemap. This app only accepts properly formatted sitemaps that list URLs. This app does not accept sitemap indexes.</p>
+            </div>
+            <br>
+            <form method="POST" id="sitemap-form" onsubmit="return false;">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button cid="seo-head-btn" class="btn btn-primary" type="submit">Generate SEO Report</button>
+                <button id="seo-head-btn" class="btn btn-primary" type="button" onclick="startProcessing()">Generate SEO Report</button>
             </form>
             <br>
-            <div style="width: 100%; max-width: 550px;">
-                <p>Due to the limitations of the server this app is running on, results are limited to the first 20 pages listed in the sitemap.</p>
+            <div style="width: 100%; max-width: 500px;">
+                <p>After entering your sitemap and clicking "Generate SEO Report," you'll see progress updates followed by the appearance of a "Download SEO Report" button once progress reaches 100%. There may be a slight delay between when you click "Generate SEO Report" and when you see progress begin.</p>
                 <br>
-                <p>This app only accepts properly formatted sitemaps that list URLs. This app does not accept sitemap indexes.</p>
-                <br>
-            {% if error %}
-                <p>{{ error }}</p>
-            {% endif %}
+                {% if error %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endif %}
             </div>
+            <br>
+            <!-- Status and download elements -->
+            <div id="status" class="alert alert-info" style="display: block;">Progress: 0%</div>
+            <a
+                id="download_link"
+                style="display: none;"
+                class="btn btn-success"
+                href="/projects/seo_head_checker/"
+                onclick="refreshPageAfterDownload()"
+            >
+                Download SEO Report
+            </a>
         </center>
     </main>
+    
+    <!-- JavaScript for handling form submission and progress updates. -->
+    <!-- This must be below everything else, which is why it's not with the other script. -->
+    <script>
+        /**
+        * Initiates the sitemap processing by sending the sitemap URL to the server.
+        */
+        async function startProcessing() {
+            // Get the input element for the sitemap URL.
+            const sitemapInput = document.getElementById("sitemap_url");
+            // Check if the input element exists.
+            if (!sitemapInput) {
+                alert("Sitemap URL input field is missing from the page.");
+                // Stop execution if the input field is not found.
+                return;
+            }
+        
+            // Retrieve and trim the value from the input field.
+            const sitemapUrl = sitemapInput.value.trim();
+
+            // Check if the user provided a URL.
+            if (!sitemapUrl) {
+                alert("Sitemap URL is required. Please enter a valid URL.");
+                // Stop execution if the input field is empty.
+                return;
+            }
+        
+            try {
+                 // Send a POST request to start the sitemap processing.
+                const response = await fetch("/projects/start_sitemap_processing/", {
+                    // HTTP POST method.
+                    method: "POST",
+                    headers: {
+                        // Set content type to JSON.
+                        "Content-Type": "application/json",
+                        // Include CSRF token for security.
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                    // Send the sitemap URL in the request body.
+                    body: JSON.stringify({ sitemap_url: sitemapUrl }),
+                });
+                
+                // Parse the JSON response from the server.
+                const data = await response.json();
+
+                // Check if the server returned an error status.
+                // Status 202 indicates the request was accepted.
+                if (response.status !== 202) {
+                    alert(data.error || "Failed to start processing.");
+                    // Stop execution if an error occurred.
+                    return;
+                }
+        
+                // Extract the task ID from the server's response.
+                const taskId = data.task_id;
+                // Begin polling the server for task status updates.
+                pollTaskStatus(taskId);
+            } catch (error) {
+                // Handle any network or unexpected errors.
+                console.error("Error starting processing:", error);
+                alert("An error occurred while starting the processing task.");
+            }
+        }
+    
+        /**
+        * Polls the server for the status of the sitemap processing task.
+        * taskId - The unique ID of the task being processed.
+        */
+        async function pollTaskStatus(taskId) {
+            // Get the elements for displaying the status and download link.
+            const statusElement = document.getElementById("status");
+            const downloadLink = document.getElementById("download_link");
+        
+            // Poll the server at regular intervals (every 2 seconds).
+            const interval = setInterval(async () => {
+                // Send a GET request to fetch the task status.
+                const response = await fetch(`/projects/get_task_status/${taskId}/`);
+                const data = await response.json();
+        
+                // Handle the case where the task is not found.
+                if (response.status === 404) {
+                    // Stop polling.
+                    clearInterval(interval);
+                    statusElement.innerText = "Error: Task not found.";
+                    return;
+                }
+        
+                // Update the progress or status on the page.
+                if (data.status === "processing") {
+                    // Show the progress percentage if the task is in progress.
+                    statusElement.innerText = `Progress: ${data.progress}%`;
+                }
+        
+                if (data.status === "completed") {
+                    // Stop polling when the task is completed.
+                    clearInterval(interval);
+                    // Display the completion message.
+                    statusElement.innerText = "Processing completed! 100%";
+        
+                    // Show the download link for the generated report.
+                    downloadLink.href = `/projects/download_task_file/${taskId}/`;
+                    // Make the download link visible.
+                    downloadLink.style.display = "block";
+                } else if (data.status === "error") {
+                    // Stop polling and show an error message if the task failed.
+                    clearInterval(interval);
+                    statusElement.innerText = "Error occurred during processing.";
+                    alert(data.error || "An error occurred.");
+                }
+            // Poll every 2 seconds.
+            }, 2000);
+        }        
+    </script>
+    <script>
+        /**
+         * Refreshes the page after the download link is clicked.
+         * The refresh is delayed to ensure the file download starts before the page reloads.
+         */
+        function refreshPageAfterDownload() {
+            setTimeout(() => {
+                location.reload(); // Reload the current page
+            }, 1000); // Delay to allow the download to start
+        }
+    </script>
 {% endblock content %}

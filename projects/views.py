@@ -28,9 +28,220 @@ from .utils import (
     get_coordinates,
     get_city_and_state,
     get_fmcsa_carrier_data_by_usdot,
-    process_sitemap,  # Only needed if not using the view with the timeout.
     process_sitemap_with_timeout,
+    process_single_url,
 )
+import uuid  # For generating unique task IDs.
+import csv  # For writing results to CSV files.
+from threading import Thread  # To handle background processing.
+from urllib.parse import urlparse  # For validating and normalizing URLs.
+import json
+from bs4 import BeautifulSoup  # To parse the sitemap XML.
+
+
+# Dictionary to store task statuses. In production, use a persistent database.
+TASKS = {}
+
+
+def normalize_url(url):
+    """
+    Normalize a URL by adding missing schemes (e.g., https://) or handling naked domains.
+    I have code in forms.py that should be doing this, but it doesn't work.
+
+    Args:
+        url (str): The input URL.
+
+    Returns:
+        str: The normalized URL in a valid format.
+    """
+    if not url.startswith(("http://", "https://")):
+        # Prepend https:// if missing.
+        url = f"https://{url}"
+    return url
+
+
+def start_sitemap_processing(request):
+    """
+    Handles sitemap processing requests, manages task lifecycle, and starts background processing.
+
+    Args:
+        request: Django HTTP request.
+    Returns:
+        JsonResponse: Status of the request or task.
+    """
+    if request.method == "POST":
+        try:
+            # Parse JSON body to extract the sitemap URL.
+            data = json.loads(request.body)
+            # Remove extra spaces.
+            sitemap_url = data.get("sitemap_url", "").strip()
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON input."}, status=400)
+
+        # Check if sitemap URL is provided.
+        if not sitemap_url:
+            return JsonResponse({"error": "Sitemap URL is required."}, status=400)
+
+        # Normalize the URL.
+        sitemap_url = normalize_url(sitemap_url)
+
+        # Validate the normalized URL.
+        parsed_url = urlparse(sitemap_url)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            return JsonResponse({"error": "Invalid Sitemap URL."}, status=400)
+
+        # Generate a unique task ID for tracking.
+        task_id = str(uuid.uuid4())
+        TASKS[task_id] = {"status": "pending", "progress": 0}
+
+        # Function to process sitemap URLs in the background.
+        def process_task(task_id, sitemap_url):
+            try:
+                # Initialize task progress.
+                TASKS[task_id]["status"] = "processing"
+                TASKS[task_id]["progress"] = 0
+                TASKS[task_id]["total_urls"] = 0
+
+                # Fetch and parse the sitemap XML to extract URLs.
+                response = requests.get(sitemap_url, timeout=10)
+                # Raise an error for HTTP failures.
+                response.raise_for_status()
+                soup = BeautifulSoup(response.content, "lxml-xml")
+                # Extract all <loc> tags.
+                urls = [loc.text for loc in soup.find_all("loc")]
+
+                total_urls = len(urls)
+                TASKS[task_id]["total_urls"] = total_urls
+                results = []
+
+                # Process each URL and track progress.
+                for i, url in enumerate(urls, start=1):
+                    # Function defined elsewhere to analyze URL.
+                    result = process_single_url(url)
+                    results.append(result)
+                    # Calculate progress.
+                    TASKS[task_id]["progress"] = int((i / total_urls) * 100)
+
+                # Write results to a file.
+                output_file = f"seo_report_{task_id}.csv"
+                with open(output_file, "w", newline="", encoding="utf-8") as file:
+                    writer = csv.DictWriter(
+                        file,
+                        fieldnames=[
+                            "URL",
+                            "Status",
+                            "Title Tag",
+                            "Meta Description",
+                            "Canonical Tag",
+                            "Meta Robots Tag",
+                            "Open Graph Tags",
+                            "Twitter Card Tags",
+                            "Hreflang Tags",
+                            "Structured Data",
+                            "Charset Declaration",
+                            "Viewport Tag",
+                            "Favicon",
+                        ],
+                    )
+                    writer.writeheader()
+                    writer.writerows(results)
+
+                # Mark task as completed and save file path.
+                TASKS[task_id]["status"] = "completed"
+                TASKS[task_id]["file"] = output_file
+
+            except Exception as e:
+                # Mark task as failed and log the error.
+                TASKS[task_id]["status"] = "error"
+                TASKS[task_id]["error"] = str(e)
+
+        # Start the background thread for processing.
+        Thread(target=process_task, args=(task_id, sitemap_url)).start()
+
+        # Return the task ID to the client for tracking.
+        return JsonResponse({"task_id": task_id}, status=202)
+
+    # Return an error if the request method is not POST.
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+
+def get_task_status(request, task_id):
+    """
+    Returns the current status of a task.
+
+    Args:
+        request: Django HTTP request.
+        task_id (str): Unique task ID.
+    Returns:
+        JsonResponse: Task status or error if task not found.
+    """
+    task = TASKS.get(task_id)
+    if not task:
+        return JsonResponse({"error": "Task not found."}, status=404)
+    return JsonResponse(
+        {
+            "status": task["status"],
+            "progress": task.get("progress", 0),  # Only return the percentage
+            "error": task.get("error"),
+        }
+    )
+
+
+import os
+from django.http import HttpResponse, JsonResponse
+
+
+def download_task_file(request, task_id):
+    """
+    Handles file downloads and deletes the file from the server after serving it to the user.
+
+    Args:
+        request: Django HTTP request object containing metadata about the request.
+        task_id (str): Unique identifier for the task whose file is being downloaded.
+
+    Returns:
+        HttpResponse: A response containing the file data for the user to download.
+        JsonResponse: An error response if the file is not found, not ready, or if an exception occurs.
+    """
+
+    # Retrieve the task details from the TASKS dictionary using the task_id.
+    # The TASKS dictionary is assumed to store task statuses and associated file paths.
+    task = TASKS.get(task_id)
+
+    # Check if the task exists and if its status is "completed".
+    # If not, return a 404 error indicating that the file is not ready or the task does not exist.
+    if not task or task.get("status") != "completed":
+        return JsonResponse({"error": "File not ready or task not found."}, status=404)
+
+    # Extract the file path from the task details.
+    file_path = task.get("file")
+
+    # Check if the file path exists and if the file is physically present on the server.
+    # If not, return a 404 error indicating that the file is missing.
+    if not file_path or not os.path.exists(file_path):
+        return JsonResponse({"error": "File not found on the server."}, status=404)
+
+    try:
+        # Open the file in binary mode ("rb") to prepare it for download.
+        with open(file_path, "rb") as file:
+            # Create an HTTP response containing the file content.
+            response = HttpResponse(file, content_type="application/octet-stream")
+            # Add a "Content-Disposition" header to the response to prompt the user to download the file.
+            # The filename is extracted from the file path and included in the header.
+            response["Content-Disposition"] = (
+                f'attachment; filename="{os.path.basename(file_path)}"'
+            )
+
+        # Delete the file from the server after successfully serving it to the user.
+        # This ensures that temporary files do not accumulate on the server.
+        os.remove(file_path)
+
+        # Return the HTTP response to the client, triggering the file download.
+        return response
+    except Exception as e:
+        # Catch any unexpected errors that occur during file handling or response creation.
+        # Return a JSON error response with a 500 status code and a description of the error.
+        return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
 
 
 # This is the code for the SEO Head Checker
@@ -48,9 +259,8 @@ def seo_head_checker(request):
             file_type = form.cleaned_data["file_type"]
 
             try:
-                # Call a function to process the sitemap with a hard 29-second timeout.
-                # This prevents Heroku's 30-second timeout from crashing the app.
-                output_file = process_sitemap_with_timeout(sitemap_url, timeout=29)
+                # Call a function to process the sitemap with a hard 5 minute timeout.
+                output_file = process_sitemap_with_timeout(sitemap_url, timeout=3000)
 
                 # Serve the generated report file based on the user's selected format.
                 if file_type == "excel":
@@ -96,60 +306,6 @@ def seo_head_checker(request):
 
     # Render the HTML template with the form (and any error messages, if present.)
     return render(request, "projects/seo_head_checker.html", {"form": form})
-
-
-'''
-# This is the code for the SEO Head Checker without the 29 second cutoff.
-def seo_head_checker(request):
-    """
-    Handle form submissions for the SEO Head Checker app.
-    """
-    if request.method == "POST":
-        form = SitemapForm(request.POST)
-        if form.is_valid():
-            sitemap_url = form.cleaned_data["sitemap_url"]
-            # User-selected output file type (CSV or Excel.)
-            file_type = form.cleaned_data["file_type"]
-            try:
-                # Generate the report.
-                output_file = process_sitemap(sitemap_url)
-
-                # Serve the file based on the selected file type.
-                if file_type == "excel":
-                    # Convert the CSV to Excel if the user selected Excel.
-                    import pandas as pd
-
-                    df = pd.read_csv(output_file)
-                    response = HttpResponse(
-                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                    response["Content-Disposition"] = (
-                        'attachment; filename="seo_report.xlsx"'
-                    )
-                    df.to_excel(response, index=False, engine="openpyxl")
-                    return response
-
-                elif file_type == "csv":
-                    # Serve the CSV file directly
-                    with open(output_file, "r", encoding="utf-8") as csv_file:
-                        response = HttpResponse(csv_file, content_type="text/csv")
-                        response["Content-Disposition"] = (
-                            'attachment; filename="seo_report.csv"'
-                        )
-                        return response
-
-            except ValueError as e:
-                # Handle sitemap processing errors
-                return render(
-                    request,
-                    "projects/seo_head_checker.html",
-                    {"error": str(e), "form": form},
-                )
-    else:
-        form = SitemapForm()
-
-    return render(request, "projects/seo_head_checker.html", {"form": form})
-'''
 
 
 # This is code for generating favicons on Android devices.

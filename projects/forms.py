@@ -14,13 +14,27 @@ from .utils import normalize_url
 
 # SEO Head Checker
 class SitemapForm(forms.Form):
+    """
+    A Django form for collecting sitemap URLs and file type preferences for the SEO Head Checker tool.
+
+    Fields:
+        sitemap_url (str): The URL of the sitemap to process. Must be a valid URL.
+        file_type (str): The preferred output file format, either Excel or CSV.
+    """
+
     sitemap_url = forms.CharField(
         # Label displayed on the form with SEO-friendly lanaguage.
         label="Enter Sitemap URL",
         # Make this field mandatory.
         required=True,
         # Provide a placeholder so the expected input is made clear to the user.
-        widget=forms.TextInput(attrs={"placeholder": "bencritt.net/sitemap.xml"}),
+        widget=forms.TextInput(
+            attrs={
+                "name": "sitemap_url",
+                "id": "sitemap_url",
+                "placeholder": "bencritt.net/sitemap.xml",
+            }
+        ),
     )
     file_type = forms.ChoiceField(
         # Options for output file format.
@@ -35,27 +49,33 @@ class SitemapForm(forms.Form):
 
     def clean_sitemap_url(self):
         """
-        Normalize and validate the input sitemap URL.
+        Custom validation for the sitemap_url field.
+
+        - Ensures the URL includes a scheme (http:// or https://).
+        - Validates the structure of the URL to confirm it has a valid domain.
 
         Returns:
             str: The normalized URL if valid.
 
         Raises:
-            forms.ValidationError: If the URL is not valid.
+            forms.ValidationError: If the input URL is invalid.
         """
-        # Get the raw input.
-        url = self.cleaned_data["sitemap_url"]
+        # Retrieve the raw input from the form and strip extra whitespace.
+        url = self.cleaned_data["sitemap_url"].strip()
 
-        # Normalize the URL (e.g., add https:// if missing.)
-        normalized_url = normalize_url(url)
+        # Prepend https:// if the URL does not already include a scheme.
+        # This currently isn't working here, so I also have this done in the view.
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
 
-        # Validate the normalized URL to ensure it has a scheme and domain.
-        parsed_url = urlparse(normalized_url)
+        # Parse the URL to ensure it has a valid structure.
+        parsed_url = urlparse(url)
         if not parsed_url.scheme or not parsed_url.netloc:
+            # Raise a validation error if the URL is invalid.
             raise forms.ValidationError("Please enter a valid sitemap URL.")
 
         # Return the validated and normalized URL.
-        return normalized_url
+        return url
 
 
 # Freight Carrier Safety Reporter

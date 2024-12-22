@@ -5,6 +5,7 @@ from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
 from .views import robots_txt, requirements_txt, runtime_txt
 from django.views.generic import TemplateView
+from .views import start_sitemap_processing, get_task_status, download_task_file
 
 app_name = "projects"
 
@@ -49,4 +50,15 @@ urlpatterns = [
     ),
     path("freight_safety/", views.freight_safety, name="freight_safety"),
     path("seo_head_checker/", views.seo_head_checker, name="seo_head_checker"),
+    path(
+        "start_sitemap_processing/",
+        start_sitemap_processing,
+        name="start_sitemap_processing",
+    ),
+    path("get_task_status/<str:task_id>/", get_task_status, name="get_task_status"),
+    path(
+        "download_task_file/<str:task_id>/",
+        download_task_file,
+        name="download_task_file",
+    ),
 ]

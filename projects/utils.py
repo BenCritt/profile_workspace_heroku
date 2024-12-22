@@ -20,15 +20,18 @@ import time
 # import plotly
 
 
+# Function to process the sitemap and return results via a queue.
 def process_sitemap_task(sitemap_url, queue):
     """
-    Task function to process the sitemap and put results in the queue.
-    This function runs in a separate process to handle sitemap processing,
-    ensuring that results or errors can be communicated back to the main process.
+    Process a sitemap URL, extracting SEO information for up to 1000 URLs,
+    and save the results to a CSV file.
 
     Args:
-        sitemap_url (str): The URL of the sitemap to process.
-        queue (multiprocessing.Queue): A queue to store results or errors.
+        sitemap_url (str): URL of the sitemap to process.
+        queue (multiprocessing.Queue): Queue to return results or errors.
+
+    Notes:
+        - This function runs in a separate process to avoid blocking.
     """
     # Attempt to fetch the sitemap from the provided URL.
     try:
@@ -58,8 +61,8 @@ def process_sitemap_task(sitemap_url, queue):
         # List to store results of URL processing.
         results = []
 
-        # Process a subset of the URLs (up to 20 due to Heroku's limitations).
-        for url in urls[:20]:
+        # Process a subset of the URLs (up to 1000 due to save server resources.)
+        for url in urls[:1000]:
             # Process each URL individually.
             result = process_single_url(url)
             results.append(result)
@@ -98,17 +101,18 @@ def process_sitemap_task(sitemap_url, queue):
         queue.put(e)
 
 
-def process_sitemap_with_timeout(sitemap_url, timeout=20):
+# Function to process a sitemap with a 30 minute timeout.
+def process_sitemap_with_timeout(sitemap_url, timeout=1800):
     """
-    Process a sitemap URL with a strict timeout using multiprocessing.
-    This function ensures that sitemap processing will stop if it exceeds the specified timeout.
+    Process a sitemap URL with a timeout. The function spawns a subprocess
+    to handle the processing and enforces a time limit.
 
     Args:
-        sitemap_url (str): The URL of the sitemap to process.
-        timeout (int): Maximum time (in seconds) allowed for the process to complete.
+        sitemap_url (str): URL of the sitemap to process.
+        timeout (int): Maximum time allowed (in seconds) for processing.
 
     Returns:
-        str: The path to the generated report file.
+        str: Path to the generated report file.
 
     Raises:
         ValueError: If the process times out or encounters an error.
@@ -145,46 +149,70 @@ def process_sitemap_with_timeout(sitemap_url, timeout=20):
     return result
 
 
+# This allows the app to break down, manipulate, and reassemble URLs in a structured way.
+from urllib.parse import urlparse, urlunparse
+
+
+# Function to normalize URLs.
 def normalize_url(url):
     """
-    Normalize a URL by adding missing schemes (e.g., https://) or www if necessary.
+    Normalize a URL by adding missing schemes (e.g., https://) or handling naked domains.
 
     Args:
         url (str): The input URL.
 
     Returns:
         str: The normalized URL in a valid format.
+
+    Raises:
+        ValueError: If the URL cannot be normalized.
     """
     parsed_url = urlparse(url)
 
-    # Add scheme (https://) if missing.
-    if not parsed_url.scheme:
+    # Case 1: No scheme and no netloc, but path looks like a domain.
+    if not parsed_url.scheme and not parsed_url.netloc:
+        # Likely a domain.
+        if "." in parsed_url.path:
+            # Assume it's a naked domain.
+            url = f"https://{parsed_url.path}"
+            # Re-parse with the updated scheme.
+            parsed_url = urlparse(url)
+
+    # Case 2: No scheme but valid netloc.
+    elif not parsed_url.scheme:
+        # Add https:// as the default scheme.
         url = f"https://{url}"
+        # Re-parse with the updated scheme.
+        parsed_url = urlparse(url)
 
-    # # Re-parse after adding the scheme to ensure netloc is valid.
-    parsed_url = urlparse(url)
+    # Case 3: Ensure the resulting URL has a netloc.
+    if not parsed_url.netloc:
+        raise ValueError(f"Invalid URL: {url}")
 
-    # Add www if netloc is missing but path looks like a domain.
-    if not parsed_url.netloc and parsed_url.path:
-        url = f"https://www.{parsed_url.path}"
-
-    return url
+    # Return the fully normalized URL.
+    return urlunparse(parsed_url)
 
 
+# Create a persistent HTTP session with the requests library.
+# Avoid the cost of establishing new connections for each request.
+session = requests.Session()
+
+
+# Function to fetch the <head> section of a webpage.
 def fetch_head_section(url):
     """
-    Fetch and return the <head> section of a webpage.
+    Fetch the <head> section of a webpage using streaming to minimize memory usage.
 
     Args:
         url (str): The URL to fetch.
 
     Returns:
-        BeautifulSoup.Tag or None: The parsed <head> section or None if an error occurs.
+        BeautifulSoup.Tag or None: Parsed <head> section, or None on failure.
     """
     try:
         # Use a persistent session for efficiency.
         with requests.Session() as session:
-            response = session.get(url, stream=True, timeout=20)
+            response = session.get(url, stream=True, timeout=3000)
             response.raise_for_status()
 
             # Accumulate streamed content until </head> is found.
@@ -203,8 +231,7 @@ def fetch_head_section(url):
             decoded_content = head_content.decode(detected_encoding, errors="replace")
             head_html = decoded_content.split("</head>")[0] + "</head>"
 
-            # Parse the <head> section.
-            soup = BeautifulSoup(head_html, "html.parser")  # Use lightweight parser
+            soup = BeautifulSoup(head_html, "lxml")
             return soup.find("head")
 
     except Exception as e:
@@ -212,6 +239,7 @@ def fetch_head_section(url):
         return None
 
 
+# Function to extract SEO elements from a single URL.
 def process_single_url(url):
     """
     Extract SEO elements from the <head> of a single URL.
@@ -222,22 +250,26 @@ def process_single_url(url):
     Returns:
         dict: A dictionary with the URL, status, and SEO elements found.
     """
-    head = fetch_head_section(url)
+    try:
+        head = fetch_head_section(url)
+    except Exception as e:
+        return {"URL": url, "Status": f"Error: {str(e)}"}
+
     if not head:
         return {"URL": url, "Status": "No head section"}
 
-    # Extract and indicate the presence of various SEO elements.
+    def is_present(tag_name, **attrs):
+        return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
+
+    structured_data_count = len(head.find_all("script", type="application/ld+json"))
+
     return {
         "URL": url,
         "Status": "Success",
         "Title Tag": "Present" if head.title else "Missing",
-        "Meta Description": (
-            "Present" if head.find("meta", attrs={"name": "description"}) else "Missing"
-        ),
-        "Canonical Tag": "Present" if head.find("link", rel="canonical") else "Missing",
-        "Meta Robots Tag": (
-            "Present" if head.find("meta", attrs={"name": "robots"}) else "Missing"
-        ),
+        "Meta Description": is_present("meta", name="description"),
+        "Canonical Tag": is_present("link", rel="canonical"),
+        "Meta Robots Tag": is_present("meta", name="robots"),
         "Open Graph Tags": (
             "Present"
             if head.find(
@@ -258,30 +290,29 @@ def process_single_url(url):
             else "Missing"
         ),
         "Structured Data": (
-            "Present" if head.find("script", type="application/ld+json") else "Missing"
+            f"Present ({structured_data_count} scripts)"
+            if structured_data_count > 0
+            else "Missing"
         ),
-        "Charset Declaration": (
-            "Present" if head.find("meta", charset=True) else "Missing"
-        ),
-        "Viewport Tag": (
-            "Present" if head.find("meta", attrs={"name": "viewport"}) else "Missing"
-        ),
-        "Favicon": "Present" if head.find("link", rel="icon") else "Missing",
+        "Charset Declaration": is_present("meta", charset=True),
+        "Viewport Tag": is_present("meta", name="viewport"),
+        "Favicon": is_present("link", rel="icon"),
     }
 
 
+# Function to process a sitemap and generate a report.
 def process_sitemap(sitemap_url):
     """
-    Process a sitemap URL and generate a report in parallel.
+    Process a sitemap, analyze each URL, and generate a CSV report.
 
     Args:
-        sitemap_url (str): The sitemap URL to process.
+        sitemap_url (str): The sitemap URL.
 
     Returns:
-        str: The path to the generated file.
+        str: Path to the generated CSV report.
 
     Raises:
-        ValueError: If the sitemap cannot be processed.
+        ValueError: If processing fails or the sitemap is invalid.
     """
     output_file = "seo_report.csv"
     try:
@@ -297,7 +328,7 @@ def process_sitemap(sitemap_url):
         # Initialize an empty list, to be populated below.
         results = []
         # Process URLs in parallel.  With max_workers set to 25, this will process 25 URLs at once.
-        with ThreadPoolExecutor(max_workers=20) as executor:
+        with ThreadPoolExecutor(max_workers=25) as executor:
             results = list(executor.map(process_single_url, urls))
 
         # Write results to CSV.
