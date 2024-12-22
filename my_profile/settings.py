@@ -147,3 +147,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
 django_heroku.settings(locals())
+
+import os
+
+# Define the cache backend as file-based
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.path.join(BASE_DIR, "cache"),  # Define a directory for the cache
+        "TIMEOUT": 60 * 60,  # Cache timeout in seconds (1 hour)
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,  # Limit the number of cache entries
+        },
+    }
+}

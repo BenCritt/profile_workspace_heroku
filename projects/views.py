@@ -38,9 +38,8 @@ from urllib.parse import urlparse  # For validating and normalizing URLs.
 import json
 from bs4 import BeautifulSoup  # To parse the sitemap XML.
 
-
 # Dictionary to store task statuses. In production, use a persistent database.
-TASKS = {}
+from django.core.cache import cache
 
 
 def normalize_url(url):
@@ -73,8 +72,7 @@ def start_sitemap_processing(request):
         try:
             # Parse JSON body to extract the sitemap URL.
             data = json.loads(request.body)
-            # Remove extra spaces.
-            sitemap_url = data.get("sitemap_url", "").strip()
+            sitemap_url = data.get("sitemap_url", "").strip()  # Remove extra spaces.
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON input."}, status=400)
 
@@ -92,35 +90,50 @@ def start_sitemap_processing(request):
 
         # Generate a unique task ID for tracking.
         task_id = str(uuid.uuid4())
-        TASKS[task_id] = {"status": "pending", "progress": 0}
+        cache.set(
+            task_id, {"status": "pending", "progress": 0}, timeout=60 * 60
+        )  # 1 hour timeout
 
         # Function to process sitemap URLs in the background.
         def process_task(task_id, sitemap_url):
             try:
                 # Initialize task progress.
-                TASKS[task_id]["status"] = "processing"
-                TASKS[task_id]["progress"] = 0
-                TASKS[task_id]["total_urls"] = 0
+                task = cache.get(task_id)
+                if task:
+                    task["status"] = "processing"
+                    task["progress"] = 0
+                    cache.set(task_id, task, timeout=60 * 60)
 
                 # Fetch and parse the sitemap XML to extract URLs.
                 response = requests.get(sitemap_url, timeout=10)
-                # Raise an error for HTTP failures.
-                response.raise_for_status()
+                response.raise_for_status()  # Raise an error for HTTP failures.
                 soup = BeautifulSoup(response.content, "lxml-xml")
-                # Extract all <loc> tags.
-                urls = [loc.text for loc in soup.find_all("loc")]
+                urls = [
+                    loc.text for loc in soup.find_all("loc")
+                ]  # Extract all <loc> tags.
 
                 total_urls = len(urls)
-                TASKS[task_id]["total_urls"] = total_urls
+                task = cache.get(task_id)
+                if task:
+                    task["total_urls"] = total_urls
+                    cache.set(task_id, task, timeout=60 * 60)
+
                 results = []
 
                 # Process each URL and track progress.
                 for i, url in enumerate(urls, start=1):
-                    # Function defined elsewhere to analyze URL.
-                    result = process_single_url(url)
+                    result = process_single_url(
+                        url
+                    )  # Analyze URL (function defined elsewhere).
                     results.append(result)
-                    # Calculate progress.
-                    TASKS[task_id]["progress"] = int((i / total_urls) * 100)
+
+                    # Update progress in cache.
+                    task = cache.get(task_id)
+                    if task:
+                        task["progress"] = int(
+                            (i / total_urls) * 100
+                        )  # Calculate progress.
+                        cache.set(task_id, task, timeout=60 * 60)
 
                 # Write results to a file.
                 output_file = f"seo_report_{task_id}.csv"
@@ -147,13 +160,19 @@ def start_sitemap_processing(request):
                     writer.writerows(results)
 
                 # Mark task as completed and save file path.
-                TASKS[task_id]["status"] = "completed"
-                TASKS[task_id]["file"] = output_file
+                task = cache.get(task_id)
+                if task:
+                    task["status"] = "completed"
+                    task["file"] = output_file
+                    cache.set(task_id, task, timeout=60 * 60)
 
             except Exception as e:
                 # Mark task as failed and log the error.
-                TASKS[task_id]["status"] = "error"
-                TASKS[task_id]["error"] = str(e)
+                task = cache.get(task_id)
+                if task:
+                    task["status"] = "error"
+                    task["error"] = str(e)
+                    cache.set(task_id, task, timeout=60 * 60)
 
         # Start the background thread for processing.
         Thread(target=process_task, args=(task_id, sitemap_url)).start()
@@ -175,7 +194,7 @@ def get_task_status(request, task_id):
     Returns:
         JsonResponse: Task status or error if task not found.
     """
-    task = TASKS.get(task_id)
+    task = cache.get(task_id)
     if not task:
         return JsonResponse({"error": "Task not found."}, status=404)
     return JsonResponse(
@@ -206,7 +225,7 @@ def download_task_file(request, task_id):
 
     # Retrieve the task details from the TASKS dictionary using the task_id.
     # The TASKS dictionary is assumed to store task statuses and associated file paths.
-    task = TASKS.get(task_id)
+    task = cache.get(task_id)
 
     # Check if the task exists and if its status is "completed".
     # If not, return a 404 error indicating that the file is not ready or the task does not exist.
