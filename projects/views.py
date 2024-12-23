@@ -184,8 +184,8 @@ def start_sitemap_processing(request):
 
                 results = []
 
-                # Process each URL and track progress.
-                for i, url in enumerate(urls, start=1):
+                # Process each URL, up to 500, and track progress.
+                for i, url in enumerate(urls[:500], start=1):
                     result = process_single_url(
                         url
                     )  # Analyze URL (function defined elsewhere).
