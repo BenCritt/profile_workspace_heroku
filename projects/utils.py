@@ -373,8 +373,8 @@ def process_sitemap(sitemap_url):
 
         # Initialize an empty list, to be populated below.
         results = []
-        # Process URLs in parallel.  With max_workers set to 25, this will process 25 URLs at once.
-        with ThreadPoolExecutor(max_workers=25) as executor:
+        # Process URLs in parallel.  With max_workers set to 10, this will process 10 URLs at once.
+        with ThreadPoolExecutor(max_workers=10) as executor:
             results = list(executor.map(process_single_url, urls))
 
         # Write results to CSV.
