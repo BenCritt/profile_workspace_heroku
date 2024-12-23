@@ -63,7 +63,7 @@ import time
 # Function to process the sitemap and return results via a queue.
 def process_sitemap_task(sitemap_url, queue):
     """
-    Process a sitemap URL, extracting SEO information for up to 1000 URLs,
+    Process a sitemap URL, extracting SEO information for up to 500 URLs,
     and save the results to a CSV file.
 
     Args:
@@ -101,8 +101,8 @@ def process_sitemap_task(sitemap_url, queue):
         # List to store results of URL processing.
         results = []
 
-        # Process a subset of the URLs (up to 1000 due to save server resources.)
-        for url in urls[:1000]:
+        # Process a subset of the URLs (up to 500 due to save server resources.)
+        for url in urls[:500]:
             # Process each URL individually.
             result = process_single_url(url)
             results.append(result)
@@ -373,8 +373,8 @@ def process_sitemap(sitemap_url):
 
         # Initialize an empty list, to be populated below.
         results = []
-        # Process URLs in parallel.  With max_workers set to 10, this will process 10 URLs at once.
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        # Process URLs in parallel.  With max_workers set to 5, this will process 10 URLs at once.
+        with ThreadPoolExecutor(max_workers=5) as executor:
             results = list(executor.map(process_single_url, urls))
 
         # Write results to CSV.
