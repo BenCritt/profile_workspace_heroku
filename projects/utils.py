@@ -175,7 +175,7 @@ def process_sitemap_with_timeout(sitemap_url, timeout=1800):
         # Ensure the process is fully stopped.
         process.join()
         raise ValueError(
-            "Processing took too long and was stopped. Heroku limits me to 30 seconds. Please try a smaller sitemap."
+            "Processing took too long and was stopped due to server limitations."
         )
 
     # Retrieve the result from the queue.
@@ -258,7 +258,7 @@ def fetch_head_section(url):
                     "User-Agent": "SEO Head Checker by Ben Crittenden (https://www.bencritt.net)"
                 }
             )
-            response = session.get(url, stream=True, timeout=3000)
+            response = session.get(url, stream=True, timeout=10)
             response.raise_for_status()
 
             # Accumulate streamed content until </head> is found.
@@ -407,9 +407,7 @@ def process_sitemap(sitemap_url):
             "Unable to connect to the provided URL. Please ensure it is valid and accessible."
         )
     except requests.exceptions.Timeout:
-        raise ValueError(
-            "The request timed out. Heroku limits me to 30 seconds per request."
-        )
+        raise ValueError("The request timed out due to server limitations.")
     except requests.exceptions.RequestException:
         raise ValueError(
             "An error occurred while fetching the sitemap. Please verify the URL and try again."

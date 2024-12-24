@@ -170,11 +170,19 @@ def start_sitemap_processing(request):
 
                 # Fetch and parse the sitemap XML to extract URLs.
                 response = requests.get(sitemap_url, headers=headers, timeout=10)
-                response.raise_for_status()  # Raise an error for HTTP failures.
+                # Raise an error for HTTP failures.
+                response.raise_for_status()
+
+                # Stream parsing to avoid loading the entire sitemap into memory.
                 soup = BeautifulSoup(response.content, "lxml-xml")
+                # Extract <loc> tags for the first 500 URLs.
+                urls = [loc.text for loc in soup.find_all("loc")[:500]]
+                """
+                # Extract all <loc> tags for entire sitemap.
                 urls = [
                     loc.text for loc in soup.find_all("loc")
-                ]  # Extract all <loc> tags.
+                ]  
+                """
 
                 total_urls = len(urls)
                 task = cache.get(task_id)
