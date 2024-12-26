@@ -777,7 +777,8 @@ def weather(request):
                 "current_cloud": current_weather.get("clouds", "N/A"),
                 "current_uv": current_weather.get("uvi", "N/A"),
                 "current_dew": int(current_weather["dew_point"]),
-                "current_visibility": int((current_weather["visibility"]) * 0.00062137),
+                # Temporarily commenting out current visibility because an API error is causing a server error.
+                # "current_visibility": int((current_weather["visibility"]) * 0.00062137),
                 "current_sunrise": datetime.datetime.fromtimestamp(
                     current_weather["sunrise"]
                 ),
@@ -810,7 +811,6 @@ def weather(request):
                     "sunset": datetime.datetime.fromtimestamp(day["sunset"]),
                     "dew_point": day["dew_point"],
                     "humidity": day["humidity"],
-                    # "precipitation_chance": day["pop"],
                     "precipitation_chance": round(day["pop"] * 100),
                 }
             )
