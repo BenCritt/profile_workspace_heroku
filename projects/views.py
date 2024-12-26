@@ -175,8 +175,11 @@ def start_sitemap_processing(request):
 
                 # Stream parsing to avoid loading the entire sitemap into memory.
                 soup = BeautifulSoup(response.content, "lxml-xml")
+                # Importing the variable that controls the lilmit of URLs that are processed.
+                from .utils import sitemap_limit
+
                 # Extract <loc> tags for the first 500 URLs.
-                urls = [loc.text for loc in soup.find_all("loc")[:500]]
+                urls = [loc.text for loc in soup.find_all("loc")[:sitemap_limit]]
                 """
                 # Extract all <loc> tags for entire sitemap.
                 urls = [
@@ -193,7 +196,7 @@ def start_sitemap_processing(request):
                 results = []
 
                 # Process each URL, up to 500, and track progress.
-                for i, url in enumerate(urls[:500], start=1):
+                for i, url in enumerate(urls[:sitemap_limit], start=1):
                     result = process_single_url(
                         url
                     )  # Analyze URL (function defined elsewhere).

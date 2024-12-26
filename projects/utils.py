@@ -59,6 +59,9 @@ import time
 # import plotly
 # - Placeholder for potential data visualization features.
 
+# This variable is used to limit the number of URLs processed by SEO Head Checker.
+sitemap_limit = 500
+
 
 # Function to process the sitemap and return results via a queue.
 def process_sitemap_task(sitemap_url, queue):
@@ -101,8 +104,8 @@ def process_sitemap_task(sitemap_url, queue):
         # List to store results of URL processing.
         results = []
 
-        # Process a subset of the URLs (up to 500 due to save server resources.)
-        for url in urls[:500]:
+        # Process a subset of the URLs, up to 500 due to save server resources.
+        for url in urls[:sitemap_limit]:
             # Process each URL individually.
             result = process_single_url(url)
             results.append(result)

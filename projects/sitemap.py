@@ -40,8 +40,10 @@ class StaticViewSitemap(sitemaps.Sitemap):
             "ssl_check",
             "it_tools",
             "freight_safety",
+            "seo_head_checker",
         ]
 
     # Define how to determine the location (URL) for each item, using the 'reverse' function to find URLs by their name.
     def location(self, item):
-        return reverse("projects:" + item)  # Dynamically create URLs for each item.
+        # Dynamically create URLs for each item.
+        return reverse("projects:" + item)
