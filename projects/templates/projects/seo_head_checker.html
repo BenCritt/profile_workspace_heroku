@@ -72,7 +72,7 @@
             <h1>SEO Head Checker</h1>
             <br>
             <div style="width: 100%; max-width: 500px;">
-                <p>Due to the limitations of the server, scanning is slow and results are limited to the first 500 pages listed in the sitemap. This app only accepts properly formatted sitemaps that list URLs. This app does not accept sitemap indexes.</p>
+                <p>Due to the limitations of the server, scanning is slow and results are limited to the first 100 pages listed in the sitemap. This app only accepts properly formatted sitemaps that list URLs. This app does not accept sitemap indexes.</p>
             </div>
             <br>
             <form method="POST" id="sitemap-form" onsubmit="return false;">
@@ -82,7 +82,7 @@
             </form>
             <br>
             <div style="width: 100%; max-width: 500px;">
-                <p>After entering your sitemap and clicking "Generate SEO Report," you'll see progress updates followed by the appearance of a "Download SEO Report" button once progress reaches 100%. There may be a slight delay between when you click "Generate SEO Report" and when you see progress begin.  The report file format is CSV.</p>
+                <p>After entering your sitemap and clicking "Generate SEO Report," you'll see progress updates followed by the appearance of a "Download SEO Report" button once progress reaches 100%. You will have one hour to download your file before it is deleted from the server. There may be a slight delay between when you click "Generate SEO Report" and when you see progress begin.  The report file format is CSV.</p>
                 <br>
                 {% if error %}
                     <p class="text-danger">{{ error }}</p>
@@ -90,16 +90,18 @@
             </div>
             <br>
             <!-- Status and download elements -->
-            <div id="status" class="alert alert-info" style="display: block;">Progress: 0%</div>
-            <a
-                id="download_link"
-                style="display: none;"
-                class="btn btn-success"
-                href="/projects/seo_head_checker/"
-                onclick="refreshPageAfterDownload()"
-            >
-                Download SEO Report
-            </a>
+            <div id="status" class="alert alert-info" style="display: block; width: 100%; max-width: 500px;">Progress: 0%</div>
+            <div style="width: 100%; max-width: 500px;">
+                <a
+                    id="download_link"
+                    style="display: none;"
+                    class="btn btn-success"
+                    href="/projects/seo_head_checker/"
+                    onclick="refreshPageAfterDownload()"
+                >
+                    Download SEO Report
+                </a>
+            </div>
         </center>
     </main>
     
