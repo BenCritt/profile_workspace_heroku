@@ -143,6 +143,10 @@ def process_sitemap_task(sitemap_url, queue):
         # If an error occurs, send the exception back to the main process via the queue.
         queue.put(e)
 
+    finally:
+        # Use garbage collection to help free up memory on the server.
+        gc.collect()
+
 
 # Function to process a sitemap with a 30 minute timeout.
 def process_sitemap_with_timeout(sitemap_url, timeout=1800):
@@ -180,6 +184,9 @@ def process_sitemap_with_timeout(sitemap_url, timeout=1800):
         raise ValueError(
             "Processing took too long and was stopped due to server limitations."
         )
+
+    # Perform garbage collection to free up memory on the server.
+    gc.collect()
 
     # Retrieve the result from the queue.
     result = queue.get()

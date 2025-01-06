@@ -101,6 +101,9 @@ from bs4 import BeautifulSoup
 # Dictionary to store task statuses. In production, use a persistent database.
 from django.core.cache import cache
 
+# Garbage Collection helps prevent the wasting of memory.
+import gc
+
 
 def normalize_url(url):
     """
@@ -249,6 +252,10 @@ def start_sitemap_processing(request):
                     task["error"] = str(e)
                     cache.set(task_id, task, timeout=60 * 60)
 
+            finally:
+                # Use garbage collection to help free up memory on the server.
+                gc.collect()
+
         # Start the background thread for processing.
         Thread(target=process_task, args=(task_id, sitemap_url)).start()
 
@@ -330,6 +337,9 @@ def download_task_file(request, task_id):
         # Delete the file from the server after successfully serving it to the user.
         # This ensures that temporary files do not accumulate on the server.
         os.remove(file_path)
+
+        # Perform garbage collection to free up memory on the server.
+        gc.collect()
 
         # Return the HTTP response to the client, triggering the file download.
         return response
