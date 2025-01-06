@@ -52,6 +52,9 @@ from multiprocessing import Process, Queue
 # Provides time-related functions, such as enforcing delays or measuring execution time.
 import time
 
+# Dictionary to store task statuses.
+from django.core.cache import cache
+
 # The following commented imports are placeholders for future functionalities:
 # from reportlab.lib.pagesizes import letter
 # from reportlab.pdfgen import canvas

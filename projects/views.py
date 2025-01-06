@@ -98,7 +98,7 @@ from urllib.parse import urlparse
 # Parses XML/HTML content, such as extracting <loc> tags from sitemaps in the SEO Head Checker.
 from bs4 import BeautifulSoup
 
-# Dictionary to store task statuses. In production, use a persistent database.
+# Dictionary to store task statuses.
 from django.core.cache import cache
 
 # Garbage Collection helps prevent the wasting of memory.
@@ -253,6 +253,9 @@ def start_sitemap_processing(request):
                     cache.set(task_id, task, timeout=60 * 60)
 
             finally:
+                # Clear cache.
+                cache.delete(task_id)
+
                 # Use garbage collection to help free up memory on the server.
                 gc.collect()
 
@@ -337,6 +340,9 @@ def download_task_file(request, task_id):
         # Delete the file from the server after successfully serving it to the user.
         # This ensures that temporary files do not accumulate on the server.
         os.remove(file_path)
+
+        # Clear cache.
+        cache.delete(task_id)
 
         # Perform garbage collection to free up memory on the server.
         gc.collect()
