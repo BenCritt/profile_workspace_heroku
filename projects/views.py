@@ -253,9 +253,6 @@ def start_sitemap_processing(request):
                     cache.set(task_id, task, timeout=60 * 60)
 
             finally:
-                # Clear cache.
-                cache.delete(task_id)
-
                 # Use garbage collection to help free up memory on the server.
                 gc.collect()
 
