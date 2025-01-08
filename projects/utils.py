@@ -147,6 +147,10 @@ def process_sitemap_task(sitemap_url, queue):
         queue.put(e)
 
     finally:
+        # Delete large intermediate objects.
+        soup.decompose() if "soup" in locals() else None
+        del results, urls
+
         # Use garbage collection to help free up memory on the server.
         gc.collect()
 
