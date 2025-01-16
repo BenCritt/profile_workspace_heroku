@@ -52,49 +52,30 @@ class SitemapForm(forms.Form):
             }
         ),
     )
-    """
-    # Allowing users to select a file type is a work-in-progress.
-    file_type = forms.ChoiceField(
-        # Options for output file format.
-        choices=[("excel", "Excel"), ("csv", "CSV")],
-        # Render as radio buttons.
-        widget=forms.RadioSelect,
-        # Label displayed on the form with SEO-friendly language.
-        label="Select your preferred file type below.",
-        # Default selected option.
-        initial="excel",
-    )
-    """
+    from .utils import normalize_url
 
     def clean_sitemap_url(self):
         """
-        Custom validation for the sitemap_url field.
+        Cleans and validates the 'sitemap_url' field submitted in the form.
 
-        - Ensures the URL includes a scheme (http:// or https://).
-        - Validates the structure of the URL to confirm it has a valid domain.
+        - Strips leading and trailing whitespace from the input URL.
+        - Normalizes the URL (e.g., ensures it starts with 'http://' or 'https://').
+        - Raises a validation error if the URL is invalid or cannot be normalized.
 
         Returns:
             str: The normalized URL if valid.
 
         Raises:
-            forms.ValidationError: If the input URL is invalid.
+            forms.ValidationError: If the URL is invalid.
         """
-        # Retrieve the raw input from the form and strip extra whitespace.
+        # Get the user-submitted URL and strip any whitespace
         url = self.cleaned_data["sitemap_url"].strip()
-
-        # Prepend https:// if the URL does not already include a scheme.
-        # This currently isn't working here, so I also have this done in the view.
-        if not url.startswith(("http://", "https://")):
-            url = f"https://{url}"
-
-        # Parse the URL to ensure it has a valid structure.
-        parsed_url = urlparse(url)
-        if not parsed_url.scheme or not parsed_url.netloc:
-            # Raise a validation error if the URL is invalid.
+        try:
+            # Normalize the URL (ensures it starts with http:// or https://)
+            return normalize_url(url)
+        except Exception:
+            # Raise a validation error if the URL is invalid
             raise forms.ValidationError("Please enter a valid sitemap URL.")
-
-        # Return the validated and normalized URL.
-        return url
 
 
 # Freight Carrier Safety Reporter

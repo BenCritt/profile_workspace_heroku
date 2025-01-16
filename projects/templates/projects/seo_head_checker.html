@@ -173,47 +173,33 @@
         * taskId - The unique ID of the task being processed.
         */
         async function pollTaskStatus(taskId) {
-            // Get the elements for displaying the status and download link.
             const statusElement = document.getElementById("status");
             const downloadLink = document.getElementById("download_link");
         
-            // Poll the server at regular intervals (every 2 seconds).
             const interval = setInterval(async () => {
-                // Send a GET request to fetch the task status.
                 const response = await fetch(`/projects/get_task_status/${taskId}/`);
                 const data = await response.json();
         
-                // Handle the case where the task is not found.
                 if (response.status === 404) {
-                    // Stop polling.
                     clearInterval(interval);
                     statusElement.innerText = "Error: Task not found.";
                     return;
                 }
         
-                // Update the progress or status on the page.
                 if (data.status === "processing") {
-                    // Show the progress percentage if the task is in progress.
-                    statusElement.innerText = `Progress: ${data.progress}%`;
+                    statusElement.innerText = `Progress: ${data.progress || 0}%`;
                 }
         
                 if (data.status === "completed") {
-                    // Stop polling when the task is completed.
                     clearInterval(interval);
-                    // Display the completion message.
                     statusElement.innerText = "Processing completed! 100%";
-        
-                    // Show the download link for the generated report.
                     downloadLink.href = `/projects/download_task_file/${taskId}/`;
-                    // Make the download link visible.
                     downloadLink.style.display = "block";
                 } else if (data.status === "error") {
-                    // Stop polling and show an error message if the task failed.
                     clearInterval(interval);
                     statusElement.innerText = "Error occurred during processing.";
                     alert(data.error || "An error occurred.");
                 }
-            // Poll every 2 seconds.
             }, 2000);
         }        
     </script>

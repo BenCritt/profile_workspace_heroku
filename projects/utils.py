@@ -37,6 +37,7 @@ from bs4 import BeautifulSoup
 import chardet
 
 # Writes and reads CSV files. Used to generate reports in apps like the SEO Head Checker.
+# Used in the SEO Head Checker to generate CSV reports summarizing the presence of SEO elements.
 import csv
 
 # Provides garbage collection functionality, potentially used to free memory during heavy processing tasks.
@@ -62,375 +63,284 @@ from django.core.cache import cache
 # import plotly
 # - Placeholder for potential data visualization features.
 
-# This variable is used to limit the number of URLs processed by SEO Head Checker.
-sitemap_limit = 100
 
-
-# Function to process the sitemap and return results via a queue.
-def process_sitemap_task(sitemap_url, queue):
-    """
-    Process a sitemap URL, extracting SEO information for up to 100 URLs,
-    and save the results to a CSV file.
-
-    Args:
-        sitemap_url (str): URL of the sitemap to process.
-        queue (multiprocessing.Queue): Queue to return results or errors.
-
-    Notes:
-        - This function runs in a separate process to avoid blocking.
-    """
-    # Attempt to fetch the sitemap from the provided URL.
-    try:
-        # 10-second timeout for the request.
-        response = requests.get(sitemap_url, timeout=10)
-        # Raise an HTTPError for bad responses (4xx or 5xx).
-        response.raise_for_status()
-
-        # Parse the sitemap XML content.
-        soup = BeautifulSoup(response.content, "lxml-xml")
-        # Check for <sitemap> tags to identify sitemap indexes.  This app doesn't support sitemap indexes.
-        if soup.find("sitemap"):
-            queue.put(
-                ValueError(
-                    "Sitemap indexes are not supported. Please submit a standard sitemap containing URLs."
-                )
-            )
-            return
-        # Extract <loc> tags containing URLs.
-        urls = [loc.text for loc in soup.find_all("loc")]
-
-        # If no URLs are found in the sitemap, return an error via the queue.
-        if not urls:
-            queue.put(ValueError("No URLs found in the sitemap."))
-            return
-
-        # List to store results of URL processing.
-        results = []
-
-        # Process a subset of the URLs, up to 100 due to save server resources.
-        for url in urls[:sitemap_limit]:
-            # Process each URL individually.
-            result = process_single_url(url)
-            results.append(result)
-
-        # Save the processing results to a CSV file.
-        output_file = "seo_report.csv"
-        with open(output_file, "w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(
-                file,
-                fieldnames=[
-                    "URL",
-                    "Status",
-                    "Title Tag",
-                    "Meta Description",
-                    "Canonical Tag",
-                    "Meta Robots Tag",
-                    "Open Graph Tags",
-                    "Twitter Card Tags",
-                    "Hreflang Tags",
-                    "Structured Data",
-                    "Charset Declaration",
-                    "Viewport Tag",
-                    "Favicon",
-                ],
-            )
-            # Write column headers.
-            writer.writeheader()
-            # Write each processed URL's data.
-            writer.writerows(results)
-
-        # Send the path to the generated file back to the main process.
-        queue.put(output_file)
-
-    except Exception as e:
-        # If an error occurs, send the exception back to the main process via the queue.
-        queue.put(e)
-
-    finally:
-        # Delete large intermediate objects.
-        soup.decompose() if "soup" in locals() else None
-        del results, urls
-
-        # Use garbage collection to help free up memory on the server.
-        gc.collect()
-
-
-# Function to process a sitemap with a 30 minute timeout.
-def process_sitemap_with_timeout(sitemap_url, timeout=1800):
-    """
-    Process a sitemap URL with a timeout. The function spawns a subprocess
-    to handle the processing and enforces a time limit.
-
-    Args:
-        sitemap_url (str): URL of the sitemap to process.
-        timeout (int): Maximum time allowed (in seconds) for processing.
-
-    Returns:
-        str: Path to the generated report file.
-
-    Raises:
-        ValueError: If the process times out or encounters an error.
-    """
-
-    # Create a queue to facilitate communication between the main process and the worker process.
-    queue = Queue()
-
-    # Initialize a separate process to handle sitemap processing.
-    process = Process(target=process_sitemap_task, args=(sitemap_url, queue))
-    # Start the worker process.
-    process.start()
-
-    # Wait for the process to finish or timeout.
-    process.join(timeout)
-
-    if process.is_alive():
-        # If the process exceeds the timeout, terminate it forcefully.
-        process.terminate()
-        # Ensure the process is fully stopped.
-        process.join()
-        raise ValueError(
-            "Processing took too long and was stopped due to server limitations."
-        )
-
-    # Perform garbage collection to free up memory on the server.
-    gc.collect()
-
-    # Retrieve the result from the queue.
-    result = queue.get()
-    if isinstance(result, Exception):
-        # If an exception was raised in the worker process, propagate it as a ValueError.
-        raise ValueError(
-            "Failed to process sitemap.  Please make sure you've entered a valid sitemap URL."
-        )
-    # Return the file path of the successfully generated report.
-    return result
-
-
-# This allows the app to break down, manipulate, and reassemble URLs in a structured way.
-from urllib.parse import urlparse, urlunparse
-
-
-# Function to normalize URLs.
 def normalize_url(url):
     """
-    Normalize a URL by adding missing schemes (e.g., https://) or handling naked domains.
+    Ensures that a URL has a valid scheme (http:// or https://).
+
+    - Checks if the input URL starts with 'http://' or 'https://'.
+    - If the scheme is missing, 'https://' is prepended to the URL.
+    - Returns the normalized URL.
 
     Args:
-        url (str): The input URL.
+        url (str): The URL to normalize.
 
     Returns:
-        str: The normalized URL in a valid format.
+        str: The normalized URL with a valid scheme.
+    """
+    # Check if the URL starts with a valid scheme (http or https).
+    if not url.startswith(("http://", "https://")):
+        # If no scheme is present, prepend 'https://'.
+        url = f"https://{url}"
+
+    # Return the normalized URL.
+    return url
+
+
+def fetch_sitemap_urls(sitemap_url):
+    """
+    Fetches all URLs listed in a sitemap or processes a single webpage URL.
+
+    - Sends an HTTP GET request to the sitemap URL or webpage URL.
+    - If the URL points to a sitemap, parses the sitemap content to extract all <loc> tags.
+    - If the URL points to a webpage, validates whether it has a valid <head> section.
+
+    Args:
+        sitemap_url (str): The URL of the sitemap or webpage to fetch.
+
+    Returns:
+        list: A list of URLs (str) extracted from the sitemap or containing the single webpage URL.
 
     Raises:
-        ValueError: If the URL cannot be normalized.
+        ValueError: If the URL is invalid, inaccessible, or cannot be processed.
+        Exception: If the sitemap content cannot be parsed.
     """
-    parsed_url = urlparse(url)
+    headers = {
+        # Identifies my app so admins know who is crawling their website.
+        "User-Agent": "SEO Head Checker (+https://www.bencritt.net)",
+        # Tells websites what the app is looking for.
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    }
+    try:
+        # Send an HTTP GET request to fetch the sitemap or webpage content with a custom User-Agent.
+        response = requests.get(sitemap_url, headers=headers, timeout=10)
+        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+    except requests.exceptions.Timeout:
+        raise ValueError("The request timed out. Please try again later.")
+    except requests.exceptions.ConnectionError:
+        raise ValueError("Failed to connect to the URL. Please check the URL.")
+    except requests.exceptions.HTTPError as e:
+        raise ValueError(f"HTTP error occurred: {e}")
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"An error occurred while fetching the URL: {e}")
 
-    # Case 1: No scheme and no netloc, but path looks like a domain.
-    if not parsed_url.scheme and not parsed_url.netloc:
-        # Likely a domain.
-        if "." in parsed_url.path:
-            # Assume it's a naked domain.
-            url = f"https://{parsed_url.path}"
-            # Re-parse with the updated scheme.
-            parsed_url = urlparse(url)
-
-    # Case 2: No scheme but valid netloc.
-    elif not parsed_url.scheme:
-        # Add https:// as the default scheme.
-        url = f"https://{url}"
-        # Re-parse with the updated scheme.
-        parsed_url = urlparse(url)
-
-    # Case 3: Ensure the resulting URL has a netloc.
-    if not parsed_url.netloc:
-        raise ValueError(f"Invalid URL: {url}")
-
-    # Return the fully normalized URL.
-    return urlunparse(parsed_url)
+    # Check the content type of the response to determine if it's a sitemap
+    content_type = response.headers.get("Content-Type", "")
+    if "xml" in content_type or sitemap_url.endswith(".xml"):
+        try:
+            # Parse the sitemap content as XML using BeautifulSoup.
+            soup = BeautifulSoup(response.content, "lxml-xml")
+            # Extract and return all URLs found in <loc> tags.
+            urls = [loc.text for loc in soup.find_all("loc")]
+            if not urls:
+                raise ValueError("The provided sitemap is empty or invalid.")
+            return urls
+        except Exception as e:
+            raise ValueError(
+                f"Failed to parse the sitemap. Ensure it's a valid XML file. Error: {e}"
+            )
+    else:
+        # If not a sitemap, assume it's a single webpage URL
+        return [sitemap_url]
 
 
-# Create a persistent HTTP session with the requests library.
-# Avoid the cost of establishing new connections for each request.
-session = requests.Session()
-
-
-# Function to fetch the <head> section of a webpage.
-def fetch_head_section(url):
+def process_sitemap_urls(urls, sitemap_limit=100, max_workers=5, task_id=None):
     """
-    Fetch the <head> section of a webpage using streaming to minimize memory usage.
+    Processes URLs from a sitemap in parallel, up to a specified limit.
+
+    - Utilizes a thread pool to process URLs concurrently for improved efficiency.
+    - Updates task progress in the cache if a task ID is provided.
+    - Returns the results of processing each URL.
 
     Args:
-        url (str): The URL to fetch.
+        urls (list): List of URLs to process.
+        sitemap_limit (int, optional): Maximum number of URLs to process. Defaults to 100.
+        max_workers (int, optional): Number of threads to use for concurrent processing. Defaults to 5.
+        task_id (str, optional): Unique identifier for tracking progress in the cache. Defaults to None.
 
     Returns:
-        BeautifulSoup.Tag or None: Parsed <head> section, or None on failure.
+        list: A list of results from processing each URL.
     """
-    try:
-        # Use a persistent session for efficiency.
-        with requests.Session() as session:
-            # This identifies my app so website administrators know who is crawling their website.
-            session.headers.update(
-                {
-                    "User-Agent": "SEO Head Checker by Ben Crittenden (https://www.bencritt.net)"
-                }
-            )
-            response = session.get(url, stream=True, timeout=10)
-            response.raise_for_status()
+    # Initialize an empty list to store the results.
+    results = []
 
-            # Accumulate streamed content until </head> is found.
-            head_content = b""
-            for chunk in response.iter_content(chunk_size=1024):
-                head_content += chunk
-                if b"</head>" in head_content:
-                    break
+    # Determine the actual number of URLs to process (limited by sitemap_limit).
+    total_urls = min(len(urls), sitemap_limit)
 
-            # Detect encoding of the content.
-            detected_encoding = chardet.detect(head_content)["encoding"]
-            if not detected_encoding:
-                raise ValueError(f"Encoding detection failed for URL: {url}")
+    # Use a thread pool to process URLs concurrently.
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
 
-            # Decode and extract the <head> section.
-            decoded_content = head_content.decode(detected_encoding, errors="replace")
-            head_html = decoded_content.split("</head>")[0] + "</head>"
+        # Process URLs in parallel and enumerate results to track progress.
+        for i, result in enumerate(
+            executor.map(process_single_url, urls[:sitemap_limit])
+        ):
 
-            soup = BeautifulSoup(head_html, "lxml")
-            return soup.find("head")
+            # Append the result of processing each URL to the results list.
+            results.append(result)
 
-    except Exception as e:
-        print(f"Error fetching <head> for URL {url}: {e}")
-        return None
+            # If a task ID is provided, update the progress in the cache.
+            if task_id:
+                cache.set(
+                    task_id,
+                    {
+                        # Indicate that the task is still processing.
+                        "status": "processing",
+                        # Calculate progress percentage.
+                        "progress": int((i + 1) / total_urls * 100),
+                    },
+                    # Cache entry expiration time (1 hour).
+                    timeout=3600,
+                )
+    # Return the list of results after processing all URLs.
+    return results
 
 
-# Function to extract SEO elements from a single URL.
 def process_single_url(url):
     """
-    Extract SEO elements from the <head> of a single URL.
+    Processes a single URL to extract and check the presence of SEO-related elements in the <head> section.
+
+    - Sends an HTTP GET request to fetch the content of the URL.
+    - Parses the HTML content and extracts the <head> section.
+    - Checks for the presence of various SEO elements (e.g., title, meta tags, structured data).
+    - Returns a dictionary with the URL, status, and details about the presence of SEO elements.
 
     Args:
         url (str): The URL to process.
 
     Returns:
-        dict: A dictionary with the URL, status, and SEO elements found.
+        dict: A dictionary containing the URL, status, and results for SEO element checks.
     """
     try:
-        head = fetch_head_section(url)
+        # Send an HTTP GET request to the URL with a 10-second timeout.
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+    except requests.exceptions.Timeout:
+        return {"URL": url, "Status": "Error: Request timed out"}
+    except requests.exceptions.ConnectionError:
+        return {"URL": url, "Status": "Error: Failed to connect to the URL"}
+    except requests.exceptions.HTTPError as e:
+        return {"URL": url, "Status": f"HTTP error occurred: {e}"}
+    except requests.exceptions.RequestException as e:
+        return {"URL": url, "Status": f"Request error: {e}"}
+
+    try:
+        # Parse the HTML content of the response using BeautifulSoup.
+        soup = BeautifulSoup(response.text, "html.parser")
+        # Extract the <head> section from the parsed HTML.
+        head = soup.find("head")
+        if not head:
+            return {"URL": url, "Status": "No <head> section"}
+
+        # Helper function to check for the presence of specific tags in the <head>.
+        def is_present(tag_name, **attrs):
+            return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
+
+        # Count the number of structured data scripts in the <head>.
+        structured_data_count = len(head.find_all("script", type="application/ld+json"))
+
+        # Return a dictionary with the presence status of various SEO elements.
+        return {
+            "URL": url,
+            "Status": "Success",
+            "Title Tag": "Present" if head.title else "Missing",
+            "Meta Description": is_present("meta", name="description"),
+            "Canonical Tag": is_present("link", rel="canonical"),
+            "Meta Robots Tag": is_present("meta", name="robots"),
+            "Open Graph Tags": (
+                "Present"
+                if head.find(
+                    "meta", attrs={"property": lambda p: p and p.startswith("og:")}
+                )
+                else "Missing"
+            ),
+            "Twitter Card Tags": (
+                "Present"
+                if head.find(
+                    "meta", attrs={"name": lambda p: p and p.startswith("twitter:")}
+                )
+                else "Missing"
+            ),
+            "Hreflang Tags": (
+                "Present"
+                if head.find("link", rel="alternate", hreflang=True)
+                else "Missing"
+            ),
+            "Structured Data": (
+                f"Present ({structured_data_count} scripts)"
+                if structured_data_count > 0
+                else "Missing"
+            ),
+            "Charset Declaration": is_present("meta", charset=True),
+            "Viewport Tag": is_present("meta", name="viewport"),
+            "Favicon": is_present("link", rel="icon"),
+        }
     except Exception as e:
-        return {"URL": url, "Status": f"Error: {str(e)}"}
-
-    if not head:
-        return {"URL": url, "Status": "No head section"}
-
-    def is_present(tag_name, **attrs):
-        return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
-
-    structured_data_count = len(head.find_all("script", type="application/ld+json"))
-
-    return {
-        "URL": url,
-        "Status": "Success",
-        "Title Tag": "Present" if head.title else "Missing",
-        "Meta Description": is_present("meta", name="description"),
-        "Canonical Tag": is_present("link", rel="canonical"),
-        "Meta Robots Tag": is_present("meta", name="robots"),
-        "Open Graph Tags": (
-            "Present"
-            if head.find(
-                "meta", attrs={"property": lambda p: p and p.startswith("og:")}
-            )
-            else "Missing"
-        ),
-        "Twitter Card Tags": (
-            "Present"
-            if head.find(
-                "meta", attrs={"name": lambda p: p and p.startswith("twitter:")}
-            )
-            else "Missing"
-        ),
-        "Hreflang Tags": (
-            "Present"
-            if head.find("link", rel="alternate", hreflang=True)
-            else "Missing"
-        ),
-        "Structured Data": (
-            f"Present ({structured_data_count} scripts)"
-            if structured_data_count > 0
-            else "Missing"
-        ),
-        "Charset Declaration": is_present("meta", charset=True),
-        "Viewport Tag": is_present("meta", name="viewport"),
-        "Favicon": is_present("link", rel="icon"),
-    }
+        # Return a dictionary indicating an error occurred and include the exception message.
+        return {"URL": url, "Status": f"Error while processing content: {e}"}
 
 
-# Function to process a sitemap and generate a report.
-def process_sitemap(sitemap_url):
+def save_results_to_csv(results, task_id):
     """
-    Process a sitemap, analyze each URL, and generate a CSV report.
+    Saves the results of sitemap processing to a CSV file.
+
+    - Creates a CSV file named using the task ID to ensure uniqueness.
+    - Writes the results, including headers and data rows, to the CSV file.
+    - Returns the file path for further use (e.g., download or cleanup).
 
     Args:
-        sitemap_url (str): The sitemap URL.
+        results (list): A list of dictionaries containing the processing results for each URL.
+        task_id (str): A unique identifier for the task, used to name the CSV file.
 
     Returns:
-        str: Path to the generated CSV report.
-
-    Raises:
-        ValueError: If processing fails or the sitemap is invalid.
+        str: The file path of the generated CSV file.
     """
-    output_file = "seo_report.csv"
-    try:
-        # Fetch and parse the sitemap.
-        with requests.get(sitemap_url, timeout=10) as response:
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content, "lxml-xml")
-            urls = [loc.text for loc in soup.find_all("loc")]
+    # Define the file path using the task ID for uniqueness.
+    file_path = f"seo_report_{task_id}.csv"
 
-            if not urls:
-                raise ValueError("No URLs found in the sitemap.")
+    # Open the file in write mode with UTF-8 encoding.
+    with open(file_path, "w", newline="", encoding="utf-8") as csvfile:
 
-        # Initialize an empty list, to be populated below.
-        results = []
-        # Process URLs in parallel.  With max_workers set to 5, this will process 10 URLs at once.
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            results = list(executor.map(process_single_url, urls))
-
-        # Write results to CSV.
-        with open(output_file, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(
-                file,
-                fieldnames=[
-                    "URL",
-                    "Status",
-                    "Title Tag",
-                    "Meta Description",
-                    "Canonical Tag",
-                    "Meta Robots Tag",
-                    "Open Graph Tags",
-                    "Twitter Card Tags",
-                    "Hreflang Tags",
-                    "Structured Data",
-                    "Charset Declaration",
-                    "Viewport Tag",
-                    "Favicon",
-                ],
-            )
-            writer.writeheader()
-            writer.writerows(results)
-
-        return output_file
-
-    except requests.exceptions.ConnectionError:
-        raise ValueError(
-            "Unable to connect to the provided URL. Please ensure it is valid and accessible."
+        # Define the field names (column headers) for the CSV file.
+        writer = csv.DictWriter(
+            csvfile,
+            fieldnames=[
+                # The URL of the processed page.
+                "URL",
+                # The processing status (e.g., Success, Error).
+                "Status",
+                # Presence of the <title> tag.
+                "Title Tag",
+                # Presence of the meta description.
+                "Meta Description",
+                # Presence of the canonical link tag.
+                "Canonical Tag",
+                # Presence of the meta robots tag.
+                "Meta Robots Tag",
+                # Presence of Open Graph meta tags.
+                "Open Graph Tags",
+                # Presence of Twitter card meta tags.
+                "Twitter Card Tags",
+                # Presence of hreflang link tags.
+                "Hreflang Tags",
+                # Presence of structured data (JSON-LD scripts).
+                "Structured Data",
+                # Presence of the charset declaration.
+                "Charset Declaration",
+                # Presence of the viewport meta tag.
+                "Viewport Tag",
+                # Presence of the favicon link tag.
+                "Favicon",
+            ],
         )
-    except requests.exceptions.Timeout:
-        raise ValueError("The request timed out due to server limitations.")
-    except requests.exceptions.RequestException:
-        raise ValueError(
-            "An error occurred while fetching the sitemap. Please verify the URL and try again."
-        )
-    except Exception as e:
-        raise ValueError(f"Failed to process sitemap: {e}")
+
+        # Write the column headers to the CSV file.
+        writer.writeheader()
+
+        # Write the rows of data to the CSV file.
+        writer.writerows(results)
+
+    # Return the file path of the generated CSV file.
+    return file_path
 
 
 """
