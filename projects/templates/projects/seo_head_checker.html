@@ -72,7 +72,9 @@
             <h1>SEO Head Checker</h1>
             <br>
             <div style="width: 100%; max-width: 500px;">
-                <p>Due to the limitations of the server, scanning is slow and results are limited to the first 100 pages listed in the sitemap. This app only accepts properly formatted sitemaps that list URLs. This app does not accept sitemap indexes.</p>
+                <h2>Instructions</h2>
+                <br>
+                <p>Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it. Your file will be sent to your default downloads folder. If you don't click the download button after an hour, your CSV file will be deleted from the server and you'll have to resubmit your request.</p>
             </div>
             <br>
             <form method="POST" id="sitemap-form" onsubmit="return false;">
@@ -82,8 +84,6 @@
             </form>
             <br>
             <div style="width: 100%; max-width: 500px;">
-                <p>After entering your sitemap and clicking "Generate SEO Report," you'll see progress updates followed by the appearance of a "Download SEO Report" button once progress reaches 100%. You will have one hour to download your file before it is deleted from the server. There may be a slight delay between when you click "Generate SEO Report" and when you see progress begin.  The report file format is CSV.</p>
-                <br>
                 {% if error %}
                     <p class="text-danger">{{ error }}</p>
                 {% endif %}
@@ -101,6 +101,12 @@
                 >
                     Download SEO Report
                 </a>
+            </div>
+            <br>
+            <div style="width: 100%; max-width: 500px;">
+                <h2>Limitations</h2>
+                <br>
+                <p>Due to the limitations of the server, reports are limited to the first 100 pages in the sitemap. Scanning is also slower than it could be. There may also be a slight delay between clicking "Generate SEO Report" and progress beginning.</p>
             </div>
         </center>
     </main>
@@ -173,47 +179,57 @@
         * taskId - The unique ID of the task being processed.
         */
         async function pollTaskStatus(taskId) {
-            // Get the elements for displaying the status and download link.
+            // Get the status element and download link elements from the DOM.
             const statusElement = document.getElementById("status");
             const downloadLink = document.getElementById("download_link");
         
-            // Poll the server at regular intervals (every 2 seconds).
+             // Set an interval to repeatedly poll the server for task status every 2 seconds (2000 ms).
             const interval = setInterval(async () => {
-                // Send a GET request to fetch the task status.
+                // Send a GET request to fetch the current status of the task by its ID.
                 const response = await fetch(`/projects/get_task_status/${taskId}/`);
+                // Parse the response as JSON.
                 const data = await response.json();
         
-                // Handle the case where the task is not found.
+                // Handle the case where the task is not found (HTTP 404).
                 if (response.status === 404) {
-                    // Stop polling.
+                    // Stop polling if the task does not exist.
                     clearInterval(interval);
+                    // Display an error message.
                     statusElement.innerText = "Error: Task not found.";
+                    // Exit the function.
                     return;
                 }
         
-                // Update the progress or status on the page.
+                // Handle the case where the task is still processing.
                 if (data.status === "processing") {
-                    // Show the progress percentage if the task is in progress.
-                    statusElement.innerText = `Progress: ${data.progress}%`;
+                    // Update the status element with the current progress percentage.
+                    statusElement.innerText = `Progress: ${data.progress || 0}%`;
                 }
         
+                // Handle the case where the task is completed.
                 if (data.status === "completed") {
-                    // Stop polling when the task is completed.
+                    // Stop polling when processing is complete.
                     clearInterval(interval);
-                    // Display the completion message.
+                    // Display completion message.
                     statusElement.innerText = "Processing completed! 100%";
-        
-                    // Show the download link for the generated report.
+
+                    // Update the download link's `href` to point to the task's result file.
                     downloadLink.href = `/projects/download_task_file/${taskId}/`;
-                    // Make the download link visible.
+                    
+                    // Make the download link visible to the user.
                     downloadLink.style.display = "block";
+
+                // Handle the case where an error occurred during processing.
                 } else if (data.status === "error") {
-                    // Stop polling and show an error message if the task failed.
+                    // Stop polling if an error occurs.
                     clearInterval(interval);
+                    // Display error message.
                     statusElement.innerText = "Error occurred during processing.";
+
+                    // Show an alert with the error message or a default message if none is provided.
                     alert(data.error || "An error occurred.");
                 }
-            // Poll every 2 seconds.
+                // Polling interval set to 2 seconds.
             }, 2000);
         }        
     </script>
