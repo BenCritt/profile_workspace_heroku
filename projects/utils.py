@@ -40,6 +40,12 @@ sitemap_limit = 100
 # Used in utilities like `normalize_url` for validating and modifying URLs.
 from urllib.parse import urlparse, urlunparse
 
+# Allows me to use streaming and incremental processing to save server memory.
+import xml.etree.ElementTree as ET
+
+# Helps manage server memory usage.
+import gc
+
 
 def normalize_url(url):
     """
@@ -83,15 +89,13 @@ def fetch_sitemap_urls(sitemap_url):
         Exception: If the sitemap content cannot be parsed.
     """
     headers = {
-        # Identifies my app so admins know who is crawling their website.
         "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        # Tells websites what the app is looking for.
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
     try:
-        # Send an HTTP GET request to fetch the sitemap or webpage content with a custom User-Agent.
-        response = requests.get(sitemap_url, headers=headers, timeout=10)
-        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+        # Send an HTTP GET request with streaming enabled to handle large responses.
+        response = requests.get(sitemap_url, headers=headers, stream=True, timeout=10)
+        response.raise_for_status()  # Raise HTTPError for bad responses (e.g., 404, 500).
     except requests.exceptions.Timeout:
         raise ValueError("The request timed out. Please try again later.")
     except requests.exceptions.ConnectionError:
@@ -101,23 +105,29 @@ def fetch_sitemap_urls(sitemap_url):
     except requests.exceptions.RequestException as e:
         raise ValueError(f"An error occurred while fetching the URL: {e}")
 
-    # Check the content type of the response to determine if it's a sitemap
+    # Check the content type to determine if the response contains XML data.
     content_type = response.headers.get("Content-Type", "")
     if "xml" in content_type or sitemap_url.endswith(".xml"):
         try:
-            # Parse the sitemap content as XML using BeautifulSoup.
-            soup = BeautifulSoup(response.content, "lxml-xml")
-            # Extract and return all URLs found in <loc> tags.
-            urls = [loc.text for loc in soup.find_all("loc")]
+            urls = []
+            # Incrementally parse XML to extract <loc> tags without loading everything into memory.
+            context = ET.iterparse(response.raw, events=("start", "end"))
+            for event, elem in context:
+                if event == "end" and elem.tag == "loc":  # Look for <loc> elements.
+                    if elem.text:  # Ensure text is not None.
+                        urls.append(elem.text.strip())  # Strip and append the URL.
+                    elem.clear()  # Free memory for processed elements.
+            response.close()  # Close the response stream explicitly.
+
             if not urls:
-                raise ValueError("The provided sitemap is empty or invalid.")
+                raise ValueError("The sitemap is empty or invalid.")
             return urls
-        except Exception as e:
-            raise ValueError(
-                f"Failed to parse the sitemap. Ensure it's a valid XML file. Error: {e}"
-            )
+        except ET.ParseError as e:
+            raise ValueError(f"Error parsing sitemap XML: {e}")
+        finally:
+            response.close()  # Ensure the response stream is closed even on errors.
     else:
-        # If not a sitemap, assume it's a single webpage URL
+        # If not XML, treat it as a single webpage URL.
         return [sitemap_url]
 
 
@@ -177,11 +187,6 @@ def process_single_url(url):
     """
     Processes a single URL to extract and check the presence of SEO-related elements in the <head> section.
 
-    - Sends an HTTP GET request to fetch the content of the URL.
-    - Parses the HTML content and extracts the <head> section.
-    - Checks for the presence of various SEO elements (e.g., title, meta tags, structured data).
-    - Returns a dictionary with the URL, status, and details about the presence of SEO elements.
-
     Args:
         url (str): The URL to process.
 
@@ -211,10 +216,13 @@ def process_single_url(url):
 
         # Helper function to check for the presence of specific tags in the <head>.
         def is_present(tag_name, **attrs):
-            return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
+            return "Present" if head.find(tag_name, **attrs) else "Missing"
 
         # Count the number of structured data scripts in the <head>.
-        structured_data_count = len(head.find_all("script", type="application/ld+json"))
+        structured_data_scripts = head.find_all("script", type="application/ld+json")
+        structured_data_count = (
+            len(structured_data_scripts) if structured_data_scripts else 0
+        )
 
         # Return a dictionary with the presence status of various SEO elements.
         return {
@@ -255,6 +263,10 @@ def process_single_url(url):
     except Exception as e:
         # Return a dictionary indicating an error occurred and include the exception message.
         return {"URL": url, "Status": f"Error while processing content: {e}"}
+    finally:
+        # Release memory for the parsed HTML and perform garbage collection.
+        del soup, head
+        gc.collect()
 
 
 def save_results_to_csv(results, task_id):
