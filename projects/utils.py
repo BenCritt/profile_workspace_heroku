@@ -74,47 +74,57 @@ def fetch_sitemap_urls(sitemap_url):
     """
     Fetches all URLs listed in a sitemap or processes a single webpage URL.
 
+    - Sends an HTTP GET request to the sitemap URL or webpage URL.
+    - If the URL points to a sitemap, parses the sitemap content to extract all <loc> tags.
+    - If the URL points to a webpage, validates whether it has a valid <head> section.
+
     Args:
         sitemap_url (str): The URL of the sitemap or webpage to fetch.
 
     Returns:
-        list: A list of URLs extracted from the sitemap or containing the single webpage URL.
+        list: A list of URLs (str) extracted from the sitemap or containing the single webpage URL.
+
+    Raises:
+        ValueError: If the URL is invalid, inaccessible, or cannot be processed.
+        Exception: If the sitemap content cannot be parsed.
     """
     headers = {
+        # Identifies my app so admins know who is crawling their website.
         "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        "Accept": "application/xml,text/xml;q=0.9,text/html;q=0.8,*/*;q=0.7",
+        # Tells websites what the app is looking for.
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
     try:
-        response = requests.get(sitemap_url, headers=headers, stream=True, timeout=10)
-        response.raise_for_status()
+        # Send an HTTP GET request to fetch the sitemap or webpage content with a custom User-Agent.
+        response = requests.get(sitemap_url, headers=headers, timeout=10)
+        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+    except requests.exceptions.Timeout:
+        raise ValueError("The request timed out. Please try again later.")
+    except requests.exceptions.ConnectionError:
+        raise ValueError("Failed to connect to the URL. Please check the URL.")
+    except requests.exceptions.HTTPError as e:
+        raise ValueError(f"HTTP error occurred: {e}")
     except requests.exceptions.RequestException as e:
-        raise ValueError(f"Failed to fetch the sitemap: {e}")
+        raise ValueError(f"An error occurred while fetching the URL: {e}")
 
-    # Validate Content-Type before parsing
+    # Check the content type of the response to determine if it's a sitemap
     content_type = response.headers.get("Content-Type", "")
-    if "xml" not in content_type and not sitemap_url.endswith(".xml"):
-        raise ValueError("The provided URL does not point to a valid XML sitemap.")
-
-    try:
-        urls = []
-        context = ET.iterparse(response.raw, events=("start", "end"))
-        for event, elem in context:
-            if event == "end" and elem.tag == "loc":
-                if elem.text:
-                    urls.append(elem.text.strip())
-                elem.clear()  # Free memory for processed elements
-        response.close()  # Ensure response is closed
-        if not urls:
+    if "xml" in content_type or sitemap_url.endswith(".xml"):
+        try:
+            # Parse the sitemap content as XML using BeautifulSoup.
+            soup = BeautifulSoup(response.content, "lxml-xml")
+            # Extract and return all URLs found in <loc> tags.
+            urls = [loc.text for loc in soup.find_all("loc")]
+            if not urls:
+                raise ValueError("The provided sitemap is empty or invalid.")
+            return urls
+        except Exception as e:
             raise ValueError(
-                "The sitemap is empty or contains no valid <loc> elements."
+                f"Failed to parse the sitemap. Ensure it's a valid XML file. Error: {e}"
             )
-        return urls
-    except ET.ParseError as e:
-        response.close()  # Close the stream in case of errors
-        raise ValueError(f"Error parsing sitemap XML: {e}")
-    except Exception as e:
-        response.close()
-        raise ValueError(f"Unexpected error processing sitemap: {e}")
+    else:
+        # If not a sitemap, assume it's a single webpage URL
+        return [sitemap_url]
 
 
 def process_sitemap_urls(urls, max_workers=5, task_id=None):
