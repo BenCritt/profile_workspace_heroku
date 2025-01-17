@@ -74,61 +74,47 @@ def fetch_sitemap_urls(sitemap_url):
     """
     Fetches all URLs listed in a sitemap or processes a single webpage URL.
 
-    - Sends an HTTP GET request to the sitemap URL or webpage URL.
-    - If the URL points to a sitemap, parses the sitemap content to extract all <loc> tags.
-    - If the URL points to a webpage, validates whether it has a valid <head> section.
-
     Args:
         sitemap_url (str): The URL of the sitemap or webpage to fetch.
 
     Returns:
-        list: A list of URLs (str) extracted from the sitemap or containing the single webpage URL.
-
-    Raises:
-        ValueError: If the URL is invalid, inaccessible, or cannot be processed.
-        Exception: If the sitemap content cannot be parsed.
+        list: A list of URLs extracted from the sitemap or containing the single webpage URL.
     """
     headers = {
         "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept": "application/xml,text/xml;q=0.9,text/html;q=0.8,*/*;q=0.7",
     }
     try:
-        # Send an HTTP GET request with streaming enabled to handle large responses.
         response = requests.get(sitemap_url, headers=headers, stream=True, timeout=10)
-        response.raise_for_status()  # Raise HTTPError for bad responses (e.g., 404, 500).
-    except requests.exceptions.Timeout:
-        raise ValueError("The request timed out. Please try again later.")
-    except requests.exceptions.ConnectionError:
-        raise ValueError("Failed to connect to the URL. Please check the URL.")
-    except requests.exceptions.HTTPError as e:
-        raise ValueError(f"HTTP error occurred: {e}")
+        response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        raise ValueError(f"An error occurred while fetching the URL: {e}")
+        raise ValueError(f"Failed to fetch the sitemap: {e}")
 
-    # Check the content type to determine if the response contains XML data.
+    # Validate Content-Type before parsing
     content_type = response.headers.get("Content-Type", "")
-    if "xml" in content_type or sitemap_url.endswith(".xml"):
-        try:
-            urls = []
-            # Incrementally parse XML to extract <loc> tags without loading everything into memory.
-            context = ET.iterparse(response.raw, events=("start", "end"))
-            for event, elem in context:
-                if event == "end" and elem.tag == "loc":  # Look for <loc> elements.
-                    if elem.text:  # Ensure text is not None.
-                        urls.append(elem.text.strip())  # Strip and append the URL.
-                    elem.clear()  # Free memory for processed elements.
-            response.close()  # Close the response stream explicitly.
+    if "xml" not in content_type and not sitemap_url.endswith(".xml"):
+        raise ValueError("The provided URL does not point to a valid XML sitemap.")
 
-            if not urls:
-                raise ValueError("The sitemap is empty or invalid.")
-            return urls
-        except ET.ParseError as e:
-            raise ValueError(f"Error parsing sitemap XML: {e}")
-        finally:
-            response.close()  # Ensure the response stream is closed even on errors.
-    else:
-        # If not XML, treat it as a single webpage URL.
-        return [sitemap_url]
+    try:
+        urls = []
+        context = ET.iterparse(response.raw, events=("start", "end"))
+        for event, elem in context:
+            if event == "end" and elem.tag == "loc":
+                if elem.text:
+                    urls.append(elem.text.strip())
+                elem.clear()  # Free memory for processed elements
+        response.close()  # Ensure response is closed
+        if not urls:
+            raise ValueError(
+                "The sitemap is empty or contains no valid <loc> elements."
+            )
+        return urls
+    except ET.ParseError as e:
+        response.close()  # Close the stream in case of errors
+        raise ValueError(f"Error parsing sitemap XML: {e}")
+    except Exception as e:
+        response.close()
+        raise ValueError(f"Unexpected error processing sitemap: {e}")
 
 
 def process_sitemap_urls(urls, max_workers=5, task_id=None):
