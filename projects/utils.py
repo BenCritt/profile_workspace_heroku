@@ -171,6 +171,9 @@ def process_sitemap_urls(urls, max_workers=5, task_id=None):
                     # Cache entry expiration time (1 hour).
                     timeout=3600,
                 )
+    # Explicit cleanup.
+    del urls
+    gc.collect()
 
     # Return the list of results after processing all URLs.
     return results

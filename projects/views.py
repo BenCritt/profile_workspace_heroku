@@ -203,6 +203,8 @@ def start_sitemap_processing(request):
                         task_id, {"status": "error", "error": str(e)}, timeout=3600
                     )
                 finally:
+                    # Explicit cleanup.
+                    del urls, results
                     # Perform garbage collection to free up memory.
                     gc.collect()
 
