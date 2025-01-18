@@ -180,7 +180,7 @@ def start_sitemap_processing(request):
             # Generate a unique task ID for this processing job.
             task_id = str(uuid.uuid4())
             # Initialize the cache for tracking task status and progress.
-            cache.set(task_id, {"status": "pending", "progress": 0}, timeout=3600)
+            cache.set(task_id, {"status": "pending", "progress": 0}, timeout=1800)
 
             # Define the background task for sitemap processing.
             def process_task():
@@ -195,12 +195,12 @@ def start_sitemap_processing(request):
                     cache.set(
                         task_id,
                         {"status": "completed", "file": file_path},
-                        timeout=3600,
+                        timeout=1800,
                     )
                 except Exception as e:
                     # Update cache to indicate an error occurred.
                     cache.set(
-                        task_id, {"status": "error", "error": str(e)}, timeout=3600
+                        task_id, {"status": "error", "error": str(e)}, timeout=1800
                     )
                 finally:
                     # Explicit cleanup.
