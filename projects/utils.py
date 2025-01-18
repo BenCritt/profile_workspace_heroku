@@ -186,6 +186,8 @@ def process_single_url(url):
     Returns:
         dict: A dictionary containing the URL, status, and results for SEO element checks.
     """
+    soup = None  # Initialize soup to avoid uninitialized reference in finally block
+
     try:
         # Send an HTTP GET request to the URL with a 10-second timeout.
         response = requests.get(url, timeout=10)
@@ -211,7 +213,7 @@ def process_single_url(url):
         def is_present(tag_name, **attrs):
             return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
 
-        # Structured Data
+        # Count structured data scripts in the <head>.
         structured_data_scripts = head.find_all("script", type="application/ld+json")
         structured_data_count = (
             len(structured_data_scripts) if structured_data_scripts else 0
@@ -253,9 +255,10 @@ def process_single_url(url):
         # Return a dictionary indicating an error occurred and include the exception message.
         return {"URL": url, "Status": f"Error while processing content: {e}"}
     finally:
-        # Release memory for the parsed HTML and perform garbage collection.
-        del soup, head
-        gc.collect()  # Force garbage collection to free memory.
+        # Safely release memory for the parsed HTML.
+        if soup:
+            del soup
+        gc.collect()  # Force garbage collection
 
 
 def save_results_to_csv(results, task_id):
