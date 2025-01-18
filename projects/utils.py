@@ -67,6 +67,52 @@ def normalize_url(url):
     return url
 
 
+import xml.etree.ElementTree as ET
+
+
+def fetch_sitemap_urls(sitemap_url):
+    headers = {
+        "User-Agent": "SEO Head Checker (+https://www.bencritt.net)",
+        "Accept": "application/xml,text/xml;q=0.9",
+    }
+
+    try:
+        response = requests.get(sitemap_url, headers=headers, stream=True, timeout=10)
+        # Handle HTTP errors.
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Failed to fetch sitemap: {e}")
+
+    # Determine if the response is XML (for sitemaps) or treat as a single webpage URL.
+    content_type = response.headers.get("Content-Type", "")
+    if "xml" in content_type or sitemap_url.endswith(".xml"):
+        try:
+            urls = []
+            # Incremental parsing for memory efficiency
+            context = ET.iterparse(response.raw, events=("start", "end"))
+            for event, elem in context:
+                if event == "end" and elem.tag.endswith("loc"):
+                    if elem.text:
+                        urls.append(elem.text.strip())
+                    # Free memory for processed elements.
+                    elem.clear()
+            # Explicitly close response.
+            response.close()
+
+            if not urls:
+                raise ValueError("No valid <loc> elements found in the sitemap.")
+            return urls
+        except ET.ParseError as e:
+            response.close()
+            raise ValueError(f"Error parsing sitemap XML: {e}")
+    else:
+        # Treat as a single webpage URL if not XML.
+        return [sitemap_url]
+
+
+'''
+This is the version of fetch_sitemap_urls that uses BeautifulSoup.
+
 def fetch_sitemap_urls(sitemap_url):
     """
     Fetches all URLs listed in a sitemap or processes a single webpage URL.
@@ -122,6 +168,7 @@ def fetch_sitemap_urls(sitemap_url):
     else:
         # If not a sitemap, assume it's a single webpage URL
         return [sitemap_url]
+'''
 
 
 def process_sitemap_urls(urls, max_workers=5, task_id=None):
