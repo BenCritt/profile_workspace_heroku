@@ -40,6 +40,9 @@ sitemap_limit = 100
 # Used in utilities like `normalize_url` for validating and modifying URLs.
 from urllib.parse import urlparse, urlunparse
 
+# Garbage Collection helps with memory management.
+import gc
+
 
 def normalize_url(url):
     """
@@ -177,11 +180,6 @@ def process_single_url(url):
     """
     Processes a single URL to extract and check the presence of SEO-related elements in the <head> section.
 
-    - Sends an HTTP GET request to fetch the content of the URL.
-    - Parses the HTML content and extracts the <head> section.
-    - Checks for the presence of various SEO elements (e.g., title, meta tags, structured data).
-    - Returns a dictionary with the URL, status, and details about the presence of SEO elements.
-
     Args:
         url (str): The URL to process.
 
@@ -213,10 +211,21 @@ def process_single_url(url):
         def is_present(tag_name, **attrs):
             return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
 
-        # Count the number of structured data scripts in the <head>.
-        structured_data_count = len(head.find_all("script", type="application/ld+json"))
+        # Structured Data
+        structured_data_scripts = head.find_all("script", type="application/ld+json")
+        structured_data_count = (
+            len(structured_data_scripts) if structured_data_scripts else 0
+        )
 
-        # Return a dictionary with the presence status of various SEO elements.
+        # Open Graph and Twitter Tags
+        open_graph_present = bool(
+            head.find("meta", attrs={"property": lambda p: p and p.startswith("og:")})
+        )
+        twitter_card_present = bool(
+            head.find("meta", attrs={"name": lambda p: p and p.startswith("twitter:")})
+        )
+
+        # Return the results dictionary.
         return {
             "URL": url,
             "Status": "Success",
@@ -224,20 +233,8 @@ def process_single_url(url):
             "Meta Description": is_present("meta", name="description"),
             "Canonical Tag": is_present("link", rel="canonical"),
             "Meta Robots Tag": is_present("meta", name="robots"),
-            "Open Graph Tags": (
-                "Present"
-                if head.find(
-                    "meta", attrs={"property": lambda p: p and p.startswith("og:")}
-                )
-                else "Missing"
-            ),
-            "Twitter Card Tags": (
-                "Present"
-                if head.find(
-                    "meta", attrs={"name": lambda p: p and p.startswith("twitter:")}
-                )
-                else "Missing"
-            ),
+            "Open Graph Tags": "Present" if open_graph_present else "Missing",
+            "Twitter Card Tags": "Present" if twitter_card_present else "Missing",
             "Hreflang Tags": (
                 "Present"
                 if head.find("link", rel="alternate", hreflang=True)
@@ -255,6 +252,10 @@ def process_single_url(url):
     except Exception as e:
         # Return a dictionary indicating an error occurred and include the exception message.
         return {"URL": url, "Status": f"Error while processing content: {e}"}
+    finally:
+        # Release memory for the parsed HTML and perform garbage collection.
+        del soup, head
+        gc.collect()  # Force garbage collection to free memory.
 
 
 def save_results_to_csv(results, task_id):
