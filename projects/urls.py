@@ -61,4 +61,6 @@ urlpatterns = [
         download_task_file,
         name="download_task_file",
     ),
+    path("iss_tracker/", views.iss_tracker, name="iss_tracker"),
+    path("current-iss-data/", views.current_iss_data, name="current_iss_data"),
 ]

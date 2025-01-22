@@ -1,0 +1,114 @@
+{% extends "projects/base.html" %}
+{% block content %}
+<main>
+    <center>
+        <h1>International Space Station Tracker</h1>
+        <br>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <br>
+            <input type="submit" id="iss-track-btn" class="btn btn-primary" value="Project ISS Passover Schedule">
+        </form>
+        <br>
+        
+        <!-- Current ISS Data Section -->
+        <h2>Current ISS Data</h2>
+        <br>
+        <div class="table-container" style="width: 100%; max-width: 750px;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Region</th>
+                        <th>Altitude</th>
+                        <th>Velocity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="latitude">{{ current_data.latitude }}</td>
+                        <td id="longitude">{{ current_data.longitude }}</td>
+                        <td id="region">{{ current_data.region }}</td>
+                        <td id="altitude">{{ current_data.altitude }}</td>
+                        <td id="velocity">{{ current_data.velocity }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br>
+
+        <!-- ISS Pass Times Section -->
+        {% if iss_pass_times %}
+            <h2>Upcoming ISS Pass Times</h2>
+            <br>
+            <div class="table-container" style="width: 100%; max-width: 750px;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pass in iss_pass_times %}
+                        <tr>
+                            <td>{{ pass.event }}</td>
+                            <td>{{ pass.date }}</td>
+                            <td>{{ pass.time }}</td>
+                            <td>{{ pass.position }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+    </center>
+</main>
+
+<!-- Real-time Updates -->
+<script>
+     /**
+     * Fetches the current ISS data from the backend API and updates the HTML elements
+     * to display the most recent information (e.g., latitude, longitude, altitude, velocity, and region).
+     */
+    function updateCurrentData() {
+        // Make a GET request to the backend endpoint that provides current ISS data in JSON format.
+        fetch('/projects/current-iss-data/')
+            // Parse the JSON response from the API.
+            .then(response => response.json())
+            .then(data => {
+                // Log the received data for debugging purposes (useful for development).
+                console.log("API Data:", data);
+                // Update latitude value.
+                document.getElementById('latitude').innerText = data.latitude;
+                // Update longitude value.
+                document.getElementById('longitude').innerText = data.longitude;
+                // Update region value (land or ocean).
+                document.getElementById('region').innerText = data.region;
+                // Update altitude value.
+                document.getElementById('altitude').innerText = data.altitude;
+                // Update velocity value.
+                document.getElementById('velocity').innerText = data.velocity;
+            })
+            // Log an error message to the console if the API call fails.
+            .catch(error => console.error("Error fetching current ISS data:", error));
+    }
+
+    /**
+     * Sets up the real-time ISS data updates.
+     * This ensures the data is updated immediately on page load and every 10 seconds thereafter.
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fetch and display current ISS data as soon as the page loads.
+        updateCurrentData();
+        // Set up an interval to refresh the ISS data every 10 seconds.
+        setInterval(updateCurrentData, 10000);
+    });
+</script>
+{% endblock content %}
