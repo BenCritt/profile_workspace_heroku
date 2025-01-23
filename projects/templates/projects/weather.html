@@ -86,7 +86,7 @@
               <form action="{% url 'projects:weather' %}" method="post">
                   {% csrf_token %} <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
                   {{ form.as_p }} <!-- Render form fields as paragraphs -->
-                  <input type="submit" id="weather-btn" class="btn btn-primary" value="Get Weather Forecast">
+                  <input type="submit" id="weather-btn" class="btn btn-primary" value="Get Weather Forecast" aria-label="Get Weather Forecast">
               </form>
           </div>
           <br><br>

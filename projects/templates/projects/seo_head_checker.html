@@ -80,7 +80,7 @@
             <form method="POST" id="sitemap-form" onsubmit="return false;">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button id="seo-head-btn" class="btn btn-primary" type="button" onclick="startProcessing()">Generate SEO Report</button>
+                <button id="seo-head-btn" class="btn btn-primary" type="button" onclick="startProcessing()" aria-label="Generate a detailed SEO report based on the provided sitemap or webpage URL">Generate SEO Report</button>
             </form>
             <br>
             <div style="width: 100%; max-width: 500px;">

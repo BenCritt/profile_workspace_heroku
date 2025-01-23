@@ -73,7 +73,8 @@
     {% csrf_token %}    <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
     {{ form.text }}     <!-- Text input field for the user's text sample. -->
     <br>
-    <input type="submit" id="txt-analyze-btn" class="btn btn-primary" value="Analyze Sample Text">  <!-- Submit button for the form. -->
+    <!-- Submit button for the form. -->
+    <input type="submit" id="txt-analyze-btn" class="btn btn-primary" value="Analyze Sample Text" aria-label="Analyze Sample Text">
 </form>
 <br>
 <!-- Link to the GitHub repository containing the source code. -->

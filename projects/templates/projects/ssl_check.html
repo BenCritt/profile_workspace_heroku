@@ -119,7 +119,7 @@
                 <form method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <input type="submit" id="ssl-lookup-btn" class="btn btn-primary" value="Look Up SSL Certificate Info">
+                    <input type="submit" id="ssl-lookup-btn" class="btn btn-primary" value="Look Up SSL Certificate Info" aria-label="Look Up SSL Certificate Info">
                     <br>
                     <!-- Link to navigate back to the IT Tools section -->
                     <a href="/projects/it_tools/" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
