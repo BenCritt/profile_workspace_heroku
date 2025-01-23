@@ -234,6 +234,15 @@
         }        
     </script>
     <script>
+        // Add an event listener to the form to capture the Enter key
+        document.getElementById("sitemap-form").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent the default form submission
+                document.getElementById("seo-head-btn").click(); // Trigger the button click
+            }
+        });
+    </script>
+    <script>
         /**
          * Refreshes the page after the download link is clicked.
          * The refresh is delayed to ensure the file download starts before the page reloads.
