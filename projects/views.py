@@ -127,6 +127,155 @@ import pytz
 # Geocoding library used to reverse lookup latitude/longitude into human-readable locations.
 from geopy.geocoders import Nominatim
 
+# NEW BEGIN
+
+from utils import detect_region
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def iss_tracker(request):
+    form = WeatherForm(request.POST or None)
+    current_data = {}
+    iss_pass_times = []
+
+    if request.method == "POST" and form.is_valid():
+        zip_code = form.cleaned_data["zip_code"]
+        coordinates = get_coordinates(zip_code)
+
+        if coordinates:
+            lat, lon = coordinates
+
+            try:
+                tle_data = cache.get("tle_data")
+                if not tle_data:
+                    tle_url = "https://celestrak.org/NORAD/elements/stations.txt"
+                    response = requests.get(tle_url, timeout=10)
+                    response.raise_for_status()
+                    tle_data = response.text.splitlines()
+                    cache.set("tle_data", tle_data, timeout=3600)
+
+                iss_name = "ISS (ZARYA)"
+                iss_index = next(
+                    i for i, line in enumerate(tle_data) if line.strip() == iss_name
+                )
+                line1 = tle_data[iss_index + 1]
+                line2 = tle_data[iss_index + 2]
+
+                satellite = EarthSatellite(line1, line2, iss_name, load.timescale())
+
+                observer = Topos(latitude_degrees=lat, longitude_degrees=lon)
+                ts = load.timescale()
+                now = ts.now()
+                end_time = ts.utc(now.utc_datetime() + timedelta(days=1))
+
+                times, events = satellite.find_events(
+                    observer, now, end_time, altitude_degrees=10.0
+                )
+
+                geocentric = satellite.at(now)
+                subpoint = geocentric.subpoint()
+                latitude = subpoint.latitude.degrees
+                longitude = subpoint.longitude.degrees
+                velocity = geocentric.velocity.km_per_s
+
+                # Enhanced region detection
+                region = detect_region(latitude, longitude)
+
+                current_data = {
+                    "latitude": f"{latitude:.2f}°",
+                    "longitude": f"{longitude:.2f}°",
+                    "altitude": f"{subpoint.elevation.km:.2f} km",
+                    "velocity": f"{(velocity[0]**2 + velocity[1]**2 + velocity[2]**2)**0.5:.2f} km/s",
+                    "region": region,
+                }
+
+                tf = TimezoneFinder()
+                timezone_name = tf.timezone_at(lat=lat, lng=lon) or "UTC"
+                local_timezone = pytz.timezone(timezone_name)
+
+                for t, event in zip(times, events):
+                    name = ("Rise", "Culminate", "Set")[event]
+                    utc_time = t.utc_datetime()
+                    local_time = utc_time.astimezone(local_timezone)
+                    iss_pass_times.append(
+                        {
+                            "event": name,
+                            "date": local_time.strftime("%A, %B %d, %Y"),
+                            "time": local_time.strftime("%I:%M %p %Z"),
+                            "position": (
+                                "North"
+                                if satellite.at(t).subpoint().latitude.degrees > lat
+                                else "South"
+                            ),
+                        }
+                    )
+
+                return render(
+                    request,
+                    "projects/iss_tracker.html",
+                    {
+                        "form": form,
+                        "current_data": current_data,
+                        "iss_pass_times": iss_pass_times,
+                    },
+                )
+            except Exception as e:
+                error = f"An error occurred: {e}"
+                return render(
+                    request, "projects/iss_tracker.html", {"form": form, "error": error}
+                )
+
+    return render(
+        request,
+        "projects/iss_tracker.html",
+        {"form": form, "current_data": current_data},
+    )
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def current_iss_data(request):
+    try:
+        tle_data = cache.get("tle_data")
+        if not tle_data:
+            tle_url = "https://celestrak.org/NORAD/elements/stations.txt"
+            response = requests.get(tle_url, timeout=10)
+            response.raise_for_status()
+            tle_data = response.text.splitlines()
+            cache.set("tle_data", tle_data, timeout=3600)
+
+        iss_name = "ISS (ZARYA)"
+        iss_index = next(
+            i for i, line in enumerate(tle_data) if line.strip() == iss_name
+        )
+        line1 = tle_data[iss_index + 1]
+        line2 = tle_data[iss_index + 2]
+
+        satellite = EarthSatellite(line1, line2, iss_name, load.timescale())
+        geocentric = satellite.at(load.timescale().now())
+        subpoint = geocentric.subpoint()
+        latitude = subpoint.latitude.degrees
+        longitude = subpoint.longitude.degrees
+        velocity = geocentric.velocity.km_per_s
+
+        # Enhanced region detection
+        region = detect_region(latitude, longitude)
+
+        return JsonResponse(
+            {
+                "latitude": f"{latitude:.2f}°",
+                "longitude": f"{longitude:.2f}°",
+                "altitude": f"{subpoint.elevation.km:.2f} km",
+                "velocity": f"{(velocity[0]**2 + velocity[1]**2 + velocity[2]**2)**0.5:.2f} km/s",
+                "region": region,
+            }
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# NEW END
+
+'''
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def iss_tracker(request):
@@ -344,6 +493,8 @@ def current_iss_data(request):
     except Exception as e:
         # Handle errors and return as JSON.
         return JsonResponse({"error": str(e)}, status=500)
+        
+'''
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)

@@ -43,6 +43,59 @@ from urllib.parse import urlparse, urlunparse
 # Garbage Collection helps with memory management.
 import gc
 
+# NEW BEGIN
+
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
+
+
+def detect_region(latitude, longitude):
+    """
+    Detect the region (land or water) based on latitude and longitude.
+    Recognizes smaller bodies of water like seas, lakes, and gulfs.
+    """
+    try:
+        # Initialize the geolocator
+        geolocator = Nominatim(user_agent="iss_tracker")
+
+        # Use reverse geocoding to get details for the coordinates
+        location = geolocator.reverse(
+            (latitude, longitude), exactly_one=True, timeout=10
+        )
+
+        if location:
+            # Extract relevant details from the geocoded response
+            address = location.raw.get("address", {})
+
+            # Check for known water features
+            if "sea" in address:
+                return address["sea"]
+            elif "lake" in address:
+                return address["lake"]
+            elif "bay" in address:
+                return address["bay"]
+            elif "gulf" in address:
+                return address["gulf"]
+            elif "ocean" in address:
+                return address["ocean"]
+            elif "river" in address:
+                return address["river"]
+            elif "country" in address:
+                # Land region fallback
+                return address["country"]
+
+        # Fallback for unknown water bodies
+        return "Unrecognized Body of Water"
+    except GeocoderTimedOut:
+        # Handle geocoder timeout
+        return "Geolocation Timeout"
+    except Exception as e:
+        # Handle unexpected errors
+        return f"Error: {e}"
+
+
+# NEW END
+
 
 def normalize_url(url):
     """
