@@ -85,6 +85,7 @@ from .utils import (
     sitemap_limit,
     # process_sitemap_urls: Processes multiple URLs concurrently, updating progress and returning results.
     process_sitemap_urls,
+    detect_region,
 )
 
 # Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
@@ -124,104 +125,95 @@ from timezonefinder import TimezoneFinder
 # Handles time zones for converting UTC times to the observer's local time zone.
 import pytz
 
-# Geocoding library used to reverse lookup latitude/longitude into human-readable locations.
-from geopy.geocoders import Nominatim
-
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def iss_tracker(request):
     """
-    View to track the International Space Station (ISS).
-    Processes user input to display upcoming ISS pass times and current ISS data.
+    View function to track the International Space Station (ISS) and provide
+    real-time location data and visibility events for a given location.
+
+    Args:
+        request: HTTP request object.
+
+    Returns:
+        Rendered HTML page with ISS current data and visibility events.
     """
 
-    # Create form for user input (ZIP code).
+    # Initialize the form that takes in the ZIP code.  This is the same form used by the Weather Forecast app.
     form = WeatherForm(request.POST or None)
-    # Store current ISS data.
+    # Initialize the library that will store current ISS data.
     current_data = {}
-    # Store upcoming ISS pass times.
+    # Initialize the array that will store upcoming ISS pass events.
     iss_pass_times = []
 
+    # Check if the request method is POST and the form is valid.
     if request.method == "POST" and form.is_valid():
-        # Get user-provided ZIP code and fetch geographic coordinates.
+        # Get the ZIP code from the form and convert it to coordinates.
         zip_code = form.cleaned_data["zip_code"]
         coordinates = get_coordinates(zip_code)
 
         if coordinates:
-            # Observer's latitude and longitude.
+            # Extract latitude and longitude from the coordinates.
             lat, lon = coordinates
 
             try:
-                # Fetch or cache Two-Line Element (TLE) data for the ISS.
+                # Attempt to retrieve cached TLE data (Two-Line Element sets).
                 tle_data = cache.get("tle_data")
                 if not tle_data:
+                    # If TLE data is not cached, fetch it from CelesTrak.
                     tle_url = "https://celestrak.org/NORAD/elements/stations.txt"
+                    # Timeout after 10 seconds.
                     response = requests.get(tle_url, timeout=10)
-                    # Raise an error for HTTP issues.
+                    # Raise an exception for HTTP errors.
                     response.raise_for_status()
-                    # Read lines of TLE data.
+                    # Split TLE data into lines.
                     tle_data = response.text.splitlines()
-                    # Cache for 1 hour.
+                    # Cache TLE data for 1 hour.
                     cache.set("tle_data", tle_data, timeout=3600)
 
-                # Dynamically locate the ISS entry in the TLE data.
+                # Locate the ISS entry in the TLE data.
+                # Identifier for the ISS in the TLE file.
                 iss_name = "ISS (ZARYA)"
                 iss_index = next(
                     i for i, line in enumerate(tle_data) if line.strip() == iss_name
                 )
-                # First TLE line.
+                # First line of the TLE for the ISS.
                 line1 = tle_data[iss_index + 1]
-                # Second TLE line.
+                # Second line of the TLE for the ISS.
                 line2 = tle_data[iss_index + 2]
 
-                # Initialize the ISS satellite using the TLE data.
+                # Create an EarthSatellite object for the ISS.
                 satellite = EarthSatellite(line1, line2, iss_name, load.timescale())
 
-                # Set observer's location and define a time range for ISS passes.
+                # Define the observer's location based on latitude and longitude.
                 observer = Topos(latitude_degrees=lat, longitude_degrees=lon)
+                # Load the timescale for Skyfield.
                 ts = load.timescale()
+                # Get the current time.
                 now = ts.now()
-                # 1-day range.
+                # End time for visibility calculations.
                 end_time = ts.utc(now.utc_datetime() + timedelta(days=1))
 
-                # Calculate upcoming ISS pass times.
+                # Calculate ISS visibility events for the observer's location.
                 times, events = satellite.find_events(
                     observer, now, end_time, altitude_degrees=10.0
                 )
 
-                # Get the current ISS data.
-                # Current ISS position.
+                # Calculate the ISS's current geocentric position.
                 geocentric = satellite.at(now)
-                # Latitude and longitude of ISS.
+                # Subpoint (latitude, longitude, altitude).
                 subpoint = geocentric.subpoint()
-                # Velocity of ISS in km/s.
+                # Latitude in degrees.
+                latitude = subpoint.latitude.degrees
+                # Longitude in degrees.
+                longitude = subpoint.longitude.degrees
+                # Velocity in km/s.
                 velocity = geocentric.velocity.km_per_s
 
-                # Determine the ISS's current region using geopy.
-                latitude = subpoint.latitude.degrees
-                longitude = subpoint.longitude.degrees
-                geolocator = Nominatim(user_agent="iss_tracker")
-                location = geolocator.reverse((latitude, longitude), exactly_one=True)
+                # Detect the region (land or body of water) over which the ISS is currently located.
+                region = detect_region(latitude, longitude)
 
-                if location and "country" in location.raw.get("address", {}):
-                    # If over land, use the country name.
-                    region = location.raw["address"]["country"]
-                else:
-                    # Otherwise, determine the ocean region.
-                    if 100 <= longitude <= 260 or -160 <= longitude <= -100:
-                        region = "Pacific Ocean"
-                    elif -70 <= longitude <= 20:
-                        region = "Atlantic Ocean"
-                    elif 20 <= longitude <= 120 and -60 <= latitude <= 30:
-                        region = "Indian Ocean"
-                    elif latitude <= -60:
-                        region = "Southern Ocean"
-                    elif latitude >= 66.5:
-                        region = "Arctic Ocean"
-                    else:
-                        region = "Unknown Ocean"
-
-                # Prepare current ISS data.
+                # Store the current ISS data.
                 current_data = {
                     "latitude": f"{latitude:.2f}°",
                     "longitude": f"{longitude:.2f}°",
@@ -230,22 +222,24 @@ def iss_tracker(request):
                     "region": region,
                 }
 
-                # Process upcoming pass events.
+                # Determine the local timezone based on the observer's location.
                 tf = TimezoneFinder()
                 timezone_name = tf.timezone_at(lat=lat, lng=lon) or "UTC"
                 local_timezone = pytz.timezone(timezone_name)
 
+                # Format the visibility events for display.
                 for t, event in zip(times, events):
-                    # Event type.
+                    # Event name.
                     name = ("Rise", "Culminate", "Set")[event]
-                    # UTC time of the event.
+                    # Event time in UTC.
                     utc_time = t.utc_datetime()
-                    # Convert to local time.
+                    # Convert UTC time to time zone local to the ZIP code.
                     local_time = utc_time.astimezone(local_timezone)
                     iss_pass_times.append(
                         {
                             "event": name,
-                            "date": local_time.strftime("%A, %B %d, %Y"),
+                            # "date": local_time.strftime("%A, %B %d, %Y"), ~ I'm removin year for now.
+                            "date": local_time.strftime("%A, %B %d"),
                             "time": local_time.strftime("%I:%M %p %Z"),
                             "position": (
                                 "North"
@@ -255,7 +249,6 @@ def iss_tracker(request):
                         }
                     )
 
-                # Render the template with the computed data.
                 return render(
                     request,
                     "projects/iss_tracker.html",
@@ -266,13 +259,13 @@ def iss_tracker(request):
                     },
                 )
             except Exception as e:
-                # Handle and display errors.
+                # Handle any errors and display an error message.
                 error = f"An error occurred: {e}"
                 return render(
                     request, "projects/iss_tracker.html", {"form": form, "error": error}
                 )
 
-    # Render the form and current ISS data by default.
+    # Render the page initially with the form and no data.
     return render(
         request,
         "projects/iss_tracker.html",
@@ -283,66 +276,80 @@ def iss_tracker(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def current_iss_data(request):
     """
-    API endpoint to return current ISS data in JSON format.
+    API endpoint to provide real-time information about the International Space Station (ISS).
+    Returns the current latitude, longitude, altitude, velocity, and region over which the ISS is located.
+
+    Args:
+        request: HTTP request object.
+
+    Returns:
+        JsonResponse: A JSON object containing the ISS's current data or an error message.
     """
     try:
-        # Fetch TLE data from cache or source.
+        # Attempt to retrieve the TLE (Two-Line Element) data from cache.
         tle_data = cache.get("tle_data")
+
+        # If the TLE data is not cached, fetch it from the external source.
         if not tle_data:
+            # URL for TLE data.
             tle_url = "https://celestrak.org/NORAD/elements/stations.txt"
+            # Fetch data with a timeout of 10 seconds.
             response = requests.get(tle_url, timeout=10)
+            # Raise an error if the response contains an HTTP error status.
             response.raise_for_status()
+            # Split the fetched text into lines.
             tle_data = response.text.splitlines()
+            # Cache the TLE data for 1 hour.
             cache.set("tle_data", tle_data, timeout=3600)
 
-        # Locate ISS entry dynamically in TLE data.
+        # Dynamically locate the ISS entry ("ISS (ZARYA)") in the TLE data.
+        # The unique name for the ISS in the TLE data.
         iss_name = "ISS (ZARYA)"
+        # Find the line index matching the ISS name.
         iss_index = next(
             i for i, line in enumerate(tle_data) if line.strip() == iss_name
         )
+        # First line of the TLE data for the ISS.
         line1 = tle_data[iss_index + 1]
+        # Second line of the TLE data for the ISS.
         line2 = tle_data[iss_index + 2]
 
-        # Compute current ISS data.
+        # Create an EarthSatellite object for the ISS using the TLE data.
         satellite = EarthSatellite(line1, line2, iss_name, load.timescale())
-        geocentric = satellite.at(load.timescale().now())
-        subpoint = geocentric.subpoint()
-        velocity = geocentric.velocity.km_per_s
 
-        # Determine region (land or ocean).
+        # Determine the ISS's current position based on the current time.
+        # Get the ISS's geocentric position.
+        geocentric = satellite.at(load.timescale().now())
+        # Extract the subpoint (latitude, longitude, altitude).
+        subpoint = geocentric.subpoint()
+
+        # Extract the ISS's latitude and longitude.
         latitude = subpoint.latitude.degrees
         longitude = subpoint.longitude.degrees
-        geolocator = Nominatim(user_agent="iss_tracker")
-        location = geolocator.reverse((latitude, longitude), exactly_one=True)
 
-        if location and "country" in location.raw.get("address", {}):
-            region = location.raw["address"]["country"]
-        else:
-            if 100 <= longitude <= 260 or -160 <= longitude <= -100:
-                region = "Pacific Ocean"
-            elif -70 <= longitude <= 20:
-                region = "Atlantic Ocean"
-            elif 20 <= longitude <= 120 and -60 <= latitude <= 30:
-                region = "Indian Ocean"
-            elif latitude <= -60:
-                region = "Southern Ocean"
-            elif latitude >= 66.5:
-                region = "Arctic Ocean"
-            else:
-                region = "Unknown Ocean"
+        # Calculate the ISS's velocity in km/s using the velocity vector components.
+        velocity = geocentric.velocity.km_per_s
 
-        # Return the data as JSON.
+        # Determine the region (land or body of water) over which the ISS is located.
+        region = detect_region(latitude, longitude)
+
+        # Return the current ISS data as a JSON response.
         return JsonResponse(
             {
+                # Latitude in degrees with 2 decimal places.
                 "latitude": f"{latitude:.2f}°",
+                # Longitude in degrees with 2 decimal places.
                 "longitude": f"{longitude:.2f}°",
+                # Altitude in kilometers with 2 decimal places.
                 "altitude": f"{subpoint.elevation.km:.2f} km",
+                # Velocity magnitude.
                 "velocity": f"{(velocity[0]**2 + velocity[1]**2 + velocity[2]**2)**0.5:.2f} km/s",
+                # Detected region (land or water body).
                 "region": region,
             }
         )
     except Exception as e:
-        # Handle errors and return as JSON.
+        # Handle any exceptions that occur during processing and return an error response.
         return JsonResponse({"error": str(e)}, status=500)
 
 

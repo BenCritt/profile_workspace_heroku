@@ -43,6 +43,266 @@ from urllib.parse import urlparse, urlunparse
 # Garbage Collection helps with memory management.
 import gc
 
+# Geocoding library used to reverse lookup latitude/longitude into human-readable locations.
+from geopy.geocoders import Nominatim
+
+# Importing the GeocoderTimedOut exception from geopy.
+# This exception is raised when a geocoding request to the Nominatim API exceeds the allowed timeout duration.
+from geopy.exc import GeocoderTimedOut
+
+
+def detect_region(latitude, longitude):
+    """
+    Detect the region (land or water) based on latitude and longitude.
+    Recognizes smaller bodies of water like seas, lakes, and gulfs.
+    """
+    try:
+        # Custom mapping for known water bodies.
+        # This is better than using the Google Maps API for rate limit considerations.
+        water_bodies = [
+            {
+                "name": "Okhotsk Sea",
+                "latitude_range": (43.0, 60.0),
+                "longitude_range": (135.0, 155.0),
+            },
+            {
+                "name": "Andaman Sea",
+                "latitude_range": (6.0, 20.0),
+                "longitude_range": (92.0, 100.0),
+            },
+            {
+                "name": "Persian Gulf",
+                "latitude_range": (24.0, 30.0),
+                "longitude_range": (48.0, 57.0),
+            },
+            {
+                "name": "Celebes Sea",
+                "latitude_range": (0.0, 8.0),
+                "longitude_range": (120.0, 127.0),
+            },
+            {
+                "name": "Red Sea",
+                "latitude_range": (12.0, 30.0),
+                "longitude_range": (32.0, 44.0),
+            },
+            {
+                "name": "Mozambique Channel",
+                "latitude_range": (-26.0, -12.0),
+                "longitude_range": (35.0, 46.0),
+            },
+            {
+                "name": "Gulf of Aden",
+                "latitude_range": (10.0, 15.0),
+                "longitude_range": (43.0, 52.0),
+            },
+            {
+                "name": "Arafura Sea",
+                "latitude_range": (-11.0, -2.0),
+                "longitude_range": (130.0, 141.0),
+            },
+            {
+                "name": "Caribbean Sea",
+                "latitude_range": (9.0, 22.0),
+                "longitude_range": (-85.0, -60.0),
+            },
+            {
+                "name": "Barents Sea",
+                "latitude_range": (70.0, 82.0),
+                "longitude_range": (20.0, 60.0),
+            },
+            {
+                "name": "Chukchi Sea",
+                "latitude_range": (66.0, 75.0),
+                "longitude_range": (-180.0, -155.0),
+            },
+            {
+                "name": "Carpentaria Gulf",
+                "latitude_range": (-17.0, -12.0),
+                "longitude_range": (135.0, 140.0),
+            },
+            {
+                "name": "Bohai Sea",
+                "latitude_range": (37.0, 41.0),
+                "longitude_range": (117.0, 121.0),
+            },
+            {
+                "name": "Adriatic Sea",
+                "latitude_range": (40.0, 45.0),
+                "longitude_range": (12.0, 19.0),
+            },
+            {
+                "name": "Aegean Sea",
+                "latitude_range": (35.0, 41.0),
+                "longitude_range": (23.0, 26.0),
+            },
+            {
+                "name": "Gulf of California",
+                "latitude_range": (22.0, 31.0),
+                "longitude_range": (-114.0, -107.0),
+            },
+            {
+                "name": "Hudson Bay",
+                "latitude_range": (51.0, 63.0),
+                "longitude_range": (-94.0, -74.0),
+            },
+            {
+                "name": "Scotia Sea",
+                "latitude_range": (-60.0, -53.0),
+                "longitude_range": (-60.0, -25.0),
+            },
+            {
+                "name": "Greenland Sea",
+                "latitude_range": (70.0, 80.0),
+                "longitude_range": (-20.0, 10.0),
+            },
+            {
+                "name": "Laptev Sea",
+                "latitude_range": (70.0, 78.0),
+                "longitude_range": (120.0, 140.0),
+            },
+            {
+                "name": "Great Australian Bight",
+                "latitude_range": (-40.0, -30.0),
+                "longitude_range": (110.0, 130.0),
+            },
+            {
+                "name": "Timor Sea",
+                "latitude_range": (-12.0, -9.0),
+                "longitude_range": (125.0, 130.0),
+            },
+            {
+                "name": "Banda Sea",
+                "latitude_range": (-8.0, -4.0),
+                "longitude_range": (123.0, 130.0),
+            },
+            {
+                "name": "Sulu Sea",
+                "latitude_range": (5.0, 12.0),
+                "longitude_range": (118.0, 122.0),
+            },
+            {
+                "name": "Great Lakes",
+                "latitude_range": (41.0, 49.0),
+                "longitude_range": (-92.0, -76.0),
+            },
+            {
+                "name": "Beaufort Sea",
+                "latitude_range": (70.0, 75.0),
+                "longitude_range": (-135.0, -120.0),
+            },
+            {
+                "name": "Java Sea",
+                "latitude_range": (-10.0, 0.0),
+                "longitude_range": (105.0, 115.0),
+            },
+            {
+                "name": "Yellow Sea",
+                "latitude_range": (33.0, 39.0),
+                "longitude_range": (120.0, 126.0),
+            },
+            {
+                "name": "Baltic Sea",
+                "latitude_range": (53.0, 66.0),
+                "longitude_range": (10.0, 30.0),
+            },
+            {
+                "name": "Caspian Sea",
+                "latitude_range": (36.0, 47.0),
+                "longitude_range": (47.0, 54.0),
+            },
+            {
+                "name": "Black Sea",
+                "latitude_range": (40.0, 47.0),
+                "longitude_range": (27.0, 42.0),
+            },
+            {
+                "name": "Gulf of Alaska",
+                "latitude_range": (54.0, 60.0),
+                "longitude_range": (-160.0, -140.0),
+            },
+            {
+                "name": "Gulf of Mexico",
+                "latitude_range": (18.0, 31.0),
+                "longitude_range": (-98.0, -81.0),
+            },
+            {
+                "name": "North Atlantic Ocean",
+                "latitude_range": (0.0, 60.0),
+                "longitude_range": (-80.0, 0.0),
+            },
+            {
+                "name": "South Atlantic Ocean",
+                "latitude_range": (-60.0, 0.0),
+                "longitude_range": (-70.0, 20.0),
+            },
+            {
+                "name": "North Pacific Ocean",
+                "latitude_range": (0.0, 60.0),
+                "longitude_range": (-180.0, -100.0),
+            },
+            {
+                "name": "South Pacific Ocean",
+                "latitude_range": (-60.0, 0.0),
+                "longitude_range": (-180.0, 180.0),
+            },
+            {
+                "name": "Indian Ocean",
+                "latitude_range": (-60.0, 30.0),
+                "longitude_range": (20.0, 150.0),
+            },
+            {
+                "name": "Southern Ocean",
+                "latitude_range": (-90.0, -50.0),
+                "longitude_range": (-180.0, 180.0),
+            },
+            {
+                "name": "Arctic Ocean",
+                "latitude_range": (66.5, 90.0),
+                "longitude_range": (-180.0, 180.0),
+            },
+        ]
+
+        # Initialize the geolocator. This is using an API through the library.
+        geolocator = Nominatim(
+            user_agent="ISS Tracker by Ben Crittenden (+https://www.bencritt.net)"
+        )
+
+        # Step 1: Check for land regions using reverse geocoding.
+        location = geolocator.reverse(
+            (latitude, longitude), exactly_one=True, language="en", timeout=10
+        )
+
+        if location:
+            # Extract relevant details from the geocoded response.
+            address = location.raw.get("address", {})
+            if "country" in address:
+                return address["country"]
+            elif "state" in address:
+                return address["state"]
+            elif "city" in address:
+                return address["city"]
+
+        # Step 2: Check if the coordinates match any known water body.
+        for water_body in water_bodies:
+            if (
+                water_body["latitude_range"][0]
+                <= latitude
+                <= water_body["latitude_range"][1]
+                and water_body["longitude_range"][0]
+                <= longitude
+                <= water_body["longitude_range"][1]
+            ):
+                return water_body["name"]
+
+        # Fallback for unknown regions.
+        return "Unrecognized Region"
+    except GeocoderTimedOut:
+        # Handle geocoder timeout.
+        return "Geolocation Timeout"
+    except Exception as e:
+        # Handle unexpected errors.
+        return f"Error: {e}"
+
 
 def normalize_url(url):
     """

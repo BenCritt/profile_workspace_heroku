@@ -168,8 +168,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Fetch and display current ISS data as soon as the page loads.
             updateCurrentData();
-            // Set up an interval to refresh the ISS data every 10 seconds.
-            setInterval(updateCurrentData, 10000);
+            // Set up an interval to refresh the ISS data every 60 seconds.
+            // The interval should not be too short, as it makes an API call with every refresh.
+            setInterval(updateCurrentData, 60000);
         });
     </script>
 {% endblock content %}
