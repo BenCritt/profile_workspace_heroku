@@ -33,7 +33,7 @@ from concurrent.futures import ThreadPoolExecutor
 from django.core.cache import cache
 
 # This variable is used to limit the number of URLs processed by SEO Head Checker.
-sitemap_limit = 50
+sitemap_limit = 25
 
 # urlparse: Parses URLs into components (e.g., scheme, hostname, path).
 # urlunparse: Reassembles parsed URL components into a full URL.
@@ -384,7 +384,7 @@ def fetch_sitemap_urls(sitemap_url):
         return [sitemap_url]
 
 
-def process_sitemap_urls(urls, max_workers=2, task_id=None):
+def process_sitemap_urls(urls, max_workers=1, task_id=None):
     """
     Processes URLs from a sitemap in parallel, up to a specified limit.
 
