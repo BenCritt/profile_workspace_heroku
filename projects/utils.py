@@ -61,6 +61,256 @@ def detect_region(latitude, longitude):
         # This is better than using the Google Maps API for rate limit considerations.
         water_bodies = [
             {
+                "name": "Hebrides Basin",
+                "latitude_range": (56.0, 59.0),
+                "longitude_range": (-8.0, -5.0),
+            },
+            {
+                "name": "Porcupine Abyssal Plain",
+                "latitude_range": (48.0, 50.0),
+                "longitude_range": (-16.0, -13.0),
+            },
+            {
+                "name": "Northwest Passage",
+                "latitude_range": (68.0, 75.0),
+                "longitude_range": (-110.0, -90.0),
+            },
+            {
+                "name": "Dover Strait",
+                "latitude_range": (50.5, 51.5),
+                "longitude_range": (1.0, 2.0),
+            },
+            {
+                "name": "Sulawesi Sea",
+                "latitude_range": (3.0, 7.0),
+                "longitude_range": (120.0, 125.0),
+            },
+            {
+                "name": "Bellona Trough",
+                "latitude_range": (-23.0, -20.0),
+                "longitude_range": (155.0, 158.0),
+            },
+            {
+                "name": "Greenland-Iceland Rise",
+                "latitude_range": (63.0, 67.0),
+                "longitude_range": (-30.0, -15.0),
+            },
+            {
+                "name": "Jervis Bay",
+                "latitude_range": (-35.0, -34.5),
+                "longitude_range": (150.7, 151.0),
+            },
+            {
+                "name": "Kerch Strait",
+                "latitude_range": (45.0, 46.0),
+                "longitude_range": (35.0, 36.5),
+            },
+            {
+                "name": "Tinian Passage",
+                "latitude_range": (15.0, 16.0),
+                "longitude_range": (145.5, 146.5),
+            },
+            {
+                "name": "Beagle Channel",
+                "latitude_range": (-55.0, -54.0),
+                "longitude_range": (-69.0, -66.0),
+            },
+            {
+                "name": "Sunda Trench",
+                "latitude_range": (-8.0, -5.0),
+                "longitude_range": (106.0, 110.0),
+            },
+            {
+                "name": "Mozambique Basin",
+                "latitude_range": (-22.0, -15.0),
+                "longitude_range": (38.0, 44.0),
+            },
+            {
+                "name": "Scotia Arc",
+                "latitude_range": (-61.0, -55.0),
+                "longitude_range": (-46.0, -35.0),
+            },
+            {
+                "name": "Chukchi Abyssal Plain",
+                "latitude_range": (70.0, 75.0),
+                "longitude_range": (-165.0, -155.0),
+            },
+            {
+                "name": "Lombok Strait",
+                "latitude_range": (-9.0, -8.0),
+                "longitude_range": (115.0, 116.0),
+            },
+            {
+                "name": "Timor Trough",
+                "latitude_range": (-10.5, -9.5),
+                "longitude_range": (124.5, 127.0),
+            },
+            {
+                "name": "D'Urville Sea",
+                "latitude_range": (-67.0, -64.0),
+                "longitude_range": (135.0, 141.0),
+            },
+            {
+                "name": "Luzon Strait",
+                "latitude_range": (20.0, 22.5),
+                "longitude_range": (119.5, 122.0),
+            },
+            {
+                "name": "Palawan Passage",
+                "latitude_range": (10.0, 12.0),
+                "longitude_range": (118.0, 120.0),
+            },
+            {
+                "name": "Mackenzie Bay",
+                "latitude_range": (69.0, 70.0),
+                "longitude_range": (-135.0, -130.0),
+            },
+            {
+                "name": "Bellingshausen Sea",
+                "latitude_range": (-73.0, -70.0),
+                "longitude_range": (-90.0, -80.0),
+            },
+            {
+                "name": "Kattegat",
+                "latitude_range": (56.0, 58.0),
+                "longitude_range": (10.0, 13.0),
+            },
+            {
+                "name": "Skagerrak",
+                "latitude_range": (57.5, 59.0),
+                "longitude_range": (7.0, 11.0),
+            },
+            {
+                "name": "Newfoundland Basin",
+                "latitude_range": (45.0, 50.0),
+                "longitude_range": (-55.0, -48.0),
+            },
+            {
+                "name": "Amundsen Gulf",
+                "latitude_range": (69.0, 71.0),
+                "longitude_range": (-125.0, -120.0),
+            },
+            {
+                "name": "Carnarvon Basin",
+                "latitude_range": (-22.0, -24.0),
+                "longitude_range": (112.0, 114.0),
+            },
+            {
+                "name": "Golfo San Matías",
+                "latitude_range": (-40.0, -41.5),
+                "longitude_range": (-65.0, -62.0),
+            },
+            {
+                "name": "Denmark Strait",
+                "latitude_range": (65.5, 68.0),
+                "longitude_range": (-33.0, -28.0),
+            },
+            {
+                "name": "Bohuslän Archipelago",
+                "latitude_range": (58.0, 59.0),
+                "longitude_range": (11.0, 12.5),
+            },
+            {
+                "name": "Hudson Strait",
+                "latitude_range": (60.0, 63.0),
+                "longitude_range": (-79.0, -70.0),
+            },
+            {
+                "name": "North Sea",
+                "latitude_range": (51.0, 61.0),
+                "longitude_range": (-5.0, 10.0),
+            },
+            {
+                "name": "Gulf of Bothnia",
+                "latitude_range": (60.0, 65.0),
+                "longitude_range": (17.0, 23.0),
+            },
+            {
+                "name": "Bismarck Sea",
+                "latitude_range": (-3.0, -1.0),
+                "longitude_range": (147.0, 152.0),
+            },
+            {
+                "name": "Solomon Sea",
+                "latitude_range": (-10.0, -5.0),
+                "longitude_range": (150.0, 160.0),
+            },
+            {
+                "name": "Laptev Abyssal Plain",
+                "latitude_range": (76.0, 79.0),
+                "longitude_range": (125.0, 140.0),
+            },
+            {
+                "name": "Drake Passage",
+                "latitude_range": (-56.0, -60.0),
+                "longitude_range": (-65.0, -50.0),
+            },
+            {
+                "name": "Peel Sound",
+                "latitude_range": (72.0, 74.0),
+                "longitude_range": (-96.0, -93.0),
+            },
+            {
+                "name": "Baffin Bay Abyssal Plain",
+                "latitude_range": (71.0, 75.0),
+                "longitude_range": (-72.0, -60.0),
+            },
+            {
+                "name": "Saint George Basin",
+                "latitude_range": (57.0, 58.5),
+                "longitude_range": (-6.0, -4.5),
+            },
+            {
+                "name": "Scotland's Moray Firth",
+                "latitude_range": (57.5, 58.5),
+                "longitude_range": (-3.5, -2.5),
+            },
+            {
+                "name": "Ionian Sea",
+                "latitude_range": (35.0, 40.0),
+                "longitude_range": (15.0, 22.0),
+            },
+            {
+                "name": "Alboran Sea",
+                "latitude_range": (35.0, 37.0),
+                "longitude_range": (-5.0, -1.0),
+            },
+            {
+                "name": "Liguro-Provençal Basin",
+                "latitude_range": (41.0, 44.0),
+                "longitude_range": (6.0, 10.0),
+            },
+            {
+                "name": "Shetland Isles Waters",
+                "latitude_range": (60.0, 61.0),
+                "longitude_range": (-1.0, 0.5),
+            },
+            {
+                "name": "Tokara Strait",
+                "latitude_range": (29.0, 30.0),
+                "longitude_range": (129.0, 131.0),
+            },
+            {
+                "name": "Barents Abyssal Plain",
+                "latitude_range": (73.0, 75.0),
+                "longitude_range": (20.0, 45.0),
+            },
+            {
+                "name": "Salish Sea",
+                "latitude_range": (48.0, 50.0),
+                "longitude_range": (-123.5, -122.0),
+            },
+            {
+                "name": "Seto Inland Sea",
+                "latitude_range": (34.0, 35.0),
+                "longitude_range": (132.0, 134.0),
+            },
+            {
+                "name": "Tyrrhenian Sea",
+                "latitude_range": (38.0, 42.0),
+                "longitude_range": (10.0, 15.0),
+            },
+            {
                 "name": "Okhotsk Sea",
                 "latitude_range": (43.0, 60.0),
                 "longitude_range": (135.0, 155.0),
@@ -226,6 +476,156 @@ def detect_region(latitude, longitude):
                 "longitude_range": (-98.0, -81.0),
             },
             {
+                "name": "Bay of Bengal",
+                "latitude_range": (10.0, 22.0),
+                "longitude_range": (80.0, 94.0),
+            },
+            {
+                "name": "Gulf of Thailand",
+                "latitude_range": (6.0, 14.0),
+                "longitude_range": (99.0, 105.0),
+            },
+            {
+                "name": "Bering Sea",
+                "latitude_range": (54.0, 65.0),
+                "longitude_range": (162.0, -160.0),
+            },
+            {
+                "name": "East China Sea",
+                "latitude_range": (24.0, 33.0),
+                "longitude_range": (122.0, 131.0),
+            },
+            {
+                "name": "Irish Sea",
+                "latitude_range": (51.5, 55.5),
+                "longitude_range": (-6.0, -3.0),
+            },
+            {
+                "name": "Philippine Sea",
+                "latitude_range": (5.0, 25.0),
+                "longitude_range": (125.0, 145.0),
+            },
+            {
+                "name": "Norwegian Sea",
+                "latitude_range": (62.0, 70.0),
+                "longitude_range": (-10.0, 15.0),
+            },
+            {
+                "name": "Ross Sea",
+                "latitude_range": (-78.0, -70.0),
+                "longitude_range": (160.0, 180.0),
+            },
+            {
+                "name": "Amundsen Sea",
+                "latitude_range": (-75.0, -70.0),
+                "longitude_range": (-135.0, -110.0),
+            },
+            {
+                "name": "Coral Sea",
+                "latitude_range": (-28.0, -10.0),
+                "longitude_range": (142.0, 160.0),
+            },
+            {
+                "name": "Bay of Biscay",
+                "latitude_range": (43.0, 48.0),
+                "longitude_range": (-10.0, -1.0),
+            },
+            {
+                "name": "Sargasso Sea",
+                "latitude_range": (20.0, 35.0),
+                "longitude_range": (-70.0, -40.0),
+            },
+            {
+                "name": "Tasman Sea",
+                "latitude_range": (-47.0, -30.0),
+                "longitude_range": (147.0, 170.0),
+            },
+            {
+                "name": "Weddell Sea",
+                "latitude_range": (-83.0, -70.0),
+                "longitude_range": (-60.0, -20.0),
+            },
+            {
+                "name": "Labrador Sea",
+                "latitude_range": (52.0, 65.0),
+                "longitude_range": (-60.0, -45.0),
+            },
+            {
+                "name": "Gulf of Saint Lawrence",
+                "latitude_range": (45.0, 50.0),
+                "longitude_range": (-65.0, -58.0),
+            },
+            {
+                "name": "Fram Strait",
+                "latitude_range": (77.0, 82.0),
+                "longitude_range": (-20.0, 10.0),
+            },
+            {
+                "name": "Davis Strait",
+                "latitude_range": (60.0, 70.0),
+                "longitude_range": (-65.0, -50.0),
+            },
+            {
+                "name": "Cook Strait",
+                "latitude_range": (-42.5, -40.0),
+                "longitude_range": (173.0, 175.0),
+            },
+            {
+                "name": "Malacca Strait",
+                "latitude_range": (2.0, 7.0),
+                "longitude_range": (99.0, 104.0),
+            },
+            {
+                "name": "Baffin Bay",
+                "latitude_range": (70.0, 78.0),
+                "longitude_range": (-75.0, -60.0),
+            },
+            {
+                "name": "Sea of Marmara",
+                "latitude_range": (40.0, 41.5),
+                "longitude_range": (27.0, 30.0),
+            },
+            {
+                "name": "Kara Sea",
+                "latitude_range": (70.0, 80.0),
+                "longitude_range": (60.0, 100.0),
+            },
+            {
+                "name": "Gulf of Carpentaria",
+                "latitude_range": (-17.5, -10.5),
+                "longitude_range": (136.0, 142.0),
+            },
+            {
+                "name": "Mediterranean Sea",
+                "latitude_range": (30.0, 45.0),
+                "longitude_range": (-6.0, 36.0),
+            },
+            {
+                "name": "Sea of Japan (East Sea)",
+                "latitude_range": (35.0, 45.0),
+                "longitude_range": (130.0, 140.0),
+            },
+            {
+                "name": "Gulf of Guinea",
+                "latitude_range": (0.0, 10.0),
+                "longitude_range": (-10.0, 10.0),
+            },
+            {
+                "name": "Chilean Fjords",
+                "latitude_range": (-55.0, -42.0),
+                "longitude_range": (-75.0, -70.0),
+            },
+            {
+                "name": "Barbuda Channel",
+                "latitude_range": (17.5, 18.5),
+                "longitude_range": (-62.5, -61.5),
+            },
+            {
+                "name": "Bass Strait",
+                "latitude_range": (-40.0, -38.0),
+                "longitude_range": (144.0, 148.0),
+            },
+            {
                 "name": "North Atlantic Ocean",
                 "latitude_range": (0.0, 60.0),
                 "longitude_range": (-80.0, 0.0),
@@ -261,7 +661,6 @@ def detect_region(latitude, longitude):
                 "longitude_range": (-180.0, 180.0),
             },
         ]
-
         # Initialize the geolocator. This is using an API through the library.
         geolocator = Nominatim(
             user_agent="ISS Tracker by Ben Crittenden (+https://www.bencritt.net)"
