@@ -232,8 +232,8 @@ def detect_region(latitude, longitude):
             },
             {
                 "name": "Bismarck Sea",
-                "latitude_range": (-3.0, -1.0),
-                "longitude_range": (147.0, 152.0),
+                "latitude_range": (-3.0, 3.0),
+                "longitude_range": (142.0, 153.0),
             },
             {
                 "name": "Solomon Sea",
