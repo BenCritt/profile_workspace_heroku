@@ -61,6 +61,11 @@ def detect_region(latitude, longitude):
         # This is better than using the Google Maps API for rate limit considerations.
         water_bodies = [
             {
+                "name": "Gulf of Maine",
+                "latitude_range": (42.0, 45.0),
+                "longitude_range": (-71.0, -66.0),
+            },
+            {
                 "name": "Hebrides Basin",
                 "latitude_range": (56.0, 59.0),
                 "longitude_range": (-8.0, -5.0),
@@ -628,12 +633,12 @@ def detect_region(latitude, longitude):
             {
                 "name": "North Atlantic Ocean",
                 "latitude_range": (0.0, 60.0),
-                "longitude_range": (-80.0, 0.0),
+                "longitude_range": (-80.0, 20.0),
             },
             {
                 "name": "South Atlantic Ocean",
                 "latitude_range": (-60.0, 0.0),
-                "longitude_range": (-70.0, 20.0),
+                "longitude_range": (-80.0, 20.0),
             },
             {
                 "name": "North Pacific Ocean",
@@ -643,16 +648,16 @@ def detect_region(latitude, longitude):
             {
                 "name": "South Pacific Ocean",
                 "latitude_range": (-60.0, 0.0),
-                "longitude_range": (-180.0, 180.0),
+                "longitude_range": (-180.0, -100.0),
             },
             {
                 "name": "Indian Ocean",
                 "latitude_range": (-60.0, 30.0),
-                "longitude_range": (20.0, 150.0),
+                "longitude_range": (20.0, 120.0),
             },
             {
                 "name": "Southern Ocean",
-                "latitude_range": (-90.0, -50.0),
+                "latitude_range": (-90.0, -60.0),
                 "longitude_range": (-180.0, 180.0),
             },
             {
