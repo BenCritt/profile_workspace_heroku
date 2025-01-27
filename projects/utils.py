@@ -508,7 +508,7 @@ def detect_region(latitude, longitude):
             {
                 "name": "Philippine Sea",
                 "latitude_range": (5.0, 25.0),
-                "longitude_range": (125.0, 145.0),
+                "longitude_range": (125.0, 165.0),
             },
             {
                 "name": "Norwegian Sea",
@@ -643,7 +643,7 @@ def detect_region(latitude, longitude):
             {
                 "name": "North Pacific Ocean",
                 "latitude_range": (0.0, 60.0),
-                "longitude_range": (-180.0, -100.0),
+                "longitude_range": (145.0, 180.0),
             },
             {
                 "name": "South Pacific Ocean",
