@@ -643,12 +643,12 @@ def detect_region(latitude, longitude):
             {
                 "name": "North Pacific Ocean",
                 "latitude_range": (0.0, 60.0),
-                "longitude_range": (145.0, 180.0),
+                "longitude_range": (-180.0, -100.0),
             },
             {
                 "name": "South Pacific Ocean",
                 "latitude_range": (-60.0, 0.0),
-                "longitude_range": (-180.0, -100.0),
+                "longitude_range": (-180.0, -70.0),
             },
             {
                 "name": "Indian Ocean",
@@ -664,6 +664,16 @@ def detect_region(latitude, longitude):
                 "name": "Arctic Ocean",
                 "latitude_range": (66.5, 90.0),
                 "longitude_range": (-180.0, 180.0),
+            },
+            {
+                "name": "Pacific Ocean",
+                "latitude_range": (-60.0, 60.0),
+                "longitude_range": (-180.0, -70.0),
+            },
+            {
+                "name": "Atlantic Ocean",
+                "latitude_range": (-60.0, 60.0),
+                "longitude_range": (-80.0, 20.0),
             },
         ]
         # Initialize the geolocator. This is using an API through the library.
