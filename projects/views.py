@@ -953,13 +953,14 @@ def weather(request):
 
         # Prepare context with weather and location data for rendering.
         context = {
+            "form": form,
             "daily_forecast": daily_forecast,
             "city_name": city_name,
             "state_name": state_name,
             "current_weather_report": current_weather_report,
         }
         # Render the page with weather results.
-        return render(request, "projects/weather_results.html", context)
+        return render(request, "projects/weather.html", context)
 
     # If the form is not valid or it's a GET request, render the form again.
     else:

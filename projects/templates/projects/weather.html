@@ -89,6 +89,81 @@
                   <input type="submit" id="weather-btn" class="btn btn-primary" value="Get Weather Forecast" aria-label="Get Weather Forecast">
               </form>
           </div>
+          <br>
+          {% if city_name and state_name %}
+          <h2>Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
+          {% endif %}
+          <br>
+            <!-- Container for the weather data. -->
+            <div class = "container" style = "width: 100%; max-width: 750px;">
+            <!-- Display current weather information within a card. -->
+            {% if current_weather_report %}
+            <div class="card">
+              <div class="card-header">
+                Current Weather Overview
+              </div>
+              <div class="card-body">
+                <!-- Loop through current weather report -->
+                {% for current in current_weather_report %}
+                <div class="d-flex align-items-center mb-3">
+                  <img src="{{ current.icon_url_current }}" alt="Weather Icon" class="weather-icon">
+                  <div>
+                    <p><strong>Description:</strong> {{ current.current_description }}</p>
+                    <p><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
+                    <p><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
+                    <p><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
+                    <p><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>UV Index:</strong> {{ current.current_uv }}</p>
+                    <p><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
+                    <!--
+                    <p><strong>Visibility:</strong> {{ current.current_visibility }} miles</p>
+                    -->
+                    <p><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            <br>
+            <!-- Display weather forcast inside an accordion. -->
+            {% if current_weather_report %}
+            <h2>Daily Forecast</h2>
+            {% endif %}
+            <br>
+            <div class="accordion" id="dailyForecastAccordion">
+              {% for day in daily_forecast %}
+              <div class="accordion-item">
+                <h3 class="accordion-header" id="heading{{ forloop.counter }}">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                    {{ day.day_of_week }}, {{ day.date|date:"F d" }}
+                  </button>
+                </h3>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
+                    <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
+                    <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
+                    <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
+                    <p><strong>Humidity:</strong> {{day.humidity}}%</p>
+                    <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
+                    <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F <span class="text-muted">(Feels like: {{ day.morn_temp_feel }}°F)</p>
+                    <p><strong>Day Temp:</strong> {{ day.day_temp }}°F <span class="text-muted">(Feels like: {{ day.day_temp_feel }}°F)</p>
+                    <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F <span class="text-muted">(Feels like: {{ day.eve_temp_feel }}°F)</p>
+                    <p><strong>Night Temp:</strong> {{ day.night_temp }}°F <span class="text-muted">(Feels like: {{ day.night_temp_feel }}°F)</p>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
           <br><br>
           <!-- Link to the GitHub repository for the project. -->
           <a href = "https://github.com/BenCritt/Weather_Forecast_App" target="_blank" rel="noopener noreferrer" data-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
