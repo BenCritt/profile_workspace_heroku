@@ -1,34 +1,96 @@
-"""
-URL configuration for my_profile project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf.urls import handler404
+from django.views.generic.base import RedirectView
 
 handler404 = "projects.views.view_404"
 
-"""
-With the second path in "urlpatterns", the following 
-should be accessible:
-# domain.com/projects/home.html
-# domain.com/projects/resume.html
-# domain.com/projects/qr_code_generator.html
-"""
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("projects/", include("projects.urls")),
-    path("", include("projects.urls")),
+    path(
+        "", include("projects.urls")
+    ),  # Ensures "" is home, "/projects/" is all_projects
+    # Redirects.
+    re_path(
+        r"^projects/all_projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^projects/all-projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^all_projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^all-projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(r"^projects/?$", RedirectView.as_view(url="/projects/", permanent=True)),
 ]
+
+# Mapping of old (underscore) URLs to new (dashed) URLs
+mappings = [
+    ("qr_code_generator", "qr-code-generator"),
+    ("monte_carlo_simulator", "monte-carlo-simulator"),
+    ("grade_level_analyzer", "grade-level-analyzer"),
+    ("freight_safety", "freight-safety"),
+    ("seo_head_checker", "seo-head-checker"),
+    ("iss_tracker", "iss-tracker"),
+    ("ssl_check", "ssl-check"),
+    ("ip_tool", "ip-tool"),
+    ("dns_tool", "dns-lookup"),
+    ("it_tools", "it-tools"),
+    ("all_projects", ""),
+]
+
+# Generate URL patterns for each mapping
+for old, new in mappings:
+    urlpatterns.extend(
+        [
+            # Handle URLs with the "projects/" prefix
+            re_path(
+                rf"^projects/{old}$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^projects/{old}/$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^projects/{new}$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^projects/{new}/$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            # Handle URLs without the "projects/" prefix
+            re_path(
+                rf"^{old}$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^{old}/$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^{new}$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+            re_path(
+                rf"^{new}/$",
+                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
+            ),
+        ]
+    )
+"""
+# Redirect non-trailing slash URLs to trailing slash versions.
+# Temporarily commenting out, as this might cause redirect loops.
+urlpatterns.append(
+    re_path(
+        r"^(?P<path>.*[^/])$", RedirectView.as_view(url="/%(path)s/", permanent=True)
+    )
+)
+"""

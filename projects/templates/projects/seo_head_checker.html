@@ -9,7 +9,7 @@
           "@type": "SoftwareApplication",
           "name": "SEO Head Checker",
           "description": "The SEO Head Checker allows users to analyze the <head> section of webpages for SEO elements, ensuring proper meta tags, canonical tags, Open Graph tags, and more to optimize their website's performance in search engines.",
-          "url": "https://www.bencritt.net/projects/seo_head_checker/",
+          "url": "https://www.bencritt.net/projects/seo-head-checker/",
           "applicationCategory": "SEO Utility",
           "operatingSystem": "Web-based",
           "image": "https://i.imgur.com/9Qlufcf.png",
@@ -45,7 +45,7 @@
     <meta name="description" content="Analyze the <head> section of your webpages with the SEO Head Checker Tool. Check for meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your website for search engines.">
     <meta name="keywords" content="SEO Head Checker, Analyze <head> section, SEO tags checker, meta tags analyzer, canonical tags checker, Open Graph tags, Twitter Card tags, SEO optimization tool, website SEO analysis">
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://www.bencritt.net/projects/seo_head_checker/">
+    <meta property="og:url" content="https://www.bencritt.net/projects/seo-head-checker/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="SEO Head Checker">
     <meta property="og:description" content="Analyze the <head> section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
@@ -53,7 +53,7 @@
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/seo_head_checker/">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/seo-head-checker/">
     <meta name="twitter:title" content="SEO Head Checker">
     <meta name="twitter:description" content="Analyze the <head> section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
     <meta name="twitter:image" content="https://i.imgur.com/9Qlufcf.png">
@@ -61,7 +61,7 @@
     {% endblock meta_tags %}
     {% block link_tags %}
     <!-- Canonical link to help avoid duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net/projects/seo_head_checker/">
+    <link rel="canonical" href="https://www.bencritt.net/projects/seo-head-checker/">
     {% endblock link_tags %}
     {% block title %}SEO Head Checker | Free Tool to Analyze SEO Head Elements{% endblock title %}
     {% endblock page_head %}
@@ -96,7 +96,7 @@
                     id="download_link"
                     style="display: none;"
                     class="btn btn-success"
-                    href="/projects/seo_head_checker/"
+                    href="/projects/seo-head-checker/"
                     onclick="refreshPageAfterDownload()"
                     aria-label="Download the generated SEO report"
                 >
@@ -140,7 +140,7 @@
         
             try {
                  // Send a POST request to start the sitemap processing.
-                const response = await fetch("/projects/start_sitemap_processing/", {
+                const response = await fetch("/start_sitemap_processing/", {
                     // HTTP POST method.
                     method: "POST",
                     headers: {
@@ -187,7 +187,7 @@
              // Set an interval to repeatedly poll the server for task status every 2 seconds (2000 ms).
             const interval = setInterval(async () => {
                 // Send a GET request to fetch the current status of the task by its ID.
-                const response = await fetch(`/projects/get_task_status/${taskId}/`);
+                const response = await fetch(`/get_task_status/${taskId}/`);
                 // Parse the response as JSON.
                 const data = await response.json();
         
@@ -215,7 +215,7 @@
                     statusElement.innerText = "Processing completed! 100%";
 
                     // Update the download link's `href` to point to the task's result file.
-                    downloadLink.href = `/projects/download_task_file/${taskId}/`;
+                    downloadLink.href = `/download_task_file/${taskId}/`;
                     
                     // Make the download link visible to the user.
                     downloadLink.style.display = "block";

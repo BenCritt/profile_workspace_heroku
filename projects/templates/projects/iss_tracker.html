@@ -7,7 +7,7 @@
           "@type": "SoftwareApplication",
           "name": "ISS Tracker",
           "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
-          "url": "https://www.bencritt.net/projects/iss_tracker/",
+          "url": "https://www.bencritt.net/projects/iss-tracker/",
           "applicationCategory": "Astronomy Utility",
           "operatingSystem": "Web-based",
           "image": "https://i.imgur.com/G4TqDlT.png",
@@ -37,7 +37,7 @@
     <meta name="keywords" content="ISS Tracker, International Space Station, real-time ISS location, ISS altitude, ISS velocity, ISS pass prediction, track ISS, space station tracker, astronomy tools, real-time satellite tracking">
 
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://www.bencritt.net/projects/iss_tracker/">
+    <meta property="og:url" content="https://www.bencritt.net/projects/iss-tracker/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="ISS Tracker">
     <meta property="og:description" content="Track the International Space Station (ISS) in real-time with the ISS Tracker. View the current location, altitude, velocity, and regional position of the ISS, and predict its upcoming passes over your location.">
@@ -46,7 +46,7 @@
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/iss_tracker/">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/iss-tracker/">
     <meta name="twitter:title" content="ISS Tracker">
     <meta name="twitter:description" content="Track the International Space Station (ISS) in real-time with the ISS Tracker. View the current location, altitude, velocity, and regional position of the ISS, and predict its upcoming passes over your location.">
     <meta name="twitter:image" content="https://i.imgur.com/G4TqDlT.png">
@@ -55,7 +55,7 @@
     {% endblock meta_tags %}
     {% block link_tags %}
     <!-- Canonical link to help avoid duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net/projects/iss_tracker/">
+    <link rel="canonical" href="https://www.bencritt.net/projects/iss-tracker/">
     {% endblock link_tags %}
     {% block title %}ISS Tracker | Real-Time International Space Station Tracking Tool{% endblock title %}
     {% endblock page_head %}
@@ -140,7 +140,7 @@
         */
         function updateCurrentData() {
             // Make a GET request to the backend endpoint that provides current ISS data in JSON format.
-            fetch('/projects/current-iss-data/')
+            fetch('/current-iss-data/')
                 // Parse the JSON response from the API.
                 .then(response => response.json())
                 .then(data => {
