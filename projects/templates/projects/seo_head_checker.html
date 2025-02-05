@@ -235,11 +235,13 @@
         }        
     </script>
     <script>
-        // Add an event listener to the form to capture the Enter key
+        // Add an event listener to the form to capture the Enter key.
         document.getElementById("sitemap-form").addEventListener("keydown", function (event) {
             if (event.key === "Enter") {
-                event.preventDefault(); // Prevent the default form submission
-                document.getElementById("seo-head-btn").click(); // Trigger the button click
+                // Prevent the default form submission.
+                event.preventDefault();
+                // Trigger the button click.
+                document.getElementById("seo-head-btn").click();
             }
         });
     </script>
@@ -250,8 +252,10 @@
          */
         function refreshPageAfterDownload() {
             setTimeout(() => {
-                location.reload(); // Reload the current page
-            }, 1000); // Delay to allow the download to start
+                // Reload the current page.
+                location.reload();
+                // Delay to allow the download to start.
+            }, 1000);
         }
     </script>
 {% endblock content %}

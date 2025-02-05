@@ -5,66 +5,133 @@
     {% block scripts %}
     <!-- Structured data (i.e. schema) using JSON-LD to provide information about the page's subject (Ben Crittenden) to search engines. -->
     <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "url": "https://www.bencritt.net",
+        "description": "Professional profile of Ben Crittenden, showcasing skills in IT Services, Software Development, and Data Analytics.",
+        "mainEntity": {
+          "@type": "Person",
+          "givenName": "Benjamin",
+          "alternateName": "Ben",
+          "additionalName": "Michael",
+          "familyName": "Crittenden",
+          "nationality": {
+            "@type": "Country",
+            "name": "United States"
+          },
+          "memberOf": {
+            "@type": "Organization",
+            "name": "Fraternal Order of Eagles"
+          },
+          "alumniOf": {
+            "@type": "CollegeOrUniversity",
+            "name": "University of Wisconsin–Madison",
+            "url": "https://www.wisc.edu/"
+          },
+          "jobTitle": "Technical Support Manager",
+          "hasOccupation": {
+            "@type": "Occupation",
+            "name": "Technical Support Manager",
+            "skills": ["Technical Support", "IT Services", "Management", "Web Development"]
+          },
+          "worksFor": {
+            "@type": "Organization",
+            "name": "Foremost Media, Inc.",
+            "url": "https://www.foremostmedia.com/"
+          },
+          "knowsAbout": [
+            "Technical Support",
+            "Information Technology",
+            "IT Support",
+            "IT Services",
+            "IT Solutions",
+            "Technical Support Management",
+            "Managed Services",
+            "Web Development",
+            "Software Development",
+            "Data Analytics",
+            "Django",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "Python",
+            "SEO",
+            "Search Engine Optimization",
+            "History",
+            "Political Science",
+            "Social Studies",
+            "Education",
+            "Secondary Education",
+            "Project Management",
+            "Account Management"
+          ],
+          "url": "https://www.bencritt.net",
+          "sameAs": [
+            "https://www.linkedin.com/in/bencritt/",
+            "https://badgerbridge.com/user/26380",
+            "https://github.com/BenCritt",
+            "https://stackoverflow.com/users/21613304/ben-crittenden",
+            "https://www.goodreads.com/bencritt"
+          ]
+        }
+      }      
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Who is Ben Crittenden?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ben Crittenden is an IT professional with a passion for IT services, software development, and data analytics. He enjoys using Python to build innovative projects and enhance productivity, and his experience spans both the IT industry and secondary education."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is Ben's professional background?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Currently the Technical Support Manager at Foremost Media, Inc., Ben brings extensive experience in IT support and managed services. He has also worked in IT support at the University of Wisconsin–Madison and has spent several years in secondary education, which has helped him develop strong organizational and communication skills."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What technologies and skills does Ben specialize in?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Ben is proficient in technical support, IT services, and management, with a particular focus on web development and software development. His technical toolkit includes Python, Django, HTML, CSS, JavaScript, as well as skills in SEO, data analytics, and project management."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What can I find on this website?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "This website serves as Ben Crittenden’s professional profile. It showcases his projects, technical expertise, and credentials. Visitors can view his résumé, credentials, and transcripts, and explore GitHub repositories that include the source code for his various projects."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I contact Ben Crittenden?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can reach out to Ben via email and his LinkedIn profile, both of which are linked in the footer."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Person",
-      "givenName": ["Benjamin", "Ben"],
-      "additionalName": "Michael",
-      "familyName": "Crittenden",
-      "nationality": "American",
-      "memberOf": {
-        "@type": "Organization",
-        "name": "Fraternal Order of Eagles"
-      },
-      "alumniOf": {
-        "@type": "CollegeOrUniversity",
-        "name": "University of Wisconsin&ndash;Madison",
-        "url": "https://www.wisc.edu/"
-      },
-      "worksFor": {
-        "@type": "Organization",
-        "name": "Foremost Media, Inc.",
-        "url": "https://www.foremostmedia.com/",
-          "employee": {
-            "@type": "Person",
-            "name": "Ben Crittenden"
-            }
-      },
-      "jobTitle": "Technical Support Manager",
-      "knowsAbout": [
-        "Technical Support",
-        "Information Technology",
-        "IT Support",
-        "IT Services",
-        "IT Solutions",
-        "Technical Support Management",
-        "Managed Services",
-        "Web Development",
-        "Software Development",
-        "Data Analytics",
-        "Django",
-        "HTML",
-        "CSS",
-        "JavaScript",
-        "Python",
-        "SEO",
-        "Search Engine Optimization",
-        "History",
-        "Political Science",
-        "Social Studies",
-        "Education",
-        "Secondary Education",
-        "Project Management",
-        "Account Management"
-      ],
+      "@type": "WebSite",
       "url": "https://www.bencritt.net",
-      "sameAs": [
-        "https://www.linkedin.com/in/bencritt/",
-        "https://badgerbridge.com/user/26380",
-        "https://github.com/BenCritt",
-        "https://stackoverflow.com/users/21613304/ben-crittenden",
-        "https://www.goodreads.com/bencritt"
-      ]
+      "name": "Ben Crittenden - IT Professional",
+      "description": "Professional profile of Ben Crittenden, showcasing skills in IT Services, Software Development, and Data Analytics."
     }
     </script>
     {% endblock scripts %}    
