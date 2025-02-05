@@ -9,7 +9,7 @@
             "@type": "SoftwareApplication",
             "name": "DNS Lookup Tool",
             "description": "Perform DNS lookups for various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
-            "url": "https://www.bencritt.net/projects/dns_tool/",
+            "url": "https://www.bencritt.net/projects/dns-lookup/",
             "applicationCategory": "Network Utility",
             "operatingSystem": "Web-based",
             "image": "https://i.imgur.com/jiKZkIp.png",
@@ -77,58 +77,7 @@
                 padding: 6px; /* Reduced padding */
             }
         }        
-    </style>
-    <!--
-    <style>
-        .table-container {
-            width: 100%;    /* Ensures the container takes the full width */
-            overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
-        }
-        .table {
-            width: 100%;    /* Table takes the full width of the container */
-            border-collapse: collapse;  /* Merges table borders */
-            margin-top: 20px;   /* Adds space above the table */
-            table-layout: auto; /* Allow table to adjust automatically */
-        }
-        .table th {
-            padding: 8px;  /* Adjusted padding for better readability */
-            text-align: center;   /* Aligns text to the center for table headers */
-            border: 1px solid #ddd; /* Adds border around cells */
-            vertical-align: middle; /* Aligns content vertically in the middle */
-            word-break: break-word; /* Break long words to fit within the cell */
-            background-color: #f2f2f2;  /* Sets background color for table headers */
-        }
-        .table td {
-            padding: 8px;  /* Adjusted padding for better readability */
-            text-align: left;   /* Aligns text to the left for table data cells */
-            border: 1px solid #ddd; /* Adds border around cells */
-            vertical-align: middle; /* Aligns content vertically in the middle */
-            word-break: break-word; /* Break long words to fit within the cell */
-        }
-        .table tr:nth-child(even) {
-            background-color: #f9f9f9;  /* Alternates row colors for readability */
-        }
-        .table tr:hover {
-            background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
-        }
-        ul {
-            margin: 0;  /* Removes margin */
-            padding-left: 20px; /* Adds padding to the left */
-            list-style-type: none; /* Removes bullet points from the list */
-        }
-        .centered-content {
-            text-align: center; /* Centers the content */
-        }
-        
-        /* Media Query for Smaller Screens */
-        @media (max-width: 600px) {
-            .table th, .table td {
-                font-size: 12px; /* Smaller font size for better fit */
-                padding: 6px; /* Reduced padding */
-            }
-        }        
-    </style>
-    -->      
+    </style>    
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
@@ -139,7 +88,7 @@
     <meta name="description" content="The DNS Lookup Tool allows users to perform detailed DNS lookups for domain names, retrieving various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. Use it for network troubleshooting and domain management.">
     <meta name="keywords" content="DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records">
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://www.bencritt.net/projects/dns_lookup/">
+    <meta property="og:url" content="https://www.bencritt.net/projects/dns-lookup/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="DNS Lookup Tool">
     <meta property="og:description" content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
@@ -147,7 +96,7 @@
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/dns_tool/">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/dns-lookup/">
     <meta name="twitter:title" content="DNS Lookup Tool">
     <meta name="twitter:description" content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
     <meta name="twitter:image" content="https://i.imgur.com/jiKZkIp.png">
@@ -155,7 +104,7 @@
     {% endblock meta_tags %}
     {% block link_tags %}
     <!-- Canonical link to help avoid duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net/projects/dns_tool/">
+    <link rel="canonical" href="https://www.bencritt.net/projects/dns-lookup/">
     {% endblock link_tags %}
     {% block title %}DNS Lookup Tool | Perform Detailed DNS Record Checks Online{% endblock title %}
     {% endblock page_head %}
