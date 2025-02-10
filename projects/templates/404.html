@@ -1,5 +1,4 @@
 {% extends "projects/base.html" %}
-{% load static %}
 
 {% block page_head %}
   {% block styles %}
@@ -54,11 +53,9 @@
 
     <h1 class="display-4">404</h1>
     <p class="lead">The website has been combed, and your URL cannot be found.</p>
-    <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
-    <br>
-
     <!-- Quick Navigation Links -->
     <div class="row w-100" style="max-width: 700px;">
+      <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
       <!-- Added col-6 so that on mobile (extra small screens) the columns are 50% wide -->
       <div class="col-6 col-md-4 mb-2">
         <a href="/projects/" class="btn btn-outline-light btn-equal d-block">
