@@ -1,0 +1,78 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block page_head %}
+  {% block styles %}
+  <style>
+    /* Ensure all buttons have a fixed height and centered text */
+    .btn-equal {
+      height: 80px;                    /* Fixed height for consistent sizing */
+      display: flex !important;        /* Force flex display */
+      align-items: center !important;  /* Force vertical centering */
+      justify-content: center !important; /* Force horizontal centering */
+      text-align: center;              /* Center text for multiline buttons */
+      padding: 1 !important;           /* Remove extra padding */
+      box-sizing: border-box;          /* Include padding in the total height */
+    }
+  </style>
+  {% endblock styles %}
+  
+  {% block scripts %}{% endblock scripts %}
+  {% block meta_tags %}{% endblock meta_tags %}
+  {% block link_tags %}{% endblock link_tags %}
+  {% block title %}404 | Page Not Found{% endblock title %}
+{% endblock page_head %}
+
+{% block content %}
+<main class="container d-flex flex-column justify-content-center align-items-center vh-100 text-center" role="main" aria-label="404: Page Not Found">
+  <!-- Optional illustration -->
+  <img src="https://imagedelivery.net/Ph-vG8aniYh-l61QIympbA/8fddbce8-4426-42d0-2625-4ec3814c1e00/public" 
+       alt="Spaceballs reference; Coming the desert scene." 
+       class="img-fluid mb-4" 
+       style="max-width: 500px;">
+
+  <h1 class="display-4">404</h1>
+  <p class="lead">The website has been combed, and your URL cannot be found.</p>
+  <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
+  <br>
+
+  <!-- Quick Navigation Links -->
+  <div class="row w-100" style="max-width: 700px;">
+    <div class="col-md-4 mb-2">
+      <a href="/projects/" class="btn btn-outline-light btn-equal d-block">
+        View all of my projects.
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="/projects/it-tools/" class="btn btn-outline-light btn-equal d-block">
+        Look up SSL, DNS, and IP address info.
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="/projects/seo-head-checker/" class="btn btn-outline-light btn-equal d-block">
+        Check a website's SEO.
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="/projects/weather/" class="btn btn-outline-light btn-equal d-block">
+        Check the weather forecast.
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="/projects/qr-code-generator" class="btn btn-outline-light btn-equal d-block">
+        Generate a QR code.
+      </a>
+    </div>
+    <div class="col-md-4 mb-2">
+      <a href="/" class="btn btn-primary btn-equal d-block">
+        Return to the homepage.
+      </a>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <button onclick="window.history.back()" class="btn btn-secondary mt-3 btn-equal" aria-label="Go back to previous page">
+    Go Back
+  </button>
+</main>
+{% endblock content %}

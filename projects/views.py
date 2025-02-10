@@ -699,16 +699,7 @@ def runtime_txt(request):
 
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
 def view_404(request, exception):
-    # If the request is for a static file (including the service worker)
-    if (
-        request.path.startswith(settings.STATIC_URL)
-        or request.path == "/service-worker.js"
-    ):
-        # Return the default 404 response for static files
-        return HttpResponseNotFound("File not found")
-
-    # Otherwise, redirect to the homepage
-    return redirect("/")
+    return render(request, "404.html", status=404)
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
