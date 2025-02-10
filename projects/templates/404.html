@@ -25,44 +25,58 @@
       padding-bottom: 10px !important;
     }
 
-    /* On mobile devices, remove the fixed viewport height so the image isn’t cut off */
+    /* On mobile devices, adjust the main container height and padding */
     @media (max-width: 768px) {
-      main.container {
+      main.container,
+      main.container-fluid {
         height: auto !important;
         width: auto !important;
         padding-top: 20px !important;
         padding-bottom: 20px !important;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
       }
     }
+
     /* Override fixed button width on very small screens */
     @media (max-width: 576px) {
       .btn-equal {
         width: 100% !important;
       }
     }
+
+    /* Only apply max-width to nav row on larger screens */
+    @media (min-width: 768px) {
+      .nav-row {
+        max-width: 700px;
+      }
+    }
   </style>
   {% endblock styles %}
-  
   {% block scripts %}{% endblock scripts %}
-  {% block meta_tags %}{% endblock meta_tags %}
+  {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+  {% endblock meta_tags %}
   {% block link_tags %}{% endblock link_tags %}
   {% block title %}404 | Page Not Found{% endblock title %}
 {% endblock page_head %}
-
 {% block content %}
-<main class="container d-flex flex-column justify-content-center align-items-center vh-100 text-center" role="main" aria-label="404: Page Not Found">
-  <center>
+<main class="container-fluid d-flex flex-column justify-content-center align-items-center vh-100 text-center px-3" role="main" aria-label="404: Page Not Found">
+  <div class="text-center">
     <!-- Optional illustration without inline styling; using a responsive class instead -->
     <img src="https://imagedelivery.net/Ph-vG8aniYh-l61QIympbA/8fddbce8-4426-42d0-2625-4ec3814c1e00/public" 
-        alt="Spaceballs reference. Combing the desert scene." 
-        class="img-fluid mb-4 responsive-img">
+         alt="Spaceballs reference. Combing the desert scene." 
+         class="img-fluid mb-4 responsive-img">
 
     <h1 class="display-4">404</h1>
     <p class="lead">The website has been combed, and your URL cannot be found.</p>
     <!-- Quick Navigation Links -->
-    <div class="row w-100" style="max-width: 700px;">
+    <div class="row w-100 nav-row">
       <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
-      <!-- Added col-6 so that on mobile (extra small screens) the columns are 50% wide -->
+      <!-- Grid columns (col-6 on extra small, col-md-4 on medium and up) -->
       <div class="col-6 col-md-4 mb-2">
         <a href="/projects/" class="btn btn-outline-light btn-equal d-block">
           View all of my projects.
@@ -94,6 +108,6 @@
         </a>
       </div>
     </div>
-  </center>
+  </div>
 </main>
 {% endblock content %}

@@ -698,6 +698,7 @@ def runtime_txt(request):
 
 
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_404(request, exception):
     return render(request, "404.html", status=404)
 
