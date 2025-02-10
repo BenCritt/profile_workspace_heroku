@@ -6,13 +6,30 @@
   <style>
     /* Ensure all buttons have a fixed height and centered text */
     .btn-equal {
-      height: 80px;                    /* Fixed height for consistent sizing */
-      display: flex !important;        /* Force flex display */
-      align-items: center !important;  /* Force vertical centering */
-      justify-content: center !important; /* Force horizontal centering */
-      text-align: center;              /* Center text for multiline buttons */
-      padding: 1 !important;           /* Remove extra padding */
-      box-sizing: border-box;          /* Include padding in the total height */
+      height: 80px !important;              /* Fixed height for consistent sizing */
+      display: flex !important;             /* Force flex display */
+      align-items: center !important;       /* Force vertical centering */
+      justify-content: center !important;   /* Force horizontal centering */
+      text-align: center !important;        /* Center text for multiline buttons */
+      padding: 0 !important;                /* Remove extra padding */
+      box-sizing: border-box !important;    /* Include padding in the total height */
+      line-height: 1;
+    }
+
+    /* Responsive image styling */
+    .responsive-img {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+    }
+
+    /* On mobile devices, remove the fixed viewport height so the image isn’t cut off */
+    @media (max-width: 768px) {
+      main.container {
+        height: auto !important;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
     }
   </style>
   {% endblock styles %}
@@ -25,11 +42,10 @@
 
 {% block content %}
 <main class="container d-flex flex-column justify-content-center align-items-center vh-100 text-center" role="main" aria-label="404: Page Not Found">
-  <!-- Optional illustration -->
+  <!-- Optional illustration without inline styling; using a responsive class instead -->
   <img src="https://imagedelivery.net/Ph-vG8aniYh-l61QIympbA/8fddbce8-4426-42d0-2625-4ec3814c1e00/public" 
        alt="Spaceballs reference; Coming the desert scene." 
-       class="img-fluid mb-4" 
-       style="max-width: 500px;">
+       class="img-fluid mb-4 responsive-img">
 
   <h1 class="display-4">404</h1>
   <p class="lead">The website has been combed, and your URL cannot be found.</p>
