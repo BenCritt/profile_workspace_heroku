@@ -15,36 +15,42 @@
       box-sizing: border-box !important;     /* Include padding in the total height */
       line-height: 1 !important;             /* Normalize line-height */
     }
-
+  
     /* Responsive image styling */
     .responsive-img {
       width: auto !important;
-      max-width: 600px !important;
+      max-width: 100% !important;           /* Ensure image doesn't overflow */
       height: auto !important;
       padding-top: 10px !important;
       padding-bottom: 10px !important;
     }
-
+  
     /* On mobile devices, adjust the main container height and padding */
     @media (max-width: 500px) {
       main.container,
       main.container-fluid {
         height: auto !important;
-        width: auto !important;
+        width: 100% !important;             /* Ensure full width on small screens */
         padding-top: 20px !important;
         padding-bottom: 20px !important;
-        padding-left: 15px !important;
-        padding-right: 15px !important;
+        padding-left: 5px !important;       /* Reduced padding for small screens */
+        padding-right: 5px !important;      /* Reduced padding for small screens */
+      }
+  
+      .container {
+        max-width: 100% !important;         /* Ensure container doesn't exceed screen width */
       }
     }
-
+  
     /* Override fixed button width on very small screens */
     @media (max-width: 576px) {
       .btn-equal {
-        width: 100% !important;
+        width: 100% !important;             /* Full width buttons on small screens */
+        padding-left: 10px !important;      /* Adjust padding for better fit */
+        padding-right: 10px !important;
       }
     }
-
+  
     /* Only apply max-width to nav row on larger screens */
     @media (min-width: 768px) {
       .nav-row {
@@ -66,12 +72,11 @@
 {% block content %}
 <main class="container-fluid d-flex flex-column justify-content-center align-items-center vh-100 text-center px-3" role="main" aria-label="404: Page Not Found">
   <center>
-  <div class = "container" style="width: 100%; max-width: 750px;">
+  <div class="container" style="width: 100%;">
     <!-- Optional illustration without inline styling; using a responsive class instead -->
     <img src="https://imagedelivery.net/Ph-vG8aniYh-l61QIympbA/8fddbce8-4426-42d0-2625-4ec3814c1e00/public" 
          alt="Spaceballs reference. Combing the desert scene." 
          class="img-fluid mb-4 responsive-img">
-
     <h1 class="display-4">404</h1>
     <p class="lead">The website has been combed, and your URL cannot be found.</p>
     <!-- Quick Navigation Links -->
