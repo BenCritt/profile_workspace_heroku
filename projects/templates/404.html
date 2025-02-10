@@ -34,6 +34,12 @@
         padding-bottom: 20px !important;
       }
     }
+    /* Override fixed button width on very small screens */
+    @media (max-width: 576px) {
+      .btn-equal {
+        width: 100% !important;
+      }
+    }
   </style>
   {% endblock styles %}
   
