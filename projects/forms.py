@@ -27,6 +27,34 @@ from urllib.parse import urlparse
 # Utilized in the clean methods of forms like SitemapForm and SSLCheckForm.
 from .utils import normalize_url
 
+# XML Splitter
+class XMLUploadForm(forms.Form):
+    file = forms.FileField(
+        label="Upload your XML file here (25 MB limit)",
+        # help_text="File should wrap many <Order>, <Product>, etc. objects under one root.",
+    )
+
+    def clean_file(self):
+        MAX_XML_SIZE = 25 * 1024 * 1024   # 25 MB
+        f = self.cleaned_data["file"]
+
+        # Make sure the file size of the user's XML file isn't too large.
+        if f.size > MAX_XML_SIZE:
+            raise forms.ValidationError(
+                f"File is {f.size/1_048_576:.1f} MB; the limit is {MAX_XML_SIZE/1_048_576:.0f} MB."
+            )
+
+        # Make sure the user submitted an XML file and not another file format.
+        if not f.name.lower().endswith(".xml"):
+            raise forms.ValidationError("This tool only accepts XML files.  Please upload a file with the .xml extension.")
+
+        # MIME‑type hint – only if your reverse proxy sets it.
+        allowed_types = {"text/xml", "application/xml", "application/octet-stream"}
+        if getattr(f, "content_type", None) not in allowed_types:
+            raise forms.ValidationError("That file doesn’t look like XML.")
+
+        return f
+
 
 # SEO Head Checker
 class SitemapForm(forms.Form):

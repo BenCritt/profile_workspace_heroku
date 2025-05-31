@@ -21,6 +21,8 @@ from .forms import (
     CarrierSearchForm,
     # SitemapForm is used in the SEO Head Checker.
     SitemapForm,
+    # XMLUploadForm is used in the XML Splitter.
+    XMLUploadForm,
 )
 
 # Provides operating system-dependent functionality, such as file path handling and directory management.
@@ -86,6 +88,8 @@ from .utils import (
     # process_sitemap_urls: Processes multiple URLs concurrently, updating progress and returning results.
     process_sitemap_urls,
     detect_region,
+    # split_xml_to_zip is used in the XML Splitter.
+    split_xml_to_zip,
 )
 
 # Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
@@ -125,7 +129,29 @@ from timezonefinder import TimezoneFinder
 # Handles time zones for converting UTC times to the observer's local time zone.
 import pytz
 
+# Used in the XML Splitter
+from django.http import StreamingHttpResponse
 
+# XML Splitter
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def xml_splitter(request):
+    form = XMLUploadForm(request.POST or None, request.FILES or None)
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            zip_io = split_xml_to_zip(form.cleaned_data["file"])
+        except ValueError as err:
+            # Show the problem to the user instead of crashing
+            form.add_error("file", str(err))
+        else:
+            download_name = form.cleaned_data["file"].name.rsplit(".", 1)[0] + "_split.zip"
+            response = StreamingHttpResponse(zip_io, content_type="application/zip")
+            response["Content-Disposition"] = f'attachment; filename="{download_name}"'
+            return response
+
+    return render(request, "projects/xml_splitter.html", {"form": form})
+
+# ISS Tracker
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def iss_tracker(request):
     """

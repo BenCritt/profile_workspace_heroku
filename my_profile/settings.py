@@ -161,3 +161,7 @@ CACHES = {
         },
     }
 }
+
+# Hard abort if the request body exceeds 25 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB

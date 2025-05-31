@@ -61,4 +61,5 @@ urlpatterns = [
         name="download_task_file",
     ),
     path("current-iss-data/", views.current_iss_data, name="current_iss_data"),
+    path("projects/xml-splitter/", views.xml_splitter, name="xml_splitter"),
 ]
