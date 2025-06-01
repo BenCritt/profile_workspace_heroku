@@ -1,4 +1,76 @@
 {% extends "projects/base.html" %}
+{% block page_head %}
+{% block scripts %}
+<!-- Schema for SEO -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "XML Splitter",
+    "description": "The XML Splitter lets users upload a multi‑object XML file (e.g. Orders, Products, Customers) and instantly download a ZIP archive containing one well‑formed XML file per object—each named after its ID.",
+    "url": "https://www.bencritt.net/projects/xml-splitter/",
+    "applicationCategory": "Utility",
+    "operatingSystem": "Web-based",
+    "image": "",
+    "creator": {
+      "@type": "Person",
+      "name": "Ben Crittenden",
+      "url": "https://www.bencritt.net"
+    },
+    "featureList": [
+      "Uploads a single XML file containing multiple objects nested under one root tag.",
+      "Splits each object into its own standalone XML file named with the object's first ID value.",
+      "Compresses all generated XML files into a single ZIP archive for download.",
+      "Runs entirely in the browser—no data is permanently stored on the server."
+    ]
+  }
+  </script>
+  
+
+{% endblock scripts %}    
+{% block styles %} 
+<!-- Custom CSS styles for the table. -->
+<style>
+    .centered-content {
+        text-align: center; /* Centers the content */
+    }       
+</style>
+{% endblock styles %}
+{% block meta_tags %}
+<!-- Prevent browser caching to avoid stale CSRF tokens -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- SEO fundamentals -->
+<meta name="description"
+      content="Upload a single XML file that contains many <Order>, <Product>, or <Customer> objects and instantly download a ZIP archive of one‑object‑per‑file XMLs—each named by its ID.">
+<meta name="keywords"
+      content="XML Splitter, split XML, XML parser, separate XML files, XML utility, web-based XML tool">
+
+<!-- Open Graph (Facebook, LinkedIn, etc.) -->
+<meta property="og:url"           content="https://www.bencritt.net/projects/xml-splitter/">
+<meta property="og:type"          content="website">
+<meta property="og:title"         content="XML Splitter – Split Multi‑Object XML into Individual Files">
+<meta property="og:description"   content="Upload a multi‑object XML file, split it into individual XML files named after each object's ID, and download everything as a ZIP.">
+<meta property="og:image"         content="">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card"         content="summary_large_image">
+<meta property="twitter:domain"   content="bencritt.net">
+<meta property="twitter:url"      content="https://www.bencritt.net/projects/xml-splitter/">
+<meta name="twitter:title"        content="XML Splitter – Split Multi‑Object XML into Individual Files">
+<meta name="twitter:description"  content="Upload a multi‑object XML file, split it into individual XML files named after each object's ID, and download everything as a ZIP.">
+<meta name="twitter:image"        content="">
+<meta name="twitter:creator"      content="@bencritt89">  <!-- update if different -->
+{% endblock meta_tags %}
+
+{% block link_tags %}
+<!-- Canonical link to help avoid duplicate content issues. -->
+<link rel="canonical" href="https://www.bencritt.net/projects/xml-splitter/">
+{% endblock link_tags %}
+{% block title %}XML Splitter | Split and Compress XML Files{% endblock title %}
+{% endblock page_head %}
 {% block content %}
 <main>
     <center>
@@ -22,7 +94,7 @@
                       Split XML File &amp; Download ZIP Folder
                     </button>
                     <br><br>
-                    <p>Disclaimer: No data from the XML files uploaded to this website is caputred. The XML file briefly exists in memory while processed.  Once the ZIP folder is served to the user's default downloads folder, the file no longer exists on the server.</p>
+                    <p>Disclaimer: No data from the XML files uploaded to this website is caputred. The XML file briefly exists in memory while processing.  Once the ZIP folder is served to the user's default downloads folder, the file no longer exists on the server.</p>
                 </form>
         </div>
     </center>
