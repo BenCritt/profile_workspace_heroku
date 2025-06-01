@@ -6,7 +6,7 @@ from django.views.generic.base import RedirectView
 handler404 = "projects.views.view_404"
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    # path("admin/", admin.site.urls),
     path(
         "", include("projects.urls")
     ),  # Ensures "" is home, "/projects/" is all_projects
