@@ -1,6 +1,7 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /static/
+Disallow: /metrics/
 Disallow: /cdn-cgi/l/email-protection
 Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
 Disallow: /cdn-cgi/styles/cf.errors.css
