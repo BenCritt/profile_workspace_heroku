@@ -133,22 +133,35 @@ import pytz
 from django.http import StreamingHttpResponse
 
 # XML Splitter
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
+    # Load the form for the user to upload their XML file.
     form = XMLUploadForm(request.POST or None, request.FILES or None)
 
+    # If the user submitted an XML file.
     if request.method == "POST" and form.is_valid():
+        # Attempt to split the XML file into multiple XML files.
         try:
+            # Use the split_xml_to_zip function from utils.py to parse the user's file and create their new files.
+            # form.cleaned_data is a stock Django utility.  The file captured by the form is what's being parsed by split_xml_to_zip.
+            # The results of this are captured by zip_io.
             zip_io = split_xml_to_zip(form.cleaned_data["file"])
+        # Catch errors so the app doesn't crash.
         except ValueError as err:
-            # Show the problem to the user instead of crashing
+            # Show the problem to the user instead of crashing.
             form.add_error("file", str(err))
+        # If everything worked, it's time to give the user their ZIP folder containing their new files.
         else:
+            # This is the naming convention for the ZIP folder.
+            # Splits from the rightmost dot in the source filename and takes the first of the two portions made from that split.
+            # Concatenate the first portion with _split.zip.
             download_name = form.cleaned_data["file"].name.rsplit(".", 1)[0] + "_split.zip"
             response = StreamingHttpResponse(zip_io, content_type="application/zip")
             response["Content-Disposition"] = f'attachment; filename="{download_name}"'
             return response
 
+    # Load the web page.
     return render(request, "projects/xml_splitter.html", {"form": form})
 
 # ISS Tracker
