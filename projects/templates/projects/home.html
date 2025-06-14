@@ -2,6 +2,7 @@
 {% extends "projects/base.html" %}
 <!-- Begin defining the head section where scripts, styles, meta tags, and title will be included. -->
     {% block extra_head %}
+    {{ block.super }}
     {% block scripts %}
     <!-- Structured data (i.e. schema) using JSON-LD to provide information about the page's subject (Ben Crittenden) to search engines. -->
     <script type="application/ld+json">
