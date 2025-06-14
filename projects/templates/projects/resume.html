@@ -1,6 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
     {% block extra_head %}
+    {{ block.super }}
     <!-- SEO and social media sharing meta tags specific to this page. -->
     {% block meta_tags %}
     <meta name="description" content="This web page contains the documented qualifications of Ben Crittenden.">
@@ -12,7 +13,7 @@
     <!-- Canonical URL to help prevent duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/resume/">
     {% endblock link_tags %}
-    {% block title %}My Résumé{% endblock title %}
+    <title>{% block title %}My Résumé{% endblock title %}</title>
     {% endblock extra_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}

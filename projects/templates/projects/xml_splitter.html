@@ -1,5 +1,6 @@
 {% extends "projects/base.html" %}
 {% block extra_head %}
+{{ block.super }}
 {% block scripts %}
 <!-- Schema for SEO -->
 <script type="application/ld+json">
@@ -64,7 +65,7 @@
 <!-- Canonical link to help avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/xml-splitter/">
 {% endblock link_tags %}
-{% block title %}XML Splitter | Split and Compress XML Files{% endblock title %}
+<title>{% block title %}XML Splitter | Split and Compress XML Files{% endblock title %}</title>
 {% endblock extra_head %}
 {% block content %}
 <main>

@@ -1,6 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
     {% block extra_head %}
+    {{ block.super }}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -257,9 +258,8 @@
     {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/">
     {% endblock link_tags %}
-    {% block title %}All Projects | Ben Crittenden's IT and Educational Tools{% endblock title %}
+    <title>{% block title %}All Projects | Ben Crittenden's IT and Educational Tools{% endblock title %}</title>
     {% endblock extra_head %}
-
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <center><h1>Ben Crittenden's Projects</h1></center>

@@ -1,5 +1,6 @@
 {% extends "projects/base.html" %}
     {% block extra_head %}
+    {{ block.super }}
     {% block scripts %}
     <!-- Schema for SEO -->
     <script type="application/ld+json">
@@ -93,7 +94,7 @@
         <!-- Canonical link to help avoid duplicate content issues. -->
         <link rel="canonical" href="https://www.bencritt.net/projects/it-tools/">
     {% endblock link_tags %}
-    {% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
+    <title>{% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}</title>
     {% block styles %} 
         <!-- CSS to make the cards display well -->
         <style>

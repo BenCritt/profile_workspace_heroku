@@ -1,6 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% block extra_head %}
+{{ block.super }}
 {% block scripts %}
 <!-- This is schema to help with SEO. -->
 <script type="application/ld+json">
@@ -54,7 +55,7 @@
 <!-- Canonical URL to avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/grade-level-analyzer/">
 {% endblock link_tags %}
-{% block title %}Grade Level Text Analyzer | Check Readability Scores Online{% endblock title %}
+<title>{% block title %}Grade Level Text Analyzer | Check Readability Scores Online{% endblock title %}</title>
 {% endblock extra_head %}
 <!-- This begins the body contents that are unique to this page. -->
 {% block content %}
