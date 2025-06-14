@@ -1,7 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
     <!-- Block to define specific meta tags, links, and titles for the head section of the page. -->
-    {% block page_head %}
+    {% block extra_head %}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -60,7 +60,7 @@
     <link rel="canonical" href="https://www.bencritt.net/projects/qr-code-generator/">
     {% endblock link_tags %}
     {% block title %}QR Code Generator | Create and Download Custom QR Codes Online{% endblock title %}
-    {% endblock page_head %}
+    {% endblock extra_head %}
     <!-- This begins the contents that are unique to the body of this page. -->
     {% block content %}
       <!-- Page heading and instructions. -->

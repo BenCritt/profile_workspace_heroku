@@ -1,7 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 <!-- Begin defining the head section where scripts, styles, meta tags, and title will be included. -->
-    {% block page_head %}
+    {% block extra_head %}
     {% block scripts %}
     <!-- Structured data (i.e. schema) using JSON-LD to provide information about the page's subject (Ben Crittenden) to search engines. -->
     <script type="application/ld+json">
@@ -196,7 +196,7 @@
     <link rel="canonical" href="https://www.bencritt.net">
     {% endblock link_tags %}
     {% block title %}Ben Crittenden | IT Professional{% endblock title %}
-    {% endblock page_head %}
+    {% endblock extra_head %}
     <!-- This begins the contents that are unique to the body of this page. -->
     {% block content %}
       <center>

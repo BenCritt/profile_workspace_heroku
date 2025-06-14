@@ -1,6 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-    {% block page_head %}
+    {% block extra_head %}
     {% block scripts %}
     <!-- Schema for SEO -->
     <script type="application/ld+json">
@@ -64,7 +64,7 @@
     <link rel="canonical" href="https://www.bencritt.net/projects/seo-head-checker/">
     {% endblock link_tags %}
     {% block title %}SEO Head Checker | Free Tool to Analyze SEO Head Elements{% endblock title %}
-    {% endblock page_head %}
+    {% endblock extra_head %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>

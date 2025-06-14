@@ -1,6 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-{% block page_head %}   
+{% block extra_head %}   
 {% block styles %} 
     <!-- Custom CSS styles for the Readability Results -->
     <style>
@@ -61,7 +61,7 @@
 <meta property="og:description" content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text.  This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau.  All three scores are given, as well as uniform and weighted averages." />
 {% endblock meta_tags %}
 {% block title %}Grade Level Text Analyzer{% endblock title %}
-{% endblock page_head %}
+{% endblock extra_head %}
 <!-- This begins the body contents that are unique to this page. -->
 {% block content %}
 <center>
