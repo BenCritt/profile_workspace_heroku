@@ -22,7 +22,7 @@ pyparsing==3.2.1
 python-dateutil==2.9.0
 six==1.17.0
 pyzipcode==3.0.1
-requests==2.32.3
+requests==2.32.4
 certifi==2025.1.31
 charset-normalizer==3.4.1
 idna==3.10
