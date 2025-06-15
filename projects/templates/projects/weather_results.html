@@ -1,7 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-      {% block extra_head %}
-      {{ block.super }}
       {% block styles %}
       <!-- This is table formatting for when the weather data is displayed to the user. -->
       <style>
@@ -49,8 +47,7 @@
       <meta property="og:title" content="Weather Forecast App by Ben Crittenden" />
       <meta property="og:description" content="This page displays the weather results after the user enters their ZIP code." />
       {% endblock meta_tags %}
-      <title>{% block title %}Weather Forecast{% endblock title %}</title>
-      {% endblock extra_head %}
+      {% block title %}Weather Forecast{% endblock title %}
       <!-- This begins the contents that are unique to this page. -->
       {% block content %}
       <center>

@@ -1,7 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-    {% block extra_head %}
-    {{ block.super }}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -109,8 +107,7 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/freight-safety/">
     {% endblock link_tags %}
-    <title>{% block title %}Freight Carrier Safety Reporter | Generate Comprehensive Safety Reports for Freight Carriers{% endblock title %}</title>
-    {% endblock extra_head %}
+    {% block title %}Freight Carrier Safety Reporter | Generate Comprehensive Safety Reports for Freight Carriers{% endblock title %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>

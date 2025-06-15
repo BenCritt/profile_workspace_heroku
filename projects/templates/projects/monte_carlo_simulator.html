@@ -1,7 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-    {% block extra_head %}
-    {{ block.super }}
     {% block scripts %}    
     <!-- This allows the user to select one of two options for number of simulations. -->
     <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -77,8 +75,7 @@
     <!-- Canonical URL for the page to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/monte-carlo-simulator/">
     {% endblock link_tags %}
-    <title>{% block title %}Monte Carlo Simulator | Data Range Simulations and PDF Graphs{% endblock title %}</title>
-    {% endblock extra_head %}
+    {% block title %}Monte Carlo Simulator | Data Range Simulations and PDF Graphs{% endblock title %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
       <center><h1>Monte Carlo Simulator</h1><br>

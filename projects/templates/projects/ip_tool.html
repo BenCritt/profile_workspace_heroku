@@ -1,7 +1,5 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
-    {% block extra_head %}
-    {{ block.super }}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -108,8 +106,7 @@
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/ip-tool/">
     {% endblock link_tags %}
-    <title>{% block title %}IP Address Lookup Tool | Reverse DNS, Geolocation, and Blacklist Check{% endblock title %}</title>
-    {% endblock extra_head %}
+    {% block title %}IP Address Lookup Tool | Reverse DNS, Geolocation, and Blacklist Check{% endblock title %}
     <!-- This begins the contents that are unique to this page. -->
     {% block content %}
     <main>
