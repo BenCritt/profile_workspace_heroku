@@ -1,5 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
-{% extends "projects/base.html" %}    
+{% extends "projects/base.html" %}
+{% load static %}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -270,7 +271,7 @@
                     <h2 class="fw-bolder">Monte Carlo Simulator</h2>
                   </a>
                   <a href="/projects/monte-carlo-simulator/">
-                    <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/g3CnrTi.png" alt="Monte Carlo Simulator" />
+                    <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/monte-carlo-simulator.webp' %}" alt="Monte Carlo Simulator" />
                   </a>
                 </div>
             </div>
@@ -290,7 +291,7 @@
                   <h2 class="fw-bolder">QR Code Generator</h2>
                 </a>
                 <a href="/projects/qr-code-generator/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/qkKW1uj.png" alt="QR Code Generator" />                    
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/qr-code-generator.webp' %}" alt="QR Code Generator" />                    
                 </a>
               </div>
           </div>
@@ -311,7 +312,7 @@
                     <h2 class="fw-bolder">Weather Forecast App</h2>
                   </a>
                   <a href="/projects/weather/">
-                    <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/z5mXqpV.png" alt="Weather Forecast App" />                        
+                    <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/weather.webp' %}" alt="Weather Forecast App" />                        
                   </a>
                 </div>
             </div>
@@ -332,7 +333,7 @@
                   <h2 class="fw-bolder">Grade Level Text Analyzer</h2>
                 </a>
                 <a href="/projects/grade-level-analyzer/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/wznaxeu.png" alt="Grade Level Text Analyzer" />                    
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/grade-level-text-analyzer.webp' %}" alt="Grade Level Text Analyzer" />                    
                 </a>
               </div>
           </div>
@@ -353,7 +354,7 @@
                   <h2 class="fw-bolder">DNS Lookup Tool</h2>
                 </a>
                 <a href="/projects/dns-lookup/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/jiKZkIp.png" alt="DNS Lookup Tool" />                        
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" />                     
                 </a>
               </div>
           </div>
@@ -374,7 +375,7 @@
                   <h2 class="fw-bolder">IP Address Lookup Tool</h2>
                 </a>
                 <a href="/projects/ip-tool/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/3ikMQJN.png" alt="IP Address Lookup Tool" />                    
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" />                    
                 </a>
               </div>
           </div>
@@ -395,7 +396,7 @@
                   <h2 class="fw-bolder">SSL Verification Tool</h2>
                 </a>
                 <a href="/projects/ssl-check/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/51PpOfA.png" alt="SSL Verification Tool" />                    
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" />                    
                 </a>
               </div>
           </div>
@@ -416,7 +417,7 @@
                 <h2 class="fw-bolder">Freight Carrier Safety Reporter</h2>
               </a>
               <a href="/projects/freight-safety/">
-                <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/RZdoyWa.png" alt="Freight Carrier Safety Reporter" />                    
+                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/freight-safety.webp' %}" alt="Freight Carrier Safety Reporter" />              
               </a>
             </div>
         </div>
@@ -437,7 +438,7 @@
                   <h2 class="fw-bolder">SEO Head Checker</h2>
                 </a>
                 <a href="/projects/seo-head-checker/">
-                  <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/9Qlufcf.png" alt="SEO Head Checker" />                    
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker" />              
                 </a>
               </div>
           </div>
@@ -459,7 +460,7 @@
                       <h2 class="fw-bolder">ISS Tracker</h2>
                   </a>
                   <a href="/projects/iss-tracker/">
-                      <img class="img-fluid rounded mb-5 mb-lg-0" src="https://i.imgur.com/G4TqDlT.png" alt="ISS Tracker" />
+                      <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/iss-tracker.webp' %}" alt="ISS Tracker" />
                   </a>
               </div>
           </div>

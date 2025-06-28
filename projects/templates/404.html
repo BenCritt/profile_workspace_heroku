@@ -1,4 +1,5 @@
 {% extends "projects/base.html" %}
+{% load static %}
   {% block styles %}
   <style>
     .btn-equal {
@@ -71,7 +72,7 @@
   <center>
   <div class="container" style="width: 100%;">
     <!-- Optional illustration without inline styling; using a responsive class instead -->
-    <img src="https://imagedelivery.net/Ph-vG8aniYh-l61QIympbA/8fddbce8-4426-42d0-2625-4ec3814c1e00/public" 
+    <img src="{% static 'img/404.webp' %}"
          alt="Spaceballs reference. Combing the desert scene." 
          class="img-fluid mb-4 responsive-img">
     <h1 class="display-4">404</h1>
