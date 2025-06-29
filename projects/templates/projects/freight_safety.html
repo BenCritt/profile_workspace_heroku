@@ -112,15 +112,17 @@
     {% block content %}
     <main>
         <center>
-            <h1>Freight Carrier Safety Reporter</h1>
-            <br>
-            <p><strong>NOTICE (6/29/25): </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, is currently down.  Their developer website is also currently down.  There is no timeline for when they'll come back online.</p>
-            <br>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <input type="submit" id="freight-lookup-btn" class="btn btn-primary" value="Generate Safety Report" aria-label="Generate Safety Report">
-            </form>
+            <div style="width: 100%; max-width: 500px;"></div>
+                <h1>Freight Carrier Safety Reporter</h1>
+                <br>
+                <p><strong>NOTICE (6/29/25): </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, is currently down.  Their developer website is also currently down.  There is no timeline for when they'll come back online.</p>
+                <br>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <input type="submit" id="freight-lookup-btn" class="btn btn-primary" value="Generate Safety Report" aria-label="Generate Safety Report">
+                </form>
+            </div>
             <br>
             {% if error %}
                 <p style="color: red;">{{ error }}</p>
