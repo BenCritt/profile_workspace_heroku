@@ -26,7 +26,7 @@ requests==2.32.4
 certifi==2025.1.31
 charset-normalizer==3.4.1
 idna==3.10
-urllib3==2.3.0
+urllib3==2.5.0
 beautifulsoup4==4.13.3
 soupsieve==2.6
 textstat==0.7.5
