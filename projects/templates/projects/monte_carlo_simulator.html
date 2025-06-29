@@ -2,22 +2,28 @@
 {% extends "projects/base.html" %}
     {% block scripts %}    
     <!-- This allows the user to select one of two options for number of simulations. -->
-    <script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-    $(document).ready(function() {
-      // Initially hide the second data range fields
-      $('#two-range-fields').hide();
-        
-      // Show/hide fields based on radio button selection
-      $('input[type=radio][name=data-range]').change(function() {
-        if (this.value === 'one') {
-          $('#one-range-fields').show();
-          $('#two-range-fields').hide();
-        } else if (this.value === 'two') {
-          $('#one-range-fields').show();
-          $('#two-range-fields').show();
-        }
-      });
+    <script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+      const one = document.getElementById('one-range-fields');
+      const two = document.getElementById('two-range-fields');
+
+      // radio buttons that control the range mode
+      const radios = document.querySelectorAll('input[name="data-range"]');
+
+      function toggleFields(value) {
+        const showTwo = value === 'two';
+        two.classList.toggle('d-none', !showTwo);   // hide or show
+        // 'one' fields are always visible, so no need to toggle them
+      }
+
+      // run once on load (in case the form remembers its state)
+      const selected = document.querySelector('input[name="data-range"]:checked');
+      if (selected) toggleFields(selected.value);
+
+      // listen for changes
+      radios.forEach(radio =>
+        radio.addEventListener('change', e => toggleFields(e.target.value))
+      );
     });
     </script>
     <!-- This is schema to help with SEO. -->
@@ -112,7 +118,7 @@
                 {{ form.target_val.label_tag }} <br>
                 {{ form.target_val }} <br>
                 </div>
-                <div id="two-range-fields">
+                <div id="two-range-fields" class="d-none">
                 <!-- Form fields for the second data range -->
                 {{ form.second_sim_quantity.label_tag }} <br>
                 {{ form.second_sim_quantity }} <br>
