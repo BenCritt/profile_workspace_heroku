@@ -114,6 +114,8 @@
         <center>
             <h1>Freight Carrier Safety Reporter</h1>
             <br>
+            <p><strong>NOTICE (6/29/25): </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, is currently down.  Their developer website is also currently down.  There is no timeline for when they'll come back online.</p>
+            <br>
             <form method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
@@ -128,42 +130,6 @@
                 <p>Freight Carrier Safety Report for:</p><br>
                 <p>{{ carrier.name }}</p>
                 <br>
-                <!-- Safety Score Chart -->
-                <!-- I'm still working on this feature. -->
-                <!--
-                <h3>Safety Score</h3>
-                <div id="safety-score-chart"></div>
-                <script>
-                    var data = [
-                        {
-                            type: "indicator",
-                            mode: "gauge+number",
-                            value: {{ safety_score|default:"0" }},
-                            gauge: {
-                                axis: { range: [0, 100] },
-                                steps: [
-                                    { range: [0, 50], color: "red" },
-                                    { range: [50, 75], color: "yellow" },
-                                    { range: [75, 100], color: "green" }
-                                ],
-                                threshold: {
-                                    line: { color: "black", width: 4 },
-                                    thickness: 0.75,
-                                    value: {{ safety_score|default:"0" }}
-                                }
-                            }
-                        }
-                    ];
-
-                    var layout = { 
-                        width: 400, 
-                        height: 300, 
-                        margin: { t: 0, b: 0 } 
-                    };
-
-                    Plotly.newPlot('safety-score-chart', data, layout);
-                </script>
-                -->
                 <!-- Table 1: Non-Safety Information -->
                 <h3>Basic Carrier Information</h3>
                 <div class = "table-container" style = "width: 100%; max-width: 750px;">
