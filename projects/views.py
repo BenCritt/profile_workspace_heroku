@@ -589,12 +589,12 @@ def manifest(request):
         "name": "Ben Crittenden's PWA",
         "icons": [
             {
-                "src": "https://i.imgur.com/o7ZaHGO.png",
+                "src": "https://www.bencritt.net/static/img/pwa/pwa-192.png",
                 "sizes": "192x192",
                 "type": "image/png",
             },
             {
-                "src": "https://i.imgur.com/TEf3wAa.png",
+                "src": "https://www.bencritt.net/static/img/pwa/pwa-512.png",
                 "sizes": "512x512",
                 "type": "image/png",
             },
