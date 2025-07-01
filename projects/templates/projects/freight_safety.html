@@ -115,7 +115,11 @@
             <div style="width: 100%; max-width: 500px;">
                 <h1>Freight Carrier Safety Reporter</h1>
                 <br>
-                <!-- <p><strong>NOTICE (6/29/25): </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, is currently down.  Their developer website is also currently down.  There is no timeline for when they'll come back online.</p> -->
+                <p>
+                    <strong>NOTICE (6/29/25): </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, has become unreliable.  Their developer website is also 
+                    sporadically up or down.  I can't use conditional logic to tell users when it's up or down like with my weather app because I don't have a list of valid DOT numbers like I do with 
+                    ZIP codes.  If I did, I'd have to update it every time a new freight operator is assigned a new number, which happens often.  So, this notice will serve this purpose.
+                </p>
                 <br>
                 <form method="POST">
                     {% csrf_token %}
