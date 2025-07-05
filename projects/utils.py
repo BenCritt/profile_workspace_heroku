@@ -109,7 +109,19 @@ def detect_region(latitude, longitude):
             user_agent="ISS Tracker by Ben Crittenden (+https://www.bencritt.net)"
         )
 
-        # Step 1: Check for land regions using reverse geocoding.
+        # Step 1: Check if the coordinates match any known water body.
+        for water_body in water_bodies:
+            if (
+                water_body["latitude_range"][0]
+                <= latitude
+                <= water_body["latitude_range"][1]
+                and water_body["longitude_range"][0]
+                <= longitude
+                <= water_body["longitude_range"][1]
+            ):
+                return water_body["name"]
+
+        # Step 2: Check for land regions using reverse geocoding.
         location = geolocator.reverse(
             (latitude, longitude), exactly_one=True, language="en", timeout=10
         )
@@ -123,18 +135,6 @@ def detect_region(latitude, longitude):
                 return address["state"]
             elif "city" in address:
                 return address["city"]
-
-        # Step 2: Check if the coordinates match any known water body.
-        for water_body in water_bodies:
-            if (
-                water_body["latitude_range"][0]
-                <= latitude
-                <= water_body["latitude_range"][1]
-                and water_body["longitude_range"][0]
-                <= longitude
-                <= water_body["longitude_range"][1]
-            ):
-                return water_body["name"]
 
         # Fallback for unknown regions.
         return "Unrecognized Region"
