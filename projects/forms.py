@@ -27,6 +27,26 @@ from urllib.parse import urlparse
 # Utilized in the clean methods of forms like SitemapForm and SSLCheckForm.
 from .utils import normalize_url
 
+# Used by the Ham Radio Call Sign Lookup app.
+import re
+
+CALLSIGN_RE = re.compile(r"^[A-Za-z0-9]{3,8}$")
+
+# Ham Radio Call Sign Lookup
+class CallsignLookupForm(forms.Form):
+    callsign = forms.CharField(
+        label="Call Sign: ",
+        max_length=8,
+        # help_text="Enter a valid amateur radio call sign (e.g., W1AW)",
+        widget=forms.TextInput(attrs={"placeholder": "W9YT"}),
+    )
+
+    def clean_callsign(self):
+        cs = self.cleaned_data["callsign"].strip().upper()
+        if not CALLSIGN_RE.fullmatch(cs):
+            raise forms.ValidationError(f"“{cs}” is not a valid call-sign.")
+        return cs
+
 # XML Splitter
 class XMLUploadForm(forms.Form):
     file = forms.FileField(

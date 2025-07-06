@@ -1,0 +1,171 @@
+{% extends "projects/base.html" %}
+{% block styles %}
+<style>
+  /* removes the bullet in Django’s <ul class="errorlist"><li>…</li></ul> */
+  ul.errorlist {
+      list-style: none;      /* no bullet */
+      margin: 0;             /* optional: pull it tight to the field */
+      padding: 0;
+  }
+</style>
+{% endblock styles %}
+{% block content %}
+<div class="container py-4" style="width: 100%; max-width: 500px; margin: auto;">
+
+  <h1 class="text-center">Ham Radio Call Sign Lookup</h1>
+  <br>
+    <form method="post" class="d-flex flex-column align-items-center gap-2 mb-4">
+
+        {% csrf_token %}
+        {{ form.as_p }}
+        <br>
+        <button type="submit" class="btn btn-primary">
+            Look Up Call Sign
+        </button>
+    </form>
+  {% if error %}
+    <div class="alert alert-danger text-center mt-3">{{ error }}</div>
+  {% endif %}
+
+  {% if data and data.status == "VALID" %}
+    <!--  ── Summary card ──────────────────────────────────────────────── -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <h3 class="card-title">
+          {{ data.current.callsign }}
+          <span class="badge bg-{% if data.status == 'VALID' %}success{% else %}danger{% endif %}">
+              {{ data.status }}
+          </span>
+        </h3>
+
+        <dl class="row mb-0">
+          <dt class="col-5 col-md-3">Name</dt>
+          <dd class="col-7 col-md-9">{{ data.name }}</dd>
+
+          <dt class="col-5 col-md-3">Class</dt>
+          <dd class="col-7 col-md-9">{{ data.current.operClass|default:"—" }}</dd>
+
+          <dt class="col-5 col-md-3">Type</dt>
+          <dd class="col-7 col-md-9">{{ data.type|default:"—" }}</dd>
+
+          <dt class="col-5 col-md-3">Expires</dt>
+          <dd class="col-7 col-md-9">{{ data.otherInfo.expiryDate|default:"—" }}</dd>
+
+          <dt class="col-5 col-md-3">Grid</dt>
+          <dd class="col-7 col-md-9">{{ data.location.gridsquare|default:"—" }}</dd>
+
+          <dt class="col-5 col-md-3">Latitude / Longitude</dt>
+          <dd class="col-7 col-md-9">
+            {{ data.location.latitude|floatformat:4 }},&nbsp;
+            {{ data.location.longitude|floatformat:4 }}
+            {% if data.location.latitude %}
+              &nbsp;
+              <a href="https://www.google.com/maps/search/?api=1&query={{ data.location.latitude }},{{ data.location.longitude }}"
+                 target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary ms-2">
+                 Map
+              </a>
+            {% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <!--  ── Accordion with detail panes ───────────────────────────────── -->
+    <div class="accordion mt-3" id="lookupAcc">
+
+      <!--  Regulatory  -->
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="regHead">
+          <button class="accordion-button collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#regBody" aria-expanded="false">
+            Regulatory
+          </button>
+        </h2>
+        <div id="regBody" class="accordion-collapse collapse" data-bs-parent="#lookupAcc">
+          <div class="accordion-body">
+            <dl class="row mb-0">
+
+              <dt class="col-5 col-md-3">FRN
+                {% if data.otherInfo.frn %}
+                  <button class="btn btn-xs btn-link p-0"
+                          onclick="navigator.clipboard.writeText('{{ data.otherInfo.frn }}')"
+                          title="Copy FRN"><i class="bi bi-clipboard"></i></button>
+                {% endif %}
+              </dt>
+              <dd class="col-7 col-md-9">{{ data.otherInfo.frn|default:"—" }}</dd>
+
+              <dt class="col-5 col-md-3">Grant date</dt>
+              <dd class="col-7 col-md-9">{{ data.otherInfo.grantDate|default:"—" }}</dd>
+
+              <dt class="col-5 col-md-3">Last action</dt>
+              <dd class="col-7 col-md-9">{{ data.otherInfo.lastActionDate|default:"—" }}</dd>
+
+              <dt class="col-5 col-md-3">Radio service</dt>
+              <dd class="col-7 col-md-9">{{ data.otherInfo.service|default:"—" }}</dd>
+
+              <dt class="col-5 col-md-3">ULS record</dt>
+              <dd class="col-7 col-md-9">
+                {% if data.otherInfo.ulsUrl %}
+                  <a href="{{ data.otherInfo.ulsUrl }}" target="_blank" rel="noopener">View on ULS</a>
+                {% else %}—{% endif %}
+              </dd>
+
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!--  If present, Trustee info  -->
+      {% if data.trustee.callsign %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="trustHead">
+          <button class="accordion-button collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#trustBody" aria-expanded="false">
+            Trustee / Club Details
+          </button>
+        </h2>
+        <div id="trustBody" class="accordion-collapse collapse" data-bs-parent="#lookupAcc">
+          <div class="accordion-body">
+            <dl class="row mb-0">
+              <dt class="col-5 col-md-3">Trustee</dt>
+              <dd class="col-7 col-md-9">
+                  {{ data.trustee.callsign }} – {{ data.trustee.name }}
+              </dd>
+              <dt class="col-5 col-md-3">Previous callsign</dt>
+              <dd class="col-7 col-md-9">{{ data.previous.callsign|default:"—" }}</dd>
+              <dt class="col-5 col-md-3">Previous class</dt>
+              <dd class="col-7 col-md-9">{{ data.previous.operClass|default:"—" }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!--  Mailing address (hide if empty)  -->
+      {% if data.address.line1 %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="addrHead">
+          <button class="accordion-button collapsed" data-bs-toggle="collapse"
+                  data-bs-target="#addrBody" aria-expanded="false">
+            Mailing Address
+          </button>
+        </h2>
+        <div id="addrBody" class="accordion-collapse collapse" data-bs-parent="#lookupAcc">
+          <div class="accordion-body">
+            {{ data.address.line1 }}<br>
+            {{ data.address.line2 }}<br>
+            {{ data.address.attn }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>  <!-- /accordion -->
+
+  {% elif data and data.status != "VALID" %}
+      <div class="alert alert-danger text-center mt-3">
+        “{{ form.data.callsign|default:"(blank)" }}” is not a valid call-sign.
+      </div>
+  {% endif %}
+
+</div>  <!-- /container -->
+{% endblock %}

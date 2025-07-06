@@ -23,6 +23,8 @@ from .forms import (
     SitemapForm,
     # XMLUploadForm is used in the XML Splitter.
     XMLUploadForm,
+    #CallsignLookupForm is used in the Ham Radio Call Sign Lookup app.
+    CallsignLookupForm,
 )
 
 # Provides operating system-dependent functionality, such as file path handling and directory management.
@@ -131,6 +133,43 @@ import pytz
 
 # Used in the XML Splitter
 from django.http import StreamingHttpResponse
+
+# Ham Radio Call Sign Lookup
+CALLOOK_URL = "https://callook.info/{}/json"
+HAMDB_URL    = "https://api.hamdb.org/{}/json/djangoapp"
+
+def _query_callook(cs):
+    resp = requests.get(CALLOOK_URL.format(cs), timeout=6)
+    return resp.json()
+
+def _query_hamdb(cs):
+    resp = requests.get(HAMDB_URL.format(cs), timeout=6)
+    return resp.json()
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def ham_radio_call_sign_lookup(request):
+    data = None
+    error = None
+    form = CallsignLookupForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        cs = form.cleaned_data["callsign"]
+        try:
+            # Callook first
+            payload = _query_callook(cs)
+
+            if payload.get("status") == "VALID":
+                data = payload
+            else:
+                # Fallback to HamDB
+                alt = _query_hamdb(cs)
+                if alt.get("messages", {}).get("status") != "NOT_FOUND":
+                    data = alt
+                else:
+                    error = f"“{cs}” is not a valid amateur-radio call sign."
+        except (requests.Timeout, requests.ConnectionError) as e:
+            error = f"Lookup service error: {e}"
+    return render(request, "projects/ham_radio_call_sign_lookup.html", {"form": form, "data": data, "error": error})
 
 # XML Splitter
 # Disallow caching to prevent CSRF token errors.
