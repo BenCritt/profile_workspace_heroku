@@ -32,7 +32,8 @@ class StaticViewSitemap(Sitemap):
             "projects:freight_safety",
             "projects:seo_head_checker",
             "projects:iss_tracker",
-            "projects:xml_splitter",      # underscore, not hyphen
+            "projects:xml_splitter",
+            "projects:ham_radio_call_sign_lookup",
         ]
 
     def location(self, item):
