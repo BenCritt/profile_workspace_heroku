@@ -1,4 +1,37 @@
 {% extends "projects/base.html" %}
+{% block scripts %}
+<!-- Schema for SEO -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Ham Radio Call Sign Lookup",
+    "alternateName": ["FCC Call Sign Search", "Amateur Radio Licence Checker"],
+    "description": "Free, instant lookup for any U.S. amateur-radio call-sign.  See class, expiry, FRN, grid square and more.",
+    "url": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/",
+    "applicationCategory": "Utility",
+    "operatingSystem": "Web-based",
+    "image": "",
+    "creator": {
+      "@type": "Person",
+      "name": "Ben Crittenden",
+      "url": "https://www.bencritt.net"
+    },
+  "featureList": [
+    "Real-time FCC licence status",
+    "Licence class & expiry date",
+    "Grid-square and lat/lon location",
+    "FRN, grant & last-action dates",
+    "Trustee / club details when available"
+    ],
+  offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+    }
+  }
+</script>
+{% endblock scripts %}  
 {% block styles %}
 <style>
   /* removes the bullet in Django’s <ul class="errorlist"><li>…</li></ul> */
@@ -9,9 +42,41 @@
   }
 </style>
 {% endblock styles %}
+{% block meta_tags %}
+<!-- Prevent browser caching to avoid stale CSRF tokens -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- SEO fundamentals -->
+<meta name="description"
+      content="Free, instant lookup for any U.S. amateur-radio call-sign.  See class, expiry, FRN, grid square and more.">
+<meta name="keywords"
+      content="ham radio call sign lookup, amateur radio licence lookup, FCC call sign search, ham callsign checker, amateur radio lookup, FCC licence database">
+
+<!-- Open Graph (Facebook, LinkedIn, etc.) -->
+<meta property="og:url"           content="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
+<meta property="og:type"          content="website">
+<meta property="og:title"         content="Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs">
+<meta property="og:description"   content="Free, instant lookup for any U.S. amateur-radio call-sign.  See class, expiry, FRN, grid square and more.">
+<meta property="og:image"         content="">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card"         content="summary_large_image">
+<meta property="twitter:domain"   content="bencritt.net">
+<meta property="twitter:url"      content="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
+<meta name="twitter:title"        content="Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs">
+<meta name="twitter:description"  content="Free, instant lookup for any U.S. amateur-radio call-sign.  See class, expiry, FRN, grid square and more.">
+<meta name="twitter:image"        content="">
+<meta name="twitter:creator"      content="@bencritt89">
+{% endblock meta_tags %}
+{% block link_tags %}
+<!-- Canonical link to help avoid duplicate content issues. -->
+<link rel="canonical" href="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
+{% endblock link_tags %}
+{% block title %}Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs{% endblock title %}
 {% block content %}
 <div class="container py-4" style="width: 100%; max-width: 500px; margin: auto;">
-
   <h1 class="text-center">Ham Radio Call Sign Lookup</h1>
   <br>
     <form method="post" class="d-flex flex-column align-items-center gap-2 mb-4">
@@ -26,9 +91,7 @@
   {% if error %}
     <div class="alert alert-danger text-center mt-3">{{ error }}</div>
   {% endif %}
-
   {% if data and data.status == "VALID" %}
-    <!--  ── Summary card ──────────────────────────────────────────────── -->
     <div class="card shadow-sm mt-4">
       <div class="card-body">
         <h3 class="card-title">
@@ -37,7 +100,6 @@
               {{ data.status }}
           </span>
         </h3>
-
         <dl class="row mb-0">
           <dt class="col-5 col-md-3">Name</dt>
           <dd class="col-7 col-md-9">{{ data.name }}</dd>
@@ -69,10 +131,7 @@
         </dl>
       </div>
     </div>
-
-    <!--  ── Accordion with detail panes ───────────────────────────────── -->
     <div class="accordion mt-3" id="lookupAcc">
-
       <!--  Regulatory  -->
       <div class="accordion-item">
         <h2 class="accordion-header" id="regHead">
@@ -109,12 +168,10 @@
                   <a href="{{ data.otherInfo.ulsUrl }}" target="_blank" rel="noopener">View on ULS</a>
                 {% else %}—{% endif %}
               </dd>
-
             </dl>
           </div>
         </div>
       </div>
-
       <!--  If present, Trustee info  -->
       {% if data.trustee.callsign %}
       <div class="accordion-item">
@@ -140,7 +197,6 @@
         </div>
       </div>
       {% endif %}
-
       <!--  Mailing address (hide if empty)  -->
       {% if data.address.line1 %}
       <div class="accordion-item">
@@ -159,13 +215,11 @@
         </div>
       </div>
       {% endif %}
-    </div>  <!-- /accordion -->
-
+    </div>
   {% elif data and data.status != "VALID" %}
       <div class="alert alert-danger text-center mt-3">
         “{{ form.data.callsign|default:"(blank)" }}” is not a valid call-sign.
       </div>
   {% endif %}
-
-</div>  <!-- /container -->
+</div>
 {% endblock %}
