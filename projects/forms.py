@@ -30,6 +30,39 @@ from .utils import normalize_url
 # Used by the Ham Radio Call Sign Lookup app.
 import re
 
+
+# Font Inspector
+from urllib.parse import urlparse
+from django import forms
+from django.core.validators import URLValidator, ValidationError
+
+class FontInspectorForm(forms.Form):
+    url = forms.CharField(
+        label="Page URL",
+        widget=forms.TextInput(            # ← TextInput renders <input type="text">
+            attrs={
+                "placeholder": "bencritt.net",
+                "class": "form-control",
+            }
+        ),
+    )
+
+    def clean_url(self):
+        raw = self.cleaned_data["url"].strip()
+
+        # Prepend https:// if no scheme is given
+        if not urlparse(raw).scheme:
+            raw = f"https://{raw}"
+
+        # Validate the fully‑qualified URL
+        validator = URLValidator(schemes=["http", "https"])
+        try:
+            validator(raw)
+        except ValidationError as e:
+            raise forms.ValidationError(e.message)
+
+        return raw
+
 CALLSIGN_RE = re.compile(r"^[A-Za-z0-9]{3,8}$")
 
 # Ham Radio Call Sign Lookup

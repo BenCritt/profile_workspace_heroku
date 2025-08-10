@@ -45,3 +45,8 @@ skyfield==1.50
 timezonefinder===6.5.8
 pytz==2025.1
 geopy==2.4.1
+cssutils>=2.6.0
+tinycss2>=1.2.1
+rich>=13.7.0
+tldextract>=5.1.2
+webencodings>=0.5.1

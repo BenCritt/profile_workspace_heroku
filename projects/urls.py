@@ -63,4 +63,5 @@ urlpatterns = [
     path("current-iss-data/", views.current_iss_data, name="current_iss_data"),
     path("projects/xml-splitter/", views.xml_splitter, name="xml_splitter"),
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
+    path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
 ]

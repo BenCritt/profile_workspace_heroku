@@ -1,0 +1,57 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Font Inspector – IT Tools{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-3">Font Inspector</h1>
+
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div class="input-group">
+      {{ form.url }}
+      <button class="btn btn-primary" type="submit">Scan</button>
+      {% if rows %}
+        <button class="btn btn-secondary" type="submit" name="download">CSV</button>
+      {% endif %}
+    </div>
+    {% for err in form.url.errors %}
+      <div class="text-danger small">{{ err }}</div>
+    {% endfor %}
+  </form>
+
+  {% if rows %}
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Website</th><th>Family</th>
+          <th>License Required</th><th>Font Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.website }}</td>
+            <td>{{ r.family }}</td>
+            <td>{{ r.license_required }}</td>
+            <td>{{ r.font_source }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+{% if rows %}
+<script>
+  /* GA4 – keeps parity with your other tools */
+  gtag('event', 'font_inspector_scan', {
+    'event_category': 'it_tools',
+    'event_label': '{{ form.cleaned_data.url|escapejs }}'
+  });
+</script>
+{% endif %}
+{% endblock %}

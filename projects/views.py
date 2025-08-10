@@ -134,6 +134,41 @@ import pytz
 # Used in the XML Splitter
 from django.http import StreamingHttpResponse
 
+# Font Inspector Begin
+
+from django.http import FileResponse
+from django.shortcuts import render
+from .forms import FontInspectorForm
+from .utils import make_report, report_to_csv
+
+def font_inspector(request):
+    form = FontInspectorForm(request.POST or None)
+    rows = None               # rows for the results table
+
+    if request.method == "POST" and form.is_valid():
+        url = form.cleaned_data["url"]
+
+        try:
+            rows = make_report(url)
+            if not rows:
+                form.add_error("url", "No fonts detected on that page.")
+        except Exception as exc:                    # network / parse errors
+            form.add_error("url", str(exc))
+
+        # optional CSV download
+        if "download" in request.POST and rows:
+            return FileResponse(
+                report_to_csv(rows),
+                as_attachment=True,
+                filename="font_report.csv",
+                content_type="text/csv",
+            )
+
+    return render(request, "projects/font_inspector.html",
+                  {"form": form, "rows": rows})
+
+# Font Inspector End
+
 # Ham Radio Call Sign Lookup
 CALLOOK_URL = "https://callook.info/{}/json"
 HAMDB_URL    = "https://api.hamdb.org/{}/json/djangoapp"
