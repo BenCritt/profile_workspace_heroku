@@ -4,9 +4,10 @@
 {% block title %}Font Inspector{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <h1 class="mb-3">Font Inspector</h1>
-
+<center>
+<div class="container py-4" style="width: 100%; max-width: 500px; margin: auto;">
+  <h1>Font Inspector</h1>
+  <br>
   <form method="post" class="mb-4">
     {% csrf_token %}
     <div class="input-group">
@@ -20,7 +21,7 @@
       <div class="text-danger small">{{ err }}</div>
     {% endfor %}
   </form>
-
+  <br>
   {% if rows %}
   <div class="table-responsive">
     <table class="table table-dark table-striped align-middle">
@@ -44,10 +45,11 @@
   </div>
   {% endif %}
 </div>
+</center>
 
 {% if rows %}
 <script>
-  /* GA4 – keeps parity with your other tools */
+  /* Google Analytics Tracking */
   gtag('event', 'font_inspector_scan', {
     'event_category': 'it_tools',
     'event_label': '{{ form.cleaned_data.url|escapejs }}'
