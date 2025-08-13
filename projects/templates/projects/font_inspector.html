@@ -12,9 +12,9 @@
     {% csrf_token %}
     <div class="input-group">
       {{ form.url }}
-      <button class="btn btn-primary" type="submit">Scan</button>
+      <button class="btn btn-primary" type="submit">Scan for Fonts</button>
       {% if rows %}
-        <button class="btn btn-secondary" type="submit" name="download">CSV</button>
+        <button class="btn btn-secondary" type="submit" name="download">Download CSV</button>
       {% endif %}
     </div>
     {% for err in form.url.errors %}
@@ -46,14 +46,4 @@
   {% endif %}
 </div>
 </center>
-
-{% if rows %}
-<script>
-  /* Google Analytics Tracking */
-  gtag('event', 'font_inspector_scan', {
-    'event_category': 'it_tools',
-    'event_label': '{{ form.cleaned_data.url|escapejs }}'
-  });
-</script>
-{% endif %}
 {% endblock %}
