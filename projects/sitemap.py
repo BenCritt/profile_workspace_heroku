@@ -34,6 +34,7 @@ class StaticViewSitemap(Sitemap):
             "projects:iss_tracker",
             "projects:xml_splitter",
             "projects:ham_radio_call_sign_lookup",
+            "projects:font_inspector",
         ]
 
     def location(self, item):

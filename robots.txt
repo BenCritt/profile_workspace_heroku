@@ -1,8 +1,60 @@
+# All crawlers
 User-agent: *
 Disallow: /admin/
 Disallow: /metrics/
 Disallow: /cdn-cgi/l/email-protection
 Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
 Disallow: /cdn-cgi/styles/cf.errors.css
+
+# LLM / AI crawlers (explicit allow, but still respect sensitive paths)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+Disallow: /metrics/
+Disallow: /cdn-cgi/l/email-protection
+Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
+Disallow: /cdn-cgi/styles/cf.errors.css
+
 Sitemap: https://www.bencritt.net/sitemap.xml
+
 Host: www.bencritt.net
