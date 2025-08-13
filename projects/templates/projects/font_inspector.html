@@ -1,8 +1,73 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
-{% block title %}Font Inspector{% endblock %}
+{% block scripts %}
+<!-- Schema for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Font Inspector",
+  "description": "Enter a website URL to detect the font families it uses, whether a license is required for each, and where each font is sourced from (Google Fonts, Adobe Fonts, or self-hosted). Download results as CSV.",
+  "url": "https://www.bencritt.net/projects/font-inspector/",
+  "applicationCategory": "Utility",
+  "operatingSystem": "Web-based",
+  "image": "",
+  "creator": {
+    "@type": "Person",
+    "name": "Ben Crittenden",
+    "url": "https://www.bencritt.net"
+  },
+  "featureList": [
+    "Scans a public webpage to detect font families in use.",
+    "Indicates whether each family requires a license.",
+    "Identifies the font source (Google Fonts, Adobe Fonts, or self-hosted).",
+    "Lets users download the detected fonts as a CSV file.",
+    "Processes requests at runtime—no data is permanently stored on the server."
+  ]
+}
+</script>
+{% endblock scripts %}
 
+{% block styles %}
+<!-- Future custom styles will go here. -->
+{% endblock styles %}
+
+{% block meta_tags %}
+<!-- Prevent browser caching to avoid stale CSRF tokens -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- SEO fundamentals -->
+<meta name="description"
+      content="Enter a website URL to detect its web fonts, see if a license is required, identify whether fonts come from Google Fonts, Adobe Fonts, or are self-hosted, and download a CSV of results.">
+<meta name="keywords"
+      content="Font Inspector, detect web fonts, web font checker, Google Fonts, Adobe Fonts, self-hosted fonts, font license, CSS fonts">
+
+<!-- Open Graph (Facebook, LinkedIn, etc.) -->
+<meta property="og:url"           content="https://www.bencritt.net/projects/font-inspector/">
+<meta property="og:type"          content="website">
+<meta property="og:title"         content="Font Inspector – Detect Web Fonts, Licenses & Sources">
+<meta property="og:description"   content="Scan any page to list its font families, license requirements, and sources. Export as CSV.">
+<meta property="og:image"         content="">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card"         content="summary_large_image">
+<meta property="twitter:domain"   content="bencritt.net">
+<meta property="twitter:url"      content="https://www.bencritt.net/projects/font-inspector/">
+<meta name="twitter:title"        content="Font Inspector – Detect Web Fonts, Licenses & Sources">
+<meta name="twitter:description"  content="Scan any page to list its font families, license requirements, and sources. Export as CSV.">
+<meta name="twitter:image"        content="">
+<meta name="twitter:creator"      content="@bencritt89">
+{% endblock meta_tags %}
+
+
+{% block link_tags %}
+<!-- Canonical link to help avoid duplicate content issues. -->
+<link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
+{% endblock link_tags %}
+{% block title %}Font Inspector | Detect Web Fonts, Licenses & Sources{% endblock title %}
 {% block content %}
 <center>
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
