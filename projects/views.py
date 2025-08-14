@@ -738,6 +738,142 @@ def grade_level_analyzer(request):
         if form.is_valid():
             # Extract the input text from the form.
             input_text = form.cleaned_data["text"]
+
+            # --- Hardening & helpers (self-contained) ---
+            import re
+            # If available, ensure English rules for textstat
+            if hasattr(textstat, "set_lang"):
+                try:
+                    textstat.set_lang("en_US")
+                except Exception:
+                    pass
+
+            def _sanitize_for_readability(s: str) -> str:
+                # Normalize punctuation that can confuse tokenizers
+                s = s.replace("—", " ").replace("–", " ").replace("…", ". ")
+                s = s.translate(str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'}))
+                # Remove standalone numbers/ordinals that can trip syllable tokenizers
+                s = re.sub(r"\b\d+(?:[.,]\d+)?(?:st|nd|rd|th)?\b", " ", s)
+                # Collapse whitespace
+                return re.sub(r"\s{2,}", " ", s).strip()
+
+            # Naive, dependency-free readability estimators (no CMU dict lookups)
+            def _sentences(s: str):
+                return [x for x in re.split(r"[.!?]+", s) if x.strip()]
+
+            def _words(s: str):
+                # keep contractions as a single token
+                return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", s)
+
+            _vowels = set("aeiouy")
+
+            def _syllables(word: str) -> int:
+                w = word.lower()
+                count, prev_vowel = 0, False
+                for ch in w:
+                    is_vowel = ch in _vowels
+                    if is_vowel and not prev_vowel:
+                        count += 1
+                    prev_vowel = is_vowel
+                # Drop a trailing silent 'e' when plausible
+                if w.endswith("e") and count > 1:
+                    count -= 1
+                return max(count, 1)
+
+            def _metrics(s: str):
+                # Keep letters, digits, basic punctuation; normalize whitespace
+                s2 = re.sub(r"[^A-Za-z0-9\.\!\?,;:\s']", " ", s)
+                s2 = re.sub(r"\s{2,}", " ", s2).strip()
+                sents = _sentences(s2) or [s2]
+                words = _words(s2)
+                n_w = max(len(words), 1)
+                n_s = max(len(sents), 1)
+                n_letters = sum(len(re.findall(r"[A-Za-z]", w)) for w in words)
+                syl_per_word = (sum(_syllables(w) for w in words) / n_w) if n_w else 0.0
+                words_per_sent = n_w / n_s
+                # Flesch–Kincaid Grade
+                fk = 0.39 * words_per_sent + 11.8 * syl_per_word - 15.59
+                # Coleman–Liau Index
+                L = (n_letters / n_w) * 100.0
+                S = (n_s / n_w) * 100.0
+                cli = 0.0588 * L - 0.296 * S - 15.8
+                # Gunning Fog
+                complex_words = sum(1 for w in words if _syllables(w) >= 3)
+                fog = 0.4 * (words_per_sent + 100.0 * (complex_words / n_w))
+                return fk, fog, cli
+
+            clean_text = _sanitize_for_readability(input_text)
+
+            # Calculate readability scores using different indices.
+            try:
+                results = {
+                    "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
+                    "gunning_fog":          textstat.gunning_fog(clean_text),
+                    "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
+                }
+            except KeyError:
+                # Dictionary miss (numbers, brand names, OOV words): use safe estimators
+                fk, fog, cli = _metrics(clean_text)
+                results = {
+                    "flesch_kincaid_grade": fk,
+                    "gunning_fog":          fog,
+                    "coleman_liau_index":   cli,
+                }
+            except Exception:
+                # Last-ditch: aggressively strip non-letters and compute safe estimators
+                safer_text = re.sub(r"[^A-Za-z\.\!\?,;:\s']", " ", clean_text)
+                fk, fog, cli = _metrics(safer_text)
+                results = {
+                    "flesch_kincaid_grade": fk,
+                    "gunning_fog":          fog,
+                    "coleman_liau_index":   cli,
+                }
+
+            # Calculate the weighted average of the scores.
+            average_score = round(
+                (0.5 * results["flesch_kincaid_grade"])
+                + (0.3 * results["gunning_fog"])
+                + (0.2 * results["coleman_liau_index"]),
+                1,
+            )
+            # Calculate the uniform average of the scores.
+            uniform_average_score = round(
+                (
+                    results["flesch_kincaid_grade"]
+                    + results["gunning_fog"]
+                    + results["coleman_liau_index"]
+                )
+                / 3,
+                1,
+            )
+            # Add the calculated scores to the results dictionary.
+            results["average_score"] = average_score
+            results["uniform_average_score"] = uniform_average_score
+            # Prepare the context with the form and results for rendering.
+            context = {"form": form, "results": results}
+            # Render the results page with the context.
+            return render(request, "projects/grade_level_results.html", context)
+        else:
+            # If the form is invalid, re-render the page with the form.
+            return render(request, "projects/grade_level_analyzer.html", {"form": form})
+    else:
+        # If the request is not POST, create a new form and render the page.
+        form = TextForm()
+        return render(request, "projects/grade_level_analyzer.html", {"form": form})
+
+
+'''
+# This is the code for the Grade Level Analyzer.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def grade_level_analyzer(request):
+    # Check if the request method is POST.
+    if request.method == "POST":
+        # Initialize the form with data from the request.
+        form = TextForm(request.POST)
+        # Validate the form.
+        if form.is_valid():
+            # Extract the input text from the form.
+            input_text = form.cleaned_data["text"]
             # Calculate readability scores using different indices.
             results = {
                 "flesch_kincaid_grade": textstat.flesch_kincaid_grade(input_text),
@@ -775,6 +911,7 @@ def grade_level_analyzer(request):
         # If the request is not POST, create a new form and render the page.
         form = TextForm()
         return render(request, "projects/grade_level_analyzer.html", {"form": form})
+'''
     
 
 # This is the code for the view for my website's llms.txt file.
