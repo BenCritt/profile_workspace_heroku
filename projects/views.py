@@ -775,6 +775,16 @@ def grade_level_analyzer(request):
         # If the request is not POST, create a new form and render the page.
         form = TextForm()
         return render(request, "projects/grade_level_analyzer.html", {"form": form})
+    
+
+# This is the code for the view for my website's llms.txt file.
+def llms_txt(request):
+    llms_path = os.path.join(settings.BASE_DIR, "llms.txt")
+    try:
+        with open(llms_path, "r", encoding="utf-8") as f:
+            return HttpResponse(f.read(), content_type="text/plain; charset=utf-8")
+    except FileNotFoundError:
+        return HttpResponseNotFound("llms.txt not found")
 
 
 # This is the code for the view for my website's robots.txt file.

@@ -64,9 +64,5 @@ urlpatterns = [
     path("projects/xml-splitter/", views.xml_splitter, name="xml_splitter"),
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
-        path(
-        "llms.txt",
-        TemplateView.as_view(template_name="llms.txt", content_type="text/plain; charset=utf-8"),
-        name="llms_txt",
-    ),
+    path("llms.txt", views.llms_txt, name="llms_txt"),
 ]
