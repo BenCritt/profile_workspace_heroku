@@ -66,6 +66,11 @@
         <div class="error">{{ error }}</div>
     {% endfor %}
 {% endif %}
+{% if form.non_field_errors %}
+  {% for error in form.non_field_errors %}
+    <div class="error">{{ error }}</div>
+  {% endfor %}
+{% endif %}
 <!-- Form for submitting text to be analyzed. -->
 <form method="post" action="{% url 'projects:grade_level_analyzer' %}">
     {% csrf_token %}    <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
