@@ -3,9 +3,7 @@ from . import views
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
-from .views import robots_txt, requirements_txt, runtime_txt
 from django.views.generic import TemplateView
-from .views import start_sitemap_processing, get_task_status, download_task_file
 
 app_name = "projects"
 
@@ -36,8 +34,8 @@ urlpatterns = [
     path("projects/ip-tool/", views.ip_tool, name="ip_tool"),
     path("projects/dns-lookup/", views.dns_tool, name="dns_tool"),
     path("projects/it-tools/", views.it_tools, name="it_tools"),
-    path("robots.txt", robots_txt, name="robots_txt"),
-    path("requirements.txt", requirements_txt, name="requirements_txt"),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("requirements.txt", views.requirements_txt, name="requirements_txt"),
     path("", views.home, name="home"),
     path("projects/weather/", views.weather, name="weather"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
@@ -50,13 +48,13 @@ urlpatterns = [
     ),
     path(
         "start_sitemap_processing/",
-        start_sitemap_processing,
+        views.start_sitemap_processing,
         name="start_sitemap_processing",
     ),
-    path("get_task_status/<str:task_id>/", get_task_status, name="get_task_status"),
+    path("get_task_status/<str:task_id>/", views.get_task_status, name="get_task_status"),
     path(
         "download_task_file/<str:task_id>/",
-        download_task_file,
+        views.download_task_file,
         name="download_task_file",
     ),
     path("current-iss-data/", views.current_iss_data, name="current_iss_data"),

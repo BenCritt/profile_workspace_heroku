@@ -19,10 +19,6 @@ from .forms import (
     SSLCheckForm,
     # CarrierSearchForm is used in the Freight Carrier Safety Reporter.
     CarrierSearchForm,
-    # SitemapForm is used in the SEO Head Checker.
-    SitemapForm,
-    # XMLUploadForm is used in the XML Splitter.
-    XMLUploadForm,
     #CallsignLookupForm is used in the Ham Radio Call Sign Lookup app.
     CallsignLookupForm,
 )
@@ -81,14 +77,6 @@ from .utils import (
     get_fmcsa_carrier_data_by_usdot,
     # normalize_url: Ensures submitted URLs are properly formatted (e.g., add "https://" if missing).
     normalize_url,
-    # fetch_sitemap_urls: Extracts all <loc> tags (URLs) from a sitemap.
-    fetch_sitemap_urls,
-    # save_results_to_csv: Saves processed SEO results to a CSV file for download.
-    save_results_to_csv,
-    # sitemap_limit: Limits the number of URLs processed from a sitemap. This is a variable, not a library.
-    sitemap_limit,
-    # process_sitemap_urls: Processes multiple URLs concurrently, updating progress and returning results.
-    process_sitemap_urls,
     detect_region,
 )
 
@@ -204,6 +192,7 @@ def ham_radio_call_sign_lookup(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
+    from .forms import XMLUploadForm
     from .xml_splitter_utils import split_xml_to_zip
     from django.http import StreamingHttpResponse
     # Load the form for the user to upload their XML file.
@@ -462,120 +451,102 @@ def current_iss_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_head_checker(request):
     """
     Renders the SEO Head Checker form and handles POST requests to initiate processing.
-
-    - For GET requests: Displays the form for the user to input a sitemap URL.
-    - For POST requests: Validates the submitted form and initiates sitemap processing.
-    - Provides user feedback on errors or the status of the initiated process.
     """
-    # Handle form submission via POST.
+    import json
+    from django.shortcuts import render
+    from .forms import SitemapForm
     if request.method == "POST":
-        # Bind the submitted data to the form for validation.
         form = SitemapForm(request.POST)
-        # Check if the form data is valid
         if form.is_valid():
-            # Extract the cleaned sitemap URL from the form.
             sitemap_url = form.cleaned_data["sitemap_url"]
             try:
-                # Start processing the sitemap and get the response.
-                response = start_sitemap_processing(request)
-                # Task successfully started.
+                response = start_sitemap_processing(sitemap_url=sitemap_url)
                 if response.status_code == 202:
-                    # Retrieve the task ID for tracking the status.
-                    task_id = response.json().get("task_id")
-                    # Pass form and task_id to template.
+                    data = json.loads(response.content)
+                    task_id = data.get("task_id")
                     return render(
                         request,
                         "projects/seo_head_checker.html",
-                        {"form": form, "task_id": task_id},
+                        {"form": SitemapForm(), "task_id": task_id},
                     )
-                # If the response indicates an error.
                 else:
-                    # Extract the error message or provide a generic error.
-                    error_message = response.json().get("error", "Unexpected error.")
-                    # Pass error to template.
+                    data = json.loads(response.content)
+                    error_message = data.get("error", "Unexpected error.")
                     return render(
                         request,
                         "projects/seo_head_checker.html",
                         {"form": form, "error": error_message},
                     )
-            # Catch any unexpected errors during processing.
             except Exception as e:
-                # Render the form with an error message.
                 return render(
                     request,
                     "projects/seo_head_checker.html",
                     {"form": form, "error": str(e)},
                 )
-    # Handle GET requests by displaying an empty form.
-    else:
-        form = SitemapForm()
+        # invalid form: redisplay with errors
+        return render(request, "projects/seo_head_checker.html", {"form": form})
 
-    # Render the form for both GET and unsuccessful POST requests.
-    return render(request, "projects/seo_head_checker.html", {"form": form})
+    # GET: just show an empty form
+    return render(request, "projects/seo_head_checker.html", {"form": SitemapForm()})
 
 
-def start_sitemap_processing(request):
+def start_sitemap_processing(request=None, sitemap_url=None):
     """
-    Handles the initiation of sitemap processing.
+    Start sitemap processing.
 
-    - Accepts a POST request with a sitemap URL in the request body.
-    - Starts a background task to fetch and process the sitemap URLs.
-    - Returns a JSON response containing a unique task ID for progress tracking.
+    Accepts either:
+      • a direct param `sitemap_url` (used by your form view), or
+      • a POST JSON body: {"sitemap_url": "<url>"}
     """
-    # Ensure the request method is POST.
-    if request.method == "POST":
+    import json, uuid, gc
+    from django.http import JsonResponse
+    from concurrent.futures import ThreadPoolExecutor
+    from django.core.cache import cache
+    from .seo_head_checker_utils import fetch_sitemap_urls, process_sitemap_urls, save_results_to_csv
+    from .utils import normalize_url
+
+    # Resolve the sitemap URL (param takes precedence; otherwise POST JSON).
+    if sitemap_url is None:
+        if not request or request.method != "POST":
+            return JsonResponse({"error": "Invalid request method"}, status=405)
         try:
-            # Parse the request body as JSON.
-            data = json.loads(request.body)
-            # Normalize and validate the sitemap URL.
+            data = json.loads(request.body or b"{}")
             sitemap_url = normalize_url(data.get("sitemap_url"))
-
-            # Generate a unique task ID for this processing job.
-            task_id = str(uuid.uuid4())
-            # Initialize the cache for tracking task status and progress.
-            cache.set(task_id, {"status": "pending", "progress": 0}, timeout=1800)
-
-            # Define the background task for sitemap processing.
-            def process_task():
-                try:
-                    # Fetch all URLs from the sitemap.
-                    urls = fetch_sitemap_urls(sitemap_url)
-                    # Process the fetched URLs, updating progress in cache.
-                    results = process_sitemap_urls(urls, max_workers=5, task_id=task_id)
-                    # Save the processed results to a CSV file.
-                    file_path = save_results_to_csv(results, task_id)
-                    # Update cache to mark task as completed and store the file path.
-                    cache.set(
-                        task_id,
-                        {"status": "completed", "file": file_path},
-                        timeout=1800,
-                    )
-                except Exception as e:
-                    # Update cache to indicate an error occurred.
-                    cache.set(
-                        task_id, {"status": "error", "error": str(e)}, timeout=1800
-                    )
-                finally:
-                    # Explicit cleanup.
-                    del urls, results
-                    # Perform garbage collection to free up memory.
-                    gc.collect()
-
-            # Submit the processing task to a thread pool for background execution.
-            ThreadPoolExecutor().submit(process_task)
-
-            # Return a response with the task ID for the client to track progress.
-            return JsonResponse({"task_id": task_id}, status=202)
         except Exception as e:
-            # Handle any exceptions during processing and return an error response.
             return JsonResponse({"error": str(e)}, status=400)
+    else:
+        sitemap_url = normalize_url(sitemap_url)
 
-    # Return an error response if the request method is not POST.
-    return JsonResponse({"error": "Invalid request method"}, status=405)
+    if not sitemap_url:
+        return JsonResponse({"error": "Missing or invalid sitemap_url"}, status=400)
+
+    # Create a task and mark it pending.
+    task_id = str(uuid.uuid4())
+    cache.set(task_id, {"status": "pending", "progress": 0}, timeout=1800)
+
+    # Background worker
+    def process_task():
+        urls = None
+        results = None
+        try:
+            urls = fetch_sitemap_urls(sitemap_url)
+            results = process_sitemap_urls(urls, max_workers=5, task_id=task_id)
+            file_path = save_results_to_csv(results, task_id)
+            cache.set(task_id, {"status": "completed", "file": file_path}, timeout=1800)
+        except Exception as e:
+            cache.set(task_id, {"status": "error", "error": str(e)}, timeout=1800)
+        finally:
+            urls = None
+            results = None
+            gc.collect()
+
+    ThreadPoolExecutor().submit(process_task)
+    return JsonResponse({"task_id": task_id}, status=202)
+
+
 
 
 def get_task_status(request, task_id):
