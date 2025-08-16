@@ -66,9 +66,6 @@ from django.views.decorators.cache import cache_control
 from .utils import (
     # verify_ssl: Verifies SSL certificates in the SSL Verification Tool.
     verify_ssl,
-    # get_coordinates, get_city_and_state: Geocoding utilities for the Weather Forecast app.
-    get_coordinates,
-    get_city_and_state,
     # normalize_url: Ensures submitted URLs are properly formatted (e.g., add "https://" if missing).
     normalize_url,
 )
@@ -231,6 +228,7 @@ def iss_tracker(request):
     """
     from .forms import WeatherForm
     from .iss_utils import detect_region
+    from .utils import get_coordinates
     # Initialize the form that takes in the ZIP code.  This is the same form used by the Weather Forecast app.
     form = WeatherForm(request.POST or None)
     # Initialize the library that will store current ISS data.
@@ -1081,6 +1079,8 @@ def monte_carlo_simulator(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
     from .forms import WeatherForm
+    from .weather_utils import get_city_and_state
+    from .utils import get_coordinates
     # Initialize the weather form, allowing for POST or None (for GET requests).
     form = WeatherForm(request.POST or None)
 
