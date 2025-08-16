@@ -1,116 +1,19 @@
-# Used to render templates for various views (e.g., forms, results) and handle redirects to other views/pages.
 from django.shortcuts import render, redirect
-
-# Custom forms used across different views.
-from .forms import (
-    # QRForm is used in the QR Code Generator.
-    QRForm,
-    # MonteCarloForm is used in the Monte Carlo Simulator.
-    MonteCarloForm,
-    # TextForm is used in the Grade Level Analyzer.
-    TextForm,
-    # IPForm is used in the IP Address Lookup Tool.
-    IPForm,
-    # DomainForm is used in the DNS Lookup Tool.
-    DomainForm,
-)
-
-# Provides operating system-dependent functionality, such as file path handling and directory management.
-import os
-
-# Used in the QR Code Generator app to create QR codes from user-provided data.
-import qrcode
-
-# HttpResponse: Sends raw data back to the user (e.g., for file downloads).
-# JsonResponse: Sends JSON responses for AJAX requests, such as progress tracking in SEO Head Checker.
-# HttpResponseNotFound: Returns a 404 error for static files or invalid paths.
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
-
-# Used for making HTTP requests in apps such as:
-# - Fetching weather data for the Weather Forecast app.
-# - Performing API calls for geolocation in the IP Address Lookup Tool.
-# - Retrieving carrier data in the Freight Carrier Safety Reporter.
-# - Fetching sitemap URLs in the SEO Head Checker.
-# - Fetching TLE data from CelesTrak in the ISS Tracker.
-import requests
-
-# Handles date and time operations, such as formatting timestamps in the Weather Forecast app.
-import datetime
-
-# Used in the Monte Carlo Simulator for generating random simulations and numerical calculations.
-import numpy as np
-
-# Used in the Monte Carlo Simulator for creating visualizations (e.g., histograms).
-import matplotlib.pyplot as plt
-
-# Accesses project-wide settings, such as the base directory, used in file path construction (e.g., robots.txt, requirements.txt).
 from django.conf import settings
-
-# Used in the Grade Level Analyzer to calculate various readability scores.
-import textstat
-
-# Performs DNS queries, such as resolving A, MX, and other record types in the DNS Lookup Tool.
-import dns.resolver
-
-# Converts IP addresses to reverse DNS names, used in the IP Address Lookup Tool for PTR lookups.
-import dns.reversename
-
-# Sets caching policies for views, ensuring dynamic content is always up-to-date (e.g., no-cache for tools and results pages).
 from django.views.decorators.cache import cache_control
-
-# Imports utility functions shared across apps.
-from .utils import (
-    # normalize_url: Ensures submitted URLs are properly formatted (e.g., add "https://" if missing).
-    normalize_url,
-)
-
-# Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
-import uuid
-
-# Dictionary to store task statuses.
-from django.core.cache import cache
-
-# Garbage Collection helps prevent the wasting of memory.
-import gc
-
-# render: Used to render templates with context data, enabling dynamic HTML generation for views.
-from django.shortcuts import render
-
-# json: Used to parse incoming JSON requests and generate JSON responses for AJAX interactions.
-import json
-
-# ThreadPoolExecutor: Used to execute tasks (e.g., URL processing) concurrently, improving performance for processing large sitemaps.
-from concurrent.futures import ThreadPoolExecutor
-
-# Used to calculate time intervals for predictions, such as 1-day time ranges.
-from datetime import timedelta
-
-# Topos: Represents an observer's location on Earth.
-# load: Loads data such as TLE and ephemeris.
-from skyfield.api import Topos, load
-
-# Provides tools for working with satellites using Two-Line Element (TLE) data.
-from skyfield.sgp4lib import EarthSatellite
-
-# Caches data (e.g., TLE) to reduce redundant API calls and improve performance.
-from django.core.cache import cache
-
-# Determines the time zone based on geographic coordinates (latitude and longitude).
-from timezonefinder import TimezoneFinder
-
-# Handles time zones for converting UTC times to the observer's local time zone.
-import pytz
+import os
+import requests
 
 # Font Inspector
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def font_inspector(request):
     from django.http import FileResponse
-    from django.shortcuts import render
-    from .forms import FontInspectorForm
     from .font_utils import make_report, report_to_csv
+    from .forms import FontInspectorForm
     form = FontInspectorForm(request.POST or None)
-    rows = None               # rows for the results table
+    rows = None
 
     if request.method == "POST" and form.is_valid():
         url = form.cleaned_data["url"]
@@ -119,7 +22,7 @@ def font_inspector(request):
             rows = make_report(url)
             if not rows:
                 form.add_error("url", "No fonts detected on that page.")
-        except Exception as exc:                    # network / parse errors
+        except Exception as exc:
             form.add_error("url", str(exc))
 
         # optional CSV download
@@ -212,9 +115,15 @@ def iss_tracker(request):
     Returns:
         Rendered HTML page with ISS current data and visibility events.
     """
-    from .forms import WeatherForm
     from .iss_utils import detect_region
     from .utils import get_coordinates
+    from django.core.cache import cache
+    from datetime import timedelta
+    from skyfield.api import Topos, load
+    from skyfield.sgp4lib import EarthSatellite
+    from timezonefinder import TimezoneFinder
+    import pytz
+    from .forms import WeatherForm
     # Initialize the form that takes in the ZIP code.  This is the same form used by the Weather Forecast app.
     form = WeatherForm(request.POST or None)
     # Initialize the library that will store current ISS data.
@@ -356,7 +265,6 @@ def seo_head_checker(request):
     Renders the SEO Head Checker form and handles POST requests to initiate processing.
     """
     import json
-    from django.shortcuts import render
     from .forms import SitemapForm
     from .seo_head_checker_utils import start_sitemap_processing
     if request.method == "POST":
@@ -472,6 +380,8 @@ def freight_safety(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def grade_level_analyzer(request):
+    import textstat
+    from .forms import TextForm
     # Check if the request method is POST.
     if request.method == "POST":
         # Initialize the form with data from the request.
@@ -648,26 +558,32 @@ def runtime_txt(request):
 
 
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_404(request, exception):
     return render(request, "404.html", status=404)
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def home(request):
     return render(request, "projects/home.html")
 
 
 # This is the code for the page holding links to my résumé.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def resume(request):
     return render(request, "projects/resume.html")
 
 
 # This is the code for the QR Code Generator.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
+    import qrcode
+    from .forms import QRForm
     # Check if the request method is POST.
     if request.method == "POST":
         # Initialize the form with data from the request.
@@ -703,20 +619,25 @@ def qr_code_generator(request):
                 return response
     # Handle non-POST requests by initializing an empty form.
     else:
-        form = QRForm
+        form = QRForm()
     # Render the QR code generator page with the form.
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
 
 # This is the code for the page containing methods of contacting me.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def contact(request):
     return render(request, "projects/contact.html")
 
 
 # This is the code for the Monte Carlo Simulator.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def monte_carlo_simulator(request):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from .forms import MonteCarloForm
     # Check if the request method is POST.
     if request.method == "POST":
         # Initialize the form with data from the request.
@@ -804,11 +725,13 @@ def monte_carlo_simulator(request):
 
 
 # This is the code for the Weather Forecast app.
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
-    from .forms import WeatherForm
+    import json, datetime
     from .weather_utils import get_city_and_state
     from .utils import get_coordinates
+    from .forms import WeatherForm
     # Initialize the weather form, allowing for POST or None (for GET requests).
     form = WeatherForm(request.POST or None)
 
@@ -922,9 +845,11 @@ def all_projects(request):
 
 
 # This is the code for the DNS Lookup Tool app.
-# Decorator to set cache control headers to prevent caching of the page
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def dns_tool(request):
+    import dns.resolver
+    from .forms import DomainForm    
     # Initialize an empty dictionary to store DNS results
     results = {}
     # Initialize error message as None
@@ -996,9 +921,11 @@ def dns_tool(request):
 
 
 # This is the code for the IP Address Lookup Tool app.
-# Decorator to set cache control headers to prevent caching of the page
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ip_tool(request):
+    import dns.reversename, dns.resolver
+    from .forms import IPForm
     # Initialize an empty dictionary to store results
     results = {}
     # Initialize error message as None
@@ -1100,7 +1027,7 @@ def ip_tool(request):
 
 
 # This is the code for the SSL Verification Tool app.
-# Decorator to set cache control headers to prevent caching of the page
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
     from .forms import SSLCheckForm
@@ -1137,7 +1064,7 @@ def ssl_check(request):
 
 
 # This is the view for the IT Tools page.
-# Decorator to set cache control headers to prevent caching of the page
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def it_tools(request):
     return render(request, "projects/it_tools.html")
