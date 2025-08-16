@@ -358,7 +358,7 @@ def seo_head_checker(request):
     import json
     from django.shortcuts import render
     from .forms import SitemapForm
-    from seo_head_checker_utils import start_sitemap_processing
+    from .seo_head_checker_utils import start_sitemap_processing
     if request.method == "POST":
         form = SitemapForm(request.POST)
         if form.is_valid():
