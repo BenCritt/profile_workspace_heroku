@@ -13,7 +13,7 @@ from django.http import HttpResponse
 import os
 
 # This variable is used to limit the number of URLs processed by SEO Head Checker.
-sitemap_limit = 25
+sitemap_limit = 100
 
 def start_sitemap_processing(request=None, sitemap_url=None):
     """
