@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views
-from . import iss_utils
+from . import views, iss_utils, seo_head_checker_utils
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
@@ -49,13 +48,13 @@ urlpatterns = [
     ),
     path(
         "start_sitemap_processing/",
-        views.start_sitemap_processing,
+        seo_head_checker_utils.start_sitemap_processing,
         name="start_sitemap_processing",
     ),
-    path("get_task_status/<str:task_id>/", views.get_task_status, name="get_task_status"),
+    path("get_task_status/<str:task_id>/", seo_head_checker_utils.get_task_status, name="get_task_status"),
     path(
         "download_task_file/<str:task_id>/",
-        views.download_task_file,
+        seo_head_checker_utils.download_task_file,
         name="download_task_file",
     ),
     path("current-iss-data/", iss_utils.current_iss_data, name="current_iss_data"),
