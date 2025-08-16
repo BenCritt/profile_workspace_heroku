@@ -139,7 +139,7 @@ from django.http import StreamingHttpResponse
 from django.http import FileResponse
 from django.shortcuts import render
 from .forms import FontInspectorForm
-from .utils import make_report, report_to_csv
+from .font_utils import make_report, report_to_csv
 
 def font_inspector(request):
     form = FontInspectorForm(request.POST or None)
