@@ -13,8 +13,6 @@ from .forms import (
     IPForm,
     # DomainForm is used in the DNS Lookup Tool.
     DomainForm,
-    # SSLCheckForm is used in the SSL Verification Tool.
-    SSLCheckForm,
     #CallsignLookupForm is used in the Ham Radio Call Sign Lookup app.
     CallsignLookupForm,
 )
@@ -64,8 +62,6 @@ from django.views.decorators.cache import cache_control
 
 # Imports utility functions shared across apps.
 from .utils import (
-    # verify_ssl: Verifies SSL certificates in the SSL Verification Tool.
-    verify_ssl,
     # normalize_url: Ensures submitted URLs are properly formatted (e.g., add "https://" if missing).
     normalize_url,
 )
@@ -1375,6 +1371,8 @@ def ip_tool(request):
 # Decorator to set cache control headers to prevent caching of the page
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
+    from .forms import SSLCheckForm
+    from .ssl_utils import verify_ssl
     # Initialize the form and result variables
     form = SSLCheckForm()
     result = None
