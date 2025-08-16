@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import iss_utils
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
@@ -57,7 +58,7 @@ urlpatterns = [
         views.download_task_file,
         name="download_task_file",
     ),
-    path("current-iss-data/", views.current_iss_data, name="current_iss_data"),
+    path("current-iss-data/", iss_utils.current_iss_data, name="current_iss_data"),
     path("projects/xml-splitter/", views.xml_splitter, name="xml_splitter"),
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
