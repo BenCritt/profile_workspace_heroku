@@ -7,8 +7,6 @@ from .forms import (
     QRForm,
     # MonteCarloForm is used in the Monte Carlo Simulator.
     MonteCarloForm,
-    # WeatherForm is used in the Weather Forecast app.
-    WeatherForm,
     # TextForm is used in the Grade Level Analyzer.
     TextForm,
     # IPForm is used in the IP Address Lookup Tool.
@@ -17,8 +15,6 @@ from .forms import (
     DomainForm,
     # SSLCheckForm is used in the SSL Verification Tool.
     SSLCheckForm,
-    # CarrierSearchForm is used in the Freight Carrier Safety Reporter.
-    CarrierSearchForm,
     #CallsignLookupForm is used in the Ham Radio Call Sign Lookup app.
     CallsignLookupForm,
 )
@@ -73,11 +69,8 @@ from .utils import (
     # get_coordinates, get_city_and_state: Geocoding utilities for the Weather Forecast app.
     get_coordinates,
     get_city_and_state,
-    # get_fmcsa_carrier_data_by_usdot: Retrieves carrier data for the Freight Carrier Safety Reporter.
-    get_fmcsa_carrier_data_by_usdot,
     # normalize_url: Ensures submitted URLs are properly formatted (e.g., add "https://" if missing).
     normalize_url,
-    detect_region,
 )
 
 # Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
@@ -236,7 +229,8 @@ def iss_tracker(request):
     Returns:
         Rendered HTML page with ISS current data and visibility events.
     """
-
+    from .forms import WeatherForm
+    from .iss_utils import detect_region
     # Initialize the form that takes in the ZIP code.  This is the same form used by the Weather Forecast app.
     form = WeatherForm(request.POST or None)
     # Initialize the library that will store current ISS data.
@@ -383,6 +377,7 @@ def current_iss_data(request):
     Returns:
         JsonResponse: A JSON object containing the ISS's current data or an error message.
     """
+    from .iss_utils import detect_region
     try:
         # Attempt to retrieve the TLE (Two-Line Element) data from cache.
         tle_data = cache.get("tle_data")
@@ -651,6 +646,8 @@ def manifest(request):
 # This is the code for the Freight Carrier Safety Reporter
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_safety(request):
+    from .freight_utils import get_fmcsa_carrier_data_by_usdot
+    from .forms import CarrierSearchForm
     form = CarrierSearchForm(request.POST or None)
     carrier = None
     error = None
@@ -1083,6 +1080,7 @@ def monte_carlo_simulator(request):
 # This is the code for the Weather Forecast app.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
+    from .forms import WeatherForm
     # Initialize the weather form, allowing for POST or None (for GET requests).
     form = WeatherForm(request.POST or None)
 
