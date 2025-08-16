@@ -90,8 +90,6 @@ from .utils import (
     # process_sitemap_urls: Processes multiple URLs concurrently, updating progress and returning results.
     process_sitemap_urls,
     detect_region,
-    # split_xml_to_zip is used in the XML Splitter.
-    split_xml_to_zip,
 )
 
 # Generates unique task IDs for tracking background tasks, such as sitemap processing in the SEO Head Checker.
@@ -131,17 +129,13 @@ from timezonefinder import TimezoneFinder
 # Handles time zones for converting UTC times to the observer's local time zone.
 import pytz
 
-# Used in the XML Splitter
-from django.http import StreamingHttpResponse
-
 # Font Inspector Begin
 
-from django.http import FileResponse
-from django.shortcuts import render
-from .forms import FontInspectorForm
-from .font_utils import make_report, report_to_csv
-
 def font_inspector(request):
+    from django.http import FileResponse
+    from django.shortcuts import render
+    from .forms import FontInspectorForm
+    from .font_utils import make_report, report_to_csv
     form = FontInspectorForm(request.POST or None)
     rows = None               # rows for the results table
 
@@ -210,6 +204,8 @@ def ham_radio_call_sign_lookup(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
+    from .xml_splitter_utils import split_xml_to_zip
+    from django.http import StreamingHttpResponse
     # Load the form for the user to upload their XML file.
     form = XMLUploadForm(request.POST or None, request.FILES or None)
 
