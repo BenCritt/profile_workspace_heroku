@@ -137,20 +137,46 @@ def font_inspector(request):
 
 # Font Inspector End
 
-# Ham Radio Call Sign Lookup
-CALLOOK_URL = "https://callook.info/{}/json"
-HAMDB_URL    = "https://api.hamdb.org/{}/json/djangoapp"
-
-def _query_callook(cs):
-    resp = requests.get(CALLOOK_URL.format(cs), timeout=6)
-    return resp.json()
-
-def _query_hamdb(cs):
-    resp = requests.get(HAMDB_URL.format(cs), timeout=6)
-    return resp.json()
-
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ham_radio_call_sign_lookup(request):
+    from .ham_utils import query_callook, query_hamdb
+    from .forms import CallsignLookupForm
+
+    form = CallsignLookupForm(request.POST or None)
+    data, error = None, None
+
+    if request.method == "POST" and form.is_valid():
+        cs = form.cleaned_data["callsign"].strip().upper()
+        try:
+            # Try Callook first
+            payload = query_callook(cs)  # has timeout in helper
+            if payload.get("status") == "VALID":
+                data = {"source": "callook", "payload": payload}
+            else:
+                # Fallback to HamDB; structure is nested under "hamdb"
+                alt = query_hamdb(cs)
+                hamdb_root = alt.get("hamdb", alt)  # be tolerant
+                status = hamdb_root.get("messages", {}).get("status")
+                if status and status != "NOT_FOUND":
+                    data = {"source": "hamdb", "payload": hamdb_root}
+                else:
+                    error = f"“{cs}” is not a valid amateur-radio call sign."
+        except requests.RequestException as e:
+            error = f"Lookup service error: {e}"
+
+    return render(
+        request,
+        "projects/ham_radio_call_sign_lookup.html",
+        {"form": form, "data": data, "error": error},
+    )
+
+
+'''
+# Ham Radio Call Sign Lookup
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def ham_radio_call_sign_lookup(request):
+    from .ham_utils import query_callook, query_hamdb
+    from .forms import CallsignLookupForm
     data = None
     error = None
     form = CallsignLookupForm(request.POST or None)
@@ -159,13 +185,13 @@ def ham_radio_call_sign_lookup(request):
         cs = form.cleaned_data["callsign"]
         try:
             # Callook first
-            payload = _query_callook(cs)
+            payload = query_callook(cs)
 
             if payload.get("status") == "VALID":
                 data = payload
             else:
                 # Fallback to HamDB
-                alt = _query_hamdb(cs)
+                alt = query_hamdb(cs)
                 if alt.get("messages", {}).get("status") != "NOT_FOUND":
                     data = alt
                 else:
@@ -173,6 +199,7 @@ def ham_radio_call_sign_lookup(request):
         except (requests.Timeout, requests.ConnectionError) as e:
             error = f"Lookup service error: {e}"
     return render(request, "projects/ham_radio_call_sign_lookup.html", {"form": form, "data": data, "error": error})
+'''
 
 # XML Splitter
 # Disallow caching to prevent CSRF token errors.
