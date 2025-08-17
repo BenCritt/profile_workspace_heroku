@@ -18,6 +18,42 @@ URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)     # concurrent URLs pe
 SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
 DOWNLOAD_TTL  = getattr(settings, "SEO_DOWNLOAD_TTL", 30 * 60)  # 30 minutes
 
+# --- Download coordination (refcount + "delete requested") --------------------
+def _dl_ref_key(task_id: str) -> str: return f"seo:dl:{task_id}:ref"
+def _dl_del_key(task_id: str) -> str: return f"seo:dl:{task_id}:del"
+
+def _inc_ref(task_id: str) -> int:
+    # Create the counter if missing, then INCR
+    key = _dl_ref_key(task_id)
+    try: cache.add(key, 0, timeout=DOWNLOAD_TTL)
+    except Exception: pass
+    try:
+        return cache.incr(key)
+    except Exception:
+        # Fallback for caches without atomic incr
+        val = (cache.get(key) or 0) + 1
+        cache.set(key, val, timeout=DOWNLOAD_TTL)
+        return val
+
+def _dec_ref(task_id: str) -> int:
+    key = _dl_ref_key(task_id)
+    try:
+        return cache.decr(key)
+    except Exception:
+        val = max(0, (cache.get(key) or 0) - 1)
+        cache.set(key, val, timeout=DOWNLOAD_TTL)
+        return val
+
+def _mark_delete_requested(task_id: str) -> None:
+    cache.set(_dl_del_key(task_id), 1, timeout=DOWNLOAD_TTL)
+
+def _delete_requested(task_id: str) -> bool:
+    return bool(cache.get(_dl_del_key(task_id)))
+
+def _clear_dl_state(task_id: str) -> None:
+    cache.delete_many([_dl_ref_key(task_id), _dl_del_key(task_id), task_id])
+
+
 # Shared background executor for jobs
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
 
@@ -325,10 +361,11 @@ def get_task_status(request, task_id):
 
 def download_task_file(request, task_id):
     """
-    Stream the generated CSV to the client and delete it afterwards.
-    Also relies on TTL cleanup to purge stale files not downloaded.
+    Stream the CSV. We "delete on download", but only after ALL concurrent downloads
+    of this task_id finish (handles double-clicks/multiple tabs cleanly).
+    Files older than DOWNLOAD_TTL are also purged by the periodic cleanup.
     """
-    # Resolve file path from cache or derive by convention (multi-process safe)
+    # Resolve file path from cache or derive by convention
     task = cache.get(task_id)
     out_dir = _get_out_dir()
     derived_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
@@ -336,6 +373,11 @@ def download_task_file(request, task_id):
 
     if not os.path.exists(file_path):
         return JsonResponse({"error": "File not ready or not found"}, status=404)
+
+    # Mark that deletion should happen after downloads complete
+    _mark_delete_requested(task_id)
+    # Hold a read "lease" so deletion waits for us
+    _inc_ref(task_id)
 
     f = open(file_path, "rb")
     resp = FileResponse(
@@ -345,10 +387,9 @@ def download_task_file(request, task_id):
         content_type="text/csv",
     )
 
-    # Delete-on-download (after streaming completes)
     original_close = resp.close
 
-    def _close_and_cleanup():
+    def _close_and_maybe_delete():
         try:
             original_close()
         finally:
@@ -356,11 +397,17 @@ def download_task_file(request, task_id):
                 f.close()
             finally:
                 try:
-                    os.remove(file_path)
-                except FileNotFoundError:
-                    pass
-                cache.delete(task_id)
-                gc.collect()
+                    # Drop our lease; if we're the last reader and delete was requested,
+                    # remove the file and clear task state.
+                    remaining = _dec_ref(task_id)
+                    if _delete_requested(task_id) and remaining <= 0:
+                        try:
+                            os.remove(file_path)
+                        except FileNotFoundError:
+                            pass
+                        _clear_dl_state(task_id)
+                finally:
+                    gc.collect()
 
-    resp.close = _close_and_cleanup
+    resp.close = _close_and_maybe_delete
     return resp
