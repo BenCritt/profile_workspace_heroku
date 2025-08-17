@@ -17,11 +17,11 @@ from django.conf import settings
 # -----------------------------------------------------------------------------
 # Tunables (override in settings.py if desired)
 # -----------------------------------------------------------------------------
-BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 10)         # concurrent jobs per process
-URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)          # concurrent URLs per job
-SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)      # cap URLs per sitemap
-DOWNLOAD_TTL  = getattr(settings, "SEO_DOWNLOAD_TTL", 30 * 60)   # 30 minutes
-MAX_CONCURRENT_DOWNLOADS = getattr(settings, "SEO_MAX_CONCURRENT_DOWNLOADS", 12)
+BG_WORKERS = 20       # concurrent jobs per process
+URL_WORKERS = 1          # concurrent URLs per job
+SITEMAP_LIMIT = 100      # cap URLs per sitemap
+DOWNLOAD_TTL = 30 * 60   # 30 minutes
+MAX_CONCURRENT_DOWNLOADS = 12  # per-process download concurrency limit
 
 # Shared background executor for jobs
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
