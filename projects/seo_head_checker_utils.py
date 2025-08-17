@@ -1,29 +1,35 @@
-import requests
-from concurrent.futures import ThreadPoolExecutor
-from bs4 import BeautifulSoup
-import csv
-import gc
-from django.core.cache import cache
-import json, uuid, gc
-from django.http import JsonResponse
-from concurrent.futures import ThreadPoolExecutor
-from django.core.cache import cache
-from .utils import normalize_url
-from django.http import HttpResponse
-import os
+# seo_head_checker_utils.py
 
-# This variable is used to limit the number of URLs processed by SEO Head Checker.
-sitemap_limit = 100
+import os
+import uuid
+import gc
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from django.http import JsonResponse, FileResponse
+from django.core.cache import cache
+from django.conf import settings
+
+# ---- Tunables (override in settings.py if desired) ---------------------------
+BG_WORKERS   = getattr(settings, "SEO_BG_WORKERS", 2)     # concurrent jobs
+URL_WORKERS  = getattr(settings, "SEO_URL_WORKERS", 5)    # concurrent URLs per job
+SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
+
+# Single shared executor for background jobs
+EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
+
 
 def start_sitemap_processing(request=None, sitemap_url=None):
     """
-    Start sitemap processing.
-
+    Start a background job to process a sitemap (or single URL) and write a CSV report.
     Accepts either:
-      • a direct param `sitemap_url` (used by your form view), or
-      • a POST JSON body: {"sitemap_url": "<url>"}
+      • direct param `sitemap_url`, or
+      • POST JSON body: {"sitemap_url": "<url>"}
+    Returns JsonResponse(status=202, data={"task_id": ...}).
     """
-    # Resolve the sitemap URL (param takes precedence; otherwise POST JSON).
+    import json
+    from .utils import normalize_url
+
+    # Resolve input
     if sitemap_url is None:
         if not request or request.method != "POST":
             return JsonResponse({"error": "Invalid request method"}, status=405)
@@ -38,132 +44,55 @@ def start_sitemap_processing(request=None, sitemap_url=None):
     if not sitemap_url:
         return JsonResponse({"error": "Missing or invalid sitemap_url"}, status=400)
 
-    # Create a task and mark it pending.
     task_id = str(uuid.uuid4())
     cache.set(task_id, {"status": "pending", "progress": 0}, timeout=1800)
 
-    # Background worker
     def process_task():
         urls = None
-        results = None
         try:
-            urls = fetch_sitemap_urls(sitemap_url)
-            results = process_sitemap_urls(urls, max_workers=5, task_id=task_id)
-            file_path = save_results_to_csv(results, task_id)
+            # Choose a safe output directory
+            out_dir = getattr(
+                settings,
+                "SEO_TMP_DIR",
+                getattr(settings, "MEDIA_ROOT", tempfile.gettempdir()),
+            )
+            os.makedirs(out_dir, exist_ok=True)
+            file_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
+
+            # Fetch at most SITEMAP_LIMIT URLs, then write-as-you-go CSV
+            urls = fetch_sitemap_urls(sitemap_url, limit=SITEMAP_LIMIT)
+            process_sitemap_to_csv(urls, file_path, max_workers=URL_WORKERS, task_id=task_id)
+
             cache.set(task_id, {"status": "completed", "file": file_path}, timeout=1800)
         except Exception as e:
             cache.set(task_id, {"status": "error", "error": str(e)}, timeout=1800)
         finally:
             urls = None
-            results = None
             gc.collect()
 
-    ThreadPoolExecutor().submit(process_task)
+    EXECUTOR.submit(process_task)
     return JsonResponse({"task_id": task_id}, status=202)
 
 
-
-
-def get_task_status(request, task_id):
+def fetch_sitemap_urls(sitemap_url, limit=None):
     """
-    Retrieves the status of a background task by its task ID.
-
-    - Checks the cache for the task information associated with the given task ID.
-    - Returns the current status of the task, including progress or errors, if available.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-        task_id (str): The unique identifier for the task.
-
-    Returns:
-        JsonResponse: A JSON response containing the task status or an error message.
+    Fetch URLs from a sitemap (streaming XML); if not a sitemap, return [sitemap_url].
+    Applies an in-parser cap (limit) so we don't hold a huge URL list in memory.
     """
-    # Attempt to retrieve the task information from the cache.
-    task = cache.get(task_id)
-    # If the task is not found in the cache.
-    if not task:
-        # Return an error response indicating the task was not found.
-        return JsonResponse({"error": "Task not found"}, status=404)
-    # Return the task details as a JSON response.
-    return JsonResponse(task)
+    import requests
 
+    if limit is None:
+        limit = SITEMAP_LIMIT
 
-def download_task_file(request, task_id):
-    """
-    Handles the download of a completed task's output file.
-
-    - Checks the cache for the task information and ensures the task is completed.
-    - Validates the existence of the output file associated with the task.
-    - Serves the file for download and cleans up the file and cache entry after serving.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-        task_id (str): The unique identifier for the task.
-
-    Returns:
-        HttpResponse: A response containing the file for download.
-        JsonResponse: An error response if the file or task is not found.
-    """
-    # Retrieve task details from the cache.
-    task = cache.get(task_id)
-    # Ensure the task exists and is marked as "completed".
-    if not task or task.get("status") != "completed":
-        return JsonResponse({"error": "File not ready or task not found"}, status=404)
-
-    # Get the file path from the task details.
-    file_path = task.get("file")
-
-    # Verify that the file path exists and is accessible.
-    if not file_path or not os.path.exists(file_path):
-        return JsonResponse({"error": "File not found"}, status=404)
-
-    # Open the file in binary mode and prepare the response for download.
-    with open(file_path, "rb") as file:
-        response = HttpResponse(file, content_type="application/octet-stream")
-
-        # Set the Content-Disposition header to prompt a download with the file's name.
-        response["Content-Disposition"] = (
-            f'attachment; filename="{os.path.basename(file_path)}"'
-        )
-
-        # Remove the file from the server after it is served.
-        os.remove(file_path)
-        # Delete the task entry from the cache.
-        cache.delete(task_id)
-        # Trigger garbage collection to free memory.
-        gc.collect()
-
-        # Return the file as an HTTP response.
-        return response
-
-def fetch_sitemap_urls(sitemap_url):
-    """
-    Fetches all URLs listed in a sitemap or processes a single webpage URL.
-
-    - Sends an HTTP GET request to the sitemap URL or webpage URL.
-    - If the URL points to a sitemap, parses the sitemap content to extract all <loc> tags.
-    - If the URL points to a webpage, validates whether it has a valid <head> section.
-
-    Args:
-        sitemap_url (str): The URL of the sitemap or webpage to fetch.
-
-    Returns:
-        list: A list of URLs (str) extracted from the sitemap or containing the single webpage URL.
-
-    Raises:
-        ValueError: If the URL is invalid, inaccessible, or cannot be processed.
-        Exception: If the sitemap content cannot be parsed.
-    """
     headers = {
-        # Identifies my app so admins know who is crawling their website.
         "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        # Tells websites what the app is looking for.
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
+
+    # Streaming fetch
     try:
-        # Send an HTTP GET request to fetch the sitemap or webpage content with a custom User-Agent.
-        response = requests.get(sitemap_url, headers=headers, timeout=10)
-        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+        resp = requests.get(sitemap_url, headers=headers, timeout=10, stream=True)
+        resp.raise_for_status()
     except requests.exceptions.Timeout:
         raise ValueError("The request timed out. Please try again later.")
     except requests.exceptions.ConnectionError:
@@ -173,103 +102,68 @@ def fetch_sitemap_urls(sitemap_url):
     except requests.exceptions.RequestException as e:
         raise ValueError(f"An error occurred while fetching the URL: {e}")
 
-    # Check the content type of the response to determine if it's a sitemap
-    content_type = response.headers.get("Content-Type", "")
-    if "xml" in content_type or sitemap_url.endswith(".xml"):
-        try:
-            # Parse the sitemap content as XML using BeautifulSoup.
-            soup = BeautifulSoup(response.content, "lxml-xml")
-            # Extract and return all URLs found in <loc> tags.
-            urls = [loc.text for loc in soup.find_all("loc")]
+    ctype = (resp.headers.get("Content-Type") or "").lower()
+    try:
+        if "xml" in ctype or sitemap_url.lower().endswith(".xml"):
+            # Stream-parse the sitemap; stop once we have 'limit' URLs
+            import xml.etree.ElementTree as ET
+            resp.raw.decode_content = True  # let urllib3 decompress to the stream
+
+            urls = []
+            capped = max(1, int(limit))
+            for _, el in ET.iterparse(resp.raw, events=("end",)):
+                tag = el.tag
+                if isinstance(tag, str) and tag.endswith("loc") and el.text:
+                    urls.append(el.text.strip())
+                    if len(urls) >= capped:
+                        break
+                el.clear()  # free element memory promptly
+
             if not urls:
                 raise ValueError("The provided sitemap is empty or invalid.")
             return urls
-        except Exception as e:
-            raise ValueError(
-                f"Failed to parse the sitemap. Ensure it's a valid XML file. Error: {e}"
-            )
-    else:
-        # If not a sitemap, assume it's a single webpage URL
-        return [sitemap_url]
+        else:
+            # Not a sitemap: treat as a single page
+            return [sitemap_url]
+    finally:
+        try:
+            resp.close()
+        except Exception:
+            pass
 
 
-def process_sitemap_urls(urls, max_workers=5, task_id=None):
+def _read_until_head(resp, limit=512_000):
     """
-    Processes URLs from a sitemap in parallel, up to a specified limit.
-
-    - Utilizes a thread pool to process URLs concurrently for improved efficiency.
-    - Updates task progress in the cache if a task ID is provided.
-    - Returns the results of processing each URL.
-
-    Args:
-        urls (list): List of URLs to process.
-        max_workers (int, optional): Number of threads to use for concurrent processing. Set to 5.
-        task_id (str, optional): Unique identifier for tracking progress in the cache. Defaults to None.
-
-    Returns:
-        list: A list of results from processing each URL.
+    Read up to and including </head> (or until limit bytes), then stop.
+    Works with requests.get(..., stream=True).
     """
-    # Ensure the global sitemap_limit variable is accessible.
-    global sitemap_limit
-
-    # Initialize an empty list to store the results.
-    results = []
-
-    # Determine the actual number of URLs to process (limited by sitemap_limit).
-    total_urls = min(len(urls), sitemap_limit)
-
-    # Use a thread pool to process URLs concurrently.
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Process URLs in parallel and enumerate results to track progress.
-        for i, result in enumerate(
-            executor.map(process_single_url, urls[:sitemap_limit])
-        ):
-            # Append the result of processing each URL to the results list.
-            results.append(result)
-
-            # If a task ID is provided, update the progress in the cache.
-            if task_id:
-                cache.set(
-                    task_id,
-                    {
-                        # Indicate that the task is still processing.
-                        "status": "processing",
-                        # Calculate progress percentage.
-                        "progress": int((i + 1) / total_urls * 100),
-                    },
-                    # Cache entry expiration time (30 minutes).
-                    timeout=1800,
-                )
-    # Explicit cleanup.
-    del urls
-    gc.collect()
-
-    # Return the list of results after processing all URLs.
-    return results
+    end = b"</head>"
+    buf = bytearray()
+    for chunk in resp.iter_content(8192):
+        buf += chunk
+        if end in buf or len(buf) >= limit:
+            break
+    return bytes(buf)
 
 
 def process_single_url(url):
     """
-    Processes a single URL to extract and check the presence of SEO-related elements in the <head> section.
-
-    Args:
-        url (str): The URL to process.
-
-    Returns:
-        dict: A dictionary containing the URL, status, and results for SEO element checks.
+    Fetch a page and check SEO-related elements in <head> only (memory-friendly).
+    Returns a dict for CSV output.
     """
+    import requests
+    from bs4 import BeautifulSoup, SoupStrainer
+
     headers = {
-        # Identifies my app so admins know who is crawling their website.
         "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        # Tells websites what the app is looking for.
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
-    soup = None  # Initialize soup to avoid uninitialized reference in finally block
+    soup = None
+    resp = None
 
     try:
-        # Send an HTTP GET request to the URL with a 10-second timeout.
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Check for HTTP errors (e.g., 404, 500).
+        resp = requests.get(url, headers=headers, timeout=10, stream=True)
+        resp.raise_for_status()
     except requests.exceptions.Timeout:
         return {"URL": url, "Status": "Error: Request timed out"}
     except requests.exceptions.ConnectionError:
@@ -280,24 +174,20 @@ def process_single_url(url):
         return {"URL": url, "Status": f"Request error: {e}"}
 
     try:
-        # Parse the HTML content of the response using BeautifulSoup.
-        soup = BeautifulSoup(response.text, "html.parser")
-        # Extract the <head> section from the parsed HTML.
+        html_head = _read_until_head(resp)
+        only_head = SoupStrainer("head")
+        soup = BeautifulSoup(html_head, "html.parser", parse_only=only_head)
+
         head = soup.find("head")
         if not head:
             return {"URL": url, "Status": "No <head> section"}
 
-        # Helper function to check for the presence of specific tags in the <head>.
         def is_present(tag_name, **attrs):
             return "Present" if head.find(tag_name, attrs=attrs) else "Missing"
 
-        # Count structured data scripts in the <head>.
-        structured_data_scripts = head.find_all("script", type="application/ld+json")
-        structured_data_count = (
-            len(structured_data_scripts) if structured_data_scripts else 0
-        )
+        structured_scripts = head.find_all("script", type="application/ld+json")
+        structured_count = len(structured_scripts) if structured_scripts else 0
 
-        # Open Graph and Twitter Tags
         open_graph_present = bool(
             head.find("meta", attrs={"property": lambda p: p and p.startswith("og:")})
         )
@@ -305,7 +195,6 @@ def process_single_url(url):
             head.find("meta", attrs={"name": lambda p: p and p.startswith("twitter:")})
         )
 
-        # Return the results dictionary.
         return {
             "URL": url,
             "Status": "Success",
@@ -316,88 +205,116 @@ def process_single_url(url):
             "Open Graph Tags": "Present" if open_graph_present else "Missing",
             "Twitter Card Tags": "Present" if twitter_card_present else "Missing",
             "Hreflang Tags": (
-                "Present"
-                if head.find("link", rel="alternate", hreflang=True)
-                else "Missing"
+                "Present" if head.find("link", rel="alternate", hreflang=True) else "Missing"
             ),
             "Structured Data": (
-                f"Present ({structured_data_count} scripts)"
-                if structured_data_count > 0
-                else "Missing"
+                f"Present ({structured_count} scripts)" if structured_count > 0 else "Missing"
             ),
             "Charset Declaration": is_present("meta", charset=True),
             "Viewport Tag": is_present("meta", name="viewport"),
             "Favicon": is_present("link", rel="icon"),
         }
     except Exception as e:
-        # Return a dictionary indicating an error occurred and include the exception message.
         return {"URL": url, "Status": f"Error while processing content: {e}"}
     finally:
-        # Safely release memory for the parsed HTML.
         if soup:
             del soup
-        gc.collect()  # Force garbage collection
+        if resp is not None:
+            try:
+                resp.close()
+            except Exception:
+                pass
+        gc.collect()
 
 
-def save_results_to_csv(results, task_id):
+def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
     """
-    Saves the results of sitemap processing to a CSV file.
-
-    - Creates a CSV file named using the task ID to ensure uniqueness.
-    - Writes the results, including headers and data rows, to the CSV file.
-    - Returns the file path for further use (e.g., download or cleanup).
-
-    Args:
-        results (list): A list of dictionaries containing the processing results for each URL.
-        task_id (str): A unique identifier for the task, used to name the CSV file.
-
-    Returns:
-        str: The file path of the generated CSV file.
+    Write results directly to a CSV file while processing URLs in parallel.
+    Keeps memory flat by not accumulating a giant results list.
     """
-    # Define the file path using the task ID for uniqueness.
-    file_path = f"seo_report_{task_id}.csv"
+    import csv
+    from concurrent.futures import ThreadPoolExecutor
 
-    # Open the file in write mode with UTF-8 encoding.
-    with open(file_path, "w", newline="", encoding="utf-8") as csvfile:
+    if max_workers is None:
+        max_workers = URL_WORKERS
 
-        # Define the field names (column headers) for the CSV file.
+    total = max(1, len(urls))  # already capped by fetch_sitemap_urls
+    with open(csv_path, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(
             csvfile,
             fieldnames=[
-                # The URL of the processed page.
                 "URL",
-                # The processing status (e.g., Success, Error).
                 "Status",
-                # Presence of the <title> tag.
                 "Title Tag",
-                # Presence of the meta description.
                 "Meta Description",
-                # Presence of the canonical link tag.
                 "Canonical Tag",
-                # Presence of the meta robots tag.
                 "Meta Robots Tag",
-                # Presence of Open Graph meta tags.
                 "Open Graph Tags",
-                # Presence of Twitter card meta tags.
                 "Twitter Card Tags",
-                # Presence of hreflang link tags.
                 "Hreflang Tags",
-                # Presence of structured data (JSON-LD scripts).
                 "Structured Data",
-                # Presence of the charset declaration.
                 "Charset Declaration",
-                # Presence of the viewport meta tag.
                 "Viewport Tag",
-                # Presence of the favicon link tag.
                 "Favicon",
             ],
         )
-
-        # Write the column headers to the CSV file.
         writer.writeheader()
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            for i, row in enumerate(pool.map(process_single_url, urls)):
+                writer.writerow(row)
+                if task_id:
+                    cache.set(
+                        task_id,
+                        {"status": "processing", "progress": int(((i + 1) / total) * 100)},
+                        timeout=1800,
+                    )
+    gc.collect()
 
-        # Write the rows of data to the CSV file.
-        writer.writerows(results)
 
-    # Return the file path of the generated CSV file.
-    return file_path
+def get_task_status(request, task_id):
+    """Return the current status/progress or error for a given task_id from cache."""
+    task = cache.get(task_id)
+    if not task:
+        return JsonResponse({"error": "Task not found"}, status=404)
+    return JsonResponse(task)
+
+
+def download_task_file(request, task_id):
+    """
+    Stream the generated CSV to the client and clean up the file & cache when done.
+    """
+    task = cache.get(task_id)
+    if not task or task.get("status") != "completed":
+        return JsonResponse({"error": "File not ready or task not found"}, status=404)
+
+    file_path = task.get("file")
+    if not file_path or not os.path.exists(file_path):
+        return JsonResponse({"error": "File not found"}, status=404)
+
+    f = open(file_path, "rb")
+    resp = FileResponse(
+        f,
+        as_attachment=True,
+        filename=os.path.basename(file_path),
+        content_type="text/csv",
+    )
+
+    # Cleanup after the response is closed
+    original_close = resp.close
+
+    def _close_and_cleanup():
+        try:
+            original_close()
+        finally:
+            try:
+                f.close()
+            finally:
+                try:
+                    os.remove(file_path)
+                except FileNotFoundError:
+                    pass
+                cache.delete(task_id)
+                gc.collect()
+
+    resp.close = _close_and_cleanup
+    return resp
