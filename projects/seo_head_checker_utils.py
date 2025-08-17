@@ -10,12 +10,44 @@ from django.conf import settings
 # ---------------------------------------------------------------------------
 # Tunables (can be overridden in settings.py)
 # ---------------------------------------------------------------------------
-BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 15)     # concurrent jobs
+BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 10)     # concurrent jobs
 URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)    # concurrent URLs per job
 SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
 
 # Shared background executor
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
+
+# ---- Shared HTTP session with connection pooling & retries -------------------
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+def _build_http_pool(bg_workers, url_workers):
+    pool_size = max(8, int(bg_workers * max(1, url_workers) * 1.5))
+    sess = requests.Session()
+    sess.headers.update({
+        "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    })
+    retry = Retry(
+        total=2,
+        connect=2,
+        read=2,
+        backoff_factor=0.3,
+        status_forcelist=(429, 500, 502, 503, 504),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(
+        pool_connections=pool_size,
+        pool_maxsize=pool_size,
+        max_retries=retry,
+    )
+    sess.mount("http://", adapter)
+    sess.mount("https://", adapter)
+    return sess
+
+_POOL = _build_http_pool(BG_WORKERS, URL_WORKERS)
+
 
 
 def start_sitemap_processing(request=None, sitemap_url=None):
@@ -92,7 +124,7 @@ def fetch_sitemap_urls(sitemap_url, limit=None):
 
     # Streaming fetch
     try:
-        resp = requests.get(sitemap_url, headers=headers, timeout=10, stream=True)
+        resp = _POOL.get(sitemap_url, headers=headers, timeout=(5, 15), stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         raise ValueError("The request timed out. Please try again later.")
@@ -163,7 +195,7 @@ def process_single_url(url):
     resp = None
 
     try:
-        resp = requests.get(url, headers=headers, timeout=10, stream=True)
+        resp = _POOL.get(url, headers=headers, timeout=(5, 15), stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         return {"URL": url, "Status": "Error: Request timed out"}
