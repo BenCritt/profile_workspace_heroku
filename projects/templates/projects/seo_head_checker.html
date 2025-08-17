@@ -88,13 +88,13 @@
             </div>
             <br>
             <!-- Status and download elements -->
-            <div id="status" class="alert alert-info" style="display: block; width: 100%; max-width: 500px;">Progress: 0%</div>
+            <div id="status" class="alert alert-info" style="display: block; width: 100%; max-width: 500px;" aria-live="polite">Progress: 0%</div>
             <div style="width: 100%; max-width: 500px;">
                 <a
                     id="download_link"
                     style="display: none;"
                     class="btn btn-success"
-                    href="/projects/seo-head-checker/"
+                    href="#"
                     onclick="refreshPageAfterDownload()"
                     aria-label="Download the generated SEO report"
                 >
@@ -118,147 +118,134 @@
     <!-- JavaScript for handling form submission and progress updates. -->
     <!-- This must be below everything else, which is why it's not with the other script. -->
     <script>
-        /**
-        * Initiates the sitemap processing by sending the sitemap URL to the server.
-        */
-        async function startProcessing() {
-            // Get the input element for the sitemap URL.
-            const sitemapInput = document.getElementById("sitemap_url");
-            // Check if the input element exists.
-            if (!sitemapInput) {
-                alert("Sitemap URL input field is missing from the page.");
-                // Stop execution if the input field is not found.
-                return;
-            }
-        
-            // Retrieve and trim the value from the input field.
-            const sitemapUrl = sitemapInput.value.trim();
+    // Helper: set text + Bootstrap alert style in one place
+    function setStatus(message, klass) {
+        const el = document.getElementById("status");
+        if (!el) return;
+        el.className = `alert ${klass}`;
+        el.innerText = message;
+    }
 
-            // Check if the user provided a URL.
-            if (!sitemapUrl) {
-                alert("Sitemap URL is required. Please enter a valid URL.");
-                // Stop execution if the input field is empty.
-                return;
-            }
-        
-            try {
-                 // Send a POST request to start the sitemap processing.
-                const response = await fetch("/start_sitemap_processing/", {
-                    // HTTP POST method.
-                    method: "POST",
-                    headers: {
-                        // Set content type to JSON.
-                        "Content-Type": "application/json",
-                        // Include CSRF token for security.
-                        "X-CSRFToken": "{{ csrf_token }}",
-                    },
-                    // Send the sitemap URL in the request body.
-                    body: JSON.stringify({ sitemap_url: sitemapUrl }),
-                });
-                
-                // Parse the JSON response from the server.
-                const data = await response.json();
+    // Start the job and immediately show "queued" if the pool is full
+    async function startProcessing() {
+        const sitemapInput = document.getElementById("sitemap_url");
+        const btn = document.getElementById("seo-head-btn");
+        const downloadLink = document.getElementById("download_link");
 
-                // Check if the server returned an error status.
-                // Status 202 indicates the request was accepted.
-                if (response.status !== 202) {
-                    alert(data.error || "Failed to start processing.");
-                    // Stop execution if an error occurred.
-                    return;
-                }
-        
-                // Extract the task ID from the server's response.
-                const taskId = data.task_id;
-                // Begin polling the server for task status updates.
-                pollTaskStatus(taskId);
-            } catch (error) {
-                // Handle any network or unexpected errors.
-                console.error("Error starting processing:", error);
-                alert("An error occurred while starting the processing task.");
-            }
+        // Hide any previous download link to avoid stale clicks
+        if (downloadLink) {
+        downloadLink.style.display = "none";
+        downloadLink.removeAttribute("href");
         }
-    
-        /**
-        * Polls the server for the status of the sitemap processing task.
-        * taskId - The unique ID of the task being processed.
-        */
-        async function pollTaskStatus(taskId) {
-            // Get the status element and download link elements from the DOM.
-            const statusElement = document.getElementById("status");
-            const downloadLink = document.getElementById("download_link");
-        
-             // Set an interval to repeatedly poll the server for task status every 2 seconds (2000 ms).
-            const interval = setInterval(async () => {
-                // Send a GET request to fetch the current status of the task by its ID.
-                const response = await fetch(`/get_task_status/${taskId}/`);
-                // Parse the response as JSON.
-                const data = await response.json();
-        
-                // Handle the case where the task is not found (HTTP 404).
-                if (response.status === 404) {
-                    // Stop polling if the task does not exist.
-                    clearInterval(interval);
-                    // Display an error message.
-                    statusElement.innerText = "Error: Task not found.";
-                    // Exit the function.
-                    return;
-                }
-        
-                // Handle the case where the task is still processing.
-                if (data.status === "processing") {
-                    // Update the status element with the current progress percentage.
-                    statusElement.innerText = `Progress: ${data.progress || 0}%`;
-                }
-        
-                // Handle the case where the task is completed.
-                if (data.status === "completed") {
-                    // Stop polling when processing is complete.
-                    clearInterval(interval);
-                    // Display completion message.
-                    statusElement.innerText = "Processing completed! 100%";
 
-                    // Update the download link's `href` to point to the task's result file.
-                    downloadLink.href = `/download_task_file/${taskId}/`;
-                    
-                    // Make the download link visible to the user.
-                    downloadLink.style.display = "block";
+        if (!sitemapInput) { alert("Sitemap URL input field is missing from the page."); return; }
+        const sitemapUrl = sitemapInput.value.trim();
+        if (!sitemapUrl) { alert("Sitemap URL is required. Please enter a valid URL."); return; }
 
-                // Handle the case where an error occurred during processing.
-                } else if (data.status === "error") {
-                    // Stop polling if an error occurs.
-                    clearInterval(interval);
-                    // Display error message.
-                    statusElement.innerText = "Error occurred during processing.";
+        try {
+        setStatus("Submitting…", "alert-info");
+        if (btn) btn.disabled = true;
 
-                    // Show an alert with the error message or a default message if none is provided.
-                    alert(data.error || "An error occurred.");
-                }
-                // Polling interval set to 2 seconds.
-            }, 2000);
-        }        
-    </script>
-    <script>
-        // Add an event listener to the form to capture the Enter key.
-        document.getElementById("sitemap-form").addEventListener("keydown", function (event) {
+        const response = await fetch("/start_sitemap_processing/", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ sitemap_url: sitemapUrl }),
+        });
+
+        let data = {};
+        try { data = await response.json(); } catch (_) {}
+
+        if (response.status !== 202) {
+            setStatus((data && data.error) || "Failed to start processing.", "alert-danger");
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        const taskId = data.task_id;
+        setStatus("Queued… waiting for a worker", "alert-warning");
+        pollTaskStatus(taskId);
+        } catch (err) {
+        console.error(err);
+        setStatus("An error occurred while starting the task.", "alert-danger");
+        if (btn) btn.disabled = false;
+        }
+    }
+
+    // Poll for status, including the explicit "pending" queue state
+    async function pollTaskStatus(taskId) {
+        const downloadLink = document.getElementById("download_link");
+        const btn = document.getElementById("seo-head-btn");
+
+        const interval = setInterval(async () => {
+        let response, data;
+        try {
+            response = await fetch(`/get_task_status/${taskId}/`);
+            data = await response.json();
+        } catch (err) {
+            // Network hiccup: keep polling silently
+            console.warn("Polling error:", err);
+            return;
+        }
+
+        if (response.status === 404) {
+            clearInterval(interval);
+            setStatus("Error: Task not found.", "alert-danger");
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        if (data.status === "pending") {
+            setStatus("Queued… waiting for a worker", "alert-warning");
+            return;
+        }
+
+        if (data.status === "processing") {
+            setStatus(`Progress: ${data.progress || 0}%`, "alert-info");
+            return;
+        }
+
+        if (data.status === "completed") {
+            clearInterval(interval);
+            setStatus("Processing completed! 100%", "alert-success");
+            if (downloadLink) {
+            downloadLink.href = `/download_task_file/${taskId}/`;
+            downloadLink.style.display = "block";
+            }
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        if (data.status === "error") {
+            clearInterval(interval);
+            setStatus("Error occurred during processing.", "alert-danger");
+            alert(data.error || "An error occurred.");
+            if (btn) btn.disabled = false;
+            return;
+        }
+        }, 2000);
+    }
+
+    // Pressing Enter in the form triggers the button click (no full page submit)
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("sitemap-form");
+        if (form) {
+        form.addEventListener("keydown", function (event) {
             if (event.key === "Enter") {
-                // Prevent the default form submission.
-                event.preventDefault();
-                // Trigger the button click.
-                document.getElementById("seo-head-btn").click();
+            event.preventDefault();
+            const btn = document.getElementById("seo-head-btn");
+            if (btn) btn.click();
             }
         });
-    </script>
-    <script>
-        /**
-         * Refreshes the page after the download link is clicked.
-         * The refresh is delayed to ensure the file download starts before the page reloads.
-         */
-        function refreshPageAfterDownload() {
-            setTimeout(() => {
-                // Reload the current page.
-                location.reload();
-                // Delay to allow the download to start.
-            }, 1000);
         }
+    });
+
+    // Refresh page shortly after download click (so UI resets)
+    function refreshPageAfterDownload() {
+        setTimeout(() => { location.reload(); }, 1000);
+    }
     </script>
+
 {% endblock content %}

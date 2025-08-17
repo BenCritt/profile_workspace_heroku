@@ -261,45 +261,25 @@ def iss_tracker(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_head_checker(request):
-    """
-    Renders the SEO Head Checker form and handles POST requests to initiate processing.
-    """
-    import json
-    from .forms import SitemapForm
-    from .seo_head_checker_utils import start_sitemap_processing
-    if request.method == "POST":
-        form = SitemapForm(request.POST)
-        if form.is_valid():
-            sitemap_url = form.cleaned_data["sitemap_url"]
-            try:
-                response = start_sitemap_processing(sitemap_url=sitemap_url)
-                if response.status_code == 202:
-                    data = json.loads(response.content)
-                    task_id = data.get("task_id")
-                    return render(
-                        request,
-                        "projects/seo_head_checker.html",
-                        {"form": SitemapForm(), "task_id": task_id},
-                    )
-                else:
-                    data = json.loads(response.content)
-                    error_message = data.get("error", "Unexpected error.")
-                    return render(
-                        request,
-                        "projects/seo_head_checker.html",
-                        {"form": form, "error": error_message},
-                    )
-            except Exception as e:
-                return render(
-                    request,
-                    "projects/seo_head_checker.html",
-                    {"form": form, "error": str(e)},
-                )
-        # invalid form: redisplay with errors
-        return render(request, "projects/seo_head_checker.html", {"form": form})
-
-    # GET: just show an empty form
+    from .forms import SitemapForm  # import inside the view to keep module light
     return render(request, "projects/seo_head_checker.html", {"form": SitemapForm()})
+
+# ---- Forwarders to the robust utils implementations ----
+from .seo_head_checker_utils import (
+    start_sitemap_processing as _start_sitemap_processing,
+    get_task_status as _get_task_status,
+    download_task_file as _download_task_file,
+)
+
+def start_sitemap_processing(request):
+    return _start_sitemap_processing(request=request)
+
+def get_task_status(request, task_id):
+    return _get_task_status(request, task_id)
+
+def download_task_file(request, task_id):
+    return _download_task_file(request, task_id)
+
 
 # This is code for generating favicons on Android devices.
 # This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.

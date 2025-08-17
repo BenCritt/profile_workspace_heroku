@@ -422,7 +422,7 @@ def download_task_file(request, task_id):
     if not acquired:
         # If very busy, ask client to retry shortly
         _dec_ref(task_id)
-        return JsonResponse({"error": "Busy, try again shortly"}, status=503)
+        return JsonResponse({"error": "The maximum number of downloads the server can handle at the same time has been reached.  Please try again.  This problem doesn't last for long, and this error seldom gets triggered."}, status=503)
 
     try:
         f = open(file_path, "rb")
