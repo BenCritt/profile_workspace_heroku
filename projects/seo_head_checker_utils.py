@@ -1,58 +1,61 @@
+# seo_head_checker_utils.py
+
 import os
 import uuid
 import gc
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from django.http import JsonResponse, FileResponse
 from django.core.cache import cache
 from django.conf import settings
 
-# ---------------------------------------------------------------------------
-# Tunables (can be overridden in settings.py)
-# ---------------------------------------------------------------------------
-BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 10)     # concurrent jobs
-URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)    # concurrent URLs per job
+# -----------------------------------------------------------------------------
+# Tunables (override in settings.py if desired)
+# -----------------------------------------------------------------------------
+BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 6)      # concurrent jobs
+URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)     # concurrent URLs per job
 SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
+DOWNLOAD_TTL  = getattr(settings, "SEO_DOWNLOAD_TTL", 30 * 60)  # 30 minutes
 
-# Shared background executor
+# Shared background executor for jobs
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
 
-# ---- Shared HTTP session with connection pooling & retries -------------------
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
-def _build_http_pool(bg_workers, url_workers):
-    pool_size = max(8, int(bg_workers * max(1, url_workers) * 1.5))
-    sess = requests.Session()
-    sess.headers.update({
-        "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    })
-    retry = Retry(
-        total=2,
-        connect=2,
-        read=2,
-        backoff_factor=0.3,
-        status_forcelist=(429, 500, 502, 503, 504),
-        raise_on_status=False,
-    )
-    adapter = HTTPAdapter(
-        pool_connections=pool_size,
-        pool_maxsize=pool_size,
-        max_retries=retry,
-    )
-    sess.mount("http://", adapter)
-    sess.mount("https://", adapter)
-    return sess
+def _get_out_dir() -> str:
+    """Return a safe, writable directory to store CSVs."""
+    seo_tmp = getattr(settings, "SEO_TMP_DIR", None)
+    media_root = getattr(settings, "MEDIA_ROOT", None)
+    out_dir = (seo_tmp or media_root or tempfile.gettempdir()) or tempfile.gettempdir()
+    os.makedirs(out_dir, exist_ok=True)
+    return out_dir
 
-_POOL = _build_http_pool(BG_WORKERS, URL_WORKERS)
 
+def _cleanup_old_reports(directory: str, max_age: int = DOWNLOAD_TTL) -> None:
+    """Delete old seo_report_*.csv files older than max_age seconds (best-effort)."""
+    try:
+        now = time.time()
+        for name in os.listdir(directory):
+            if not (name.startswith("seo_report_") and name.endswith(".csv")):
+                continue
+            path = os.path.join(directory, name)
+            try:
+                st = os.stat(path)
+            except FileNotFoundError:
+                continue
+            if now - st.st_mtime > max(60, int(max_age)):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+    except Exception:
+        # Never let cleanup crash the request path
+        pass
 
 
 def start_sitemap_processing(request=None, sitemap_url=None):
     """
-    Start a background job to process a sitemap (or single URL) and write a CSV report.
+    Start a background job to process a sitemap (or single URL) and write a CSV.
     Accepts either:
       • direct param `sitemap_url`, or
       • POST JSON body: {"sitemap_url": "<url>"}
@@ -77,28 +80,25 @@ def start_sitemap_processing(request=None, sitemap_url=None):
         return JsonResponse({"error": "Missing or invalid sitemap_url"}, status=400)
 
     task_id = str(uuid.uuid4())
-    cache.set(task_id, {"status": "pending", "progress": 0}, timeout=1800)
+    cache.set(task_id, {"status": "pending", "progress": 0}, timeout=max(1800, DOWNLOAD_TTL))
 
     def process_task():
         urls = None
         try:
-            # Choose a safe output directory; treat "" as unset.
-            seo_tmp = getattr(settings, "SEO_TMP_DIR", None)
-            media_root = getattr(settings, "MEDIA_ROOT", None)
-            out_dir = seo_tmp or media_root or tempfile.gettempdir()
-            if not out_dir:
-                out_dir = tempfile.gettempdir()
-            os.makedirs(out_dir, exist_ok=True)
-
+            out_dir = _get_out_dir()
+            _cleanup_old_reports(out_dir, DOWNLOAD_TTL)  # purge stale CSVs opportunistically
             file_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
 
-            # Fetch at most SITEMAP_LIMIT URLs, then write-as-you-go CSV
             urls = fetch_sitemap_urls(sitemap_url, limit=SITEMAP_LIMIT)
             process_sitemap_to_csv(urls, file_path, max_workers=URL_WORKERS, task_id=task_id)
 
-            cache.set(task_id, {"status": "completed", "file": file_path}, timeout=1800)
+            cache.set(
+                task_id,
+                {"status": "completed", "file": file_path, "ts": time.time()},
+                timeout=DOWNLOAD_TTL,
+            )
         except Exception as e:
-            cache.set(task_id, {"status": "error", "error": str(e)}, timeout=1800)
+            cache.set(task_id, {"status": "error", "error": str(e)}, timeout=DOWNLOAD_TTL)
         finally:
             urls = None
             gc.collect()
@@ -109,8 +109,8 @@ def start_sitemap_processing(request=None, sitemap_url=None):
 
 def fetch_sitemap_urls(sitemap_url, limit=None):
     """
-    Fetch URLs from a sitemap (streaming XML); if not a sitemap, return [sitemap_url].
-    Applies an in-parser cap (limit) so we don't hold a huge URL list in memory.
+    Fetch URLs from a sitemap (streaming). If not a sitemap, return [sitemap_url].
+    Applies an in-parser cap so we don't hold a huge URL list in memory.
     """
     import requests
 
@@ -122,9 +122,8 @@ def fetch_sitemap_urls(sitemap_url, limit=None):
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
 
-    # Streaming fetch
     try:
-        resp = _POOL.get(sitemap_url, headers=headers, timeout=(5, 15), stream=True)
+        resp = requests.get(sitemap_url, headers=headers, timeout=10, stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         raise ValueError("The request timed out. Please try again later.")
@@ -195,7 +194,7 @@ def process_single_url(url):
     resp = None
 
     try:
-        resp = _POOL.get(url, headers=headers, timeout=(5, 15), stream=True)
+        resp = requests.get(url, headers=headers, timeout=10, stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         return {"URL": url, "Status": "Error: Request timed out"}
@@ -262,7 +261,7 @@ def process_single_url(url):
 
 def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
     """
-    Write results directly to a CSV file while processing URLs in parallel.
+    Write results directly to a CSV file while processing URLs in parallel (or serially).
     Keeps memory flat by not accumulating a giant results list.
     """
     import csv
@@ -292,15 +291,27 @@ def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
             ],
         )
         writer.writeheader()
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            for i, row in enumerate(pool.map(process_single_url, urls)):
+        if max_workers == 1:
+            # No per-job threadpool: fewer threads per job => more concurrent users
+            for i, u in enumerate(urls):
+                row = process_single_url(u)
                 writer.writerow(row)
                 if task_id:
                     cache.set(
                         task_id,
                         {"status": "processing", "progress": int(((i + 1) / total) * 100)},
-                        timeout=1800,
+                        timeout=DOWNLOAD_TTL,
                     )
+        else:
+            with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                for i, row in enumerate(pool.map(process_single_url, urls)):
+                    writer.writerow(row)
+                    if task_id:
+                        cache.set(
+                            task_id,
+                            {"status": "processing", "progress": int(((i + 1) / total) * 100)},
+                            timeout=DOWNLOAD_TTL,
+                        )
     gc.collect()
 
 
@@ -314,15 +325,17 @@ def get_task_status(request, task_id):
 
 def download_task_file(request, task_id):
     """
-    Stream the generated CSV to the client and clean up the file & cache when done.
+    Stream the generated CSV to the client and delete it afterwards.
+    Also relies on TTL cleanup to purge stale files not downloaded.
     """
+    # Resolve file path from cache or derive by convention (multi-process safe)
     task = cache.get(task_id)
-    if not task or task.get("status") != "completed":
-        return JsonResponse({"error": "File not ready or task not found"}, status=404)
+    out_dir = _get_out_dir()
+    derived_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
+    file_path = (task or {}).get("file") or derived_path
 
-    file_path = task.get("file")
-    if not file_path or not os.path.exists(file_path):
-        return JsonResponse({"error": "File not found"}, status=404)
+    if not os.path.exists(file_path):
+        return JsonResponse({"error": "File not ready or not found"}, status=404)
 
     f = open(file_path, "rb")
     resp = FileResponse(
@@ -332,7 +345,7 @@ def download_task_file(request, task_id):
         content_type="text/csv",
     )
 
-    # Cleanup after the response is closed
+    # Delete-on-download (after streaming completes)
     original_close = resp.close
 
     def _close_and_cleanup():
