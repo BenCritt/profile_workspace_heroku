@@ -17,11 +17,11 @@ from django.conf import settings
 # -----------------------------------------------------------------------------
 # Tunables (override in settings.py if desired)
 # -----------------------------------------------------------------------------
-BG_WORKERS = 8       # concurrent jobs per process
-URL_WORKERS = 1          # concurrent URLs per job
-SITEMAP_LIMIT = 100      # cap URLs per sitemap
-DOWNLOAD_TTL = 30 * 60   # 30 minutes
-MAX_CONCURRENT_DOWNLOADS = 10  # per-process download concurrency limit
+BG_WORKERS = 20       # concurrent jobs per process
+URL_WORKERS = 2          # concurrent URLs per job
+SITEMAP_LIMIT = 500      # cap URLs per sitemap
+DOWNLOAD_TTL = 120 * 60   # 120 minutes
+MAX_CONCURRENT_DOWNLOADS = 20  # per-process download concurrency limit
 
 # Shared background executor for jobs
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
