@@ -32,9 +32,7 @@ import re
 
 
 # Font Inspector
-from urllib.parse import urlparse
-from django import forms
-from django.core.validators import URLValidator, ValidationError
+from django.core.validators import URLValidator
 
 class FontInspectorForm(forms.Form):
     url = forms.CharField(
