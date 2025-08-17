@@ -5,7 +5,11 @@ import uuid
 import gc
 import tempfile
 import time
+import threading
+import requests
+from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
+
 from django.http import JsonResponse, FileResponse
 from django.core.cache import cache
 from django.conf import settings
@@ -13,59 +17,62 @@ from django.conf import settings
 # -----------------------------------------------------------------------------
 # Tunables (override in settings.py if desired)
 # -----------------------------------------------------------------------------
-BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 6)      # concurrent jobs
-URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)     # concurrent URLs per job
-SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
-DOWNLOAD_TTL  = getattr(settings, "SEO_DOWNLOAD_TTL", 30 * 60)  # 30 minutes
-
-# --- Download coordination (refcount + "delete requested") --------------------
-def _dl_ref_key(task_id: str) -> str: return f"seo:dl:{task_id}:ref"
-def _dl_del_key(task_id: str) -> str: return f"seo:dl:{task_id}:del"
-
-def _inc_ref(task_id: str) -> int:
-    # Create the counter if missing, then INCR
-    key = _dl_ref_key(task_id)
-    try: cache.add(key, 0, timeout=DOWNLOAD_TTL)
-    except Exception: pass
-    try:
-        return cache.incr(key)
-    except Exception:
-        # Fallback for caches without atomic incr
-        val = (cache.get(key) or 0) + 1
-        cache.set(key, val, timeout=DOWNLOAD_TTL)
-        return val
-
-def _dec_ref(task_id: str) -> int:
-    key = _dl_ref_key(task_id)
-    try:
-        return cache.decr(key)
-    except Exception:
-        val = max(0, (cache.get(key) or 0) - 1)
-        cache.set(key, val, timeout=DOWNLOAD_TTL)
-        return val
-
-def _mark_delete_requested(task_id: str) -> None:
-    cache.set(_dl_del_key(task_id), 1, timeout=DOWNLOAD_TTL)
-
-def _delete_requested(task_id: str) -> bool:
-    return bool(cache.get(_dl_del_key(task_id)))
-
-def _clear_dl_state(task_id: str) -> None:
-    cache.delete_many([_dl_ref_key(task_id), _dl_del_key(task_id), task_id])
-
+BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 10)         # concurrent jobs per process
+URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)          # concurrent URLs per job
+SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)      # cap URLs per sitemap
+DOWNLOAD_TTL  = getattr(settings, "SEO_DOWNLOAD_TTL", 30 * 60)   # 30 minutes
+MAX_CONCURRENT_DOWNLOADS = getattr(settings, "SEO_MAX_CONCURRENT_DOWNLOADS", 12)
 
 # Shared background executor for jobs
 EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
 
+# -----------------------------------------------------------------------------
+# Shared HTTP session with connection pooling & retries (lazy init)
+# -----------------------------------------------------------------------------
+_POOL: Optional["requests.Session"] = None
 
+def _get_pool():
+    """Build once on first use (keeps baseline memory low)."""
+    global _POOL
+    if _POOL is not None:
+        return _POOL
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+
+    # Pool size ~ jobs * per-job URLs, with headroom
+    pool_size = max(16, int(BG_WORKERS * max(1, URL_WORKERS) * 2.0))
+
+    sess = requests.Session()
+    sess.headers.update({
+        "User-Agent": "SEO Head Checker by Ben Crittenden (+https://www.bencritt.net)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    })
+    retry = Retry(
+        total=2, connect=2, read=2,
+        backoff_factor=0.3,
+        status_forcelist=(429, 500, 502, 503, 504),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size, max_retries=retry)
+    sess.mount("http://", adapter)
+    sess.mount("https://", adapter)
+    _POOL = sess
+    return _POOL
+
+# Cap concurrent downloads per process to avoid FD spikes
+_DOWNLOAD_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_DOWNLOADS)
+
+# -----------------------------------------------------------------------------
+# Output directory + periodic cleanup
+# -----------------------------------------------------------------------------
 def _get_out_dir() -> str:
-    """Return a safe, writable directory to store CSVs."""
+    """Return a safe, writable directory to store CSVs (never '')."""
     seo_tmp = getattr(settings, "SEO_TMP_DIR", None)
     media_root = getattr(settings, "MEDIA_ROOT", None)
     out_dir = (seo_tmp or media_root or tempfile.gettempdir()) or tempfile.gettempdir()
     os.makedirs(out_dir, exist_ok=True)
     return out_dir
-
 
 def _cleanup_old_reports(directory: str, max_age: int = DOWNLOAD_TTL) -> None:
     """Delete old seo_report_*.csv files older than max_age seconds (best-effort)."""
@@ -88,7 +95,45 @@ def _cleanup_old_reports(directory: str, max_age: int = DOWNLOAD_TTL) -> None:
         # Never let cleanup crash the request path
         pass
 
+# -----------------------------------------------------------------------------
+# Download coordination: "delete on download" that tolerates multiple tabs
+# -----------------------------------------------------------------------------
+def _dl_ref_key(task_id: str) -> str: return f"seo:dl:{task_id}:ref"
+def _dl_del_key(task_id: str) -> str: return f"seo:dl:{task_id}:del"
 
+def _inc_ref(task_id: str) -> int:
+    # Create the counter if missing, then INCR
+    key = _dl_ref_key(task_id)
+    try: cache.add(key, 0, timeout=DOWNLOAD_TTL)
+    except Exception: pass
+    try:
+        return cache.incr(key)
+    except Exception:
+        val = (cache.get(key) or 0) + 1
+        cache.set(key, val, timeout=DOWNLOAD_TTL)
+        return val
+
+def _dec_ref(task_id: str) -> int:
+    key = _dl_ref_key(task_id)
+    try:
+        return cache.decr(key)
+    except Exception:
+        val = max(0, (cache.get(key) or 0) - 1)
+        cache.set(key, val, timeout=DOWNLOAD_TTL)
+        return val
+
+def _mark_delete_requested(task_id: str) -> None:
+    cache.set(_dl_del_key(task_id), 1, timeout=DOWNLOAD_TTL)
+
+def _delete_requested(task_id: str) -> bool:
+    return bool(cache.get(_dl_del_key(task_id)))
+
+def _clear_dl_state(task_id: str) -> None:
+    cache.delete_many([_dl_ref_key(task_id), _dl_del_key(task_id), task_id])
+
+# -----------------------------------------------------------------------------
+# Public endpoints
+# -----------------------------------------------------------------------------
 def start_sitemap_processing(request=None, sitemap_url=None):
     """
     Start a background job to process a sitemap (or single URL) and write a CSV.
@@ -122,7 +167,7 @@ def start_sitemap_processing(request=None, sitemap_url=None):
         urls = None
         try:
             out_dir = _get_out_dir()
-            _cleanup_old_reports(out_dir, DOWNLOAD_TTL)  # purge stale CSVs opportunistically
+            _cleanup_old_reports(out_dir, DOWNLOAD_TTL)  # opportunistic purge
             file_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
 
             urls = fetch_sitemap_urls(sitemap_url, limit=SITEMAP_LIMIT)
@@ -142,13 +187,12 @@ def start_sitemap_processing(request=None, sitemap_url=None):
     EXECUTOR.submit(process_task)
     return JsonResponse({"task_id": task_id}, status=202)
 
-
 def fetch_sitemap_urls(sitemap_url, limit=None):
     """
     Fetch URLs from a sitemap (streaming). If not a sitemap, return [sitemap_url].
     Applies an in-parser cap so we don't hold a huge URL list in memory.
     """
-    import requests
+    import requests  # for exception classes
 
     if limit is None:
         limit = SITEMAP_LIMIT
@@ -159,7 +203,7 @@ def fetch_sitemap_urls(sitemap_url, limit=None):
     }
 
     try:
-        resp = requests.get(sitemap_url, headers=headers, timeout=10, stream=True)
+        resp = _get_pool().get(sitemap_url, headers=headers, timeout=(5, 15), stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         raise ValueError("The request timed out. Please try again later.")
@@ -199,7 +243,6 @@ def fetch_sitemap_urls(sitemap_url, limit=None):
         except Exception:
             pass
 
-
 def _read_until_head(resp, limit=512_000):
     """
     Read up to and including </head> (or until limit bytes), then stop.
@@ -213,13 +256,12 @@ def _read_until_head(resp, limit=512_000):
             break
     return bytes(buf)
 
-
 def process_single_url(url):
     """
     Fetch a page and check SEO-related elements in <head> only (memory-friendly).
     Returns a dict for CSV output.
     """
-    import requests
+    import requests  # for exception classes
     from bs4 import BeautifulSoup, SoupStrainer
 
     headers = {
@@ -230,7 +272,7 @@ def process_single_url(url):
     resp = None
 
     try:
-        resp = requests.get(url, headers=headers, timeout=10, stream=True)
+        resp = _get_pool().get(url, headers=headers, timeout=(5, 15), stream=True)
         resp.raise_for_status()
     except requests.exceptions.Timeout:
         return {"URL": url, "Status": "Error: Request timed out"}
@@ -294,7 +336,6 @@ def process_single_url(url):
                 pass
         gc.collect()
 
-
 def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
     """
     Write results directly to a CSV file while processing URLs in parallel (or serially).
@@ -350,7 +391,6 @@ def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
                         )
     gc.collect()
 
-
 def get_task_status(request, task_id):
     """Return the current status/progress or error for a given task_id from cache."""
     task = cache.get(task_id)
@@ -358,14 +398,13 @@ def get_task_status(request, task_id):
         return JsonResponse({"error": "Task not found"}, status=404)
     return JsonResponse(task)
 
-
 def download_task_file(request, task_id):
     """
-    Stream the CSV. We "delete on download", but only after ALL concurrent downloads
-    of this task_id finish (handles double-clicks/multiple tabs cleanly).
-    Files older than DOWNLOAD_TTL are also purged by the periodic cleanup.
+    Stream the generated CSV to the client.
+    Semantics: delete on download (after *all* concurrent downloads finish), or after TTL.
+    Also limits concurrent downloads per process to avoid FD spikes.
     """
-    # Resolve file path from cache or derive by convention
+    # Resolve file path from cache or derive by convention (multi-process resilient)
     task = cache.get(task_id)
     out_dir = _get_out_dir()
     derived_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
@@ -374,12 +413,24 @@ def download_task_file(request, task_id):
     if not os.path.exists(file_path):
         return JsonResponse({"error": "File not ready or not found"}, status=404)
 
-    # Mark that deletion should happen after downloads complete
+    # Mark that deletion should happen after downloads complete & take a read "lease"
     _mark_delete_requested(task_id)
-    # Hold a read "lease" so deletion waits for us
     _inc_ref(task_id)
 
-    f = open(file_path, "rb")
+    # Back-pressure: limit concurrent downloads per process
+    acquired = _DOWNLOAD_SLOTS.acquire(timeout=30)
+    if not acquired:
+        # If very busy, ask client to retry shortly
+        _dec_ref(task_id)
+        return JsonResponse({"error": "Busy, try again shortly"}, status=503)
+
+    try:
+        f = open(file_path, "rb")
+    except Exception:
+        _DOWNLOAD_SLOTS.release()
+        _dec_ref(task_id)
+        raise
+
     resp = FileResponse(
         f,
         as_attachment=True,
@@ -397,8 +448,6 @@ def download_task_file(request, task_id):
                 f.close()
             finally:
                 try:
-                    # Drop our lease; if we're the last reader and delete was requested,
-                    # remove the file and clear task state.
                     remaining = _dec_ref(task_id)
                     if _delete_requested(task_id) and remaining <= 0:
                         try:
@@ -407,6 +456,7 @@ def download_task_file(request, task_id):
                             pass
                         _clear_dl_state(task_id)
                 finally:
+                    _DOWNLOAD_SLOTS.release()
                     gc.collect()
 
     resp.close = _close_and_maybe_delete
