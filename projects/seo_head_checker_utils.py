@@ -10,8 +10,8 @@ from django.conf import settings
 # ---------------------------------------------------------------------------
 # Tunables (can be overridden in settings.py)
 # ---------------------------------------------------------------------------
-BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 2)     # concurrent jobs
-URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 5)    # concurrent URLs per job
+BG_WORKERS    = getattr(settings, "SEO_BG_WORKERS", 15)     # concurrent jobs
+URL_WORKERS   = getattr(settings, "SEO_URL_WORKERS", 1)    # concurrent URLs per job
 SITEMAP_LIMIT = getattr(settings, "SEO_SITEMAP_LIMIT", 100)
 
 # Shared background executor
