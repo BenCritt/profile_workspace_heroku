@@ -19,7 +19,7 @@ from django.conf import settings
 # -----------------------------------------------------------------------------
 BG_WORKERS = 8       # concurrent jobs per process
 URL_WORKERS = 1          # concurrent URLs per job
-SITEMAP_LIMIT = 250      # cap URLs per sitemap
+SITEMAP_LIMIT = 100      # cap URLs per sitemap
 DOWNLOAD_TTL = 30 * 60   # 30 minutes
 MAX_CONCURRENT_DOWNLOADS = 10  # per-process download concurrency limit
 
