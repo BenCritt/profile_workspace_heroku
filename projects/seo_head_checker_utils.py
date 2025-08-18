@@ -1,4 +1,4 @@
-# seo_head_checker_utils.py
+# seo_head_checker_utils.py  (self-contained; no settings.py, no env vars)
 
 import os
 import uuid
@@ -6,41 +6,68 @@ import gc
 import tempfile
 import time
 import threading
-import requests
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
-
 from django.http import JsonResponse, FileResponse
 from django.core.cache import cache
-from django.conf import settings
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import requests  # for type hints only
 
 # -----------------------------------------------------------------------------
-# Tunables (override in settings.py if desired)
+# Tunables (edit here if you need to change behavior)
 # -----------------------------------------------------------------------------
-BG_WORKERS = 20       # concurrent jobs per process
-URL_WORKERS = 2          # concurrent URLs per job
-SITEMAP_LIMIT = 500      # cap URLs per sitemap
-DOWNLOAD_TTL = 120 * 60   # 120 minutes
-MAX_CONCURRENT_DOWNLOADS = 20  # per-process download concurrency limit
-
-# Shared background executor for jobs
-EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
+BG_WORKERS    = 10          # concurrent jobs per process
+URL_WORKERS   = 2           # concurrent URLs processed per job
+SITEMAP_LIMIT = 500         # cap URLs parsed from a sitemap
+DOWNLOAD_TTL  = 120 * 60     # seconds; delete file after 120 minutes
+MAX_CONCURRENT_DOWNLOADS = 12   # per-process download concurrency limit
+POOL_IDLE_REAP = 120        # seconds of HTTP-pool inactivity before closing
+THREAD_STACK  = 256 * 1024  # per-thread stack size (bytes)
+SEO_TMP_DIR   = None        # optional: set a directory string, else system temp is used
 
 # -----------------------------------------------------------------------------
-# Shared HTTP session with connection pooling & retries (lazy init)
+# ThreadPool: lazy init + smaller stacks to reduce idle memory
+# -----------------------------------------------------------------------------
+try:
+    # Must be set before creating any threads; keeps idle cost low.
+    threading.stack_size(int(THREAD_STACK))
+except (ValueError, RuntimeError):
+    pass
+
+_EXECUTOR: Optional[ThreadPoolExecutor] = None
+_EXECUTOR_LOCK = threading.Lock()
+
+def _get_executor() -> ThreadPoolExecutor:
+    """Create the background executor lazily so idle processes stay small."""
+    global _EXECUTOR
+    if _EXECUTOR is not None:
+        return _EXECUTOR
+    with _EXECUTOR_LOCK:
+        if _EXECUTOR is None:
+            _EXECUTOR = ThreadPoolExecutor(max_workers=BG_WORKERS)
+    return _EXECUTOR
+
+# -----------------------------------------------------------------------------
+# Shared HTTP session with connection pooling & retries (lazy init + idle reap)
 # -----------------------------------------------------------------------------
 _POOL: Optional["requests.Session"] = None
+_POOL_LOCK = threading.Lock()
+_POOL_LAST_USED = 0.0
 
 def _get_pool():
-    """Build once on first use (keeps baseline memory low)."""
-    global _POOL
+    """Build once on first use and track last access; allows idle reaping."""
+    global _POOL, _POOL_LAST_USED
     if _POOL is not None:
+        _POOL_LAST_USED = time.time()
         return _POOL
+
     import requests
     from requests.adapters import HTTPAdapter
     from urllib3.util.retry import Retry
 
-    # Pool size ~ jobs * per-job URLs, with headroom
+    # Pool size ~ jobs * per-job URLs, with a bit of headroom
     pool_size = max(16, int(BG_WORKERS * max(1, URL_WORKERS) * 2.0))
 
     sess = requests.Session()
@@ -57,20 +84,52 @@ def _get_pool():
     adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size, max_retries=retry)
     sess.mount("http://", adapter)
     sess.mount("https://", adapter)
-    _POOL = sess
+
+    with _POOL_LOCK:
+        global _POOL
+        if _POOL is None:
+            _POOL = sess
+        else:
+            try:
+                sess.close()
+            except Exception:
+                pass
+
+    _POOL_LAST_USED = time.time()
     return _POOL
 
+def _maybe_reap_pool(idle_seconds: Optional[int] = None) -> None:
+    """Close the global HTTP pool if it hasn't been used recently."""
+    global _POOL, _POOL_LAST_USED
+    if idle_seconds is None:
+        idle_seconds = int(POOL_IDLE_REAP)
+    if not _POOL:
+        return
+    now = time.time()
+    if (now - _POOL_LAST_USED) < max(15, idle_seconds):
+        return
+    with _POOL_LOCK:
+        if _POOL and (now - _POOL_LAST_USED) >= idle_seconds:
+            try:
+                _POOL.close()
+            except Exception:
+                pass
+            _POOL = None
+
+# -----------------------------------------------------------------------------
 # Cap concurrent downloads per process to avoid FD spikes
+# -----------------------------------------------------------------------------
 _DOWNLOAD_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_DOWNLOADS)
 
 # -----------------------------------------------------------------------------
 # Output directory + periodic cleanup
 # -----------------------------------------------------------------------------
 def _get_out_dir() -> str:
-    """Return a safe, writable directory to store CSVs (never '')."""
-    seo_tmp = getattr(settings, "SEO_TMP_DIR", None)
-    media_root = getattr(settings, "MEDIA_ROOT", None)
-    out_dir = (seo_tmp or media_root or tempfile.gettempdir()) or tempfile.gettempdir()
+    """
+    Return a safe, writable directory to store CSVs.
+    Priority: SEO_TMP_DIR (if set) → system temp directory.
+    """
+    out_dir = SEO_TMP_DIR or tempfile.gettempdir()
     os.makedirs(out_dir, exist_ok=True)
     return out_dir
 
@@ -102,10 +161,11 @@ def _dl_ref_key(task_id: str) -> str: return f"seo:dl:{task_id}:ref"
 def _dl_del_key(task_id: str) -> str: return f"seo:dl:{task_id}:del"
 
 def _inc_ref(task_id: str) -> int:
-    # Create the counter if missing, then INCR
     key = _dl_ref_key(task_id)
-    try: cache.add(key, 0, timeout=DOWNLOAD_TTL)
-    except Exception: pass
+    try:
+        cache.add(key, 0, timeout=DOWNLOAD_TTL)
+    except Exception:
+        pass
     try:
         return cache.incr(key)
     except Exception:
@@ -183,8 +243,10 @@ def start_sitemap_processing(request=None, sitemap_url=None):
         finally:
             urls = None
             gc.collect()
+            # Allow the HTTP pool to be reaped if idle, so idle memory goes down
+            _maybe_reap_pool()
 
-    EXECUTOR.submit(process_task)
+    _get_executor().submit(process_task)
     return JsonResponse({"task_id": task_id}, status=202)
 
 def fetch_sitemap_urls(sitemap_url, limit=None):
@@ -243,7 +305,7 @@ def fetch_sitemap_urls(sitemap_url, limit=None):
         except Exception:
             pass
 
-def _read_until_head(resp, limit=512_000):
+def _read_until_head(resp, limit=512_000) -> bytes:
     """
     Read up to and including </head> (or until limit bytes), then stop.
     Works with requests.get(..., stream=True).
@@ -342,7 +404,6 @@ def process_sitemap_to_csv(urls, csv_path, max_workers=None, task_id=None):
     Keeps memory flat by not accumulating a giant results list.
     """
     import csv
-    from concurrent.futures import ThreadPoolExecutor
 
     if max_workers is None:
         max_workers = URL_WORKERS
@@ -420,9 +481,8 @@ def download_task_file(request, task_id):
     # Back-pressure: limit concurrent downloads per process
     acquired = _DOWNLOAD_SLOTS.acquire(timeout=30)
     if not acquired:
-        # If very busy, ask client to retry shortly
         _dec_ref(task_id)
-        return JsonResponse({"error": "The maximum number of downloads the server can handle at the same time has been reached.  Please try again.  This problem doesn't last for long, and this error seldom gets triggered."}, status=503)
+        return JsonResponse({"error": "Busy, try again shortly"}, status=503)
 
     try:
         f = open(file_path, "rb")
