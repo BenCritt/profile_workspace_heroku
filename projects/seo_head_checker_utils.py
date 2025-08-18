@@ -16,11 +16,11 @@ from django.conf import settings
 # -----------------------------------------------------------------------------
 # Tunables (keep inline so no env vars are required)
 # -----------------------------------------------------------------------------
-BG_WORKERS = 20                 # concurrent background jobs per process
+BG_WORKERS = 25                 # concurrent background jobs per process
 URL_WORKERS = 2                 # concurrent URLs per job (set 1 to favor user concurrency)
-SITEMAP_LIMIT = 500             # cap URLs parsed from sitemap
+SITEMAP_LIMIT = 250             # cap URLs parsed from sitemap
 DOWNLOAD_TTL = 120 * 60         # seconds; delete file after 120 minutes
-MAX_CONCURRENT_DOWNLOADS = 20   # per-process download concurrency limit
+MAX_CONCURRENT_DOWNLOADS = 25   # per-process download concurrency limit
 POOL_IDLE_REAP = 120            # seconds of HTTP-pool inactivity before closing
 THREAD_STACK = 256 * 1024       # per-thread stack size (bytes)
 
