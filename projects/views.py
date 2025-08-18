@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
 from django.conf import settings
 from django.views.decorators.cache import cache_control
+from django.views.decorators.http import require_POST
 import os
 import requests
 
@@ -271,12 +272,16 @@ from .seo_head_checker_utils import (
     download_task_file as _download_task_file,
 )
 
+@require_POST
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def start_sitemap_processing(request):
     return _start_sitemap_processing(request=request)
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def get_task_status(request, task_id):
     return _get_task_status(request, task_id)
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def download_task_file(request, task_id):
     return _download_task_file(request, task_id)
 
@@ -307,7 +312,7 @@ def manifest(request):
     return JsonResponse(manifest_json)
 
 
-# This is the code for the Freight Carrier Safety Reporter
+# Freight Carrier Safety Reporter
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_safety(request):
@@ -356,7 +361,7 @@ def freight_safety(request):
     )
 
 
-# This is the code for the Grade Level Analyzer.
+# Grade Level Text Analyzer.
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def grade_level_analyzer(request):
@@ -525,18 +530,6 @@ def requirements_txt(request):
     # Return the content as HttpResponse with content type 'text/plain'
     return HttpResponse(requirements_txt_content, content_type="text/plain")
 
-
-# This is the code for the view for the view for the txt file containing my website's runtime.
-def runtime_txt(request):
-    # Construct the absolute path to the runtime.txt file.
-    runtime_txt_path = os.path.join(settings.BASE_DIR, "runtime.txt")
-    # Open and read the content of the runtime.txt file.
-    with open(runtime_txt_path, "r") as f:
-        runtime_txt_content = f.read()
-    # Return the content as HttpResponse with content type 'text/plain'.
-    return HttpResponse(runtime_txt_content, content_type="text/plain")
-
-
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -550,15 +543,7 @@ def view_404(request, exception):
 def home(request):
     return render(request, "projects/home.html")
 
-
-# This is the code for the page holding links to my résumé.
-# Disallow caching to prevent CSRF token errors.
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def resume(request):
-    return render(request, "projects/resume.html")
-
-
-# This is the code for the QR Code Generator.
+# QR Code Generator.
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
@@ -603,15 +588,7 @@ def qr_code_generator(request):
     # Render the QR code generator page with the form.
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
-
-# This is the code for the page containing methods of contacting me.
-# Disallow caching to prevent CSRF token errors.
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def contact(request):
-    return render(request, "projects/contact.html")
-
-
-# This is the code for the Monte Carlo Simulator.
+# Monte Carlo Simulator
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def monte_carlo_simulator(request):
@@ -704,7 +681,7 @@ def monte_carlo_simulator(request):
     )
 
 
-# This is the code for the Weather Forecast app.
+# Weather Forecast
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
@@ -824,7 +801,7 @@ def all_projects(request):
     return render(request, "projects/all_projects.html")
 
 
-# This is the code for the DNS Lookup Tool app.
+# DNS Lookup Tool
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def dns_tool(request):
@@ -900,7 +877,7 @@ def dns_tool(request):
     return response
 
 
-# This is the code for the IP Address Lookup Tool app.
+# IP Address Lookup Tool
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ip_tool(request):
@@ -1006,7 +983,7 @@ def ip_tool(request):
     return response
 
 
-# This is the code for the SSL Verification Tool app.
+# SSL Verification Tool
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
