@@ -165,7 +165,7 @@
         }
 
         const taskId = data.task_id;
-        setStatus("Queued… waiting for a worker", "alert-warning");
+        setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
         pollTaskStatus(taskId);
         } catch (err) {
         console.error(err);
@@ -198,7 +198,7 @@
         }
 
         if (data.status === "pending") {
-            setStatus("Queued… waiting for a worker", "alert-warning");
+            setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
             return;
         }
 

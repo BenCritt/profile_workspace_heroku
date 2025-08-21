@@ -27,8 +27,8 @@ MAX_CONCURRENT_DOWNLOADS = 25   # cap simultaneous CSV downloads per process
 POOL_IDLE_REAP = 120            # seconds of HTTP-pool inactivity before closing
 THREAD_STACK = 256 * 1024       # per-thread stack size (bytes)
 HEAD_MAX_BYTES = 512_000        # max bytes to read per page (stop after </head> or cap)
-# Allow at most 2 jobs to run concurrently; the rest will queue
-ACTIVE_JOB_SLOTS = 2
+# Allow at most 5 jobs to run concurrently; the rest will queue
+ACTIVE_JOB_SLOTS = 5
 _ACTIVE_SEM = threading.BoundedSemaphore(ACTIVE_JOB_SLOTS)
 
 
