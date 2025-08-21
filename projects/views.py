@@ -107,156 +107,110 @@ def xml_splitter(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def iss_tracker(request):
     """
-    View function to track the International Space Station (ISS) and provide
-    real-time location data and visibility events for a given location.
-
-    Args:
-        request: HTTP request object.
-
-    Returns:
-        Rendered HTML page with ISS current data and visibility events.
+    Track ISS and show current location + next visible events.
+    Memory-optimized: lazy heavy imports, lite TZ finder, cleanup.
     """
     from .iss_utils import detect_region
     from .utils import get_coordinates
     from django.core.cache import cache
     from datetime import timedelta
-    from skyfield.api import Topos, load
-    from skyfield.sgp4lib import EarthSatellite
-    from timezonefinder import TimezoneFinder
-    import pytz
     from .forms import WeatherForm
-    # Initialize the form that takes in the ZIP code.  This is the same form used by the Weather Forecast app.
+
     form = WeatherForm(request.POST or None)
-    # Initialize the library that will store current ISS data.
     current_data = {}
-    # Initialize the array that will store upcoming ISS pass events.
     iss_pass_times = []
 
-    # Check if the request method is POST and the form is valid.
     if request.method == "POST" and form.is_valid():
-        # Get the ZIP code from the form and convert it to coordinates.
+        # --- heavy imports only when needed ---
+        from zoneinfo import ZoneInfo
+        from timezonefinder import TimezoneFinder
+        from skyfield.api import load, Topos  # (Topos is fine; could also use wgs84.latlon)
+        from skyfield.sgp4lib import EarthSatellite
+        import requests, gc, ctypes
+
         zip_code = form.cleaned_data["zip_code"]
-        coordinates = get_coordinates(zip_code)
+        coords = get_coordinates(zip_code)
+        if not coords:
+            return render(request, "projects/iss_tracker.html",
+                          {"form": form, "error": "Could not determine coordinates."})
 
-        if coordinates:
-            # Extract latitude and longitude from the coordinates.
-            lat, lon = coordinates
+        lat, lon = coords
 
-            try:
-                # Attempt to retrieve cached TLE data (Two-Line Element sets).
-                tle_data = cache.get("tle_data")
-                if not tle_data:
-                    # If TLE data is not cached, fetch it from CelesTrak.
-                    tle_url = "https://celestrak.org/NORAD/elements/stations.txt"
-                    # Timeout after 10 seconds.
-                    response = requests.get(tle_url, timeout=10)
-                    # Raise an exception for HTTP errors.
-                    response.raise_for_status()
-                    # Split TLE data into lines.
-                    tle_data = response.text.splitlines()
-                    # Cache TLE data for 1 hour.
-                    cache.set("tle_data", tle_data, timeout=3600)
+        # --- cache TLE text (1 hour) ---
+        def _fetch_tle_text():
+            r = requests.get("https://celestrak.org/NORAD/elements/stations.txt", timeout=10)
+            r.raise_for_status()
+            return r.text
 
-                # Locate the ISS entry in the TLE data.
-                # Identifier for the ISS in the TLE file.
-                iss_name = "ISS (ZARYA)"
-                iss_index = next(
-                    i for i, line in enumerate(tle_data) if line.strip() == iss_name
-                )
-                # First line of the TLE for the ISS.
-                line1 = tle_data[iss_index + 1]
-                # Second line of the TLE for the ISS.
-                line2 = tle_data[iss_index + 2]
+        tle_text = cache.get_or_set("tle_data_text", _fetch_tle_text, 3600)
 
-                # Create an EarthSatellite object for the ISS.
-                satellite = EarthSatellite(line1, line2, iss_name, load.timescale())
+        # --- parse ISS (ZARYA) lines without holding extra structures ---
+        line1 = line2 = None
+        lines = tle_text.splitlines()
+        for i, line in enumerate(lines):
+            if line.strip() == "ISS (ZARYA)":
+                line1, line2 = lines[i + 1], lines[i + 2]
+                break
+        if not line1 or not line2:
+            return render(request, "projects/iss_tracker.html",
+                          {"form": form, "error": "ISS TLE not found."})
 
-                # Define the observer's location based on latitude and longitude.
-                observer = Topos(latitude_degrees=lat, longitude_degrees=lon)
-                # Load the timescale for Skyfield.
-                ts = load.timescale()
-                # Get the current time.
-                now = ts.now()
-                # End time for visibility calculations.
-                end_time = ts.utc(now.utc_datetime() + timedelta(days=1))
+        ts = load.timescale()
+        satellite = EarthSatellite(line1, line2, "ISS (ZARYA)", ts)
+        observer = Topos(latitude_degrees=lat, longitude_degrees=lon)
 
-                # Calculate ISS visibility events for the observer's location.
-                times, events = satellite.find_events(
-                    observer, now, end_time, altitude_degrees=10.0
-                )
+        now = ts.now()
+        end_time = ts.utc(now.utc_datetime() + timedelta(days=1))
 
-                # Calculate the ISS's current geocentric position.
-                geocentric = satellite.at(now)
-                # Subpoint (latitude, longitude, altitude).
-                subpoint = geocentric.subpoint()
-                # Latitude in degrees.
-                latitude = subpoint.latitude.degrees
-                # Longitude in degrees.
-                longitude = subpoint.longitude.degrees
-                # Velocity in km/s.
-                velocity = geocentric.velocity.km_per_s
+        times, events = satellite.find_events(observer, now, end_time, altitude_degrees=10.0)
 
-                # Detect the region (land or body of water) over which the ISS is currently located.
-                region = detect_region(latitude, longitude)
+        geocentric = satellite.at(now)
+        subpoint = geocentric.subpoint()
+        v = geocentric.velocity.km_per_s
+        speed = (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]) ** 0.5
 
-                # Store the current ISS data.
-                current_data = {
-                    "latitude": f"{latitude:.2f}°",
-                    "longitude": f"{longitude:.2f}°",
-                    "altitude": f"{subpoint.elevation.km:.2f} km",
-                    "velocity": f"{(velocity[0]**2 + velocity[1]**2 + velocity[2]**2)**0.5:.2f} km/s",
-                    "region": region,
-                }
+        region = detect_region(subpoint.latitude.degrees, subpoint.longitude.degrees)
 
-                # Determine the local timezone based on the observer's location.
-                tf = TimezoneFinder()
-                timezone_name = tf.timezone_at(lat=lat, lng=lon) or "UTC"
-                local_timezone = pytz.timezone(timezone_name)
+        current_data = {
+            "latitude": f"{subpoint.latitude.degrees:.2f}°",
+            "longitude": f"{subpoint.longitude.degrees:.2f}°",
+            "altitude": f"{subpoint.elevation.km:.2f} km",
+            "velocity": f"{speed:.2f} km/s",
+            "region": region,
+        }
 
-                # Format the visibility events for display.
-                for t, event in zip(times, events):
-                    # Event name.
-                    name = ("Rise", "Culminate", "Set")[event]
-                    # Event time in UTC.
-                    utc_time = t.utc_datetime()
-                    # Convert UTC time to time zone local to the ZIP code.
-                    local_time = utc_time.astimezone(local_timezone)
-                    iss_pass_times.append(
-                        {
-                            "event": name,
-                            # "date": local_time.strftime("%A, %B %d, %Y"), ~ I'm removin year for now.
-                            "date": local_time.strftime("%A, %B %d"),
-                            "time": local_time.strftime("%I:%M %p %Z"),
-                            "position": (
-                                "North"
-                                if satellite.at(t).subpoint().latitude.degrees > lat
-                                else "South"
-                            ),
-                        }
-                    )
+        # Lite mode keeps shapefiles off-heap and on disk
+        tf = TimezoneFinder(in_memory=False)
+        tzname = tf.timezone_at(lat=lat, lng=lon) or "UTC"
+        local_tz = ZoneInfo(tzname)
 
-                return render(
-                    request,
-                    "projects/iss_tracker.html",
-                    {
-                        "form": form,
-                        "current_data": current_data,
-                        "iss_pass_times": iss_pass_times,
-                    },
-                )
-            except Exception as e:
-                # Handle any errors and display an error message.
-                error = f"An error occurred: {e}"
-                return render(
-                    request, "projects/iss_tracker.html", {"form": form, "error": error}
-                )
+        for t, event in zip(times, events):
+            name = ("Rise", "Culminate", "Set")[event]
+            local_time = t.utc_datetime().astimezone(local_tz)
+            iss_pass_times.append({
+                "event": name,
+                "date": local_time.strftime("%A, %B %d"),
+                "time": local_time.strftime("%I:%M %p %Z"),
+                "position": ("North" if satellite.at(t).subpoint().latitude.degrees > lat else "South"),
+            })
 
-    # Render the page initially with the form and no data.
-    return render(
-        request,
-        "projects/iss_tracker.html",
-        {"form": form, "current_data": current_data},
-    )
+        # --- cleanup to actually return memory to the OS ---
+        try:
+            del satellite, geocentric, subpoint, lines, tle_text, ts, tf
+        except Exception:
+            pass
+        try:
+            gc.collect()
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
+
+        return render(request, "projects/iss_tracker.html",
+                      {"form": form, "current_data": current_data, "iss_pass_times": iss_pass_times})
+
+    # GET: render empty form without loading heavy libs
+    return render(request, "projects/iss_tracker.html", {"form": form, "current_data": current_data})
+
 
 # SEO Head Checker
 # Disallow caching to prevent CSRF token errors.
