@@ -27,6 +27,10 @@ MAX_CONCURRENT_DOWNLOADS = 25   # cap simultaneous CSV downloads per process
 POOL_IDLE_REAP = 120            # seconds of HTTP-pool inactivity before closing
 THREAD_STACK = 256 * 1024       # per-thread stack size (bytes)
 HEAD_MAX_BYTES = 512_000        # max bytes to read per page (stop after </head> or cap)
+# Allow at most 2 jobs to run concurrently; the rest will queue
+ACTIVE_JOB_SLOTS = 2
+_ACTIVE_SEM = threading.BoundedSemaphore(ACTIVE_JOB_SLOTS)
+
 
 # Lower per-thread memory; must be set before threads are created.
 try:
@@ -475,54 +479,77 @@ def process_sitemap_to_csv(urls: List[str], csv_path: str, max_workers: Optional
 # =============================================================================
 def start_sitemap_processing(request=None, sitemap_url=None):
     """
-    Start a background job to process a sitemap (or single URL) and write a CSV.
+    Start a background job to process a sitemap (or single URL) into a CSV.
+
     Accepts either:
       • direct param `sitemap_url`, or
-      • POST JSON body: {"sitemap_url": "<url>"}
-    Returns JsonResponse(status=202, data={"task_id": ...}).
+      • HTTP POST with JSON body: {"sitemap_url": "<url>"}  (form-POST also works)
+
+    Returns: JsonResponse(status=202, {"task_id": "<id>"})
     """
-    import json
+    import json, time, uuid
+    from django.http import JsonResponse
+    from django.core.cache import cache
     from .utils import normalize_url
 
-    # Resolve input
-    if sitemap_url is None:
-        if not request or request.method != "POST":
-            return JsonResponse({"error": "Invalid request method"}, status=405)
+    # Resolve the input URL
+    url = None
+    if sitemap_url:
+        url = normalize_url(sitemap_url)
+    elif request and request.method == "POST":
         try:
-            data = json.loads(request.body or b"{}")
-            sitemap_url = normalize_url(data.get("sitemap_url"))
+            if request.content_type and "application/json" in request.content_type.lower():
+                payload = json.loads(request.body or b"{}")
+                url = normalize_url(payload.get("sitemap_url"))
+            else:
+                # allow form posts too
+                url = normalize_url(request.POST.get("sitemap_url") or request.POST.get("sitemap"))
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse({"error": f"Invalid request body: {e}"}, status=400)
     else:
-        sitemap_url = normalize_url(sitemap_url)
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
-    if not sitemap_url:
+    if not url:
         return JsonResponse({"error": "Missing or invalid sitemap_url"}, status=400)
 
+    # Create a task id and mark as queued
     task_id = str(uuid.uuid4())
-    cache.set(task_id, {"status": "pending", "progress": 0}, timeout=max(1800, DOWNLOAD_TTL))
+    cache.set(task_id, {"status": "queued", "progress": 0}, timeout=max(1800, DOWNLOAD_TTL))
 
     def _runner():
         _inc_jobs()
-        urls: Optional[List[str]] = None
+        # Block here until a slot is free; limits concurrent jobs
+        _ACTIVE_SEM.acquire()
         try:
+            # Now actually processing
+            cache.set(task_id, {"status": "processing", "progress": 0}, timeout=DOWNLOAD_TTL)
+
             out_dir = _get_out_dir()
             _cleanup_old_reports(out_dir, DOWNLOAD_TTL)
             file_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
 
-            urls = fetch_sitemap_urls(sitemap_url, limit=SITEMAP_LIMIT)
+            # Collect (capped) URLs from the sitemap (streaming)
+            urls = fetch_sitemap_urls(url, limit=SITEMAP_LIMIT)
+
+            # Produce CSV incrementally; updates progress via cache inside
             process_sitemap_to_csv(urls, file_path, max_workers=URL_WORKERS, task_id=task_id)
 
+            # Done
             cache.set(task_id, {"status": "completed", "file": file_path, "ts": time.time()}, timeout=DOWNLOAD_TTL)
+
         except Exception as e:
             cache.set(task_id, {"status": "error", "error": str(e)}, timeout=DOWNLOAD_TTL)
         finally:
-            urls = None
-            _trim_memory()
-            _dec_jobs_and_maybe_cleanup()
+            # Always release the slot and clean up memory/resources
+            try:
+                _trim_memory()
+            finally:
+                _ACTIVE_SEM.release()
+                _dec_jobs_and_maybe_cleanup()
 
     _get_executor().submit(_runner)
     return JsonResponse({"task_id": task_id}, status=202)
+
 
 def get_task_status(request, task_id: str):
     task = cache.get(task_id)
