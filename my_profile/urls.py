@@ -32,6 +32,7 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("font_inspector", "font-inspector"),
     ("ham_radio_call_sign_lookup", "ham-radio-call-sign-lookup"),
     ("xml_splitter", "xml-splitter"),
     ("qr_code_generator", "qr-code-generator"),
