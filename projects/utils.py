@@ -1,12 +1,6 @@
-# Used for making HTTP requests across multiple apps:
-# - Fetching weather data for the Weather Forecast app.
-# - Performing API calls in the IP Address Lookup Tool and DNS Lookup Tool.
-# - Retrieving and processing sitemap data in the SEO Head Checker.
-# - Accessing the FMCMSA API in the Freight Carrier Safety Reporter.
 import requests
-
-# Used for parsing and generating JSON data, such as handling API responses and request bodies.
 import json
+import os
 
 # Used by forms that accept URLs.
 def normalize_url(url):
@@ -36,7 +30,7 @@ def normalize_url(url):
 # Currently used by the Weather Forecast app and ISS Tracker app.
 def get_coordinates(zip_code):
     # API key for accessing the Google Geocoding API.
-    API_KEY_LOCATION = "AIzaSyD0xBXRANSgMPe8HvaE2rSmm7u8E8QYAyM"
+    API_KEY_LOCATION = os.environ.get("GOOGLE_MAPS_KEY")
     # Construct the API URL with the zip code and API key.
     API_URL = f"https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={API_KEY_LOCATION}"
     # Send a GET request to the Google Geocoding API.

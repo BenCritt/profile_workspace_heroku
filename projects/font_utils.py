@@ -498,7 +498,7 @@ HARD_CODED_GOOGLE_FONTS = {
 
 
 def _fetch_google_fonts(api_key: str) -> set[str]:
-    api_key = "AIzaSyBzGMBpANcSlCnc786VindpN8O6AX-JemI"
+    api_key = os.environ.get("GOOGLE_FONT_KEY")
     url = f"https://www.googleapis.com/webfonts/v1/webfonts?key={api_key}"
     items = requests.get(url, timeout=10).json()["items"]
     return {item["family"].lower() for item in items}
@@ -511,7 +511,7 @@ def load_google_font_families() -> set[str]:
     3) baked-in 350-family fallback
     """
     cache_file = pathlib.Path.home() / ".cache" / "gf_families.json"
-    api_key    = "AIzaSyBzGMBpANcSlCnc786VindpN8O6AX-JemI"
+    api_key = os.environ.get("GOOGLE_FONT_KEY")
 
     if api_key:
         try:

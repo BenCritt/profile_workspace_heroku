@@ -1,10 +1,11 @@
 import requests
 import json
+import os
 
 # This is the code for the Weather Forecast app.
 def get_city_and_state(zip_code):
     # API key for accessing the Google Geocoding API.
-    API_KEY_CITY = "AIzaSyD0xBXRANSgMPe8HvaE2rSmm7u8E8QYAyM"
+    API_KEY_CITY = os.environ.get("GOOGLE_MAPS_KEY")
     # Construct the API URL with the zip code and API key.
     url = f"https://maps.googleapis.com/maps/api/geocode/json?address={zip_code}&key={API_KEY_CITY}"
     # Send a GET request to the Google Geocoding API.

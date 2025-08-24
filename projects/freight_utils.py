@@ -1,4 +1,5 @@
 import requests
+import os
 """
 Freight Carrier Safety Reporter API Documentation
 https://mobile.fmcsa.dot.gov/QCDevsite/docs/qcApi
@@ -21,7 +22,7 @@ def replace_none_with_na(data):
 
 
 def get_fmcsa_carrier_data_by_usdot(usdot_number):
-    fcsr_webkey = "d4cf8cc419e2ba88e590a957140c86abe8b79f97"
+    fcsr_webkey = os.environ.get("FMCSA_KEY")
     url = f"https://mobile.fmcsa.dot.gov/qc/services/carriers/{usdot_number}?webKey={fcsr_webkey}"
 
     try:
