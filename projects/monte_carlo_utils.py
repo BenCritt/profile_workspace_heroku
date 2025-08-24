@@ -144,19 +144,113 @@ def _build_pdf_bytes_inproc(
 
 
 def render_probability_pdf(
-    min_val: float,
-    max_val: float,
-    n: int,
-    target: float,
+    min1: float,
+    max1: float,
+    n1: int,
+    target1: Optional[float] = None,
     second: Optional[Dict[str, Any]] = None,
+    *,
     bins: int = 50,
-):
+    chunk_size: int = 200_000,
+) -> bytes:
     """
-    Legacy API: returns a BytesIO for callers that expect a file-like object.
-    Prefer `render_probability_pdf_isolated` for web views.
+    Generate a probability histogram PDF (single or dual simulation) and return raw bytes.
+    Restores: frequency counts (not density), legend, target lines, and P1/P2 annotations.
     """
-    data = _build_pdf_bytes_inproc(min_val, max_val, n, target, second=second, bins=bins)
-    return io.BytesIO(data)
+    # Lazy heavy imports
+    import numpy as np
+    import matplotlib
+    matplotlib.use("Agg")  # non-GUI backend
+    import matplotlib.pyplot as plt
+    from io import BytesIO
+
+    # Normalize inputs
+    a1, b1 = float(min1), float(max1)
+    n1 = int(n1)
+    t1 = float(target1) if target1 is not None else None
+
+    # Use a common bin range if a second run is requested
+    if second is not None:
+        a2 = float(second["min"])
+        b2 = float(second["max"])
+        n2 = int(second["n"])
+        t2 = float(second["target"]) if second.get("target") is not None else None
+        low, high = min(a1, a2), max(b1, b2)
+    else:
+        a2 = b2 = n2 = None
+        t2 = None
+        low, high = a1, b1
+
+    # Bin edges/centers (shared)
+    edges = np.linspace(low, high, bins + 1, dtype=np.float64)
+    centers = (edges[:-1] + edges[1:]) / 2.0
+    bin_width = float(edges[1] - edges[0])
+
+    rng = np.random.default_rng()
+
+    def _hist_counts_and_prob(a: float, b: float, n: int, target: Optional[float]):
+        """Chunked uniform sampling -> integer bin counts + P(x >= target)"""
+        counts = np.zeros(bins, dtype=np.int64)
+        ge = 0  # count of values >= target (if target provided)
+        remaining = int(n)
+        csz = max(1, min(int(chunk_size), remaining))
+        while remaining > 0:
+            m = csz if remaining > csz else remaining
+            vals = rng.uniform(a, b, m)
+            c, _ = np.histogram(vals, bins=edges)
+            counts += c
+            if target is not None:
+                ge += int(np.count_nonzero(vals >= target))
+            del vals
+            remaining -= m
+        return counts, ge
+
+    # First run
+    c1, ge1 = _hist_counts_and_prob(a1, b1, n1, t1)
+
+    # Optional second run
+    c2 = ge2 = None
+    if second is not None:
+        c2, ge2 = _hist_counts_and_prob(a2, b2, n2, t2)
+
+    # Plot (frequency counts)
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=100)
+    ax.bar(centers, c1, width=bin_width, alpha=0.6, edgecolor="white", label=f"Run 1 (n={n1:,})")
+    if c2 is not None:
+        ax.bar(centers, c2, width=bin_width, alpha=0.5, edgecolor="white", label=f"Run 2 (n={n2:,})")
+
+    # Target lines + legend labels
+    if t1 is not None:
+        ax.axvline(t1, linestyle="--", linewidth=1.2, color="r", label=f"Target 1: {t1:g}")
+    if t2 is not None:
+        ax.axvline(t2, linestyle=":", linewidth=1.2, color="b", label=f"Target 2: {t2:g}")
+
+    # Probability annotations (≥ target)
+    if t1 is not None and n1 > 0:
+        p1 = ge1 / float(n1)
+        ax.text(0.02, 0.95, f"P1(x ≥ {t1:g}) = {p1:.3%}", transform=ax.transAxes, va="top", ha="left")
+    if c2 is not None and t2 is not None and n2 and n2 > 0:
+        p2 = ge2 / float(n2)
+        ax.text(0.02, 0.89, f"P2(x ≥ {t2:g}) = {p2:.3%}", transform=ax.transAxes, va="top", ha="left")
+
+    # Style to match your "before" output
+    ax.set_xlabel("Value")
+    ax.set_ylabel("Frequency")  # <-- back to counts, not density
+    ax.set_title("Monte Carlo Simulation")
+    ax.legend(loc="best")
+
+    # Save and clean up
+    buf = BytesIO()
+    fig.savefig(buf, format="pdf", bbox_inches="tight")
+    plt.close(fig)
+
+    try:
+        del c1, c2, centers, edges  # free arrays
+    except Exception:
+        pass
+
+    _trim_memory_safely()
+    return buf.getvalue()
 
 
 # -------------------------
