@@ -547,12 +547,22 @@ def qr_code_generator(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def monte_carlo_simulator(request):
     from .forms import MonteCarloForm
-    from django.http import StreamingHttpResponse
+    from django.http import HttpResponse
+    from django.shortcuts import render
+
+    # Helper to encourage the OS to reclaim freed memory after heavy work
+    def _trim_memory_safely():
+        try:
+            import gc, ctypes
+            gc.collect()
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
 
     if request.method == "POST":
         form = MonteCarloForm(request.POST)
         if form.is_valid():
-            # First simulation
+            # First simulation inputs
             sim_quantity = form.cleaned_data["sim_quantity"]
             min_val = form.cleaned_data["min_val"]
             max_val = form.cleaned_data["max_val"]
@@ -563,37 +573,38 @@ def monte_carlo_simulator(request):
             second_params = None
             if second_sim_quantity is not None:
                 second_params = {
-                    "min":   form.cleaned_data["second_min_val"],
-                    "max":   form.cleaned_data["second_max_val"],
-                    "n":     second_sim_quantity,
+                    "min": form.cleaned_data["second_min_val"],
+                    "max": form.cleaned_data["second_max_val"],
+                    "n": second_sim_quantity,
                     "target": form.cleaned_data["second_target_val"],
                 }
 
-            # Always use the isolated child process (no in-process fallback)
-            from .monte_carlo_utils import render_probability_pdf_isolated as render_pdf
+            # Prefer isolated child-process renderer; fall back to in-process if unavailable
+            try:
+                from .monte_carlo_utils import render_probability_pdf_isolated as render_pdf
+                use_timeout = True
+            except ImportError:
+                from .monte_carlo_utils import render_probability_pdf as render_pdf
+                use_timeout = False
 
-            pdf_bytes = render_pdf(
-                min_val, max_val, sim_quantity, target_val,
-                second=second_params, timeout=20
-            )
+            try:
+                if use_timeout:
+                    pdf_bytes = render_pdf(
+                        min_val, max_val, sim_quantity, target_val,
+                        second=second_params, timeout=20
+                    )
+                else:
+                    pdf_bytes = render_pdf(
+                        min_val, max_val, sim_quantity, target_val,
+                        second=second_params
+                    )
 
-            def _stream_pdf(b: bytes):
-                try:
-                    yield b
-                finally:
-                    # Run after Django finishes sending the body
-                    try:
-                        import gc, ctypes
-                        del b
-                        gc.collect()
-                        ctypes.CDLL("libc.so.6").malloc_trim(0)
-                    except Exception:
-                        pass
-
-            resp = StreamingHttpResponse(_stream_pdf(pdf_bytes), content_type="application/pdf")
-            resp["Content-Disposition"] = 'attachment; filename="probability_graph.pdf"'
-            resp["X-Content-Type-Options"] = "nosniff"
-            return resp
+                response = HttpResponse(pdf_bytes, content_type="application/pdf")
+                response["Content-Disposition"] = 'attachment; filename="probability_graph.pdf"'
+                response["X-Content-Type-Options"] = "nosniff"
+                return response
+            finally:
+                _trim_memory_safely()
     else:
         form = MonteCarloForm()
 
