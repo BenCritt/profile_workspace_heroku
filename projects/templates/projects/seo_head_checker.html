@@ -288,6 +288,10 @@
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 2000);
         setStatus("Download started.", "alert-success");
+        // Refresh the page shortly after a successful download
+        if (typeof refreshPageAfterDownload === "function") {
+            refreshPageAfterDownload();
+            }
         return;
         }
 
