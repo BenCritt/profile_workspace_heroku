@@ -560,41 +560,55 @@ def get_task_status(request, task_id: str):
 def download_task_file(request, task_id: str):
     """
     Stream the generated CSV; delete after final reader (or TTL).
-    Limits concurrent downloads to reduce FD/SSL-buffer spikes.
+    Safer ordering to avoid crashes when downloads start while other jobs are queued.
     """
     task = cache.get(task_id)
     out_dir = _get_out_dir()
     derived_path = os.path.join(out_dir, f"seo_report_{task_id}.csv")
     file_path = (task or {}).get("file") or derived_path
 
+    # If the job hasn't produced a file yet, tell the client to wait.
+    status = (task or {}).get("status")
     if not os.path.exists(file_path):
-        return JsonResponse({"error": "File not ready or not found"}, status=404)
+        if status in {"queued", "processing"}:
+            # 425 Too Early — the file isn't ready yet
+            return JsonResponse({"error": "File not ready", "status": status}, status=425)
+        return JsonResponse({"error": "File not found"}, status=404)
 
-    _mark_delete_requested(task_id)
-    _inc_ref(task_id)
-
-    # Back-pressure
+    # Limit concurrent downloads per process to avoid FD/SSL-buffer spikes.
     if not _DOWNLOAD_SLOTS.acquire(timeout=30):
-        _dec_ref(task_id)
         return JsonResponse({"error": "Busy, try again shortly"}, status=503)
 
     try:
-        f = open(file_path, "rb")
-    except Exception:
-        _DOWNLOAD_SLOTS.release()
-        _dec_ref(task_id)
-        raise
-
-    resp = FileResponse(f, as_attachment=True, filename=os.path.basename(file_path), content_type="text/csv")
-    original_close = resp.close
-
-    def _close_and_maybe_delete():
         try:
-            original_close()
-        finally:
+            f = open(file_path, "rb")
+        except FileNotFoundError:
+            # Vanished between exists() and open(): respond cleanly, no crash.
+            return JsonResponse({"error": "File no longer available, please retry"}, status=404)
+        except OSError as e:
+            # e.g., EMFILE or transient FS error — respond cleanly.
+            return JsonResponse({"error": f"Unable to open file: {e.strerror or e}"}, status=503)
+
+        # Only after we have a valid file handle do we mark/delete & refcount.
+        _mark_delete_requested(task_id)
+        _inc_ref(task_id)
+
+        resp = FileResponse(
+            f,
+            as_attachment=True,
+            filename=os.path.basename(file_path),
+            content_type="text/csv",
+        )
+        original_close = resp.close
+
+        def _close_and_maybe_delete():
             try:
-                f.close()
+                original_close()
             finally:
+                try:
+                    f.close()
+                except Exception:
+                    pass
                 try:
                     remaining = _dec_ref(task_id)
                     if _delete_requested(task_id) and remaining <= 0:
@@ -602,11 +616,20 @@ def download_task_file(request, task_id: str):
                             os.remove(file_path)
                         except FileNotFoundError:
                             pass
+                        except Exception:
+                            # Never crash on delete; at worst it ages out via TTL.
+                            pass
                         _clear_dl_state(task_id)
                 finally:
                     _DOWNLOAD_SLOTS.release()
                     _trim_memory()
                     _maybe_reap_pool()
 
-    resp.close = _close_and_maybe_delete
-    return resp
+        resp.close = _close_and_maybe_delete
+        return resp
+
+    except Exception as e:
+        # Absolute last line of defense: never bubble an exception here.
+        _DOWNLOAD_SLOTS.release()
+        return JsonResponse({"error": f"Unexpected download error: {type(e).__name__}"}, status=500)
+
