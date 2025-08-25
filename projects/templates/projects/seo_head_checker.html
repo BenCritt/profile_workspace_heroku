@@ -32,7 +32,8 @@
     <style>
         .centered-content {
             text-align: center; /* Centers the content */
-        }       
+        }
+        #download_link[aria-disabled="true"] { pointer-events: none; opacity: .65; }
     </style>
     {% endblock styles %}
     {% block meta_tags %}
@@ -91,21 +92,20 @@
             <div id="status" class="alert alert-info" style="display: block; width: 100%; max-width: 500px;" aria-live="polite">Progress: 0%</div>
             <div style="width: 100%; max-width: 500px;">
                 <a
-                    id="download_link"
-                    style="display: none;"
-                    class="btn btn-success"
-                    href="#"
-                    onclick="refreshPageAfterDownload()"
-                    aria-label="Download the generated SEO report"
+                id="download_link"
+                style="display: none;"
+                class="btn btn-success"
+                href="#"
+                aria-label="Download the generated SEO report"
                 >
-                    Download SEO Report
+                Download SEO Report
                 </a>
             </div>
             <br>
             <div style="width: 100%; max-width: 500px;">
                 <h2>Limitations</h2>
                 <br>
-                <p>Due to the limitations of the server, reports are limited to the first 250 pages in the sitemap. Scanning is also slower than it could be. There may also be a slight delay between clicking "Generate SEO Report" and progress beginning. If you don't click the download button after 120 minutes, your CSV file will be deleted from the server and you'll have to resubmit your request.</p>
+                <p>Due to the limitations of the server, reports are limited to the first 250 pages in the sitemap. Scanning is also slower than it could be. There may also be a slight delay between clicking "Generate SEO Report" and progress beginning. If you don't click the download button after 30 minutes, your CSV file will be deleted from the server and you'll have to resubmit your request.</p>
             </div>
             <br>
             <!-- Link to the source code repository with a GitHub icon. -->
@@ -197,7 +197,7 @@
             return;
         }
 
-        if (data.status === "pending") {
+        if (data.status === "pending" || data.status === "queued") {
             setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
             return;
         }
@@ -246,6 +246,90 @@
     function refreshPageAfterDownload() {
         setTimeout(() => { location.reload(); }, 1000);
     }
+    </script>
+    <script>
+    (function () {
+    const dl = document.getElementById("download_link");
+    if (!dl) return;
+
+    function getTaskIdFromHref(href) {
+        // expects /download_task_file/<uuid>/
+        const m = (href || "").match(/\/download_task_file\/([^/]+)\//);
+        return m ? m[1] : null;
+    }
+
+    async function downloadWithRetry(taskId, attempt = 1) {
+        const url = `/download_task_file/${taskId}/`;
+        try {
+        setStatus("Preparing your download…", "alert-info");
+        const res = await fetch(url);
+
+        if (res.ok) {
+        const disposition = res.headers.get("Content-Disposition") || "";
+        let filename = `seo_report_${taskId}.csv`;
+        const m = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+        if (m) filename = decodeURIComponent(m[1]);
+
+        const ctype = (res.headers.get("Content-Type") || "").toLowerCase();
+        // If it doesn't look like a file, show the error text instead of downloading junk
+        if (!ctype.includes("csv") && !ctype.includes("octet-stream") && !disposition.toLowerCase().includes("attachment")) {
+            const text = await res.text();
+            setStatus(`Unexpected response while downloading. ${text.slice(0,200)}`, "alert-danger");
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        setStatus("Download started.", "alert-success");
+        return;
+        }
+
+        // Handle “too early” (425) or “busy” (503) with a short backoff
+        if (res.status === 425 || res.status === 503) {
+        if (attempt >= 10) { // ~ up to ~1 min with your backoff
+            setStatus("Still preparing. Please try again in a moment.", "alert-warning");
+            return;
+        }
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+        setStatus("File is getting ready… retrying shortly.", "alert-warning");
+        setTimeout(() => downloadWithRetry(taskId, attempt + 1), delay);
+        return;
+        }
+
+        // Other errors: surface message if available
+        let msg = `Download failed (${res.status}).`;
+        try { msg += " " + (await res.text()); } catch {}
+        setStatus(msg, "alert-danger");
+
+        } catch (e) {
+        setStatus("Network error while downloading. Please try again.", "alert-danger");
+        }
+    }
+
+        dl.addEventListener("click", (ev) => {
+        const taskId = getTaskIdFromHref(dl.href);
+        if (!taskId) return;
+        ev.preventDefault();
+
+        if (dl.getAttribute("aria-disabled") === "true") return; // guard double clicks
+        dl.setAttribute("aria-busy", "true");
+        dl.setAttribute("aria-disabled", "true");
+        dl.classList.add("disabled");
+
+        downloadWithRetry(taskId).finally(() => {
+            dl.removeAttribute("aria-busy");
+            dl.setAttribute("aria-disabled", "false");
+            dl.classList.remove("disabled");
+        });
+        });
+    })();
     </script>
 
 {% endblock content %}

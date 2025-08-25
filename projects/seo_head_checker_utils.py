@@ -1,4 +1,3 @@
-# projects/seo_head_checker_utils.py
 from __future__ import annotations
 
 import csv
@@ -20,15 +19,14 @@ from django.http import FileResponse, JsonResponse
 # Tunables (inline — no env vars required)
 # =============================================================================
 BG_WORKERS = 25                 # concurrent background jobs per process
-URL_WORKERS = 2                 # concurrent URLs per job (use 1 to favor user concurrency)
+URL_WORKERS = 1                 # concurrent URLs per job (use 1 to favor user concurrency)
 SITEMAP_LIMIT = 250             # cap URLs parsed from sitemap/index
-DOWNLOAD_TTL = 120 * 60         # seconds to keep CSV before cleanup
+DOWNLOAD_TTL = 30 * 60          # seconds to keep CSV before cleanup
 MAX_CONCURRENT_DOWNLOADS = 25   # cap simultaneous CSV downloads per process
 POOL_IDLE_REAP = 120            # seconds of HTTP-pool inactivity before closing
 THREAD_STACK = 256 * 1024       # per-thread stack size (bytes)
 HEAD_MAX_BYTES = 512_000        # max bytes to read per page (stop after </head> or cap)
-# Allow at most 5 jobs to run concurrently; the rest will queue
-ACTIVE_JOB_SLOTS = 5
+ACTIVE_JOB_SLOTS = 5            # Allow at most 5 jobs to run concurrently; the rest will queue
 _ACTIVE_SEM = threading.BoundedSemaphore(ACTIVE_JOB_SLOTS)
 
 
@@ -571,25 +569,25 @@ def download_task_file(request, task_id: str):
     status = (task or {}).get("status")
     if not os.path.exists(file_path):
         if status in {"queued", "processing"}:
-            # 425 Too Early — the file isn't ready yet
+            # 425 Too Early — let the front-end retry
             return JsonResponse({"error": "File not ready", "status": status}, status=425)
         return JsonResponse({"error": "File not found"}, status=404)
 
-    # Limit concurrent downloads per process to avoid FD/SSL-buffer spikes.
-    if not _DOWNLOAD_SLOTS.acquire(timeout=30):
+    # Limit concurrent downloads per process (fail fast, never “wait”)
+    if not _DOWNLOAD_SLOTS.acquire(blocking=False):
         return JsonResponse({"error": "Busy, try again shortly"}, status=503)
 
     try:
         try:
             f = open(file_path, "rb")
         except FileNotFoundError:
-            # Vanished between exists() and open(): respond cleanly, no crash.
+            _DOWNLOAD_SLOTS.release()
             return JsonResponse({"error": "File no longer available, please retry"}, status=404)
         except OSError as e:
-            # e.g., EMFILE or transient FS error — respond cleanly.
-            return JsonResponse({"error": f"Unable to open file: {e.strerror or e}"}, status=503)
+            _DOWNLOAD_SLOTS.release()
+            return JsonResponse({"error": f"Unable to open file: {e}"}, status=503)
 
-        # Only after we have a valid file handle do we mark/delete & refcount.
+        # Only after a successful open do we mark & refcount
         _mark_delete_requested(task_id)
         _inc_ref(task_id)
 
@@ -616,9 +614,6 @@ def download_task_file(request, task_id: str):
                             os.remove(file_path)
                         except FileNotFoundError:
                             pass
-                        except Exception:
-                            # Never crash on delete; at worst it ages out via TTL.
-                            pass
                         _clear_dl_state(task_id)
                 finally:
                     _DOWNLOAD_SLOTS.release()
@@ -627,6 +622,7 @@ def download_task_file(request, task_id: str):
 
         resp.close = _close_and_maybe_delete
         return resp
+
 
     except Exception as e:
         # Absolute last line of defense: never bubble an exception here.
