@@ -78,17 +78,14 @@ def xml_splitter(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         try:
-            # Use the uploaded file; adjust the field name if your form differs.
-            zip_path, cleanup = split_xml_to_zip(form.cleaned_data["xml_file"])
+            # Use the correct field name from XMLUploadForm
+            zip_path, cleanup = split_xml_to_zip(form.cleaned_data["file"])
         except Exception as err:
-            # Surface the error on the form instead of 500-ing.
-            form.add_error("xml_file", str(err))
+            # Attach error to the existing 'file' field
+            form.add_error("file", str(err))
         else:
-            # Stream the ZIP without using a context manager (keeps file open until send completes).
             f = open(zip_path, "rb")
-
-            # Derive a friendly download name from the source file.
-            src_name = getattr(form.cleaned_data["xml_file"], "name", "split")
+            src_name = getattr(form.cleaned_data["file"], "name", "split")
             filename = f"{Path(src_name).stem}_split.zip"
 
             response = FileResponse(
@@ -97,23 +94,16 @@ def xml_splitter(request: HttpRequest) -> HttpResponse:
                 filename=filename,
                 content_type="application/zip",
             )
-
-            # Ensure the temp ZIP is deleted after the response fully closes.
             orig_close = response.close
-
             def _close() -> None:
                 try:
-                    orig_close()   # closes 'f'
+                    orig_close()
                 finally:
-                    cleanup()      # removes temp file; can also call malloc_trim inside
-
+                    cleanup()
             response.close = _close
             return response
 
-    # GET or invalid POST: render the form page.
     return render(request, "projects/xml_splitter.html", {"form": form})
-
-
 
 # ISS Tracker
 # Disallow caching to prevent CSRF token errors.
