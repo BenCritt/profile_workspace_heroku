@@ -1,40 +1,51 @@
-import io, re, zipfile, xml.etree.ElementTree as ET
+import io, os, re, tempfile, zipfile, xml.etree.ElementTree as ET
+from .mem_utils import trim_now
 
 _XML_DECL = b'<?xml version="1.0" encoding="utf-8"?>\n'
 
 def _safe_filename(text: str | None) -> str:
-    """
-    Sanitise the ID value so it is safe for a filename.
-    Returns 'unnamed' if the value is missing or blank.
-    """
-    if not text:                     # catches None and empty string
+    if not text:
         return "unnamed"
     cleaned = re.sub(r"[^\w\-\.]", "_", text.strip())
     return cleaned or "unnamed"
 
-def split_xml_to_zip(uploaded_file) -> io.BytesIO:
-    raw = uploaded_file.read()
-    xml_text = re.sub(
-        rb'encoding="[^"]+"', b'encoding="utf-8"', raw, count=1, flags=re.I
-    ).decode("utf-8", "replace")
+def split_xml_to_zip(uploaded_file):
+    """
+    Stream-split a large XML without loading it all into memory.
+    Returns (file_path, cleanup_fn) where file_path is a temp ZIP on disk.
+    """
+    # Force Django to give us a file-like obj (avoids large in-memory buffers)
+    infile = uploaded_file.file if hasattr(uploaded_file, "file") else uploaded_file
 
-    try:
-        root = ET.fromstring(xml_text)
-    except ET.ParseError as exc:
-        # Bad XML – e.g. missing tag, unescaped ampersand, etc.
-        raise ValueError("The uploaded file is not well‑formed XML.") from exc
+    tmpf = tempfile.NamedTemporaryFile(prefix="xmlsplit_", suffix=".zip", delete=False)
+    tmp_path = tmpf.name
 
-    if not list(root):
-        # Root exists but contains no child objects
-        raise ValueError("The XML contains no <Order>, <Product>, or similar objects.")
+    with zipfile.ZipFile(tmpf, "w", zipfile.ZIP_DEFLATED) as zf:
+        # iterparse walks the tree incrementally; clear() frees nodes as we go
+        context = ET.iterparse(infile, events=("end",))
+        root = None
+        for event, elem in context:
+            if root is None:
+                root = elem  # first element seen is the root
+            # Write each immediate child of root as its own file
+            if elem is not root and elem in root:
+                first_child = next(iter(elem), None)
+                file_id = _safe_filename(first_child.text if first_child is not None else None)
+                xml_bytes = _XML_DECL + ET.tostring(elem, encoding="utf-8")
+                zf.writestr(f"{file_id}.xml", xml_bytes)
+                # free memory for processed element
+                elem.clear()
+        # free the root too
+        if root is not None:
+            root.clear()
 
-    zip_io = io.BytesIO()
-    with zipfile.ZipFile(zip_io, "w", zipfile.ZIP_DEFLATED) as zf:
-        for obj in root:
-            first_child = next(iter(obj), None)
-            file_id = _safe_filename(first_child.text if first_child is not None else None)
-            xml_bytes = _XML_DECL + ET.tostring(obj, encoding="utf-8")
-            zf.writestr(f"{file_id}.xml", xml_bytes)
+    tmpf.close()
+    trim_now()
 
-    zip_io.seek(0)
-    return zip_io
+    def _cleanup():
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+    return tmp_path, _cleanup
