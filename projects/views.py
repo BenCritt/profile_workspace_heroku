@@ -3,10 +3,13 @@ from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, FileRe
 from django.conf import settings
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST
+from .decorators import trim_memory_after
 import os
 import requests
 
 # Font Inspector
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def font_inspector(request):
@@ -39,6 +42,8 @@ def font_inspector(request):
                   {"form": form, "rows": rows})
 
 # Ham Radio Call Sign Lookup
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ham_radio_call_sign_lookup(request):
@@ -68,6 +73,8 @@ def ham_radio_call_sign_lookup(request):
     return render(request, "projects/ham_radio_call_sign_lookup.html", {"form": form, "data": data, "error": error})
 
 # XML Splitter
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
@@ -103,6 +110,8 @@ def xml_splitter(request):
     return render(request, "projects/xml_splitter.html", {"form": form})
 
 # ISS Tracker
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def iss_tracker(request):
@@ -213,10 +222,12 @@ def iss_tracker(request):
 
 
 # SEO Head Checker
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_head_checker(request):
-    from .forms import SitemapForm  # import inside the view to keep module light
+    from .forms import SitemapForm
     return render(request, "projects/seo_head_checker.html", {"form": SitemapForm()})
 
 # ---- Forwarders to the robust utils implementations ----
@@ -227,14 +238,23 @@ from .seo_head_checker_utils import (
 )
 
 @require_POST
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def start_sitemap_processing(request):
     return _start_sitemap_processing(request=request)
 
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def get_task_status(request, task_id):
     return _get_task_status(request, task_id)
 
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def download_task_file(request, task_id):
     return _download_task_file(request, task_id)
@@ -267,6 +287,8 @@ def manifest(request):
 
 
 # Freight Carrier Safety Reporter
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_safety(request):
@@ -316,6 +338,8 @@ def freight_safety(request):
 
 
 # Grade Level Text Analyzer.
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def grade_level_analyzer(request):
@@ -486,18 +510,23 @@ def requirements_txt(request):
 
 # This is the code for my 404 catcher.  It returns the root, or homepage, of my website.
 # Disallow caching to prevent CSRF token errors.
+@trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_404(request, exception):
     return render(request, "404.html", status=404)
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def home(request):
     return render(request, "projects/home.html")
 
 # QR Code Generator.
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
@@ -543,6 +572,8 @@ def qr_code_generator(request):
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
 # Monte Carlo Simulator
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def monte_carlo_simulator(request):
@@ -613,6 +644,8 @@ def monte_carlo_simulator(request):
 
 
 # Weather Forecast
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
@@ -727,12 +760,17 @@ def weather(request):
 
 
 # This is the code for the page containing information on all of my projects.
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def all_projects(request):
     return render(request, "projects/all_projects.html")
 
 
 # DNS Lookup Tool
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def dns_tool(request):
@@ -809,6 +847,8 @@ def dns_tool(request):
 
 
 # IP Address Lookup Tool
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ip_tool(request):
@@ -915,6 +955,8 @@ def ip_tool(request):
 
 
 # SSL Verification Tool
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ssl_check(request):
@@ -952,6 +994,8 @@ def ssl_check(request):
 
 
 # This is the view for the IT Tools page.
+# Force memory trim after work.
+@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def it_tools(request):
