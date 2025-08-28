@@ -1,3 +1,4 @@
+# projects/xml_splitter_utils.py
 from __future__ import annotations
 
 import io
@@ -6,7 +7,7 @@ import re
 import shutil
 import tempfile
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -31,7 +32,7 @@ def _copy_uploaded_to_tmp(uploaded_file) -> Tuple[str, str]:
     return tmp_dir, xml_path
 
 
-# --- NEW: robust encoding normalizer -----------------------------------------
+# --- Robust encoding normalizer (fixes bogus XML prologs/BOMs) ----------------
 
 _BOMS = {
     b"\x00\x00\xfe\xff": "utf-32-be",
@@ -41,43 +42,32 @@ _BOMS = {
     b"\xef\xbb\xbf": "utf-8-sig",
 }
 
+_XML_DECL_RE = re.compile(r'^\s*<\?xml[^>]*\?>', re.I | re.S)
+_XML_ENC_RE  = re.compile(r'encoding=["\']([^"\']+)["\']', re.I)
+
 def _detect_bom_encoding(head: bytes) -> Optional[str]:
-    # Check longer BOMs first
     for sig, enc in sorted(_BOMS.items(), key=lambda kv: len(kv[0]), reverse=True):
         if head.startswith(sig):
             return enc
     return None
 
 def _guess_textual_encoding(head: bytes) -> str:
-    """
-    Heuristic only when no BOM is present.
-    If there are many NULs, assume UTF-16; else assume UTF-8.
-    """
+    # Heuristic when no BOM: assume UTF-8 unless there are many NULs.
     sample = head[:2048]
     nul_ratio = sample.count(b"\x00") / max(1, len(sample))
-    if nul_ratio > 0.10:
-        # without BOM we don’t know endianness; 'utf-16' will autodetect with BOM
-        # but many "fake utf-16" files are actually utf-8; fall back to utf-8
-        return "utf-8"
-    return "utf-8"
-
-_XML_DECL_RE = re.compile(r'^\s*<\?xml[^>]*\?>', re.I | re.S)
-_XML_ENC_RE  = re.compile(r'encoding=["\']([^"\']+)["\']', re.I)
+    return "utf-8" if nul_ratio <= 0.10 else "utf-8"
 
 def _normalize_xml_to_utf8(src_path: str) -> str:
     """
-    Ensure the file at src_path is valid UTF-8 XML with a correct prolog:
+    Ensure file is valid UTF-8 XML with a correct prolog:
         <?xml version="1.0" encoding="UTF-8"?>
-    Returns path to a (possibly) new normalized file; original left intact.
-    Streamed transcoding to avoid large RAM spikes.
+    Returns path to normalized file (or the original if already OK).
     """
     with open(src_path, "rb") as f:
         head = f.read(4096)
 
-    bom_enc = _detect_bom_encoding(head)
-    enc = bom_enc or _guess_textual_encoding(head)
+    enc = _detect_bom_encoding(head) or _guess_textual_encoding(head)
 
-    # Decode a small window to inspect the declaration safely
     try:
         head_text = head.decode(enc, errors="replace")
     except LookupError:
@@ -91,39 +81,49 @@ def _normalize_xml_to_utf8(src_path: str) -> str:
         if enc_match:
             declared = enc_match.group(1).strip().lower()
 
-    # If the actual decode codec is utf-8 (or utf-8-sig) and the declaration is
-    # absent or already utf-8, we can keep original file.
     if (enc in ("utf-8", "utf-8-sig")) and (declared is None or declared == "utf-8"):
-        return src_path
+        return src_path  # already fine
 
-    # Otherwise transcode to UTF-8 and fix the prolog.
     norm_path = os.path.join(os.path.dirname(src_path), "source_norm.xml")
     with open(src_path, "rb") as fin, open(norm_path, "w", encoding="utf-8", newline="") as fout:
-        # Stream decode from the detected (or guessed) encoding
         reader = io.TextIOWrapper(fin, encoding=enc, errors="replace", newline="")
-
-        # Read a small first chunk to replace the XML declaration cleanly
         first = reader.read(4096)
-        # Drop existing declaration, if any
-        first = _XML_DECL_RE.sub("", first, count=1)
-        # Write a canonical UTF-8 declaration
+        first = _XML_DECL_RE.sub("", first, count=1)  # drop old prolog
         fout.write('<?xml version="1.0" encoding="UTF-8"?>')
         fout.write(first)
-        # Stream the rest
         shutil.copyfileobj(reader, fout)
-
     return norm_path
 
 # -----------------------------------------------------------------------------
 
 
-def _write_chunk_as_xml(root_tag: str, root_attrib: dict, items: List[ET.Element], out_path: str) -> None:
+def _register_namespaces(ns_pairs: List[Tuple[str, str]]) -> None:
+    """
+    Preserve original namespace prefixes in output by registering them globally.
+    Safe to call repeatedly with the same pairs.
+    """
+    for prefix, uri in ns_pairs:
+        try:
+            # Empty prefix means default namespace
+            ET.register_namespace(prefix or "", uri)
+        except Exception:
+            # Ignore duplicates or odd registrations
+            pass
+
+
+def _write_chunk_as_xml(
+    root_tag: str,
+    root_attrib: dict,
+    items: List[ET.Element],
+    out_path: str,
+    ns_pairs: List[Tuple[str, str]],
+) -> None:
     """
     Write a new XML file reusing the original root tag/attributes and the given items.
     """
+    _register_namespaces(ns_pairs)
     root_copy = ET.Element(root_tag, root_attrib)
-    # Move the elements (no deep copy) to avoid holding duplicates in memory.
-    for el in items:
+    for el in items:  # move elements (no deep copy)
         root_copy.append(el)
     tree = ET.ElementTree(root_copy)
     tree.write(out_path, encoding="utf-8", xml_declaration=True)
@@ -136,17 +136,20 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
 
     Memory profile:
       - Source persisted to disk
-      - (NEW) Normalize to UTF-8 if the prolog/bytes disagree
-      - iterparse with element removal from root
+      - Normalize to UTF-8 if the prolog/bytes disagree
+      - iterparse with detaching and selective clearing
       - Parts written to disk
       - ZIP assembled on disk
     """
+    # Defensive cast and guard
+    try:
+        items_per_file = int(items_per_file)
+    except Exception:
+        items_per_file = 1000
     if items_per_file <= 0:
         raise ValueError("items_per_file must be >= 1")
 
     work_dir, xml_path = _copy_uploaded_to_tmp(uploaded_file)
-
-    # Ensure the file is safely parseable (handles bogus encodings)
     xml_path = _normalize_xml_to_utf8(xml_path)
 
     # Determine final zip name based on upload filename (replace extension with .zip)
@@ -157,8 +160,11 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
     parts_dir = os.path.join(work_dir, "parts")
     os.makedirs(parts_dir, exist_ok=True)
 
-    # Parse streaming with depth tracking so we can detect direct children of the root.
-    context = ET.iterparse(xml_path, events=("start", "end"))
+    # Parse streaming; capture namespaces to preserve prefixes
+    context = ET.iterparse(xml_path, events=("start", "end", "start-ns"))
+    ns_pairs: List[Tuple[str, str]] = []
+    seen_ns: Dict[Tuple[str, str], bool] = {}
+
     root: Optional[ET.Element] = None
     root_tag: Optional[str] = None
     root_attrib: dict = {}
@@ -169,39 +175,51 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
     part_index = 0
 
     for event, elem in context:
+        if event == "start-ns":
+            # elem is a (prefix, uri) tuple for this event
+            prefix, uri = elem  # type: ignore
+            key = (prefix or "", uri)
+            if key not in seen_ns:
+                seen_ns[key] = True
+                ns_pairs.append(key)
+            continue  # not a node start/end
+
         if event == "start":
             depth += 1
             if root is None:
-                # First element is the root
                 root = elem
                 root_tag = root.tag
                 root_attrib = dict(root.attrib)
             elif depth == 2 and record_tag is None:
-                # First direct child under the root defines the record unit
+                # First direct child under the root defines the record unit (e.g., "Order")
                 record_tag = elem.tag
 
         elif event == "end":
-            if record_tag and root and elem.tag == record_tag and depth == 2:
-                # Completed one direct child (record) — detach from root and queue it
+            is_record = bool(record_tag and root and elem.tag == record_tag and depth == 2)
+
+            if is_record:
+                # Completed one direct child (record)
                 batch.append(elem)
                 try:
-                    root.remove(elem)  # element is a direct child
+                    root.remove(elem)  # detach from live tree to keep memory flat
                 except Exception:
                     pass
 
                 if len(batch) >= items_per_file:
                     out_name = f"part_{part_index:04d}.xml"
                     out_path = os.path.join(parts_dir, out_name)
-                    _write_chunk_as_xml(root_tag, root_attrib, batch, out_path)
-                    # Clear elements after writing
+                    _write_chunk_as_xml(root_tag, root_attrib, batch, out_path, ns_pairs)
+                    # Now clear the elements we just wrote
                     for el in batch:
                         el.clear()
                     batch.clear()
                     part_index += 1
 
-            # Clear closed elements (other than root) to limit tree growth
-            if root is not None and elem is not root:
-                elem.clear()
+                # DO NOT clear `elem` here; it’s in the batch and will be cleared after writing
+            else:
+                # Clear non-record elements aggressively (keep parsing memory bounded)
+                if root is not None and elem is not root:
+                    elem.clear()
 
             depth -= 1
 
@@ -209,7 +227,7 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
     if batch:
         out_name = f"part_{part_index:04d}.xml"
         out_path = os.path.join(parts_dir, out_name)
-        _write_chunk_as_xml(root_tag, root_attrib, batch, out_path)
+        _write_chunk_as_xml(root_tag, root_attrib, batch, out_path, ns_pairs)
         for el in batch:
             el.clear()
         batch.clear()

@@ -73,31 +73,43 @@ def ham_radio_call_sign_lookup(request):
     return render(request, "projects/ham_radio_call_sign_lookup.html", {"form": form, "data": data, "error": error})
 
 # XML Splitter
+# Optional: decorator import with safe fallback (so this is drop-in even if missing)
+try:
+    from .decorators import trim_memory_after  # your decorator that trims after requests
+except Exception:
+    def trim_memory_after(func):  # no-op if not available
+        return func
+
+from django.views.decorators.cache import cache_control
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
-    # keep imports local so you can paste this whole function in
+    # Local imports to keep this function self-contained for drop-in
     from django.shortcuts import render
     from django.http import StreamingHttpResponse
     from urllib.parse import quote
     from .forms import XMLUploadForm
     from .xml_splitter_utils import split_xml_to_zip
-    from .mem_utils import trim_now
+    try:
+        from .mem_utils import trim_now
+    except Exception:
+        # Safe no-op if mem_utils not present
+        def trim_now():  # type: ignore
+            return None
+
     import os, shutil
 
     form = XMLUploadForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         try:
-            # Build the split zip ON DISK (no huge RAM spike)
             result = split_xml_to_zip(
                 uploaded_file=form.cleaned_data["file"],
-                items_per_file=form.cleaned_data.get("items_per_file", 1000),
+                items_per_file=int(form.cleaned_data.get("items_per_file", 1000)),
             )
-        except ValueError as err:
-            # e.g., items_per_file <= 0 or detectable structural issue
+        except Exception as err:
             form.add_error("file", str(err))
         else:
             download_name = os.path.basename(result.zip_path)
@@ -112,13 +124,11 @@ def xml_splitter(request):
                             break
                         yield chunk
                 finally:
-                    # Close file handle
                     try:
                         if f:
                             f.close()
                     except Exception:
                         pass
-                    # Remove artifacts on disk
                     try:
                         if os.path.exists(zip_path):
                             os.unlink(zip_path)
@@ -129,14 +139,14 @@ def xml_splitter(request):
                             shutil.rmtree(work_dir, ignore_errors=True)
                     except Exception:
                         pass
-                    # Now that all references are gone, return memory to the OS
+                    # Release arenas back to the OS only after everything is gone
                     trim_now()
 
             response = StreamingHttpResponse(
                 _stream_zip_then_cleanup(result.zip_path, result.work_dir),
                 content_type="application/zip",
             )
-            # RFC 5987 for non-ASCII filenames
+            # RFC 5987: robust filename handling
             response["Content-Disposition"] = (
                 f'attachment; filename="{download_name}"; filename*=UTF-8\'\'{quote(download_name)}'
             )
@@ -144,6 +154,7 @@ def xml_splitter(request):
 
     # GET or invalid POST
     return render(request, "projects/xml_splitter.html", {"form": form})
+
 
 
 # ISS Tracker
