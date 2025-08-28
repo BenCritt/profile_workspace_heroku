@@ -134,9 +134,13 @@
                     <!-- Header for results -->
                     <h5>DNS Information for {{ form.cleaned_data.domain }}</h5>
                     <center>
-                    <div class = "table-container table-responsive">
+                    <div class = "table-container table-responsive" style="width: 100%; max-width: 750px;">
                     <!-- Table displaying DNS information -->
                     <table class="table">
+                        <colgroup>
+                            <col style="width: 25%;">
+                            <col style="width: 75%;">
+                        </colgroup>
                         <thead>
                             <tr>
                                 <!-- Column header for record type -->
