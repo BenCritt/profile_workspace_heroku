@@ -78,36 +78,73 @@ def ham_radio_call_sign_lookup(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
+    # keep imports local so you can paste this whole function in
+    from django.shortcuts import render
+    from django.http import StreamingHttpResponse
+    from urllib.parse import quote
     from .forms import XMLUploadForm
     from .xml_splitter_utils import split_xml_to_zip
-    from django.http import StreamingHttpResponse
-    # Load the form for the user to upload their XML file.
+    from .mem_utils import trim_now
+    import os, shutil
+
     form = XMLUploadForm(request.POST or None, request.FILES or None)
 
-    # If the user submitted an XML file.
     if request.method == "POST" and form.is_valid():
-        # Attempt to split the XML file into multiple XML files.
         try:
-            # Use the split_xml_to_zip function from utils.py to parse the user's file and create their new files.
-            # form.cleaned_data is a stock Django utility.  The file captured by the form is what's being parsed by split_xml_to_zip.
-            # The results of this are captured by zip_io.
-            zip_io = split_xml_to_zip(form.cleaned_data["file"])
-        # Catch errors so the app doesn't crash.
+            # Build the split zip ON DISK (no huge RAM spike)
+            result = split_xml_to_zip(
+                uploaded_file=form.cleaned_data["file"],
+                items_per_file=form.cleaned_data.get("items_per_file", 1000),
+            )
         except ValueError as err:
-            # Show the problem to the user instead of crashing.
+            # e.g., items_per_file <= 0 or detectable structural issue
             form.add_error("file", str(err))
-        # If everything worked, it's time to give the user their ZIP folder containing their new files.
         else:
-            # This is the naming convention for the ZIP folder.
-            # Splits from the rightmost dot in the source filename and takes the first of the two portions made from that split.
-            # Concatenate the first portion with _split.zip.
-            download_name = form.cleaned_data["file"].name.rsplit(".", 1)[0] + "_split.zip"
-            response = StreamingHttpResponse(zip_io, content_type="application/zip")
-            response["Content-Disposition"] = f'attachment; filename="{download_name}"'
+            download_name = os.path.basename(result.zip_path)
+
+            def _stream_zip_then_cleanup(zip_path: str, work_dir: str, chunk_size: int = 256 * 1024):
+                f = None
+                try:
+                    f = open(zip_path, "rb")
+                    while True:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+                        yield chunk
+                finally:
+                    # Close file handle
+                    try:
+                        if f:
+                            f.close()
+                    except Exception:
+                        pass
+                    # Remove artifacts on disk
+                    try:
+                        if os.path.exists(zip_path):
+                            os.unlink(zip_path)
+                    except Exception:
+                        pass
+                    try:
+                        if os.path.isdir(work_dir):
+                            shutil.rmtree(work_dir, ignore_errors=True)
+                    except Exception:
+                        pass
+                    # Now that all references are gone, return memory to the OS
+                    trim_now()
+
+            response = StreamingHttpResponse(
+                _stream_zip_then_cleanup(result.zip_path, result.work_dir),
+                content_type="application/zip",
+            )
+            # RFC 5987 for non-ASCII filenames
+            response["Content-Disposition"] = (
+                f'attachment; filename="{download_name}"; filename*=UTF-8\'\'{quote(download_name)}'
+            )
             return response
 
-    # Load the web page.
+    # GET or invalid POST
     return render(request, "projects/xml_splitter.html", {"form": form})
+
 
 # ISS Tracker
 # Force memory trim after work.
