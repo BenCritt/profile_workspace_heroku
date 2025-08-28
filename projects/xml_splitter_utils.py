@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import io
 import os
+import re
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -29,6 +31,92 @@ def _copy_uploaded_to_tmp(uploaded_file) -> Tuple[str, str]:
     return tmp_dir, xml_path
 
 
+# --- NEW: robust encoding normalizer -----------------------------------------
+
+_BOMS = {
+    b"\x00\x00\xfe\xff": "utf-32-be",
+    b"\xff\xfe\x00\x00": "utf-32-le",
+    b"\xfe\xff": "utf-16-be",
+    b"\xff\xfe": "utf-16-le",
+    b"\xef\xbb\xbf": "utf-8-sig",
+}
+
+def _detect_bom_encoding(head: bytes) -> Optional[str]:
+    # Check longer BOMs first
+    for sig, enc in sorted(_BOMS.items(), key=lambda kv: len(kv[0]), reverse=True):
+        if head.startswith(sig):
+            return enc
+    return None
+
+def _guess_textual_encoding(head: bytes) -> str:
+    """
+    Heuristic only when no BOM is present.
+    If there are many NULs, assume UTF-16; else assume UTF-8.
+    """
+    sample = head[:2048]
+    nul_ratio = sample.count(b"\x00") / max(1, len(sample))
+    if nul_ratio > 0.10:
+        # without BOM we don’t know endianness; 'utf-16' will autodetect with BOM
+        # but many "fake utf-16" files are actually utf-8; fall back to utf-8
+        return "utf-8"
+    return "utf-8"
+
+_XML_DECL_RE = re.compile(r'^\s*<\?xml[^>]*\?>', re.I | re.S)
+_XML_ENC_RE  = re.compile(r'encoding=["\']([^"\']+)["\']', re.I)
+
+def _normalize_xml_to_utf8(src_path: str) -> str:
+    """
+    Ensure the file at src_path is valid UTF-8 XML with a correct prolog:
+        <?xml version="1.0" encoding="UTF-8"?>
+    Returns path to a (possibly) new normalized file; original left intact.
+    Streamed transcoding to avoid large RAM spikes.
+    """
+    with open(src_path, "rb") as f:
+        head = f.read(4096)
+
+    bom_enc = _detect_bom_encoding(head)
+    enc = bom_enc or _guess_textual_encoding(head)
+
+    # Decode a small window to inspect the declaration safely
+    try:
+        head_text = head.decode(enc, errors="replace")
+    except LookupError:
+        enc = "utf-8"
+        head_text = head.decode(enc, errors="replace")
+
+    decl_match = _XML_DECL_RE.search(head_text)
+    declared = None
+    if decl_match:
+        enc_match = _XML_ENC_RE.search(decl_match.group(0))
+        if enc_match:
+            declared = enc_match.group(1).strip().lower()
+
+    # If the actual decode codec is utf-8 (or utf-8-sig) and the declaration is
+    # absent or already utf-8, we can keep original file.
+    if (enc in ("utf-8", "utf-8-sig")) and (declared is None or declared == "utf-8"):
+        return src_path
+
+    # Otherwise transcode to UTF-8 and fix the prolog.
+    norm_path = os.path.join(os.path.dirname(src_path), "source_norm.xml")
+    with open(src_path, "rb") as fin, open(norm_path, "w", encoding="utf-8", newline="") as fout:
+        # Stream decode from the detected (or guessed) encoding
+        reader = io.TextIOWrapper(fin, encoding=enc, errors="replace", newline="")
+
+        # Read a small first chunk to replace the XML declaration cleanly
+        first = reader.read(4096)
+        # Drop existing declaration, if any
+        first = _XML_DECL_RE.sub("", first, count=1)
+        # Write a canonical UTF-8 declaration
+        fout.write('<?xml version="1.0" encoding="UTF-8"?>')
+        fout.write(first)
+        # Stream the rest
+        shutil.copyfileobj(reader, fout)
+
+    return norm_path
+
+# -----------------------------------------------------------------------------
+
+
 def _write_chunk_as_xml(root_tag: str, root_attrib: dict, items: List[ET.Element], out_path: str) -> None:
     """
     Write a new XML file reusing the original root tag/attributes and the given items.
@@ -48,6 +136,7 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
 
     Memory profile:
       - Source persisted to disk
+      - (NEW) Normalize to UTF-8 if the prolog/bytes disagree
       - iterparse with element removal from root
       - Parts written to disk
       - ZIP assembled on disk
@@ -56,6 +145,9 @@ def split_xml_to_zip(uploaded_file, items_per_file: int = 1000) -> ZipBuildResul
         raise ValueError("items_per_file must be >= 1")
 
     work_dir, xml_path = _copy_uploaded_to_tmp(uploaded_file)
+
+    # Ensure the file is safely parseable (handles bogus encodings)
+    xml_path = _normalize_xml_to_utf8(xml_path)
 
     # Determine final zip name based on upload filename (replace extension with .zip)
     orig = getattr(uploaded_file, "name", "output")
