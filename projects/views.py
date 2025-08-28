@@ -73,86 +73,40 @@ def ham_radio_call_sign_lookup(request):
     return render(request, "projects/ham_radio_call_sign_lookup.html", {"form": form, "data": data, "error": error})
 
 # XML Splitter
-# Optional: decorator import with safe fallback (so this is drop-in even if missing)
-try:
-    from .decorators import trim_memory_after  # your decorator that trims after requests
-except Exception:
-    def trim_memory_after(func):  # no-op if not available
-        return func
-
-from django.views.decorators.cache import cache_control
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def xml_splitter(request):
-    # Local imports to keep this function self-contained for drop-in
-    from django.shortcuts import render
-    from django.http import StreamingHttpResponse
-    from urllib.parse import quote
     from .forms import XMLUploadForm
     from .xml_splitter_utils import split_xml_to_zip
-    try:
-        from .mem_utils import trim_now
-    except Exception:
-        # Safe no-op if mem_utils not present
-        def trim_now():  # type: ignore
-            return None
-
-    import os, shutil
-
+    from django.http import StreamingHttpResponse
+    # Load the form for the user to upload their XML file.
     form = XMLUploadForm(request.POST or None, request.FILES or None)
 
+    # If the user submitted an XML file.
     if request.method == "POST" and form.is_valid():
+        # Attempt to split the XML file into multiple XML files.
         try:
-            result = split_xml_to_zip(
-                uploaded_file=form.cleaned_data["file"],
-                items_per_file=int(form.cleaned_data.get("items_per_file", 1000)),
-            )
-        except Exception as err:
+            # Use the split_xml_to_zip function from utils.py to parse the user's file and create their new files.
+            # form.cleaned_data is a stock Django utility.  The file captured by the form is what's being parsed by split_xml_to_zip.
+            # The results of this are captured by zip_io.
+            zip_io = split_xml_to_zip(form.cleaned_data["file"])
+        # Catch errors so the app doesn't crash.
+        except ValueError as err:
+            # Show the problem to the user instead of crashing.
             form.add_error("file", str(err))
+        # If everything worked, it's time to give the user their ZIP folder containing their new files.
         else:
-            download_name = os.path.basename(result.zip_path)
-
-            def _stream_zip_then_cleanup(zip_path: str, work_dir: str, chunk_size: int = 256 * 1024):
-                f = None
-                try:
-                    f = open(zip_path, "rb")
-                    while True:
-                        chunk = f.read(chunk_size)
-                        if not chunk:
-                            break
-                        yield chunk
-                finally:
-                    try:
-                        if f:
-                            f.close()
-                    except Exception:
-                        pass
-                    try:
-                        if os.path.exists(zip_path):
-                            os.unlink(zip_path)
-                    except Exception:
-                        pass
-                    try:
-                        if os.path.isdir(work_dir):
-                            shutil.rmtree(work_dir, ignore_errors=True)
-                    except Exception:
-                        pass
-                    # Release arenas back to the OS only after everything is gone
-                    trim_now()
-
-            response = StreamingHttpResponse(
-                _stream_zip_then_cleanup(result.zip_path, result.work_dir),
-                content_type="application/zip",
-            )
-            # RFC 5987: robust filename handling
-            response["Content-Disposition"] = (
-                f'attachment; filename="{download_name}"; filename*=UTF-8\'\'{quote(download_name)}'
-            )
+            # This is the naming convention for the ZIP folder.
+            # Splits from the rightmost dot in the source filename and takes the first of the two portions made from that split.
+            # Concatenate the first portion with _split.zip.
+            download_name = form.cleaned_data["file"].name.rsplit(".", 1)[0] + "_split.zip"
+            response = StreamingHttpResponse(zip_io, content_type="application/zip")
+            response["Content-Disposition"] = f'attachment; filename="{download_name}"'
             return response
 
-    # GET or invalid POST
+    # Load the web page.
     return render(request, "projects/xml_splitter.html", {"form": form})
 
 
