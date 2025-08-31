@@ -62,7 +62,4 @@ urlpatterns = [
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
     path("llms.txt", views.llms_txt, name="llms_txt"),
-    path("projects/start_font_scan/", views.start_font_scan, name="start_font_scan"),
-    path("projects/font_scan_status/<str:task_id>/", views.font_scan_status, name="font_scan_status"),
-    path("projects/font_scan_download/<str:task_id>/", views.font_scan_download, name="font_scan_download"),
 ]

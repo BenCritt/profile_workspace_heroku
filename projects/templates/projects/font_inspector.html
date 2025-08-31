@@ -27,161 +27,6 @@
   ]
 }
 </script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById("font-inspector-form");
-  if (!form) return;
-
-  const input = form.querySelector("input[name='url']");
-  const progWrap = document.getElementById("fi-progress");
-  const bar = document.getElementById("fi-bar");
-  const statusText = document.getElementById("fi-status-text");
-  const queuePos = document.getElementById("fi-queue-pos");
-  const resultsWrap = document.getElementById("fi-results");
-  const actionsWrap = document.getElementById("fi-actions");
-  const downloadBtn = document.getElementById("fi-download");
-
-  function getCsrf() {
-    const name = "csrftoken=";
-    const parts = document.cookie.split(";").map(s => s.trim());
-    for (const p of parts) if (p.startsWith(name)) return decodeURIComponent(p.slice(name.length));
-    // Fallback: hidden input
-    const hid = form.querySelector("input[name='csrfmiddlewaretoken']");
-    return hid ? hid.value : "";
-  }
-
-  function setProgress(pct, msg, qpos) {
-    progWrap.style.display = "block";
-    const clamped = Math.max(0, Math.min(100, pct|0));
-    bar.style.width = clamped + "%";
-    bar.textContent = clamped + "%";
-    statusText.textContent = msg || "";
-    queuePos.textContent = (qpos !== null && qpos !== undefined && qpos > 0)
-      ? `Queue: ${qpos} ahead`
-      : "";
-  }
-
-  function renderTable(rows) {
-    if (!rows || !rows.length) return "";
-    const head = `
-      <thead>
-        <tr><th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th></tr>
-      </thead>`;
-    const body = rows.map(r => `
-      <tr>
-        <td>${r.website || ""}</td>
-        <td>${r.family || ""}</td>
-        <td>${r.license_required || ""}</td>
-        <td>${r.font_source || ""}</td>
-      </tr>`).join("");
-    return `<table class="table table-dark table-striped align-middle">${head}<tbody>${body}</tbody></table>`;
-  }
-
-  async function poll(taskId) {
-    let retries = 0;
-    while (true) {
-      const r = await fetch(`/projects/font_scan_status/${taskId}/`, {cache: "no-store"});
-      if (!r.ok) {
-        const txt = await r.text().catch(() => "");
-        statusText.textContent = `Error ${r.status}: ${txt || "Status check failed"}`;
-        return;
-    }
-
-      if (!r.ok) throw new Error("Status check failed");
-      const j = await r.json();
-
-      setProgress(j.progress ?? 0, j.message, j.queue_position);
-
-      if (j.status === "done") {
-        if (j.rows && j.rows.length) {
-          resultsWrap.innerHTML = renderTable(j.rows);
-          resultsWrap.style.display = "block";
-        }
-        if (j.download_url) {
-          downloadBtn.href = j.download_url;
-          actionsWrap.style.display = "block";
-        }
-        return;
-      }
-      if (j.status === "error") {
-        statusText.textContent = "Error: " + (j.error || "Unknown error");
-        return;
-      }
-
-      await new Promise(res => setTimeout(res, 700));
-      if (++retries % 25 === 0) await new Promise(res => setTimeout(res, 1200)); // gentle backoff
-    }
-  }
-
-  form.addEventListener("submit", async (ev) => {
-    // Progressive enhancement: if user clicked the server-side "Download CSV" button
-    // (only appears when {{ rows }} exists), let the normal POST happen.
-    const downloadClicked = ev.submitter && ev.submitter.name === "download";
-    if (downloadClicked) return;
-
-    ev.preventDefault();
-    setProgress(1, "Starting…", null);
-
-
-    // Reset UI
-    const resultsWrap = document.getElementById("fi-results");
-    const actionsWrap = document.getElementById("fi-actions");
-    if (resultsWrap) {
-      resultsWrap.style.display = "none";
-      resultsWrap.innerHTML = "";
-    }
-    if (actionsWrap) {
-      actionsWrap.style.display = "none";
-    }
-
-    // Prepare request
-    const formEl = ev.currentTarget;
-    const data = new FormData(formEl);
-
-    // Start job
-    const r = await fetch("/projects/start_font_scan/", {
-      method: "POST",
-      headers: { "X-CSRFToken": (function getCsrf() {
-        const name = "csrftoken=";
-        const parts = document.cookie.split(";").map(s => s.trim());
-        for (const p of parts) if (p.startsWith(name)) return decodeURIComponent(p.slice(name.length));
-        const hid = formEl.querySelector("input[name='csrfmiddlewaretoken']");
-        return hid ? hid.value : "";
-      })() },
-      body: data
-    });
-
-    // Handle queue-full / validation errors
-    if (!r.ok) {
-      try {
-        const j = await r.json();
-        if (j.error) {
-          // e.g., "The queue is currently full. Please try again in a moment."
-          setProgress(100, j.error, null);
-          alert(j.error);
-        } else if (j.errors && j.errors.url) {
-          alert(j.errors.url[0]?.message || "Invalid input.");
-        } else {
-          alert("Request failed.");
-        }
-      } catch {
-        alert("Request failed.");
-      }
-      return;
-    }
-
-    // Begin polling
-    const j = await r.json();
-    setProgress(j.progress ?? 0, j.message, j.queue_position);
-
-    try {
-      await poll(j.task_id);
-    } catch (e) {
-      setProgress(100, "Error: " + (e?.message || e), null);
-    }
-  }, {passive: false});
-})();
-</script>
 {% endblock scripts %}
 
 {% block styles %}
@@ -228,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
   <h1>Font Inspector</h1>
   <br>
-  <form id="font-inspector-form" method="post" class="mb-4">
+  <form method="post" class="mb-4">
     {% csrf_token %}
     <div class="input-group">
       {{ form.url }}
@@ -241,25 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="text-danger small">{{ err }}</div>
     {% endfor %}
   </form>
-  <!-- Progress Indicator -->
-  <div id="fi-progress" class="mt-3" style="display:none; max-width:700px;">
-    <div class="d-flex justify-content-between mb-1">
-      <span class="small">Status: <span id="fi-status-text">Queued</span></span>
-      <span class="small"><span id="fi-queue-pos"></span></span>
-    </div>
-    <div class="progress" role="progressbar" aria-label="Font scan progress"
-        aria-valuemin="0" aria-valuemax="100" style="height: 18px;">
-      <div id="fi-bar" class="progress-bar" style="width:0%">0%</div>
-    </div>
-  </div>
-
-  <div id="fi-actions" class="mt-3" style="display:none;">
-    <a id="fi-download" class="btn btn-secondary" href="#" download>Download CSV</a>
-  </div>
-
-  <div id="fi-results" class="table-responsive mt-3" style="display:none;">
-    <!-- Table injected here -->
-  </div>
   <br>
   {% if rows %}
   <div class="table-responsive">

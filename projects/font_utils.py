@@ -1,19 +1,23 @@
-from __future__ import annotations
-import io, threading, queue, uuid, cssutils, requests, tinycss2, csv, time, json, logging, os, pathlib, re, sys
+import io
+import csv
+import json
+import logging
+import os
+import pathlib
+import re
+import sys
+import time
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
+import cssutils
+import requests
+import tinycss2
 from bs4 import BeautifulSoup
 from cssutils import parseString as parse_css
 from rich.console import Console
 from rich.table import Table
 from tinycss2 import serialize
-from .forms import FontInspectorForm
-from datetime import datetime
-from typing import Any, Dict, Optional
-from django.http import JsonResponse, FileResponse, HttpRequest, Http404
-from django.views.decorators.http import require_POST
-from django.utils.timezone import now
 
 # ───────────────────────── config ──────────────────────────
 USER_AGENT   = "Font Inspector by Ben Crittenden (+https://www.bencritt.net)"
@@ -502,7 +506,7 @@ def _fetch_google_fonts(api_key: str) -> set[str]:
 @lru_cache(maxsize=1)
 def load_google_font_families() -> set[str]:
     """
-    1) live Google Web Fonts API if GOOGLE_FONT_KEY is set
+    1) live Google Web Fonts API if GOOGLE_FONTS_API_KEY is set
     2) ~/.cache/gf_families.json (≤24 h)
     3) baked-in 350-family fallback
     """
@@ -980,149 +984,3 @@ def report_to_csv(rows: list[dict]) -> io.BytesIO:
     out = io.BytesIO(buffer.getvalue().encode())
     out.seek(0)
     return out
-
-# ----------------------------- Task model ---------------------------------
-
-class Task:
-    __slots__ = ("id", "status", "progress", "message", "created_at", "url",
-                 "rows", "error")
-    def __init__(self, url: str):
-        self.id = str(uuid.uuid4())
-        self.status = "queued"     # queued | running | done | error
-        self.progress = 0          # 0-100
-        self.message = "Queued"
-        self.created_at = now()
-        self.url = url
-        self.rows: Optional[list[dict]] = None
-        self.error: Optional[str] = None
-
-# --------------------------- In-memory queue ------------------------------
-
-_TASKS: Dict[str, Task] = {}
-_QUEUE: "queue.Queue[Task]" = queue.Queue(maxsize=20)   # small cap = polite
-_WORKER_STARTED = False
-_LOCK = threading.Lock()
-
-def _worker():
-    while True:
-        task: Task = _QUEUE.get()  # blocks
-        try:
-            task.status, task.progress, task.message = "running", 5, "Validating URL…"
-            # Step 1: validation already done pre-enqueue; just a stage marker
-            time.sleep(0.05)
-
-            task.progress, task.message = 25, "Fetching page…"
-            # We can’t get granular fetch progress without instrumenting requests;
-            # simulate coarse-grained phases so users see forward motion.
-
-            # Run the actual scan (can take a few seconds)
-            rows = make_report(task.url)     # may raise
-            task.progress, task.message = 80, "Analyzing fonts & licenses…"
-            time.sleep(0.05)
-
-            task.rows = rows or []
-            task.progress, task.message = 100, "Ready"
-            task.status = "done"
-        except Exception as e:
-            task.status = "error"
-            task.error = str(e)
-            task.message = "Failed"
-            task.progress = 100
-        finally:
-            _QUEUE.task_done()
-
-def _ensure_worker():
-    global _WORKER_STARTED
-    with _LOCK:
-        if not _WORKER_STARTED:
-            t = threading.Thread(target=_worker, name="font-scan-worker", daemon=True)
-            t.start()
-            _WORKER_STARTED = True
-
-def _queue_position(task_id: str) -> Optional[int]:
-    # Cheap estimate: count tasks ahead of this one
-    # (Queue doesn’t expose positions reliably; compute against current tasks)
-    if task_id not in _TASKS:
-        return None
-    me = _TASKS[task_id]
-    if me.status != "queued":
-        return 0
-    # Count tasks still queued and created earlier
-    vals = list(_TASKS.values())
-    ahead = sum(1 for t in vals if t.status == "queued" and t.created_at < me.created_at)
-
-    return ahead
-
-# ------------------------------- API --------------------------------------
-
-@require_POST
-def start_font_scan(request: HttpRequest):
-    """Validate URL, create a Task, enqueue it, return task_id + queue info."""
-    form = FontInspectorForm(request.POST or None)
-    if not form.is_valid():
-        # flatten errors for the AJAX client
-        return JsonResponse({"ok": False, "errors": form.errors.get_json_data()}, status=400)
-
-    url = form.cleaned_data["url"]
-    _ensure_worker()
-
-    # Check capacity
-    if _QUEUE.full():
-        return JsonResponse({
-            "ok": False,
-            "error": "The queue is currently full. Please try again in a moment."
-        }, status=429)
-
-    task = Task(url=url)
-    _TASKS[task.id] = task
-    _QUEUE.put(task)
-
-    return JsonResponse({
-        "ok": True,
-        "task_id": task.id,
-        "status": task.status,
-        "progress": task.progress,
-        "message": task.message,
-        "queue_position": _queue_position(task.id),
-    })
-
-def get_font_task_status(request: HttpRequest, task_id: str):
-    task_id = str(task_id)
-    task = _TASKS.get(task_id)
-    if not task:
-        raise Http404("Unknown task")
-
-    payload: Dict[str, Any] = {
-        "ok": True,
-        "task_id": task.id,
-        "status": task.status,
-        "progress": task.progress,
-        "message": task.message,
-        "queue_position": _queue_position(task.id),
-    }
-
-    if task.status == "done":
-        # Return rows inline for rendering the table (limit for sanity)
-        preview = task.rows[:500] if task.rows else []
-        payload["rows"] = preview
-        payload["download_url"] = f"/projects/font_scan_download/{task.id}/"
-
-    if task.status == "error":
-        payload["error"] = task.error or "Unknown error"
-
-    return JsonResponse(payload)
-
-def download_font_task_file(request: HttpRequest, task_id: str):
-    task_id = str(task_id)
-    task = _TASKS.get(task_id)
-    if not task or task.status not in ("done", "error"):
-        raise Http404("Result not ready")
-
-    if task.status == "error":
-        return JsonResponse({"ok": False, "error": task.error or "Unknown error"}, status=400)
-
-    csv_io = report_to_csv(task.rows or [])
-    return FileResponse(csv_io,
-                        as_attachment=True,
-                        filename=f"font_report_{task_id}.csv",
-                        content_type="text/csv")
