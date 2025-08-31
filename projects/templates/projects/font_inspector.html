@@ -28,8 +28,8 @@
 }
 </script>
 <script>
-(function() {
-  const form = document.querySelector("form");
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector("font-inspector-form");
   if (!form) return;
 
   const input = form.querySelector("input[name='url']");
@@ -114,6 +114,8 @@
     if (downloadClicked) return;
 
     ev.preventDefault();
+    setProgress(1, "Starting…", null);
+
 
     // Reset UI
     const resultsWrap = document.getElementById("fi-results");
@@ -220,7 +222,7 @@
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
   <h1>Font Inspector</h1>
   <br>
-  <form method="post" class="mb-4">
+  <form id="font-inspector-form" method="post" class="mb-4">
     {% csrf_token %}
     <div class="input-group">
       {{ form.url }}
