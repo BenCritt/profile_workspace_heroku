@@ -29,7 +29,6 @@
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Target just this page's form
   const form = document.getElementById('font-inspector-form') || document.querySelector('form');
   if (!form) return;
 
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const bar        = document.getElementById('fi-bar');
   const statusText = document.getElementById('fi-status-text');
 
-  // Helper to update the visual bar
   function setProgress(pct, msg) {
     if (!progWrap) return;
     const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
@@ -48,30 +46,40 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   form.addEventListener('submit', function (ev) {
-    // If the user clicked the server-side "Download CSV" button (when rows exist),
-    // show a different message, but still let the browser POST normally.
+    // If the user clicked the server-side "Download CSV" button, keep the flow but change copy.
     const isDownload = ev.submitter && ev.submitter.name === 'download';
 
-    // Show the progress UI immediately
+    // Show progress immediately; let the browser submit normally (no preventDefault).
     setProgress(5, isDownload ? 'Preparing CSV…' : 'Scanning page…');
 
     // Disable buttons to avoid double-submits
     const btns = form.querySelectorAll('button[type="submit"]');
     btns.forEach(b => b.disabled = true);
 
-    // Gentle, fake progress so users see motion on slow responses
+    // Gentle faux progress while waiting for the response navigation
     let pct = 5;
     const timer = setInterval(() => {
-      // creep toward 90% while waiting; the page navigation will interrupt when the POST completes
+      // creep toward ~90%
       pct = Math.min(90, pct + (pct < 30 ? 3 : pct < 60 ? 2 : 1));
       setProgress(pct);
+
+      // evolve the status message at sensible checkpoints (only for scan, not CSV)
+      if (!isDownload) {
+        if (pct >= 75 && statusText.textContent !== 'Preparing results…') {
+          statusText.textContent = 'Preparing results…';
+        } else if (pct >= 35 && statusText.textContent !== 'Analyzing fonts…' && statusText.textContent !== 'Preparing results…') {
+          statusText.textContent = 'Analyzing fonts…';
+        }
+      }
     }, 300);
 
-    // Stop the timer if the page doesn't navigate (e.g., validation error re-render)
+    // When the new page renders (after the POST), the old page is replaced.
+    // This handler is just a safety to clear the timer if the page is restored from bfcache.
     window.addEventListener('pageshow', () => { clearInterval(timer); }, { once: true });
   }, { passive: true });
 });
 </script>
+
 
 {% endblock scripts %}
 
