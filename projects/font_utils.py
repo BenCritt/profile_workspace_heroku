@@ -1087,6 +1087,7 @@ def start_font_scan(request: HttpRequest):
     })
 
 def get_font_task_status(request: HttpRequest, task_id: str):
+    task_id = str(task_id)
     task = _TASKS.get(task_id)
     if not task:
         raise Http404("Unknown task")
@@ -1112,6 +1113,7 @@ def get_font_task_status(request: HttpRequest, task_id: str):
     return JsonResponse(payload)
 
 def download_font_task_file(request: HttpRequest, task_id: str):
+    task_id = str(task_id)
     task = _TASKS.get(task_id)
     if not task or task.status not in ("done", "error"):
         raise Http404("Result not ready")
