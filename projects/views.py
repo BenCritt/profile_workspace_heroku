@@ -41,30 +41,6 @@ def font_inspector(request):
     return render(request, "projects/font_inspector.html",
                   {"form": form, "rows": rows})
 
-# ---- Forwarders to the robust utils implementations ----
-from .font_utils import (
-    start_font_scan as _start_font_scan,
-    get_font_task_status as _get_font_task_status,
-    download_font_task_file as _download_font_task_file,
-)
-
-@require_POST
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def start_font_scan(request):
-    return _start_font_scan(request)
-
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def font_scan_status(request, task_id):
-    return _get_font_task_status(request, str(task_id))
-
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def font_scan_download(request, task_id):
-    return _download_font_task_file(request, str(task_id))
-
-
 # Ham Radio Call Sign Lookup
 # Force memory trim after work.
 @trim_memory_after

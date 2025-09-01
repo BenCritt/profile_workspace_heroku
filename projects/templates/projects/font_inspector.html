@@ -29,120 +29,74 @@
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Target the Font Inspector form (it has id="font-inspector-form" in your template)
   const form = document.getElementById('font-inspector-form') || document.querySelector('form');
   if (!form) return;
 
   const progWrap   = document.getElementById('fi-progress');
   const bar        = document.getElementById('fi-bar');
   const statusText = document.getElementById('fi-status-text');
-  const queuePos   = document.getElementById('fi-queue-pos');
-  const results    = document.getElementById('fi-results');
-  const actions    = document.getElementById('fi-actions');
-  const download   = document.getElementById('fi-download');
+  const urlInput   = form.querySelector('input[name="url"]');
 
-  function getCsrf() {
-    const name = "csrftoken=";
-    for (const c of document.cookie.split(";")) {
-      const s = c.trim();
-      if (s.startsWith(name)) return decodeURIComponent(s.slice(name.length));
-    }
-    const hid = form.querySelector("input[name='csrfmiddlewaretoken']");
-    return hid ? hid.value : "";
-  }
-
-  function setProgress(pct, msg, qpos) {
+  function setProgress(pct, msg) {
+    if (!progWrap || !bar || !statusText) return;
+    const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
     progWrap.style.display = 'block';
-    const clamped = Math.max(0, Math.min(100, pct|0));
     bar.style.width = clamped + '%';
     bar.textContent = clamped + '%';
     const prog = progWrap.querySelector('[role="progressbar"]');
     if (prog) prog.setAttribute('aria-valuenow', String(clamped));
-    statusText.textContent = msg || '';
-    queuePos.textContent = (qpos && qpos > 0) ? `In queue: ${qpos} ahead` : '';
+    if (msg) statusText.textContent = msg;
   }
 
-  function renderTable(rows) {
-    if (!rows || !rows.length) return '';
-    const head = `
-      <thead><tr>
-        <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
-      </tr></thead>`;
-    const body = rows.map(r => `
-      <tr>
-        <td>${r.website || ''}</td>
-        <td>${r.family || ''}</td>
-        <td>${r.license_required || ''}</td>
-        <td>${r.font_source || ''}</td>
-      </tr>`).join('');
-    return `<table class="table table-dark table-striped align-middle">${head}<tbody>${body}</tbody></table>`;
-  }
+  form.addEventListener('submit', function (ev) {
+    const submitter  = ev.submitter || document.activeElement;
+    const isDownload = submitter && submitter.name === 'download';
 
-  async function poll(taskId) {
-    let tries = 0;
-    for (;;) {
-      const r = await fetch(`/projects/font_scan_status/${taskId}/`, { cache: 'no-store' });
-      if (!r.ok) {
-        const txt = await r.text().catch(()=>'');
-        setProgress(100, `Error ${r.status}: ${txt || 'Status check failed'}`, null);
-        return;
-      }
-      const j = await r.json();
-      setProgress(j.progress ?? 0, j.message || '', j.queue_position);
-
-      if (j.status === 'done') {
-        if (j.rows && j.rows.length) {
-          results.innerHTML = renderTable(j.rows);
-          results.style.display = 'block';
-        }
-        if (j.download_url) {
-          download.href = j.download_url;
-          actions.style.display = 'block';
-        }
-        return;
-      }
-      if (j.status === 'error') {
-        setProgress(100, 'Error: ' + (j.error || 'Unknown error'), null);
-        return;
-      }
-      await new Promise(res => setTimeout(res, (tries++ % 25 === 0) ? 1200 : 700));
-    }
-  }
-
-  form.addEventListener('submit', async (ev) => {
-    // Let the server-side CSV flow work if user clicks the page's native "Download CSV" button (when rows exist)
-    if (ev.submitter && ev.submitter.name === 'download') return;
-
-    ev.preventDefault();
-
-    // reset UI
-    results.style.display = 'none';
-    results.innerHTML = '';
-    actions.style.display = 'none';
-    setProgress(0, 'Starting…', null);
-
-    const data = new FormData(form);
-    const r = await fetch('/projects/start_font_scan/', {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCsrf() },
-      body: data
-    });
-
-    if (!r.ok) {
-      try {
-        const j = await r.json();
-        if (j.error) { setProgress(100, j.error, null); alert(j.error); }
-        else if (j.errors && j.errors.url) { alert(j.errors.url[0]?.message || 'Invalid URL.'); }
-        else { alert('Request failed.'); }
-      } catch { alert('Request failed.'); }
-      return;
+    // GA4 events (no-ops if gtag isn’t present)
+    if (isDownload) {
+      window.gtag && gtag('event', 'font_scan_download');
+    } else {
+      window.gtag && gtag('event', 'font_scan_start');
     }
 
-    const j = await r.json();
-    setProgress(j.progress ?? 0, j.message || 'Queued…', j.queue_position);
-    try { await poll(j.task_id); }
-    catch (e) { setProgress(100, 'Error: ' + (e?.message || e), null); }
-  }, { passive: false });
+    // Show progress immediately; do NOT prevent default (allow normal POST)
+    setProgress(isDownload ? 10 : 5, isDownload ? 'Preparing CSV…' : 'Scanning page…');
+
+    // Harden against double-submits
+    urlInput && urlInput.setAttribute('readonly', '');   // optional UX: lock input once submitted
+    const btns = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+    btns.forEach(b => { if (b !== submitter) b.disabled = true; });
+
+    if (isDownload) {
+      // DOWNLOAD FLOW: no navigation → finish to 100% then auto-hide
+      let pct = 10;
+      const t = setInterval(() => {
+        pct = Math.min(100, pct + 10);
+        setProgress(pct);
+        if (pct >= 100) {
+          clearInterval(t);
+          statusText.textContent = 'Download started.';
+          setTimeout(() => { progWrap.style.display = 'none'; }, 1200);
+        }
+      }, 120);
+      return; // allow normal form submit to trigger file download
+    }
+
+    // SCAN FLOW: advance until navigation replaces the page
+    let pct = 5;
+    const t = setInterval(() => {
+      pct = Math.min(90, pct + (pct < 30 ? 3 : pct < 60 ? 2 : 1));
+      setProgress(pct);
+      if (pct >= 35 && statusText.textContent === 'Scanning page…') {
+        statusText.textContent = 'Analyzing fonts…';
+      } else if (pct >= 75 && statusText.textContent !== 'Preparing results…') {
+        statusText.textContent = 'Preparing results…';
+      }
+    }, 300);
+
+    // Stop the timer if the page is restored from bfcache after navigation
+    window.addEventListener('pageshow', () => { clearInterval(t); }, { once: true });
+  }, { passive: true });
 });
 </script>
 {% endblock scripts %}
@@ -209,23 +163,25 @@ document.addEventListener('DOMContentLoaded', function () {
     {% endfor %}
   </form>
   <br>
-  <!-- Real-time Progress UI -->
-  <div id="fi-progress" class="mt-3" style="display:none; max-width:700px;">
+  <!-- Progress Indicator -->
+  <div id="fi-progress"
+      class="mt-3"
+      style="display:none; max-width:700px;"
+      aria-live="polite" aria-atomic="true">
     <div class="d-flex justify-content-between mb-1">
-      <span class="small">Status: <span id="fi-status-text">Queued…</span></span>
+      <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
       <span class="small" id="fi-queue-pos"></span>
     </div>
-    <div class="progress" role="progressbar" aria-label="Font scan progress"
-        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:18px;">
-      <div id="fi-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%">0%</div>
+    <div class="progress"
+        role="progressbar"
+        aria-label="Font scan progress"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+        style="height:18px;">
+      <div id="fi-bar"
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          style="width:1%">1%</div>
     </div>
   </div>
-
-  <div id="fi-actions" style="display:none; margin-top:12px;">
-    <a id="fi-download" class="btn btn-primary" href="#" download>Download CSV</a>
-  </div>
-
-  <div id="fi-results" style="display:none; margin-top:18px;"></div>
   <br>
   <!-- Results Table -->
   {% if rows %}
