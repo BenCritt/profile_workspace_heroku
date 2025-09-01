@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const progWrap   = document.getElementById('fi-progress');
   const bar        = document.getElementById('fi-bar');
   const statusText = document.getElementById('fi-status-text');
+  const urlInput   = form.querySelector('input[name="url"]');
 
   function setProgress(pct, msg) {
     if (!progWrap || !bar || !statusText) return;
@@ -42,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
     progWrap.style.display = 'block';
     bar.style.width = clamped + '%';
     bar.textContent = clamped + '%';
+    const prog = progWrap.querySelector('[role="progressbar"]');
+    if (prog) prog.setAttribute('aria-valuenow', String(clamped));
     if (msg) statusText.textContent = msg;
   }
 
@@ -49,13 +52,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitter  = ev.submitter || document.activeElement;
     const isDownload = submitter && submitter.name === 'download';
 
-    // Disable only the *other* submit buttons so the clicked one still posts
+    // GA4 events (no-ops if gtag isn’t present)
+    if (isDownload) {
+      window.gtag && gtag('event', 'font_scan_download');
+    } else {
+      window.gtag && gtag('event', 'font_scan_start');
+    }
+
+    // Show progress immediately; do NOT prevent default (allow normal POST)
+    setProgress(isDownload ? 10 : 5, isDownload ? 'Preparing CSV…' : 'Scanning page…');
+
+    // Harden against double-submits
+    urlInput && urlInput.setAttribute('readonly', '');   // optional UX: lock input once submitted
     const btns = form.querySelectorAll('button[type="submit"], input[type="submit"]');
     btns.forEach(b => { if (b !== submitter) b.disabled = true; });
 
     if (isDownload) {
-      // DOWNLOAD FLOW: no page navigation → finish to 100% and auto-hide
-      setProgress(10, 'Preparing CSV…');
+      // DOWNLOAD FLOW: no navigation → finish to 100% then auto-hide
       let pct = 10;
       const t = setInterval(() => {
         pct = Math.min(100, pct + 10);
@@ -66,15 +79,12 @@ document.addEventListener('DOMContentLoaded', function () {
           setTimeout(() => { progWrap.style.display = 'none'; }, 1200);
         }
       }, 120);
-      // IMPORTANT: do NOT preventDefault; let the browser submit and download
-      return;
+      return; // allow normal form submit to trigger file download
     }
 
-    // SCAN FLOW: show evolving messages until navigation replaces the page
-    setProgress(5, 'Scanning page…');
+    // SCAN FLOW: advance until navigation replaces the page
     let pct = 5;
     const t = setInterval(() => {
-      // creep toward ~90% while waiting for the server response
       pct = Math.min(90, pct + (pct < 30 ? 3 : pct < 60 ? 2 : 1));
       setProgress(pct);
       if (pct >= 35 && statusText.textContent === 'Scanning page…') {
@@ -84,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }, 300);
 
-    // When the new page renders (after POST), stop the timer
+    // Stop the timer if the page is restored from bfcache after navigation
     window.addEventListener('pageshow', () => { clearInterval(t); }, { once: true });
   }, { passive: true });
 });
@@ -92,7 +102,11 @@ document.addEventListener('DOMContentLoaded', function () {
 {% endblock scripts %}
 
 {% block styles %}
-<!-- Future custom styles will go here. -->
+<style>
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar-animated { animation: none; }
+}
+</style>
 {% endblock styles %}
 
 {% block meta_tags %}
@@ -149,15 +163,23 @@ document.addEventListener('DOMContentLoaded', function () {
     {% endfor %}
   </form>
   <br>
-  <!-- Progress Indicator (shown during POST) -->
-  <div id="fi-progress" class="mt-3" style="display:none; max-width:700px;">
+  <!-- Progress Indicator -->
+  <div id="fi-progress"
+      class="mt-3"
+      style="display:none; max-width:700px;"
+      aria-live="polite" aria-atomic="true">
     <div class="d-flex justify-content-between mb-1">
       <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
       <span class="small" id="fi-queue-pos"></span>
     </div>
-    <div class="progress" role="progressbar" aria-label="Font scan progress"
-        aria-valuemin="0" aria-valuemax="100" style="height: 18px;">
-      <div id="fi-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:1%">1%</div>
+    <div class="progress"
+        role="progressbar"
+        aria-label="Font scan progress"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+        style="height:18px;">
+      <div id="fi-bar"
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          style="width:1%">1%</div>
     </div>
   </div>
   <br>
@@ -183,6 +205,11 @@ document.addEventListener('DOMContentLoaded', function () {
       </tbody>
     </table>
   </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.gtag && gtag('event', 'font_scan_complete');
+  });
+  </script>
   {% endif %}
 </div>
 </center>
