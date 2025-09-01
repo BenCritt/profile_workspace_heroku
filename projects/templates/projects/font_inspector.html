@@ -46,35 +46,46 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   form.addEventListener('submit', function (ev) {
-    // Which button was clicked?
-    const submitter = ev.submitter || document.activeElement;
+    const submitter  = ev.submitter || document.activeElement;
     const isDownload = submitter && submitter.name === 'download';
 
-    // Show progress immediately; DO NOT prevent default (let the form post)
-    setProgress(5, isDownload ? 'Preparing CSV…' : 'Scanning page…');
-
-    // Disable other submit buttons, but keep the clicked one enabled
+    // Disable only the *other* submit buttons so the clicked one still posts
     const btns = form.querySelectorAll('button[type="submit"], input[type="submit"]');
     btns.forEach(b => { if (b !== submitter) b.disabled = true; });
 
-    // Gentle faux progress while waiting for the server response/navigation
+    if (isDownload) {
+      // DOWNLOAD FLOW: no page navigation → finish to 100% and auto-hide
+      setProgress(10, 'Preparing CSV…');
+      let pct = 10;
+      const t = setInterval(() => {
+        pct = Math.min(100, pct + 10);
+        setProgress(pct);
+        if (pct >= 100) {
+          clearInterval(t);
+          statusText.textContent = 'Download started.';
+          setTimeout(() => { progWrap.style.display = 'none'; }, 1200);
+        }
+      }, 120);
+      // IMPORTANT: do NOT preventDefault; let the browser submit and download
+      return;
+    }
+
+    // SCAN FLOW: show evolving messages until navigation replaces the page
+    setProgress(5, 'Scanning page…');
     let pct = 5;
-    const timer = setInterval(() => {
+    const t = setInterval(() => {
+      // creep toward ~90% while waiting for the server response
       pct = Math.min(90, pct + (pct < 30 ? 3 : pct < 60 ? 2 : 1));
       setProgress(pct);
-
-      // Evolve status text for the scan flow
-      if (!isDownload) {
-        if (pct >= 75 && statusText.textContent !== 'Preparing results…') {
-          statusText.textContent = 'Preparing results…';
-        } else if (pct >= 35 && statusText.textContent === 'Scanning page…') {
-          statusText.textContent = 'Analyzing fonts…';
-        }
+      if (pct >= 35 && statusText.textContent === 'Scanning page…') {
+        statusText.textContent = 'Analyzing fonts…';
+      } else if (pct >= 75 && statusText.textContent !== 'Preparing results…') {
+        statusText.textContent = 'Preparing results…';
       }
     }, 300);
 
-    // When the browser finishes navigation (or restores from bfcache), stop the timer
-    window.addEventListener('pageshow', () => { clearInterval(timer); }, { once: true });
+    // When the new page renders (after POST), stop the timer
+    window.addEventListener('pageshow', () => { clearInterval(t); }, { once: true });
   }, { passive: true });
 });
 </script>
