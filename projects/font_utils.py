@@ -1060,7 +1060,8 @@ def get_font_task_status(request: HttpRequest, task_id: str):
     t = _TASKS.get(task_id)
     if not t:
         raise Http404("Unknown task")
-    payload: Dict[str,Any] = {
+
+    payload: Dict[str, Any] = {
         "ok": True,
         "task_id": t.id,
         "status": t.status,
@@ -1073,7 +1074,9 @@ def get_font_task_status(request: HttpRequest, task_id: str):
         payload["download_url"] = f"/projects/font_scan_download/{t.id}/"
     if t.status == "error":
         payload["error"] = t.error or "Unknown error"
+
     return JsonResponse(payload)
+
 
 def download_font_task_file(request: HttpRequest, task_id: str):
     """GET: serve CSV when task is done."""
@@ -1083,7 +1086,12 @@ def download_font_task_file(request: HttpRequest, task_id: str):
         raise Http404("Result not ready")
     if t.status == "error":
         return JsonResponse({"ok": False, "error": t.error or "Unknown error"}, status=400)
+
     csv_io = report_to_csv(t.rows or [])
-    return FileResponse(csv_io, as_attachment=True,
-                        filename=f"font_report_{task_id}.csv",
-                        content_type="text/csv")
+    return FileResponse(
+        csv_io,
+        as_attachment=True,
+        filename=f"font_report_{task_id}.csv",
+        content_type="text/csv",
+    )
+
