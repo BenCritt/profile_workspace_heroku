@@ -1,11 +1,9 @@
 from django.urls import path
-from . import views
+from . import views, iss_utils, seo_head_checker_utils
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
-from .views import robots_txt, requirements_txt, runtime_txt
 from django.views.generic import TemplateView
-from .views import start_sitemap_processing, get_task_status, download_task_file
 
 app_name = "projects"
 
@@ -36,9 +34,8 @@ urlpatterns = [
     path("projects/ip-tool/", views.ip_tool, name="ip_tool"),
     path("projects/dns-lookup/", views.dns_tool, name="dns_tool"),
     path("projects/it-tools/", views.it_tools, name="it_tools"),
-    path("robots.txt", robots_txt, name="robots_txt"),
-    path("requirements.txt", requirements_txt, name="requirements_txt"),
-    path("runtime.txt", runtime_txt, name="runtime_txt"),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("requirements.txt", views.requirements_txt, name="requirements_txt"),
     path("", views.home, name="home"),
     path("projects/weather/", views.weather, name="weather"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
@@ -51,21 +48,18 @@ urlpatterns = [
     ),
     path(
         "start_sitemap_processing/",
-        start_sitemap_processing,
+        seo_head_checker_utils.start_sitemap_processing,
         name="start_sitemap_processing",
     ),
-    path("get_task_status/<str:task_id>/", get_task_status, name="get_task_status"),
+    path("get_task_status/<str:task_id>/", seo_head_checker_utils.get_task_status, name="get_task_status"),
     path(
         "download_task_file/<str:task_id>/",
-        download_task_file,
+        seo_head_checker_utils.download_task_file,
         name="download_task_file",
     ),
-    path("current-iss-data/", views.current_iss_data, name="current_iss_data"),
+    path("current-iss-data/", iss_utils.current_iss_data, name="current_iss_data"),
     path("projects/xml-splitter/", views.xml_splitter, name="xml_splitter"),
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
-    path("projects/start_font_scan/", views.start_font_scan, name="start_font_scan"),
-    path("projects/font_scan_status/<str:task_id>/", views.font_scan_status, name="font_scan_status"),
-    path("projects/font_scan_download/<str:task_id>/", views.font_scan_download, name="font_scan_download"),
-
+    path("llms.txt", views.llms_txt, name="llms_txt"),
 ]
