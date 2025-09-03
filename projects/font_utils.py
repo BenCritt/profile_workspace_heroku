@@ -1262,18 +1262,19 @@ def _run_task(task_id: str):
 @_trim_memory_after
 @_cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def start_font_inspector(request):
-    import re as _re
-    from .utils import normalize_url as _normalize_url
-    # Normalize the URL (add scheme, etc.)
-    try:
-        url = _normalize_url(url)
-    except Exception:
-        if not _re.match(r"^https?://", url, flags=_re.I):
-            url = "https://" + url
     """Start a scan for the given URL. Returns JSON {task_id, status, queue_position}."""
     url = (request.POST.get("url") or "").strip()
     if not url:
         return _HttpResponseBadRequest("Missing url")
+
+    # Normalize URL (use your utils; fall back to adding https:// if no scheme)
+    try:
+        from .utils import normalize_url as _normalize_url
+        url = _normalize_url(url)
+    except Exception:
+        import re as _re
+        if not _re.match(r"^https?://", url, flags=_re.I):
+            url = "https://" + url
 
     _cleanup_old_files()
 
@@ -1290,7 +1291,11 @@ def start_font_inspector(request):
 
     if _get_running() >= _FI_MAX_CONCURRENCY:
         _queue_push(task_id)
-        return _JsonResponse({"task_id": task_id, "status": "QUEUED", "queue_position": _queue_position(task_id)})
+        return _JsonResponse({
+            "task_id": task_id,
+            "status": "QUEUED",
+            "queue_position": _queue_position(task_id),
+        })
 
     # Run immediately
     task.status = "RUNNING"
@@ -1299,6 +1304,7 @@ def start_font_inspector(request):
     _set_running(_get_running() + 1)
     _threading.Thread(target=_run_task, args=(task_id,), daemon=True).start()
     return _JsonResponse({"task_id": task_id, "status": "RUNNING", "queue_position": 0})
+
 
 @_trim_memory_after
 @_cache_control(no_cache=True, must_revalidate=True, no_store=True)
