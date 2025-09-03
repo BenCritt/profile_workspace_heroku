@@ -1,5 +1,6 @@
 {% extends "projects/base.html" %}
 {% load static %}
+
 {% block scripts %}
 <!-- Schema for SEO -->
 <script type="application/ld+json">
@@ -12,7 +13,11 @@
   "applicationCategory": "Utility",
   "operatingSystem": "Web-based",
   "image": "",
-  "creator": { "@type": "Person", "name": "Ben Crittenden", "url": "https://www.bencritt.net" },
+  "creator": {
+    "@type": "Person",
+    "name": "Ben Crittenden",
+    "url": "https://www.bencritt.net"
+  },
   "featureList": [
     "Scans a public webpage to detect font families in use.",
     "Indicates whether each family requires a license.",
@@ -24,171 +29,78 @@
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const form        = document.getElementById('font-inspector-form');
+  const form = document.getElementById('font-inspector-form') || document.querySelector('form');
   if (!form) return;
 
-  const submitButtons   = Array.from(form.querySelectorAll('button[type="submit"], input[type="submit"]'));
-  const scanBtn         = submitButtons.find(b => b.name !== 'download');
-  const serverDlBtn     = submitButtons.find(b => b.name === 'download');
+  const progWrap   = document.getElementById('fi-progress');
+  const bar        = document.getElementById('fi-bar');
+  const statusText = document.getElementById('fi-status-text');
+  const urlInput   = form.querySelector('input[name="url"]');
 
-  const progWrap    = document.getElementById('fi-progress');
-  const bar         = document.getElementById('fi-bar');
-  const statusText  = document.getElementById('fi-status-text');
-  const queuePos    = document.getElementById('fi-queue-pos');
-  const actionsWrap = document.getElementById('fi-actions');
-  const downloadA   = document.getElementById('fi-download');
-  const resultsWrap = document.getElementById('fi-results');
-
-  let running = false;
-
-  function getCsrf() {
-    const name = 'csrftoken=';
-    for (const c of document.cookie.split(';')) {
-      const s = c.trim();
-      if (s.startsWith(name)) return decodeURIComponent(s.slice(name.length));
-    }
-    const hid = form.querySelector('input[name="csrfmiddlewaretoken"]');
-    return hid ? hid.value : '';
-  }
-
-  function setProgress(pct, msg, qpos) {
+  function setProgress(pct, msg) {
     if (!progWrap || !bar || !statusText) return;
+    const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
     progWrap.style.display = 'block';
-    const clamped = Math.max(0, Math.min(100, pct|0));
     bar.style.width = clamped + '%';
     bar.textContent = clamped + '%';
     const prog = progWrap.querySelector('[role="progressbar"]');
     if (prog) prog.setAttribute('aria-valuenow', String(clamped));
-    statusText.textContent = msg || '';
-    queuePos.textContent = (qpos && qpos > 0) ? `In queue: ${qpos} ahead` : '';
+    if (msg) statusText.textContent = msg;
   }
 
-  function setRunningState(isRunning) {
-    running = isRunning;
-    if (scanBtn) scanBtn.disabled = isRunning;
-    if (serverDlBtn) serverDlBtn.disabled = isRunning;
-    if (downloadA) {
-      if (isRunning) downloadA.classList.add('disabled');
-      else downloadA.classList.remove('disabled');
-    }
-  }
-
-  function renderTable(rows) {
-    if (!rows || !rows.length) return '';
-    const head = `
-      <thead>
-        <tr><th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th></tr>
-      </thead>`;
-    const body = rows.map(r => `
-      <tr>
-        <td>${r.website ?? ''}</td>
-        <td>${r.family ?? ''}</td>
-        <td>${r.license_required ?? ''}</td>
-        <td>${r.font_source ?? ''}</td>
-      </tr>`).join('');
-    return `<table class="table table-dark table-striped align-middle">${head}<tbody>${body}</tbody></table>`;
-  }
-
-  async function poll(taskId) {
-    let tries = 0;
-    for (;;) {
-      const r = await fetch(`/projects/font_scan_status/${taskId}/`, { cache: 'no-store' });
-      if (!r.ok) {
-        const txt = await r.text().catch(() => '');
-        setProgress(100, `Error ${r.status}: ${txt || 'Status check failed'}`, null);
-        setRunningState(false);
-        return;
-      }
-      const j = await r.json();
-
-      setProgress(j.progress ?? 0, j.message || '', j.queue_position);
-
-      if (j.status === 'done') {
-        // render table
-        if (Array.isArray(j.rows) && j.rows.length && resultsWrap) {
-          resultsWrap.innerHTML = renderTable(j.rows);
-          resultsWrap.style.display = 'block';
-        }
-        // show download
-        if (j.download_url && downloadA && actionsWrap) {
-          downloadA.href = j.download_url;
-          actionsWrap.style.display = 'block';
-          downloadA.classList.remove('disabled');
-        }
-        setRunningState(false);
-        return;
-      }
-      if (j.status === 'error') {
-        setProgress(100, 'Error: ' + (j.error || 'Unknown error'), null);
-        setRunningState(false);
-        return;
-      }
-      await new Promise(res => setTimeout(res, (tries++ % 25 === 0) ? 1200 : 700));
-    }
-  }
-
-  async function startJob() {
-    if (running) return;
-    setRunningState(true);
-
-    // reset UI
-    if (resultsWrap) { resultsWrap.style.display = 'none'; resultsWrap.innerHTML = ''; }
-    if (actionsWrap) { actionsWrap.style.display = 'none'; }
-    setProgress(1, 'Starting…', null);
-
-    // start
-    const r = await fetch('/projects/start_font_scan/', {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCsrf() },
-      body: new FormData(form)
-    });
-
-    if (!r.ok) {
-      try {
-        const j = await r.json();
-        if (j.error)      { setProgress(100, j.error, null); alert(j.error); }
-        else if (j.errors && j.errors.url) { alert(j.errors.url[0]?.message || 'Invalid URL.'); }
-        else               { alert('Request failed.'); }
-      } catch { alert('Request failed.'); }
-      setRunningState(false);
-      return;
-    }
-
-    const j = await r.json();
-    setProgress(j.progress ?? 0, j.message || 'Queued…', j.queue_position);
-    try { await poll(j.task_id); }
-    catch (e) { setProgress(100, 'Error: ' + (e?.message || e), null); setRunningState(false); }
-  }
-
-  // Submit handler (Enter key etc.)
   form.addEventListener('submit', function (ev) {
-    const submitter = ev.submitter || document.activeElement;
+    const submitter  = ev.submitter || document.activeElement;
     const isDownload = submitter && submitter.name === 'download';
-    if (isDownload) return; // allow server-side fallback when rows exist
-    ev.preventDefault();
-    startJob();
-  }, { passive: false });
 
-  // Explicit click handler for the primary Scan button
-  if (scanBtn) {
-    scanBtn.addEventListener('click', function (ev) {
-      ev.preventDefault();
-      startJob();
-    }, { passive: false });
-  }
+    // GA4 events (no-ops if gtag isn’t present)
+    if (isDownload) {
+      window.gtag && gtag('event', 'font_scan_download');
+    } else {
+      window.gtag && gtag('event', 'font_scan_start');
+    }
 
-  // Hide progress + download after user downloads (keep the table visible)
-  if (downloadA) {
-    downloadA.addEventListener('click', function () {
-      setTimeout(() => {
-        if (actionsWrap) actionsWrap.style.display = 'none';
-        if (progWrap)    progWrap.style.display = 'none';
-      }, 250);
-    });
-  }
+    // Show progress immediately; do NOT prevent default (allow normal POST)
+    setProgress(isDownload ? 10 : 5, isDownload ? 'Preparing CSV…' : 'Scanning page…');
+
+    // Harden against double-submits
+    urlInput && urlInput.setAttribute('readonly', '');   // optional UX: lock input once submitted
+    const btns = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+    btns.forEach(b => { if (b !== submitter) b.disabled = true; });
+
+    if (isDownload) {
+      // DOWNLOAD FLOW: no navigation → finish to 100% then auto-hide
+      let pct = 10;
+      const t = setInterval(() => {
+        pct = Math.min(100, pct + 10);
+        setProgress(pct);
+        if (pct >= 100) {
+          clearInterval(t);
+          statusText.textContent = 'Download started.';
+          setTimeout(() => { progWrap.style.display = 'none'; }, 1200);
+        }
+      }, 120);
+      return; // allow normal form submit to trigger file download
+    }
+
+    // SCAN FLOW: advance until navigation replaces the page
+    let pct = 5;
+    const t = setInterval(() => {
+      pct = Math.min(90, pct + (pct < 30 ? 3 : pct < 60 ? 2 : 1));
+      setProgress(pct);
+      if (pct >= 35 && statusText.textContent === 'Scanning page…') {
+        statusText.textContent = 'Analyzing fonts…';
+      } else if (pct >= 75 && statusText.textContent !== 'Preparing results…') {
+        statusText.textContent = 'Preparing results…';
+      }
+    }, 300);
+
+    // Stop the timer if the page is restored from bfcache after navigation
+    window.addEventListener('pageshow', () => { clearInterval(t); }, { once: true });
+  }, { passive: true });
 });
 </script>
 {% endblock scripts %}
+
 {% block styles %}
 <style>
 @media (prefers-reduced-motion: reduce) {
@@ -232,65 +144,53 @@ document.addEventListener('DOMContentLoaded', function () {
 <link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
 {% endblock link_tags %}
 {% block title %}Font Inspector | Detect Web Fonts, License Requirements, & Sources{% endblock title %}
-
 {% block content %}
 <center>
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
-<div class="container py-4">
-  <h1 class="mb-3">Font Inspector</h1>
-  <p class="text-muted mb-4">
-    Enter a public page URL. The tool detects font families, indicates if a license is required, and identifies each font’s source
-    (e.g. Google Fonts, Adobe Fonts, Font Awesome, etc.)
-  </p>
-
-  <form id="font-inspector-form" method="post" class="mb-3">
+  <h1>Font Inspector</h1>
+  <br>
+  <form id="font-inspector-form" method="post" class="mb-4">
     {% csrf_token %}
-    <div class="row g-2 align-items-start">
-      <div class="col-12 col-md-9">
-        {{ form.url }}
-        {% if form.url.errors %}
-          <div class="text-danger small mt-1">
-            {% for e in form.url.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
-          </div>
-        {% endif %}
-      </div>
-      <div class="col-12 col-md-3 d-flex gap-2">
-        <button type="submit" class="btn btn-primary flex-grow-1">Scan for Fonts</button>
-        {# Server-side fallback: only renders when rows exist #}
-        {% if rows %}
-          <button type="submit" name="download" value="1" class="btn btn-secondary">Download CSV</button>
-        {% endif %}
-      </div>
+    <div class="input-group">
+      {{ form.url }}
+      <button class="btn btn-primary" type="submit">Scan for Fonts</button>
+      {% if rows %}
+        <button class="btn btn-secondary" type="submit" name="download">Download CSV</button>
+      {% endif %}
     </div>
+    {% for err in form.url.errors %}
+      <div class="text-danger small">{{ err }}</div>
+    {% endfor %}
   </form>
-
-  <!-- Real-time Progress -->
-  <div id="fi-progress" class="mt-3" style="display:none; max-width: 900px;">
+  <br>
+  <!-- Progress Indicator -->
+  <div id="fi-progress"
+      class="mt-3"
+      style="display:none; max-width:700px;"
+      aria-live="polite" aria-atomic="true">
     <div class="d-flex justify-content-between mb-1">
-      <span class="small">Status: <span id="fi-status-text">Queued…</span></span>
+      <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
       <span class="small" id="fi-queue-pos"></span>
     </div>
-    <div class="progress" role="progressbar" aria-label="Font scan progress"
-         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:18px;">
-      <div id="fi-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%">0%</div>
+    <div class="progress"
+        role="progressbar"
+        aria-label="Font scan progress"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+        style="height:18px;">
+      <div id="fi-bar"
+          class="progress-bar progress-bar-striped progress-bar-animated"
+          style="width:1%">1%</div>
     </div>
   </div>
-
-  <!-- Client-side Download -->
-  <div id="fi-actions" class="mt-3" style="display:none;">
-    <a id="fi-download" class="btn btn-secondary disabled" href="#" download>Download CSV</a>
-  </div>
-
-  <!-- Client-side Results (always present) -->
-  <div id="fi-results" class="table-responsive mt-3" style="display:none;"></div>
-
-  <!-- Server-rendered fallback (sync POST) -->
+  <br>
+  <!-- Results Table -->
   {% if rows %}
-  <div class="table-responsive mt-3">
+  <div class="table-responsive">
     <table class="table table-dark table-striped align-middle">
       <thead>
         <tr>
-          <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
+          <th>Website</th><th>Family</th>
+          <th>License Required</th><th>Font Source</th>
         </tr>
       </thead>
       <tbody>
@@ -305,8 +205,12 @@ document.addEventListener('DOMContentLoaded', function () {
       </tbody>
     </table>
   </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.gtag && gtag('event', 'font_scan_complete');
+  });
+  </script>
   {% endif %}
 </div>
-</div>
 </center>
-{% endblock content %}
+{% endblock %}
