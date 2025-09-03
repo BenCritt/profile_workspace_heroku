@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, iss_utils, seo_head_checker_utils
+from . import views, iss_utils, seo_head_checker_utils, font_utils
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
@@ -62,4 +62,9 @@ urlpatterns = [
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
     path("llms.txt", views.llms_txt, name="llms_txt"),
+    # Font Inspector async endpoints
+    path("projects/font-inspector/start/", font_utils.start_font_inspector, name="start_font_inspector"),
+    path("projects/font-inspector/status/<str:task_id>/", font_utils.fi_task_status, name="fi_task_status"),
+    path("projects/font-inspector/rows/<str:task_id>/", font_utils.fi_rows, name="fi_rows"),
+    path("projects/font-inspector/download/<str:task_id>/", font_utils.fi_download, name="fi_download"),
 ]

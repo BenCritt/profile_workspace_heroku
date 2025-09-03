@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 X_FRAME_OPTIONS = "ALLOWALL"  # To allow embedding for iframes everywhere
@@ -38,7 +38,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.bencritt.net",
     "https://bencrittenden.com",
     "https://www.bencrittenden.com",
-    "https://bencritt-14166e04de86.herokuapp.com/",
+    "https://bencritt-14166e04de86.herokuapp.com",
     "https://www.betncritt.com",
     "https://bencritt.org",
     "https://www.betncritt.org",
@@ -164,6 +164,14 @@ CACHES = {
         },
     }
 }
+
+CACHES.setdefault("fontinspector", {
+    "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+    "LOCATION": os.environ.get("FI_CACHE_DIR", "/tmp/django_cache_fi"),
+    "TIMEOUT": None,             # per-key timeouts from code will apply
+    "OPTIONS": {"MAX_ENTRIES": 1000},
+})
+
 
 # Limits file upload sizes.
 FILE_UPLOAD_HANDLERS = [

@@ -984,3 +984,381 @@ def report_to_csv(rows: list[dict]) -> io.BytesIO:
     out = io.BytesIO(buffer.getvalue().encode())
     out.seek(0)
     return out
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Font Inspector — async task/queue API (SEO Head Checker style)
+# Append this block at the END of projects/font_utils.py (keep your existing code above).
+# ─────────────────────────────────────────────────────────────────────────────
+import csv as _csv
+import os as _os
+import threading as _threading
+import time as _time
+import uuid as _uuid
+from dataclasses import dataclass as _dataclass, asdict as _asdict
+from typing import Optional
+
+from django.core.cache import caches as _caches
+from django.http import (
+    JsonResponse as _JsonResponse,
+    StreamingHttpResponse as _StreamingHttpResponse,
+    Http404 as _Http404,
+    HttpResponseBadRequest as _HttpResponseBadRequest,
+)
+from django.views.decorators.cache import cache_control as _cache_control
+from django.views.decorators.http import require_POST as _require_POST
+
+try:
+    from .decorators import trim_memory_after as _trim_memory_after
+except Exception:  # pragma: no cover
+    def _trim_memory_after(func):
+        return func
+
+# Where CSVs live (ephemeral disk is fine on Heroku)
+_FI_TASK_DIR = _os.environ.get("FI_TASK_DIR", "/tmp/fi_tasks")
+_os.makedirs(_FI_TASK_DIR, exist_ok=True)
+
+# Cache (dedicated alias if available)
+try:
+    _fi_cache = _caches["fontinspector"]
+except Exception:  # pragma: no cover
+    _fi_cache = _caches["default"]
+
+# Concurrency / queue settings
+_FI_MAX_CONCURRENCY = int(_os.environ.get("FI_MAX_CONCURRENCY", "2"))
+_FI_TASK_TTL_SECS  = 60 * 60        # keep task status up to 1 hour
+_FI_FILE_TTL_SECS  = 30 * 60        # delete files ≥ 30 minutes old
+
+# Cache keys
+def _k_task(task_id: str) -> str: return f"fi:task:{task_id}"
+_K_RUNNING = "fi:running"   # int
+_K_QUEUE   = "fi:queue"     # list[str]
+_K_LAST_CLEAN = "fi:last_clean"
+
+@_dataclass
+class _Task:
+    id: str
+    url: str
+    status: str         # "QUEUED" | "RUNNING" | "DONE" | "ERROR"
+    progress: int       # 0..100
+    message: str
+    csv_path: Optional[str] = None
+    rows_count: int = 0
+    created_ts: float = 0.0
+    started_ts: float = 0.0
+    finished_ts: float = 0.0
+
+    def to_json(self) -> dict:
+        d = _asdict(self)
+        d.pop("csv_path", None)  # don’t leak server paths
+        return d
+
+# ───────────────────────────────── helpers ──────────────────────────────────
+def _now() -> float:
+    return _time.time()
+
+def _coerce_int(x, default=0) -> int:
+    try:
+        return int(x)
+    except Exception:
+        return default
+
+def _get_running() -> int:
+    return _coerce_int(_fi_cache.get(_K_RUNNING, 0))
+
+def _set_running(n: int):
+    _fi_cache.set(_K_RUNNING, max(0, int(n)), timeout=_FI_TASK_TTL_SECS)
+
+def _queue_push(task_id: str):
+    q = _fi_cache.get(_K_QUEUE) or []
+    q.append(task_id)
+    _fi_cache.set(_K_QUEUE, q, timeout=_FI_TASK_TTL_SECS)
+
+def _queue_pop() -> Optional[str]:
+    q = _fi_cache.get(_K_QUEUE) or []
+    if not q:
+        return None
+    task_id = q.pop(0)
+    _fi_cache.set(_K_QUEUE, q, timeout=_FI_TASK_TTL_SECS)
+    return task_id
+
+def _queue_position(task_id: str) -> int:
+    q = _fi_cache.get(_K_QUEUE) or []
+    try:
+        return q.index(task_id) + 1
+    except ValueError:
+        return 0
+
+def _save_task(task: _Task):
+    _fi_cache.set(_k_task(task.id), task, timeout=_FI_TASK_TTL_SECS)
+
+def _load_task(task_id: str) -> _Task:
+    t = _fi_cache.get(_k_task(task_id))
+    if not t:
+        raise _Http404("Unknown task id")
+    return t
+
+def _update_progress(task_id: str, pct: int, msg: str = ""):
+    t = _load_task(task_id)
+    t.progress = max(0, min(100, int(pct)))
+    if msg:
+        t.message = msg
+    _save_task(t)
+
+def _cleanup_old_files():
+    # run at most once every 120 seconds
+    last = _coerce_int(_fi_cache.get(_K_LAST_CLEAN, 0), 0)
+    if _now() - last < 120:
+        return
+    _fi_cache.set(_K_LAST_CLEAN, int(_now()), timeout=_FI_TASK_TTL_SECS)
+
+    cutoff = _now() - _FI_FILE_TTL_SECS
+    try:
+        for name in _os.listdir(_FI_TASK_DIR):
+            path = _os.path.join(_FI_TASK_DIR, name)
+            try:
+                st = _os.stat(path)
+            except FileNotFoundError:
+                continue
+            if st.st_mtime < cutoff:
+                try:
+                    _os.remove(path)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+def _csv_write_to_disk(rows: list[dict], to_path: str):
+    with open(to_path, "w", newline="", encoding="utf-8") as fh:
+        w = _csv.DictWriter(
+            fh,
+            fieldnames=["website", "family", "license_required", "font_source"],
+        )
+        w.writeheader()
+        w.writerows(rows)
+
+def _start_next_if_possible():
+    if _get_running() >= _FI_MAX_CONCURRENCY:
+        return
+    nxt = _queue_pop()
+    if not nxt:
+        return
+    t = _load_task(nxt)
+    t.status = "RUNNING"
+    t.started_ts = _now()
+    _save_task(t)
+    _set_running(_get_running() + 1)
+    _threading.Thread(target=_run_task, args=(nxt,), daemon=True).start()
+
+# ─────────────────────────── execution with progress ─────────────────────────
+def _run_task(task_id: str):
+    """
+    Real progress:
+      5%  start
+     15%  fetched HTML
+     50%  downloaded styles & nested @import (proportional)
+     85%  parsed families
+     95%  writing CSV
+    100%  done
+    """
+    try:
+        task = _load_task(task_id)
+    except Exception:
+        _set_running(_get_running() - 1)
+        return
+
+    try:
+        _cleanup_old_files()
+        _update_progress(task_id, 5, "Starting…")
+
+        # Use your existing pipeline (imports already defined earlier in this file)
+        sess = requests.Session()
+        sess.headers["User-Agent"] = USER_AGENT
+
+        _update_progress(task_id, 10, "Fetching page HTML…")
+        html = fetch(task.url, sess)
+
+        _update_progress(task_id, 15, "Collecting stylesheets…")
+        soup = BeautifulSoup(html, "html.parser")
+        root_host = urlparse(task.url).hostname or ""
+
+        style_tags = list(soup.find_all("style"))
+        link_tags  = [l for l in soup.find_all("link", href=True)
+                      if "stylesheet" in (l.get("rel") or []) or (l.get("as","").lower() == "style")]
+
+        total_fetches = len(style_tags) + len(link_tags)
+        done_fetches  = 0
+        css_blocks: list[tuple[str, str]] = []
+
+        def _bump_fetch(msg: str):
+            nonlocal done_fetches
+            done_fetches += 1
+            pct = 15 + int(35 * (done_fetches / max(total_fetches or 1, 1)))  # 15→50
+            _update_progress(task_id, pct, msg)
+
+        # inline styles
+        for tag in style_tags:
+            css_txt = tag.string or ""
+            css_blocks.append((css_txt, root_host))
+            _bump_fetch("Collected inline styles…")
+
+        # linked styles (and nested @import)
+        for link in link_tags:
+            css_url = urljoin(task.url, link["href"])
+            try:
+                css = fetch(css_url, sess)
+                host = urlparse(css_url).hostname or root_host
+                css_blocks.append((css, host))
+                for imported in pull_imports(css, task.url, sess):
+                    css_blocks.append((imported, host))
+                _bump_fetch("Downloaded stylesheet…")
+            except requests.RequestException:
+                _bump_fetch("Skipped unreachable stylesheet…")
+
+        # Parse & build rows
+        _update_progress(task_id, 60, "Analyzing fonts…")
+        fam_map   = families_and_hosts(css_blocks)
+        page_host = urlparse(task.url).hostname or ""
+
+        rows: list[dict] = []
+        fams = sorted(fam_map.items(), key=lambda kv: kv[0].lower())
+        total_parse = len(fams)
+        for i, (fam, hosts) in enumerate(fams, 1):
+            rows.append({
+                "website": page_host,
+                "family": fam,
+                "license_required": needs_license(fam, hosts),
+                "font_source":      font_source(fam, hosts, page_host),
+            })
+            pct = 50 + int(35 * (i / total_parse)) if total_parse else 85
+            _update_progress(task_id, min(pct, 85))
+
+        # Write CSV to disk
+        _update_progress(task_id, 95, "Preparing CSV…")
+        task.rows_count = len(rows)
+        fname = f"font_report_{task.id}.csv"
+        fpath = _os.path.join(_FI_TASK_DIR, fname)
+        _csv_write_to_disk(rows, fpath)
+        task.csv_path = fpath
+
+        # Finish
+        task.status = "DONE"
+        task.progress = 100
+        task.message = "Complete."
+        task.finished_ts = _now()
+        _save_task(task)
+
+    except Exception as exc:
+        task.status = "ERROR"
+        task.message = f"Error: {exc}"
+        task.progress = 100
+        task.finished_ts = _now()
+        _save_task(task)
+    finally:
+        _set_running(_get_running() - 1)
+        _start_next_if_possible()
+
+# ───────────────────────────── public endpoints ──────────────────────────────
+@_require_POST
+@_trim_memory_after
+@_cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def start_font_inspector(request):
+    """Start a scan for the given URL. Returns JSON {task_id, status, queue_position}."""
+    url = (request.POST.get("url") or "").strip()
+    if not url:
+        return _HttpResponseBadRequest("Missing url")
+
+    _cleanup_old_files()
+
+    task_id = _uuid.uuid4().hex
+    task = _Task(
+        id=task_id,
+        url=url,
+        status="QUEUED",
+        progress=0,
+        message="Waiting for a worker…",
+        created_ts=_now(),
+    )
+    _save_task(task)
+
+    if _get_running() >= _FI_MAX_CONCURRENCY:
+        _queue_push(task_id)
+        return _JsonResponse({"task_id": task_id, "status": "QUEUED", "queue_position": _queue_position(task_id)})
+
+    # Run immediately
+    task.status = "RUNNING"
+    task.started_ts = _now()
+    _save_task(task)
+    _set_running(_get_running() + 1)
+    _threading.Thread(target=_run_task, args=(task_id,), daemon=True).start()
+    return _JsonResponse({"task_id": task_id, "status": "RUNNING", "queue_position": 0})
+
+@_trim_memory_after
+@_cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def fi_task_status(request, task_id: str):
+    """Poll status. Returns JSON with {status, progress, message, rows_count, queue_position}."""
+    _cleanup_old_files()
+    t = _load_task(task_id)
+    out = t.to_json()
+    out["queue_position"] = _queue_position(task_id) if t.status == "QUEUED" else 0
+    return _JsonResponse(out)
+
+@_trim_memory_after
+@_cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def fi_rows(request, task_id: str):
+    """
+    Return JSON rows from the CSV (for rendering the table in-page).
+    We DO NOT delete the CSV here; deletion happens on actual download.
+    """
+    _cleanup_old_files()
+    t = _load_task(task_id)
+    path = t.csv_path
+    if not path or not _os.path.exists(path):
+        raise _Http404("File no longer available")
+    rows = []
+    with open(path, newline="", encoding="utf-8") as fh:
+        r = _csv.DictReader(fh)
+        for row in r:
+            rows.append({
+                "website": row.get("website", ""),
+                "family": row.get("family", ""),
+                "license_required": row.get("license_required", ""),
+                "font_source": row.get("font_source", ""),
+            })
+    return _JsonResponse({"rows": rows, "count": len(rows)})
+
+@_trim_memory_after
+@_cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def fi_download(request, task_id: str):
+    """
+    Stream the CSV file; delete from disk after streaming (and clear the cache path).
+    """
+    _cleanup_old_files()
+    t = _load_task(task_id)
+    path = t.csv_path
+    if not path or not _os.path.exists(path):
+        raise _Http404("File no longer available")
+
+    def _gen():
+        try:
+            with open(path, "rb") as f:
+                while True:
+                    chunk = f.read(64 * 1024)
+                    if not chunk:
+                        break
+                    yield chunk
+        finally:
+            try:
+                _os.remove(path)
+            except Exception:
+                pass
+            try:
+                t2 = _load_task(task_id)
+                t2.csv_path = None
+                _save_task(t2)
+            except Exception:
+                pass
+
+    filename = f"font_report_{task_id}.csv"
+    resp = _StreamingHttpResponse(_gen(), content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
