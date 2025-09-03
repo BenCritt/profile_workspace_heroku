@@ -139,6 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!taskId) return;
       // Hide progress bar but keep table visible
       progWrap.style.display = 'none';
+      // Also hide the Download button once the download starts
+      dlBtn.style.display = 'none';
       window.location.href = dlTpl.replace('TASKID', taskId);
     });
   }

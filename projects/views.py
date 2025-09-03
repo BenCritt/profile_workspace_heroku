@@ -16,14 +16,19 @@ def font_inspector(request):
     from django.http import FileResponse
     from .font_utils import make_report, report_to_csv
     from .forms import FontInspectorForm
+    from .utils import normalize_url
+    import re
     form = FontInspectorForm(request.POST or None)
     rows = None
 
     if request.method == "POST" and form.is_valid():
         url = form.cleaned_data["url"]
-
         try:
-            rows = make_report(url)
+            url = normalize_url(url)
+        except Exception:
+            if not re.match(r"^https?://", url, flags=re.I):
+                rows = make_report(url)
+            url = "https://" + url
             if not rows:
                 form.add_error("url", "No fonts detected on that page.")
         except Exception as exc:
