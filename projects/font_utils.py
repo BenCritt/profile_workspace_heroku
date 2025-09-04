@@ -1237,14 +1237,112 @@ def _run_task(task_id: str):
      95%  writing CSV
     100%  done
     """
+    # ───────────────────── helpers (scoped; no extra imports needed elsewhere) ─────────────────────
+    class _Friendly(Exception):
+        """Intentional, friendly error to show directly to the user."""
+        pass
+
+    def _humanize(url: str, exc: Exception) -> str:
+        import socket
+        import requests as _rq
+        from urllib.parse import urlparse as _up
+        host = (_up(url).hostname or url).strip("/")
+
+        # show intentionally raised messages verbatim
+        if isinstance(exc, _Friendly):
+            return str(exc)
+
+        # requests/urllib3 family
+        if isinstance(exc, _rq.exceptions.ConnectTimeout):
+            secs = globals().get("HTTP_TIMEOUT", 10)
+            return f"{host} didn’t respond within {secs}s."
+        if isinstance(exc, _rq.exceptions.ReadTimeout):
+            return f"{host} took too long to send data."
+        if isinstance(exc, _rq.exceptions.TooManyRedirects):
+            return f"{host} redirected too many times (possible redirect loop)."
+        if isinstance(exc, _rq.exceptions.SSLError):
+            return f"Couldn’t establish a secure HTTPS connection to {host} (certificate or TLS issue)."
+        if isinstance(exc, (_rq.exceptions.InvalidURL, _rq.exceptions.MissingSchema, _rq.exceptions.InvalidSchema)):
+            return "That doesn’t look like a valid URL. Include “https://”, e.g., https://example.com."
+        if isinstance(exc, _rq.exceptions.HTTPError):
+            r = exc.response
+            code = getattr(r, "status_code", "?")
+            reason = getattr(r, "reason", "") or ""
+            if code in (401, 403):
+                return f"The site responded with HTTP {code} {reason}. Access is restricted, so we can’t scan it."
+            if code == 404:
+                return "The page wasn’t found (HTTP 404)."
+            return f"The site responded with HTTP {code} {reason}."
+        if isinstance(exc, _rq.exceptions.ConnectionError):
+            s = str(exc).lower()
+            if ("name or service not known" in s or
+                "temporary failure in name resolution" in s or
+                "failed to resolve" in s or
+                "nodename nor servname provided" in s):
+                return f"DNS lookup failed for {host}. Check the domain name."
+            if "connection refused" in s:
+                return f"{host} refused the connection."
+            return f"Couldn’t connect to {host}."
+
+        # socket / encoding odds and ends
+        if isinstance(exc, socket.gaierror):
+            return f"DNS lookup failed for {host}."
+        if isinstance(exc, UnicodeError):
+            return "The URL contains characters we couldn’t interpret."
+
+        # fallback
+        return f"Unexpected error while fetching {host}: {exc}"
+
+    def _normalize_if_possible(raw_url: str) -> str:
+        # Prefer your utils.normalize_url if present; otherwise add https:// when missing.
+        try:
+            if "normalize_url" in globals() and callable(globals()["normalize_url"]):
+                return normalize_url(raw_url)  # type: ignore[name-defined]
+        except Exception:
+            pass
+        p = urlparse(raw_url)
+        if not p.scheme:
+            return "https://" + raw_url.lstrip("/")
+        return raw_url
+
+    def _validate_public_host_or_raise(url: str):
+        import ipaddress
+        p = urlparse(url)
+        host = p.hostname or ""
+        if not host:
+            raise _Friendly("That URL doesn’t include a host. Try something like “https://example.com”.")
+        # Literal IP?
+        try:
+            ip = ipaddress.ip_address(host)
+            if not ip.is_global:
+                raise _Friendly("That address is private or local and can’t be scanned from this server.")
+            return
+        except ValueError:
+            # Not an IP → validate domain-ish
+            try:
+                host.encode("idna")
+            except UnicodeError:
+                raise _Friendly("The domain contains characters we couldn’t interpret. Try ASCII/punycode.")
+            if "." not in host:
+                raise _Friendly("That host doesn’t look like a public domain. Please include a full domain like “example.com”.")
+
+    # ──────────────────────────────────────────────────────────────────────────────────────────────
     try:
         task = _load_task(task_id)
     except Exception:
         _set_running(_get_running() - 1)
         return
 
+    url_for_error_context = task.url  # keep something usable if normalization fails
+
     try:
         _cleanup_old_files()
+
+        # Normalize URL (adds scheme if missing) and validate host *before* network I/O.
+        task.url = _normalize_if_possible(task.url)
+        url_for_error_context = task.url
+        _validate_public_host_or_raise(task.url)
+
         _update_progress(task_id, 5, "Starting…")
 
         # Use your existing pipeline (imports already defined earlier in this file)
@@ -1259,11 +1357,13 @@ def _run_task(task_id: str):
         root_host = urlparse(task.url).hostname or ""
 
         style_tags = list(soup.find_all("style"))
-        link_tags  = [l for l in soup.find_all("link", href=True)
-                      if "stylesheet" in (l.get("rel") or []) or (l.get("as","").lower() == "style")]
+        link_tags = [
+            l for l in soup.find_all("link", href=True)
+            if "stylesheet" in (l.get("rel") or []) or (l.get("as", "").lower() == "style")
+        ]
 
         total_fetches = len(style_tags) + len(link_tags)
-        done_fetches  = 0
+        done_fetches = 0
         css_blocks: list[tuple[str, str]] = []
 
         def _bump_fetch(msg: str):
@@ -1293,7 +1393,7 @@ def _run_task(task_id: str):
 
         # Parse & build rows
         _update_progress(task_id, 60, "Analyzing fonts…")
-        fam_map   = families_and_hosts(css_blocks)
+        fam_map = families_and_hosts(css_blocks)
         page_host = urlparse(task.url).hostname or ""
 
         rows: list[dict] = []
@@ -1304,7 +1404,7 @@ def _run_task(task_id: str):
                 "website": page_host,
                 "family": fam,
                 "license_required": needs_license(fam, hosts),
-                "font_source":      font_source(fam, hosts, page_host),
+                "font_source": font_source(fam, hosts, page_host),
             })
             pct = 50 + int(35 * (i / total_parse)) if total_parse else 85
             _update_progress(task_id, min(pct, 85))
@@ -1326,13 +1426,14 @@ def _run_task(task_id: str):
 
     except Exception as exc:
         task.status = "ERROR"
-        task.message = f"Error: {exc}"
+        task.message = _humanize(url_for_error_context, exc)
         task.progress = 100
         task.finished_ts = _now()
         _save_task(task)
     finally:
         _set_running(_get_running() - 1)
         _start_next_if_possible()
+
 
 # ───────────────────────────── public endpoints ──────────────────────────────
 @_require_POST
