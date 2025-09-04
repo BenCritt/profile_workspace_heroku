@@ -723,7 +723,7 @@ def _validate_public_host(url: str) -> str:
     p = urlparse(url)
     host = p.hostname or ""
     if not host:
-        raise _UserFacingError("That URL doesn’t include a host. Try something like “https://example.com”.")
+        raise _UserFacingError("That URL doesn’t include a host. Try something like “bencritt.net”.")
     # Literal IP?
     try:
         ip = ipaddress.ip_address(host)
@@ -737,7 +737,7 @@ def _validate_public_host(url: str) -> str:
         except UnicodeError:
             raise _UserFacingError("The domain contains characters we couldn’t interpret. Try ASCII/punycode.")
         if "." not in host:
-            raise _UserFacingError("That host doesn’t look like a public domain. Please include a full domain like “example.com”.")
+            raise _UserFacingError("That host doesn’t look like a public domain. Please include a full domain like “bencritt.net”.")
         return host
 
 def _friendly_error_message(url: str, exc: Exception) -> str:
@@ -758,7 +758,7 @@ def _friendly_error_message(url: str, exc: Exception) -> str:
     if isinstance(exc, requests.exceptions.SSLError):
         return f"Couldn’t establish a secure HTTPS connection to {host} (certificate or TLS issue)."
     if isinstance(exc, requests.exceptions.InvalidURL) or isinstance(exc, requests.exceptions.MissingSchema) or isinstance(exc, requests.exceptions.InvalidSchema):
-        return "That doesn’t look like a valid URL. Include “https://”, e.g., https://example.com."
+        return "That doesn’t look like a valid URL. Include “https://”, e.g., https://bencritt.net."
     if isinstance(exc, requests.exceptions.HTTPError):
         r = exc.response
         code = getattr(r, "status_code", "?")
@@ -1263,7 +1263,7 @@ def _run_task(task_id: str):
         if isinstance(exc, _rq.exceptions.SSLError):
             return f"Couldn’t establish a secure HTTPS connection to {host} (certificate or TLS issue)."
         if isinstance(exc, (_rq.exceptions.InvalidURL, _rq.exceptions.MissingSchema, _rq.exceptions.InvalidSchema)):
-            return "That doesn’t look like a valid URL. Include “https://”, e.g., https://example.com."
+            return "That doesn’t look like a valid URL. Include “https://”, e.g., https://bencritt.net"
         if isinstance(exc, _rq.exceptions.HTTPError):
             r = exc.response
             code = getattr(r, "status_code", "?")
@@ -1310,7 +1310,7 @@ def _run_task(task_id: str):
         p = urlparse(url)
         host = p.hostname or ""
         if not host:
-            raise _Friendly("That URL doesn’t include a host. Try something like “https://example.com”.")
+            raise _Friendly("That URL doesn’t include a host. Try something like “https://bencritt.net”.")
         # Literal IP?
         try:
             ip = ipaddress.ip_address(host)
@@ -1324,7 +1324,7 @@ def _run_task(task_id: str):
             except UnicodeError:
                 raise _Friendly("The domain contains characters we couldn’t interpret. Try ASCII/punycode.")
             if "." not in host:
-                raise _Friendly("That host doesn’t look like a public domain. Please include a full domain like “example.com”.")
+                raise _Friendly("That host doesn’t look like a public domain. Please include a full domain like “bencritt.net”.")
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────
     try:
