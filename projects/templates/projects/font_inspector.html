@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
   <h1>Font Inspector</h1>
   <br>
-  <p class="text-muted small mt-3">Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
+  <p>Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
   <form id="font-inspector-form" class="mb-4">
     {% csrf_token %}
     <div class="input-group">
@@ -240,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function () {
       <button id="fi-dl" class="btn btn-secondary" type="button" disabled style="display:none;">Download CSV</button>
     </div>
   </form>
-
   <!-- Progress Indicator -->
   <div id="fi-progress"
        class="mt-3"
@@ -260,15 +259,10 @@ document.addEventListener('DOMContentLoaded', function () {
            style="width:1%">1%</div>
     </div>
   </div>
-
   <br>
-
   <!-- Results Table -->
   <div id="fi-results"></div>
-
-  <p class="text-muted small mt-3">
-    CSV files are stored temporarily and auto-deleted after 30 minutes.
-  </p>
-</div>
+    <p>CSV files are stored temporarily and auto-deleted after 30 minutes.</p>
+  </div>
 </center>
 {% endblock content %}
