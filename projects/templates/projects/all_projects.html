@@ -3,208 +3,221 @@
 {% load static %}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        "name": "Ben Crittenden's Projects",
-        "description": "A collection of software projects including a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.",
-        "url": "https://www.bencritt.net/projects/",
-        "hasPart": [
-          {
-            "@type": "SoftwareApplication",
-            "name": "Monte Carlo Simulator",
-            "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
-            "applicationCategory": "Simulation software",
-            "url": "https://www.bencritt.net/projects/monte-carlo-simulator/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Supports simulations with single or dual number ranges, accommodating a variety of statistical modeling needs.",
-              "Enables users to specify target values for their simulations, adding precision and relevance to the analysis.",
-              "Generates random values within user-defined ranges, facilitating robust and comprehensive Monte Carlo simulations.",
-              "Graphically presents simulation outcomes, offering intuitive and accessible visual data interpretation.",
-              "Provides downloadable PDF output, allowing users to easily save and share their simulation results.",
-              "Web-based platform ensures accessibility from any device with an internet connection, without the need for software installation.",
-              "Built on a Python backend with an object-oriented programming model, ensuring reliable performance and scalability."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "QR Code Generator",
-            "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
-            "applicationCategory": "Utility software",
-            "url": "https://www.bencritt.net/projects/qr-code-generator/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Enables users to create QR codes from any text input, offering a versatile tool for various data encoding needs.",
-              "Generates high-quality QR codes as downloadable PNG files, ensuring compatibility with a wide range of devices and applications.",
-              "Automatically places the generated QR code in the user's default downloads folder, simplifying the retrieval process.",
-              "User-friendly interface allows for quick and easy generation of QR codes, enhancing user experience and efficiency.",
-              "Web-based application, accessible from any device with an internet connection, eliminating the need for software installation.",
-              "Supports a wide range of characters, enabling the encoding of diverse information types within QR codes.",
-              "Built with Python and an object-oriented programming model, ensuring reliability, scalability, and ease of maintenance."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Weather Forecast App",
-            "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
-            "applicationCategory": "Weather Forecasting Software",
-            "url": "https://www.bencritt.net/projects/weather/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Provides accurate and detailed weather forecasts based on user-provided ZIP code inputs, offering localized weather information.",
-              "Utilizes the Google Maps Platform API to accurately convert ZIP codes into geographical coordinates, ensuring precise weather data retrieval.",
-              "Leverages the OpenWeatherMap One Call API to provide comprehensive weather details, including temperature, precipitation, wind speed, and more.",
-              "Displays weather forecasts in a user-friendly interface, allowing users to easily understand and interpret weather conditions.",
-              "Web-based application ensures accessibility from any device with an internet connection, facilitating on-the-go weather checks.",
-              "Offers real-time weather updates, enabling users to receive the most current weather information available.",
-              "Built with a focus on reliability and efficiency, using Python and an object-oriented programming model for optimal performance."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Grade Level Text Analyzer",
-            "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
-            "applicationCategory": "Educational Software",
-            "url": "https://www.bencritt.net/projects/grade-level-analyzer/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Calculates readability scores using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.",
-              "Provides uniform and weighted averages for a comprehensive analysis.",
-              "User-friendly interface with quick processing."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "DNS Lookup Tool",
-            "description": "The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name, retrieving various DNS records such as A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
-            "applicationCategory": "Network Utility",
-            "url": "https://www.bencritt.net/projects/dns-lookup/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Perform DNS lookups for various DNS record types.",
-              "Retrieve detailed DNS information for network troubleshooting and domain management.",
-              "Accessible from any web-enabled device with a user-friendly interface."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "SSL Verification Tool",
-            "description": "The SSL Verification Tool allows users to quickly verify SSL certificates for any website, retrieving detailed information such as the certificate issuer, validity period, and expiration dates. It's an essential tool for website owners, developers, and security professionals to ensure their site's security.",
-            "applicationCategory": "Network Utility",
-            "url": "https://www.bencritt.net/projects/ssl-check/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Quickly verify SSL certificates for any website.",
-              "Retrieve detailed SSL information including issuer, validity period, and expiration dates.",
-              "Ensure your website is secure for users by verifying SSL configurations.",
-              "Accessible from any web-enabled device with a user-friendly interface."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "IP Address Lookup Tool",
-            "description": "The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records, geolocation data, and blacklist status for specified IP addresses. A valuable tool for network diagnostics and verification.",
-            "applicationCategory": "Network Utility",
-            "url": "https://www.bencritt.net/projects/ip-tool/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Performs reverse DNS lookups to retrieve PTR records for specified IP addresses.",
-              "Displays geolocation information for IP addresses, including country, city, and ISP.",
-              "Checks blacklist status to determine if an IP is flagged by major spam or abuse databases.",
-              "Web-based tool accessible from any device with an internet connection.",
-              "Built using Python and Django for accurate results and reliable performance."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Freight Carrier Safety Reporter",
-            "description": "Generate comprehensive safety reports for freight carriers, including safety ratings, crash statistics, and driver inspections. This tool is essential for freight brokers, logistics managers, and safety professionals.",
-            "applicationCategory": "Transportation Utility",
-            "url": "https://www.bencritt.net/projects/freight-safety/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Generate detailed safety reports for freight carriers.",
-              "Calculate safety scores based on crash statistics and inspections.",
-              "Retrieve critical safety information using USDOT numbers.",
-              "Accessible via a web-based platform with a user-friendly interface.",
-              "Developed using Python and Django for reliability and performance."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "SEO Head Checker",
-            "description": "The SEO Head Checker analyzes the <head> section of webpages to identify SEO elements like meta tags, canonical tags, Open Graph tags, and more. It helps improve website optimization for better search engine performance.",
-            "applicationCategory": "SEO Utility",
-            "url": "https://www.bencritt.net/projects/seo-head-checker/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Analyzes the <head> section of webpages for essential SEO elements.",
-              "Identifies meta tags, canonical tags, Open Graph tags, and more.",
-              "Generates detailed reports in CSV format for easy review.",
-              "Web-based and accessible on any internet-connected device.",
-              "Helps optimize websites for improved search engine visibility."
-            ]
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "ISS Tracker",
-            "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
-            "applicationCategory": "Astronomy Utility",
-            "url": "https://www.bencritt.net/projects/iss-tracker/",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden"
-            },
-            "operatingSystem": "Web-based",
-            "featureList": [
-              "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
-              "Tracks upcoming ISS pass times with precise local time and positional information.",
-              "Region detection for both land and ocean coverage using geolocation services.",
-              "Web-based application accessible from any internet-connected device.",
-              "Provides regular data updates every 60 seconds for dynamic tracking."
-            ]
-          }          
-        ]
-      }
-      </script>      
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Ben Crittenden's Projects",
+  "description": "A collection of web-based tools by Ben Crittenden, including a Monte Carlo Simulator, QR Code Generator, Weather Forecast App, Grade Level Text Analyzer, DNS Lookup Tool, SSL Verification Tool, IP Address Lookup Tool, Freight Carrier Safety Reporter, SEO Head Checker, ISS Tracker, XML Splitter, Ham Radio Call Sign Lookup, and Font Inspector.",
+  "url": "https://www.bencritt.net/projects/",
+  "hasPart": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Monte Carlo Simulator",
+      "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
+      "applicationCategory": "Simulation software",
+      "url": "https://www.bencritt.net/projects/monte-carlo-simulator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Supports simulations with single or dual number ranges, accommodating a variety of statistical modeling needs.",
+        "Enables users to specify target values for their simulations, adding precision and relevance to the analysis.",
+        "Generates random values within user-defined ranges, facilitating robust and comprehensive Monte Carlo simulations.",
+        "Graphically presents simulation outcomes, offering intuitive and accessible visual data interpretation.",
+        "Provides downloadable PDF output, allowing users to easily save and share their simulation results.",
+        "Web-based platform ensures accessibility from any device with an internet connection, without the need for software installation."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "QR Code Generator",
+      "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
+      "applicationCategory": "Utility software",
+      "url": "https://www.bencritt.net/projects/qr-code-generator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Enables users to create QR codes from any text input, offering a versatile tool for various data encoding needs.",
+        "Generates high-quality QR codes as downloadable PNG files, ensuring compatibility with a wide range of devices and applications.",
+        "Automatically places the generated QR code in the user's default downloads folder, simplifying the retrieval process.",
+        "User-friendly interface allows for quick and easy generation of QR codes, enhancing user experience and efficiency.",
+        "Web-based application, accessible from any device with an internet connection, eliminating the need for software installation.",
+        "Supports a wide range of characters, enabling the encoding of diverse information types within QR codes."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Weather Forecast App",
+      "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
+      "applicationCategory": "Weather Forecasting Software",
+      "url": "https://www.bencritt.net/projects/weather/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Provides accurate and detailed weather forecasts based on user-provided ZIP code inputs, offering localized weather information.",
+        "Utilizes the Google Maps Platform API to accurately convert ZIP codes into geographical coordinates, ensuring precise weather data retrieval.",
+        "Leverages the OpenWeatherMap One Call API to provide comprehensive weather details, including temperature, precipitation, wind speed, and more.",
+        "Displays weather forecasts in a user-friendly interface, allowing users to easily understand and interpret weather conditions.",
+        "Web-based application ensures accessibility from any device with an internet connection, facilitating on-the-go weather checks.",
+        "Offers real-time weather updates, enabling users to receive the most current weather information available."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Grade Level Text Analyzer",
+      "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
+      "applicationCategory": "Educational Software",
+      "url": "https://www.bencritt.net/projects/grade-level-analyzer/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Calculates readability scores using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.",
+        "Provides uniform and weighted averages for a comprehensive analysis.",
+        "User-friendly interface with quick processing."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "DNS Lookup Tool",
+      "description": "The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name, retrieving various DNS records such as A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
+      "applicationCategory": "Network Utility",
+      "url": "https://www.bencritt.net/projects/dns-lookup/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Perform DNS lookups for various DNS record types.",
+        "Retrieve detailed DNS information for network troubleshooting and domain management.",
+        "Accessible from any web-enabled device with a user-friendly interface."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "SSL Verification Tool",
+      "description": "The SSL Verification Tool allows users to quickly verify SSL certificates for any website, retrieving detailed information such as the certificate issuer, validity period, and expiration dates. It's an essential tool for website owners, developers, and security professionals to ensure their site's security.",
+      "applicationCategory": "Network Utility",
+      "url": "https://www.bencritt.net/projects/ssl-check/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Quickly verify SSL certificates for any website.",
+        "Retrieve detailed SSL information including issuer, validity period, and expiration dates.",
+        "Ensure your website is secure for users by verifying SSL configurations.",
+        "Accessible from any web-enabled device with a user-friendly interface."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "IP Address Lookup Tool",
+      "description": "The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records, geolocation data, and blacklist status for specified IP addresses. A valuable tool for network diagnostics and verification.",
+      "applicationCategory": "Network Utility",
+      "url": "https://www.bencritt.net/projects/ip-tool/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Performs reverse DNS lookups to retrieve PTR records for specified IP addresses.",
+        "Displays geolocation information for IP addresses, including country, city, and ISP.",
+        "Checks blacklist status to determine if an IP is flagged by major spam or abuse databases.",
+        "Web-based tool accessible from any device with an internet connection."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Freight Carrier Safety Reporter",
+      "description": "Generate comprehensive safety reports for freight carriers, including safety ratings, crash statistics, and driver inspections. This tool is essential for freight brokers, logistics managers, and safety professionals.",
+      "applicationCategory": "Transportation Utility",
+      "url": "https://www.bencritt.net/projects/freight-safety/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Generate detailed safety reports for freight carriers.",
+        "Calculate safety scores based on crash statistics and inspections.",
+        "Retrieve critical safety information using USDOT numbers.",
+        "Accessible via a web-based platform with a user-friendly interface."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "SEO Head Checker",
+      "description": "The SEO Head Checker analyzes the <head> section of webpages to identify SEO elements like meta tags, canonical tags, Open Graph tags, and more. It helps improve website optimization for better search engine performance.",
+      "applicationCategory": "SEO Utility",
+      "url": "https://www.bencritt.net/projects/seo-head-checker/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Analyzes the <head> section of webpages for essential SEO elements.",
+        "Identifies meta tags, canonical tags, Open Graph tags, and more.",
+        "Generates detailed reports in CSV format for easy review.",
+        "Web-based and accessible on any internet-connected device.",
+        "Helps optimize websites for improved search engine visibility."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "ISS Tracker",
+      "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
+      "applicationCategory": "Astronomy Utility",
+      "url": "https://www.bencritt.net/projects/iss-tracker/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
+        "Tracks upcoming ISS pass times with precise local time and positional information.",
+        "Region detection for both land and ocean coverage using geolocation services.",
+        "Web-based application accessible from any internet-connected device.",
+        "Provides regular data updates every 60 seconds for dynamic tracking."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "XML Splitter",
+      "description": "Split a single, nested XML export into a ZIP of well-formed, per-record XML files for smooth CMS → ERP handoffs.",
+      "applicationCategory": "Data Transformation Tool",
+      "url": "https://www.bencritt.net/projects/xml-splitter/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Uploads a single XML export and returns a ZIP of one-file-per-record XML documents.",
+        "Preserves XML declarations, encoding, and namespaces.",
+        "Validates well-formedness before splitting.",
+        "Streams large outputs for reliability on big files.",
+        "Web-based UI with a simple, guided workflow."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Ham Radio Call Sign Lookup",
+      "description": "Search U.S. amateur radio call signs to verify license status and view licensee details.",
+      "applicationCategory": "Amateur Radio Utility",
+      "url": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Instant lookup for any U.S. ham radio call sign.",
+        "Shows licensee name, class, and expiration.",
+        "Useful for identity checks during events and nets.",
+        "Mobile-friendly interface for on-the-air use.",
+        "Fast, streamlined search experience."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Font Inspector",
+      "description": "Detect font families, weights, styles, sources, and file formats used on any webpage, with CSV export.",
+      "applicationCategory": "Web Development Utility",
+      "url": "https://www.bencritt.net/projects/font-inspector/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Scans HTML and linked stylesheets to detect fonts.",
+        "Identifies sources: local, @font-face, Google Fonts, Adobe Fonts.",
+        "Reports family, weight/style variants, and file formats (WOFF2/WOFF/TTF).",
+        "Flags licensing considerations with guidance.",
+        "Exports results to CSV for audits and hand-offs."
+      ]
+    }
+  ]
+}
+</script>      
     {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta tags providing essential information about the page to search engines. -->
@@ -361,7 +374,7 @@
           <div class="col-lg-6">
               <br>
               <!-- Project description. -->
-              <p class="lead fw-normal text-muted mb-0">Easily perform comprehensive DNS lookups with the DNS Lookup Tool, designed to provide quick access to vital DNS records for any domain. This tool is ideal for webmasters, network administrators, and SEO professionals who need detailed DNS information for troubleshooting, optimization, or security purposes. The DNS Lookup Tool supports a wide range of DNS record types, including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. It ensures accurate retrieval of DNS data, helping you verify domain configurations, identify potential issues, and optimize your website’s performance.</p>
+              <p class="lead fw-normal text-muted mb-0">Perform comprehensive DNS lookups with the DNS Lookup Tool, designed to provide quick access to vital DNS records for any domain. This tool is ideal for webmasters, network administrators, and SEO professionals who need detailed DNS information for troubleshooting, optimization, or security purposes. The DNS Lookup Tool supports a wide range of DNS record types, including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. It ensures accurate retrieval of DNS data, helping you verify domain configurations, identify potential issues, and optimize your website’s performance.</p>
           </div>
       </div>
     </div>
@@ -471,6 +484,73 @@
                   Monitor the International Space Station (ISS) in real-time with the ISS Tracker. This web-based app provides dynamic tracking of the ISS, including its current latitude, longitude, altitude, velocity, and regional position. Users can also project upcoming pass times over their location with precise timing and geolocation. Accessible from any internet-connected device, the ISS Tracker delivers data updates every 60 seconds for an engaging and accurate tracking experience.
               </p>
           </div>
+      </div>
+    </div>
+    <br>
+    <div class="container px-5 my-5">
+        <div class="row gx-5 align-items-center">
+          <div class="col-lg-6">
+            <!-- Project link and image. -->
+              <div class="text-center">
+                <a href="/projects/xml-splitter/" style="text-decoration: none; color: inherit;">
+                  <h2 class="fw-bolder">XML Splitter</h2>
+                </a>
+                <a href="/projects/xml-splitter/">
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/xml-splitter.webp' %}" alt="XML Splitter" />              
+                </a>
+              </div>
+          </div>
+          <div class="col-lg-6">
+              <br>
+              <!-- Project description. -->
+              <p class="lead fw-normal text-muted mb-0">Convert a single, nested XML export into a clean ZIP of one-file-per-record. Many e-commerce platforms bundle orders, products, and customers into one large XML, while ERPs prefer individual XML files. Upload your source XML and the app splits it into well-formed, per-entry XML documents, preserves namespaces and declarations, and returns a ready-to-ingest ZIP archive. Perfect for smoothing CMS → ERP handoffs and large batch imports.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="container px-5 my-5">
+      <div class="row gx-5 align-items-center">
+          <div class="col-lg-6 order-lg-last">
+              <!-- Project link and image. -->
+              <div class="text-center">
+                  <a href="/projects/ham-radio-call-sign-lookup/" style="text-decoration: none; color: inherit;">
+                      <h2 class="fw-bolder">Ham Radio Call Sign Lookup/h2>
+                  </a>
+                  <a href="/projects/ham-radio-call-sign-lookup/">
+                      <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" />
+                  </a>
+              </div>
+          </div>
+          <div class="col-lg-6">
+              <br>
+              <!-- Project description. -->
+              <p class="lead fw-normal text-muted mb-0">
+                  Look up any U.S. amateur (ham) radio call sign to verify license status and view key details such as licensee name, class, and expiration. Designed for operators, clubs, and event coordinators, this tool provides quick identity checks before on-air contacts or during registration and logging.
+              </p>
+          </div>
+      </div>
+    </div>
+    <br>
+    <div class="container px-5 my-5">
+        <div class="row gx-5 align-items-center">
+          <div class="col-lg-6">
+            <!-- Project link and image. -->
+              <div class="text-center">
+                <a href="/projects/font-inspector/" style="text-decoration: none; color: inherit;">
+                  <h2 class="fw-bolder">Font Inspector</h2>
+                </a>
+                <a href="/projects/font-inspector/">
+                  <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" />              
+                </a>
+              </div>
+          </div>
+          <div class="col-lg-6">
+              <br>
+              <!-- Project description. -->
+              <p class="lead fw-normal text-muted mb-0">Identify the fonts used on any website—family, weights, styles, and where they’re loaded from. The Font Inspector scans page HTML and linked stylesheets to detect local and web-hosted fonts (e.g., @font-face, Google Fonts, Adobe Fonts), shows file formats (WOFF2/WOFF/TTF), and offers licensing guidance. Export results to CSV for design audits, hand-offs, and procurement reviews.</p>
+          </div>
+        </div>
       </div>
     </div>
     {% endblock content %}
