@@ -23,7 +23,7 @@ from tinycss2 import serialize
 
 # ───────────────────────── config ──────────────────────────
 USER_AGENT   = "Font Inspector by Ben Crittenden (+https://www.bencritt.net)"
-HTTP_TIMEOUT = 10
+HTTP_TIMEOUT = 15
 CSV_PATH     = Path("font_report.csv")
 
 # silence cssutils chatter
@@ -502,7 +502,7 @@ HARD_CODED_GOOGLE_FONTS = {
 def _fetch_google_fonts(api_key: str) -> set[str]:
     api_key = os.environ.get("GOOGLE_FONT_KEY")
     url = f"https://www.googleapis.com/webfonts/v1/webfonts?key={api_key}"
-    items = requests.get(url, timeout=10).json()["items"]
+    items = requests.get(url, timeout=HTTP_TIMEOUT).json()["items"]
     return {item["family"].lower() for item in items}
 
 @lru_cache(maxsize=1)
@@ -1254,7 +1254,7 @@ def _run_task(task_id: str):
 
         # requests/urllib3 family
         if isinstance(exc, _rq.exceptions.ConnectTimeout):
-            secs = globals().get("HTTP_TIMEOUT", 10)
+            secs = HTTP_TIMEOUT
             return f"{host} didn’t respond within {secs}s."
         if isinstance(exc, _rq.exceptions.ReadTimeout):
             return f"{host} took too long to send data."
