@@ -7,12 +7,14 @@ import pathlib
 import re
 import sys
 import time
-from functools import lru_cache
-from pathlib import Path
-from urllib.parse import urljoin, urlparse
+import ipaddress
+import socket
 import cssutils
 import requests
 import tinycss2
+from functools import lru_cache
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from cssutils import parseString as parse_css
 from rich.console import Console
@@ -710,6 +712,81 @@ def pull_imports(css: str, base: str, sess) -> list[str]:
             except requests.RequestException:
                 pass
     return out
+
+# ───────────────────── user-friendly errors ─────────────────────
+class _UserFacingError(Exception):
+    """Intentional, friendly error to show directly to the user."""
+    pass
+
+def _validate_public_host(url: str) -> str:
+    """Raise _UserFacingError if the host is clearly not fetchable from the server."""
+    p = urlparse(url)
+    host = p.hostname or ""
+    if not host:
+        raise _UserFacingError("That URL doesn’t include a host. Try something like “https://example.com”.")
+    # Literal IP?
+    try:
+        ip = ipaddress.ip_address(host)
+        if not ip.is_global:
+            raise _UserFacingError("That address is private or local and can’t be scanned from this server.")
+        return host
+    except ValueError:
+        # Not an IP → treat as domain
+        try:
+            host.encode("idna")  # validate punycode-encodable
+        except UnicodeError:
+            raise _UserFacingError("The domain contains characters we couldn’t interpret. Try ASCII/punycode.")
+        if "." not in host:
+            raise _UserFacingError("That host doesn’t look like a public domain. Please include a full domain like “example.com”.")
+        return host
+
+def _friendly_error_message(url: str, exc: Exception) -> str:
+    """Map low-level exceptions to short, actionable messages."""
+    host = (urlparse(url).hostname or url).strip("/")
+
+    # Show intentionally raised messages verbatim
+    if isinstance(exc, _UserFacingError):
+        return str(exc)
+
+    # requests/urllib3 family
+    if isinstance(exc, requests.exceptions.ConnectTimeout):
+        return f"{host} didn’t respond within {HTTP_TIMEOUT}s."
+    if isinstance(exc, requests.exceptions.ReadTimeout):
+        return f"{host} took too long to send data."
+    if isinstance(exc, requests.exceptions.TooManyRedirects):
+        return f"{host} redirected too many times (possible redirect loop)."
+    if isinstance(exc, requests.exceptions.SSLError):
+        return f"Couldn’t establish a secure HTTPS connection to {host} (certificate or TLS issue)."
+    if isinstance(exc, requests.exceptions.InvalidURL) or isinstance(exc, requests.exceptions.MissingSchema) or isinstance(exc, requests.exceptions.InvalidSchema):
+        return "That doesn’t look like a valid URL. Include “https://”, e.g., https://example.com."
+    if isinstance(exc, requests.exceptions.HTTPError):
+        r = exc.response
+        code = getattr(r, "status_code", "?")
+        reason = getattr(r, "reason", "") or ""
+        # Friendly hint for common blocks
+        if code in (401, 403):
+            return f"The site responded with HTTP {code} {reason}. Access is restricted, so we can’t scan it."
+        if code == 404:
+            return f"The page wasn’t found (HTTP 404)."
+        return f"The site responded with HTTP {code} {reason}."
+
+    if isinstance(exc, requests.exceptions.ConnectionError):
+        s = str(exc).lower()
+        if "name or service not known" in s or "temporary failure in name resolution" in s or "failed to resolve" in s or "nodename nor servname provided" in s:
+            return f"DNS lookup failed for {host}. Check the domain name."
+        if "connection refused" in s:
+            return f"{host} refused the connection."
+        return f"Couldn’t connect to {host}."
+
+    # Socket / encoding odds and ends
+    if isinstance(exc, socket.gaierror):
+        return f"DNS lookup failed for {host}."
+    if isinstance(exc, UnicodeError):
+        return "The URL contains characters we couldn’t interpret."
+
+    # Fallback
+    return f"Unexpected error while fetching {host}: {exc}"
+
 
 # ───────────────────── CSS collector ───────────────────────
 def gather_css(html: str, base: str, sess) -> list[tuple[str,str]]:
