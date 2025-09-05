@@ -5,14 +5,14 @@
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
       {
-        "@context": "http://schema.org",
+        "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "QR Code Generator",
         "description": "A web-based QR Code Generator that allows users to create QR codes from text inputs and download them as PNG files.",
         "url": "https://www.bencritt.net/projects/qr-code-generator/",
         "applicationCategory": "Utility Software",
         "operatingSystem": "Web-based",
-        "image": "https://i.imgur.com/qkKW1uj.png",
+        "image": "https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp",
         "creator": {
           "@type": "Person",
           "name": "Ben Crittenden",
@@ -36,23 +36,36 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
     <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
     <meta name="description" content="Create and download custom QR codes easily with our online QR Code Generator. Enter your text, generate a QR code, and download it as a PNG file directly to your computer. Quick, efficient, and user-friendly.">
     <meta name="keywords" content="QR Code Generator, create QR code, online QR code tool, QR code PNG download, generate QR code">
-    <!-- Facebook Meta Tags -->
+    
+    <!-- Open Graph -->
     <meta property="og:url" content="https://www.bencritt.net/projects/qr-code-generator/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="QR Code Generator">
     <meta property="og:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device.">
-    <meta property="og:image" content="https://i.imgur.com/qkKW1uj.png">
-    <!-- Twitter Meta Tags -->
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
+    <meta property="og:image:type" content="image/webp">
+    <meta property="og:image:alt" content="QR Code Generator Screenshot">
+    <meta property="og:site_name" content="Ben Crittenden">
+    
+    <!--
+    Once I have a specific image meant for this, I can use these optimized dimensions.
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    -->
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/qr-code-generator/">
+    <meta name="twitter:domain" content="bencritt.net">
+    <meta name="twitter:url" content="https://www.bencritt.net/projects/qr-code-generator/">
     <meta name="twitter:title" content="QR Code Generator">
     <meta name="twitter:description" content="This QR code generator takes your input and prints a QR code to a PNG file and downloads it to your device.">
-    <meta name="twitter:image" content="https://i.imgur.com/qkKW1uj.png">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
+    <meta name="twitter:image:alt" content="QR Code Generator preview image">
+    <meta name="twitter:creator" content="@bencritt89">
     {% endblock meta_tags %}
     {% block link_tags %}
     <!-- Canonical link to help prevent duplicate content issues. -->
@@ -79,7 +92,7 @@
                   {{field}}
                   {{field.errors}}
                   {% endfor %}
-                  <br><br>
+                  <br>
                   <!-- Submit button for the form. -->
                   <input type="submit" id="qr-btn" class="btn btn-primary" value="Generate QR Code" aria-label="Generate QR Code">
               </form>
