@@ -223,19 +223,30 @@
     <!-- Meta tags providing essential information about the page to search engines. -->
     <meta name="description" content="Discover the innovative software projects by Ben Crittenden, including a Monte Carlo Simulator, QR Code Generator, Weather Forecast App, and Grade Level Text Analyzer. Explore tools designed for data analysis, educational use, and more, all built with Python.">
     <meta name="keywords" content="Ben Crittenden projects, Monte Carlo Simulator, QR Code Generator, Weather Forecast App, Grade Level Text Analyzer, DNS Lookup Tool, IP Address Lookup Tool, Python projects">
-    <!-- Facebook Meta Tags -->
+    
+    <!-- Open Graph -->
     <meta property="og:url" content="https://www.bencritt.net/projects/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Ben Crittenden's Software Projects">
     <meta property="og:description" content="Explore various software projects by Ben Crittenden including a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.">
-    <meta property="og:image" content="https://i.imgur.com/g3CnrTi.png">
-    <!-- Twitter Meta Tags -->
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
+    <meta property="og:image:type" content="image/webp">
+    <meta property="og:image:alt" content="Ben Crittenden's Projects Preview Image">
+    <meta property="og:site_name" content="Ben Crittenden">
+      
+    <!--
+    Once I have a specific image meant for this, I can use these optimized dimensions.
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    -->
+    
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/">
+    <meta name="twitter:domain" content="bencritt.net">
+    <meta name="twitter:url" content="https://www.bencritt.net/projects/">
     <meta name="twitter:title" content="Ben Crittenden's Software Projects">
     <meta name="twitter:description" content="Explore various software projects by Ben Crittenden including a Monte Carlo simulator, a QR code generator, a weather app, and a grade level text analyzer.">
-    <meta name="twitter:image" content="https://i.imgur.com/g3CnrTi.png">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta name="twitter:creator" content="@bencritt89"/>
     {% endblock meta_tags %}
     <!-- Custom styles for the page. -->
@@ -276,28 +287,9 @@
     <center><h1>Ben Crittenden's Projects</h1></center>
     <!-- Each container represents a project with its description and an image. -->
     <div class="container px-5 my-5">
+      <div class="container px-5 my-5">
         <div class="row gx-5 align-items-center">
-            <div class="col-lg-6">
-              <!-- Project link and image. -->
-                <div class="text-center">
-                  <a href="/projects/monte-carlo-simulator/" style="text-decoration: none; color: inherit;">
-                    <h2 class="fw-bolder">Monte Carlo Simulator</h2>
-                  </a>
-                  <a href="/projects/monte-carlo-simulator/">
-                    <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/monte-carlo-simulator.webp' %}" alt="Monte Carlo Simulator" />
-                  </a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <br>
-                <p class="lead fw-normal text-muted mb-0">Unlock the power of probability analysis with the Monte Carlo Simulator, an app that allows users to perform simple probability simulations and generate visual representations of potential outcomes based on input ranges and target values. Ideal for data analysts, financial planners, and decision-makers, the Monte Carlo Simulator provides valuable insights into risk and uncertainty. With its user-friendly interface, you can quickly set up single or dual simulations by defining parameters such as the number of simulations, minimum and maximum values, and target values. The app then generates probability graphs and saves them as PDFs, making it easy to visualize and share the results.</p>
-            </div>
-        </div>
-    </div>
-    <br>
-    <div class="container px-5 my-5">
-        <div class="row gx-5 align-items-center">
-          <div class="col-lg-6 order-lg-last">
+          <div class="col-lg-6">
             <!-- Project link and image. -->
               <div class="text-center">
                 <a href="/projects/qr-code-generator/" style="text-decoration: none; color: inherit;">
@@ -313,6 +305,25 @@
               <!-- Project description. -->
               <p class="lead fw-normal text-muted mb-0">Easily generate QR codes with the user-friendly QR Code Generator. Whether you need a QR code for a website link, contact information, or any text, this app provides a fast and efficient solution. Simply enter your desired data, and with one click, you'll have a high-quality QR code ready to download and use. Perfect for teachers, businesses, marketers, event organizers, and individuals, the QR Code Generator supports a wide range of applications, enhancing your promotional materials, digital campaigns, or personal projects with a QR code.</p>
           </div>
+        </div>
+    </div>
+    <br>
+        <div class="row gx-5 align-items-center">
+            <div class="col-lg-6 order-lg-last">
+              <!-- Project link and image. -->
+                <div class="text-center">
+                  <a href="/projects/monte-carlo-simulator/" style="text-decoration: none; color: inherit;">
+                    <h2 class="fw-bolder">Monte Carlo Simulator</h2>
+                  </a>
+                  <a href="/projects/monte-carlo-simulator/">
+                    <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/monte-carlo-simulator.webp' %}" alt="Monte Carlo Simulator" />
+                  </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <br>
+                <p class="lead fw-normal text-muted mb-0">Unlock the power of probability analysis with the Monte Carlo Simulator, an app that allows users to perform simple probability simulations and generate visual representations of potential outcomes based on input ranges and target values. Ideal for data analysts, financial planners, and decision-makers, the Monte Carlo Simulator provides valuable insights into risk and uncertainty. With its user-friendly interface, you can quickly set up single or dual simulations by defining parameters such as the number of simulations, minimum and maximum values, and target values. The app then generates probability graphs and saves them as PDFs, making it easy to visualize and share the results.</p>
+            </div>
         </div>
     </div>
     <br>
