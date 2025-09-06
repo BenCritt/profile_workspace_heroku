@@ -23,7 +23,7 @@ from tinycss2 import serialize
 
 # ───────────────────────── config ──────────────────────────
 USER_AGENT   = "Font Inspector by Ben Crittenden (+https://www.bencritt.net)"
-HTTP_TIMEOUT = 15
+HTTP_TIMEOUT = 20
 CSV_PATH     = Path("font_report.csv")
 
 # silence cssutils chatter
