@@ -20,7 +20,7 @@ from django.http import FileResponse, JsonResponse
 # =============================================================================
 BG_WORKERS = 25                 # concurrent background jobs per process
 URL_WORKERS = 1                 # concurrent URLs per job (use 1 to favor user concurrency)
-SITEMAP_LIMIT = 250             # cap URLs parsed from sitemap/index
+SITEMAP_LIMIT = 500             # cap URLs parsed from sitemap/index
 DOWNLOAD_TTL = 30 * 60          # seconds to keep CSV before cleanup
 MAX_CONCURRENT_DOWNLOADS = 25   # cap simultaneous CSV downloads per process
 POOL_IDLE_REAP = 120            # seconds of HTTP-pool inactivity before closing
