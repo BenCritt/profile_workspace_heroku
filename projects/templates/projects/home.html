@@ -4,108 +4,51 @@
     {% block scripts %}
     <!-- Structured data (i.e. schema) using JSON-LD to provide information about the page's subject (Ben Crittenden) to search engines. -->
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "ProfilePage",
-        "url": "https://www.bencritt.net",
-        "description": "Professional profile of Ben Crittenden",
-        "mainEntity": {
-          "@type": "Person",
-          "@id": "https://www.bencritt.net/#ben-crittenden",
-          "givenName": "Benjamin",
-          "alternateName": "Ben",
-          "additionalName": "Michael",
-          "familyName": "Crittenden",
-          "nationality": {
-            "@type": "Country",
-            "name": "United States"
-          },
-          "alumniOf": {
-            "@type": "CollegeOrUniversity",
-            "name": "University of Wisconsin–Madison",
-            "url": "https://www.wisc.edu/"
-          },
-          "jobTitle": "Technical Support Manager",
-          "worksFor": {
-            "@type": "Organization",
-            "name": "Foremost Media, Inc.",
-            "url": "https://www.foremostmedia.com/"
-          },
-          "knowsAbout": [
-            "System Administration",
-            "Information Technology",
-            "Technical Support Management",
-            "Web Development",
-            "Search Engine Optimization",
-            "Project Management"
-          ],
-          "url": "https://www.bencritt.net",
-          "sameAs": [
-            "https://www.linkedin.com/in/bencritt/",
-            "https://badgerbridge.com/user/26380",
-            "https://github.com/BenCritt",
-            "https://stackoverflow.com/users/21613304/ben-crittenden",
-            "https://www.goodreads.com/bencritt",
-            "https://steamcommunity.com/id/bencritt/"
-          ]
-        }
-      }      
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Who is Ben Crittenden?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Ben Crittenden is an IT professional with a passion for IT services, software development, and data analytics. He enjoys using Python to build innovative projects and enhance productivity, and his experience spans both the IT industry and secondary education."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is Ben's professional background?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Currently the Technical Support Manager at Foremost Media, Inc., Ben brings extensive experience in IT support and managed services. He has also worked in IT support at the University of Wisconsin–Madison and has spent several years in secondary education, which has helped him develop strong organizational and communication skills."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What technologies and skills does Ben specialize in?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Ben is proficient in technical support, IT services, and management, with a particular focus on web development and software development. His technical toolkit includes Python, Django, HTML, CSS, JavaScript, as well as skills in SEO, data analytics, and project management."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What can I find on this website?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "This website serves as Ben Crittenden’s professional profile. It showcases his projects, technical expertise, and credentials. Visitors can view his résumé, credentials, and transcripts, and explore GitHub repositories that include the source code for his various projects."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How can I contact Ben Crittenden?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "You can reach out to Ben via email and his LinkedIn profile, both of which are linked in the footer."
-            }
-          }
-        ]
-      }
-    </script>
-    <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "url": "https://www.bencritt.net",
-      "name": "Ben Crittenden - IT Professional",
-      "description": "Professional profile of Ben Crittenden, showcasing skills in IT Services, Software Development, and Data Analytics."
+      "@type": "ProfilePage",
+      "@id": "https://www.bencritt.net/#profile",
+      "url": "https://www.bencritt.net/",
+      "name": "Ben Crittenden – IT Professional",
+      "description": "Professional profile of Ben Crittenden",
+      "mainEntity": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#ben-crittenden",
+        "name": "Ben Crittenden",
+        "givenName": "Benjamin",
+        "alternateName": "Ben",
+        "additionalName": "Michael",
+        "familyName": "Crittenden",
+        "jobTitle": "Technical Support Manager",
+        "image": "https://www.bencritt.net/static/img/ben-crittenden.webp",
+        "url": "https://www.bencritt.net/",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Foremost Media, Inc.",
+          "url": "https://www.foremostmedia.com/"
+        },
+        "alumniOf": {
+          "@type": "CollegeOrUniversity",
+          "name": "University of Wisconsin–Madison",
+          "url": "https://www.wisc.edu/"
+        },
+        "knowsAbout": [
+          "System Administration",
+          "Information Technology",
+          "Technical Support Management",
+          "Web Development",
+          "Search Engine Optimization",
+          "Project Management"
+        ],
+        "sameAs": [
+          "https://www.linkedin.com/in/bencritt/",
+          "https://github.com/BenCritt",
+          "https://stackoverflow.com/users/21613304/ben-crittenden",
+          "https://badgerbridge.com/user/26380",
+          "https://www.goodreads.com/bencritt",
+          "https://steamcommunity.com/id/bencritt/"
+        ]
+      }
     }
     </script>
     {% endblock scripts %}    
@@ -177,7 +120,7 @@
     <meta name="keywords"             content="Ben Crittenden, Crittenden, Professional, Profile, Portfolio, IT Services, Software Development, Data Analytics, Technical Support, Web Development, Project Management">
     
     <!-- Open Graph -->
-    <meta property="og:url"           content="https://www.bencritt.net">
+    <meta property="og:url"           content="https://www.bencritt.net/">
     <meta property="og:type"          content="website">
     <meta property="og:title"         content="Ben Crittenden - IT Professional">
     <meta property="og:description"   content="This is the professional profile of Ben Crittenden.  On this website, you will find web appllications and documentation showcasing Ben Crittenden's skills and qualifications.">
@@ -189,7 +132,7 @@
     <!-- Twitter -->
     <meta name="twitter:card"         content="summary_large_image">
     <meta property="twitter:domain"   content="bencritt.net">
-    <meta property="twitter:url"      content="https://www.bencritt.net">
+    <meta property="twitter:url"      content="https://www.bencritt.net/">
     <meta name="twitter:title"        content="Ben Crittenden - IT Professional">
     <meta name="twitter:description"  content="This is the professional profile of Ben Crittenden.  On this website, you will find web appllications and documentation showcasing Ben Crittenden's skills and qualifications.">
     <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
@@ -197,7 +140,7 @@
     {% endblock meta_tags %}
     {% block link_tags %}
     <!-- Canonical URL to prevent duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net">
+    <link rel="canonical" href="https://www.bencritt.net/">
     {% endblock link_tags %}
     {% block title %}Ben Crittenden | IT Professional{% endblock title %}
     <!-- This begins the contents that are unique to the body of this page. -->
