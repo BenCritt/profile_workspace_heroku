@@ -74,6 +74,21 @@
     {% endblock link_tags %}
     <title>{% block title %}{% endblock title %}</title>
     {% block styles %}
+    <style>
+      /* Generic inline content links */
+      .content-link {
+        color: inherit;                /* match surrounding text color */
+        text-decoration: none;         /* no default underline */
+        border-bottom: 1px dotted currentColor; /* subtle “designer” underline */
+        transition: border-color 0.15s ease, color 0.15s ease;
+      }
+
+      .content-link:hover,
+      .content-link:focus {
+        border-bottom-style: solid;    /* stronger underline on hover/focus */
+        text-decoration: none;         /* keep decoration consistent */
+      }
+    </style>
     {% endblock styles %}
     {% block scripts %}
     {% endblock scripts %}
