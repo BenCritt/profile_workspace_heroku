@@ -251,6 +251,7 @@
         {% endblock meta_tags %}
         <!-- Custom styles for the page. -->
         {% block styles %}
+            {{ block.super }}
             <style>
                       .container h2 {
                           text-align: center;
@@ -286,7 +287,7 @@
         {% block content %}
             <h1 class="text-center">Ben Crittenden's Projects</h1>
             <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;"></div>
+            <div class = "container" style = "width: 100%; max-width: 550px;"></div>
                 <section class="mb-4 text-center">
                     <h2 class="h4">About Ben Crittenden</h2>
                     <p class="lead fw-normal text-muted mb-0">
