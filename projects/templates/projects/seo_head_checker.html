@@ -71,6 +71,9 @@
     <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp">
     <meta name="twitter:creator"     content="@bencritt89">
     {% endblock meta_tags %}
+    {% block styles %}
+    {{ block.super }}
+    {% endblock styles %}
     {% block link_tags %}
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/seo-head-checker/">

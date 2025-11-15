@@ -30,13 +30,14 @@
       
     </script>
     {% endblock scripts %}    
-    {% block styles %}    
-    <!-- This prevents the error message from displaying as a bullet point. -->
-    <style>
-      .errorlist {
-      list-style: none; /* Removes bullet points from error messages */
-      }
-    </style>
+    {% block styles %}  
+    {{ block.super }}  
+      <!-- This prevents the error message from displaying as a bullet point. -->
+      <style>
+        .errorlist {
+        list-style: none; /* Removes bullet points from error messages */
+        }
+      </style>
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->

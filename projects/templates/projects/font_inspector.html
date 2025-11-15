@@ -184,11 +184,12 @@ document.addEventListener('DOMContentLoaded', function () {
 {% endblock scripts %}
 
 {% block styles %}
-<style>
-@media (prefers-reduced-motion: reduce) {
-  .progress-bar-animated { animation: none; }
-}
-</style>
+{{ block.super }}
+  <style>
+  @media (prefers-reduced-motion: reduce) {
+    .progress-bar-animated { animation: none; }
+  }
+  </style>
 {% endblock styles %}
 
 {% block meta_tags %}
