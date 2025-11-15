@@ -3,3 +3,5 @@
 /staticfiles/
 # Environment variables file
 .env
+# VS Code
+.vscode/
