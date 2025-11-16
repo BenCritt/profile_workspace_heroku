@@ -1,0 +1,59 @@
+.icon-container {
+    display: flex;
+    justify-content: center; /* Center the icons horizontally */
+    gap: 20px; /* Add space between the icons */
+}
+
+.icon-container a {
+    display: inline-block;
+}
+
+.content-container {
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text color */
+    padding: 40px 20px;
+    max-width: 750px;
+    margin: 0 auto;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
+}
+
+.content-container section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background-color: #1c1c1c; /* Slightly lighter section background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Section shadow */
+}
+
+.content-container h2 {
+    color: #ffffff; /* Bright white headings */
+    font-family: 'Arial', sans-serif;
+    border-bottom: 2px solid #1e90ff; /* Blue underline for headings */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.content-container p {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #d3d3d3; /* Softer light color for body text */
+}
+
+.content-container strong {
+    color: #ffffff; /* Emphasized text in strong white */
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        padding: 20px;
+    }
+
+    .content-container h2 {
+        font-size: 1.5em;
+    }
+
+    .content-container p {
+        font-size: 1em;
+    }
+}

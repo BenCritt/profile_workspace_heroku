@@ -1,62 +1,6 @@
 {% extends "projects/base.html" %}
 {% load static %}
   {% block styles %}
-  <style>
-    .btn-equal {
-      height: 80px !important;               /* Fixed height for consistent sizing */
-      width: 160px !important;               /* Fixed width for consistent sizing */
-      display: flex !important;              /* Force flex display */
-      align-items: center !important;        /* Force vertical centering */
-      justify-content: center !important;    /* Force horizontal centering */
-      text-align: center !important;         /* Center text for multiline buttons */
-      padding-top: 20px !important;          /* Top padding */
-      padding-bottom: 20px !important;       /* Bottom padding */
-      box-sizing: border-box !important;     /* Include padding in the total height */
-      line-height: 1 !important;             /* Normalize line-height */
-    }
-  
-    /* Responsive image styling */
-    .responsive-img {
-      width: auto !important;
-      max-width: 100% !important;           /* Ensure image doesn't overflow */
-      height: auto !important;
-      padding-top: 10px !important;
-      padding-bottom: 10px !important;
-    }
-  
-    /* On mobile devices, adjust the main container height and padding */
-    @media (max-width: 500px) {
-      main.container,
-      main.container-fluid {
-        height: auto !important;
-        width: 100% !important;             /* Ensure full width on small screens */
-        padding-top: 20px !important;
-        padding-bottom: 20px !important;
-        padding-left: 5px !important;       /* Reduced padding for small screens */
-        padding-right: 5px !important;      /* Reduced padding for small screens */
-      }
-  
-      .container {
-        max-width: 100% !important;         /* Ensure container doesn't exceed screen width */
-      }
-    }
-  
-    /* Override fixed button width on very small screens */
-    @media (max-width: 576px) {
-      .btn-equal {
-        width: 100% !important;             /* Full width buttons on small screens */
-        padding-left: 10px !important;      /* Adjust padding for better fit */
-        padding-right: 10px !important;
-      }
-    }
-  
-    /* Only apply max-width to nav row on larger screens */
-    @media (min-width: 768px) {
-      .nav-row {
-        max-width: 500px;
-      }
-    }
-  </style>
   {% endblock styles %}
   {% block scripts %}{% endblock scripts %}
   {% block meta_tags %}
@@ -65,7 +9,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
   {% endblock meta_tags %}
-  {% block link_tags %}{% endblock link_tags %}
+  {% block link_tags %}
+  <!-- Other CSS styling and layout. -->
+  <link href="{% static 'template-css/404-css.css' %}" rel="stylesheet">
+  {% endblock link_tags %}
   {% block title %}404 | Page Not Found{% endblock title %}
 {% block content %}
 <main class="container-fluid d-flex flex-column justify-content-center align-items-center vh-100 text-center px-3" role="main" aria-label="404: Page Not Found">
