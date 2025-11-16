@@ -1,0 +1,20 @@
+.container h2 {
+    text-align: center;
+}
+
+.container .col-lg-6 h2 {
+    margin: 0 auto;
+}
+
+.container .col-lg-6.order-lg-last {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}

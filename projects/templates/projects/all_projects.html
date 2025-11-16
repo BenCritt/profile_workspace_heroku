@@ -251,36 +251,11 @@
         {% endblock meta_tags %}
         <!-- Custom styles for the page. -->
         {% block styles %}
-            {{ block.super }}
-            <style>
-                      .container h2 {
-                          text-align: center;
-                        }
-                      .container .col-lg-6 h2 {
-                          text-align: center;
-                          margin: 0 auto;
-                        }
-                      .container .col-lg-6.order-lg-last {
-                          display: flex;
-                          flex-direction: column;
-                          justify-content: center;
-                        }
-                        .container img {
-                          max-width: 100%;
-                          height: auto;
-                        }
-                      .container .col-lg-6.order-lg-last h2 {
-                          text-align: center;
-                          margin: 0 auto;
-                        }
-                      .container img {
-                          display: block;
-                          margin: 0 auto;
-                        }
-            </style>
         {% endblock styles %}
         {% block link_tags %}
             <link rel="canonical" href="https://www.bencritt.net/projects/">
+            <!-- Other CSS styling and layout. -->
+            <link href="{% static 'template-css/all-projects-css.css' %}" rel="stylesheet">
         {% endblock link_tags %}
         {% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
         <!-- This begins the contents that are unique to this page. -->
