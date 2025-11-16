@@ -1,0 +1,8 @@
+.centered-content {
+    text-align: center; /* Centers the content */
+}
+
+#download_link[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: .65;
+}

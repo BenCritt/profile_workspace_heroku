@@ -1,44 +1,7 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
+{% load static %}
       {% block styles %}
-      <!-- This is table formatting for when the weather data is displayed to the user. -->
-      <style>
-        .table td {
-        vertical-align: middle;   /* Align table data vertically in the middle */
-        caption-side: top;        /* Position table captions at the top */
-        text-align: center;       /* Center text alignment for table data */
-      }
-        .table th {
-          text-align: center;     /* Center text alignment for table headers */
-      }
-      .card {
-        margin-bottom: 20px;
-      }
-      .card-header {
-        font-size: 1.25rem;
-        font-weight: bold;
-        background-color: #007bff;
-        color: white;
-      }
-      .card-body p {
-        margin: 5px 0;
-      }
-      hr {
-        border: 0;
-        height: 1px;
-        background-color: #ddd;
-      }
-      .accordion-body p {
-        margin-bottom: 10px;
-      }
-      .weather-icon {
-        width: 50px;
-        margin-right: 15px;
-      }
-      .accordion-collapse {
-        transition: max-height 0.3s ease-out;
-      }
-      </style>
       {% endblock styles %}
       {% block meta_tags %}
       <!-- Meta tags providing essential information about the page to search engines. -->
@@ -47,6 +10,10 @@
       <meta property="og:title"         content="Weather Forecast App by Ben Crittenden" />
       <meta property="og:description"   content="This page displays the weather results after the user enters their ZIP code." />
       {% endblock meta_tags %}
+      {% block link_tags %}
+      <!-- Other CSS styling and layout. -->
+      <link href="{% static 'template-css/weather-results-css.css' %}" rel="stylesheet">
+      {% endblock link_tags %}
       {% block title %}Weather Forecast{% endblock title %}
       <!-- This begins the contents that are unique to this page. -->
       {% block content %}

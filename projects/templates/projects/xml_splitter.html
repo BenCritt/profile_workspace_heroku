@@ -1,4 +1,5 @@
 {% extends "projects/base.html" %}
+{% load static %}
 {% block scripts %}
 <!-- Schema for SEO -->
 <script type="application/ld+json">
@@ -25,10 +26,8 @@
   }
   </script>
   
-
 {% endblock scripts %}    
 {% block styles %} 
-{{ block.super }}
 {% endblock styles %}
 {% block meta_tags %}
 <!-- Prevent browser caching to avoid stale CSRF tokens -->

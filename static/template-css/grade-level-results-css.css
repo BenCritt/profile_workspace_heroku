@@ -46,7 +46,7 @@ ul {
 }
 
 /* Media Query for Smaller Screens */
-@media (max-width: 600px) {
+@media (max-width: 500px) {
     .table th,
     .table td {
         font-size: 12px; /* Smaller font size for better fit */

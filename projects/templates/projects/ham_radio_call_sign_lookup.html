@@ -33,15 +33,6 @@
 </script>
 {% endblock scripts %}  
 {% block styles %}
-{{ block.super }}
-  <style>
-    /* removes the bullet in Django’s <ul class="errorlist"><li>…</li></ul> */
-    ul.errorlist {
-        list-style: none;      /* no bullet */
-        margin: 0;             /* optional: pull it tight to the field */
-        padding: 0;
-    }
-  </style>
 {% endblock styles %}
 {% block meta_tags %}
 <!-- Prevent browser caching to avoid stale CSRF tokens -->
@@ -83,6 +74,8 @@ Once I have a specific image meant for this, I can use these optimized dimension
 {% block link_tags %}
 <!-- Canonical link to help avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
+<!-- Other CSS styling and layout. -->
+<link href="{% static 'template-css/ham-radio-call-sign-lookup-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 {% block title %}Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs{% endblock title %}
 {% block content %}

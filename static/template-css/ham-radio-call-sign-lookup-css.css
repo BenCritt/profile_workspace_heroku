@@ -1,0 +1,6 @@
+/* removes the bullet in Django''s <ul class="errorlist"><li>.</li></ul> */
+ul.errorlist {
+    list-style: none;      /* no bullet */
+    margin: 0;             /* optional: pull it tight to the field */
+    padding: 0;
+}

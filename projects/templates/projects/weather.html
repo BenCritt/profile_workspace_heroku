@@ -1,5 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
+{% load static %}
     {% block scripts %}
     <!-- This is schema to help with SEO. -->
     <script type="application/ld+json">
@@ -31,13 +32,6 @@
     </script>
     {% endblock scripts %}    
     {% block styles %}  
-    {{ block.super }}  
-      <!-- This prevents the error message from displaying as a bullet point. -->
-      <style>
-        .errorlist {
-        list-style: none; /* Removes bullet points from error messages */
-        }
-      </style>
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
@@ -77,6 +71,8 @@
     {% block link_tags %}
     <!-- Canonical link to help avoid duplicate content issues. -->
     <link rel="canonical" href="https://www.bencritt.net/projects/weather/">
+    <!-- Other CSS styling and layout. -->
+    <link href="{% static 'template-css/weather-css.css' %}" rel="stylesheet">
     {% endblock link_tags %}
     {% block title %}Weather Forecast App | Accurate Weather by ZIP Code{% endblock title %}
     <!-- This begins the contents that are unique to this page. -->

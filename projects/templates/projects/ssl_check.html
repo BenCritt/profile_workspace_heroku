@@ -1,5 +1,6 @@
 <!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
+{% load static %}
     {% block scripts %}
     <!-- Schema for SEO -->
     <script type="application/ld+json">
@@ -27,59 +28,8 @@
         }
     </script>
     {% endblock scripts %}    
-    {% block styles %}
-    {{ block.super }}
-        <!-- Custom CSS styles for the SSL Verification Tool -->
-        <style>
-            .table-container {
-                width: 100%;    /* Ensures the container takes the full width */
-                overflow-x: auto; /* Ensures no horizontal overflow on smaller screens */
-            }
-            .table {
-                width: 100%;    /* Table takes the full width of the container */
-                border-collapse: collapse;  /* Merges table borders */
-                margin-top: 20px;   /* Adds space above the table */
-                table-layout: auto; /* Allow table to adjust automatically */
-            }
-            .table th {
-                padding: 8px;  /* Adjusted padding for better readability */
-                text-align: center;   /* Aligns text to the center for table headers */
-                border: 1px solid #ddd; /* Adds border around cells */
-                vertical-align: middle; /* Aligns content vertically in the middle */
-                word-break: break-word; /* Break long words to fit within the cell */
-                background-color: #f2f2f2;  /* Sets background color for table headers */
-            }
-            .table td {
-                padding: 8px;  /* Adjusted padding for better readability */
-                text-align: left;   /* Aligns text to the left for table data cells */
-                border: 1px solid #ddd; /* Adds border around cells */
-                vertical-align: middle; /* Aligns content vertically in the middle */
-                word-break: break-word; /* Break long words to fit within the cell */
-            }
-            .table tr:nth-child(even) {
-                background-color: #f9f9f9;  /* Alternates row colors for readability */
-            }
-            .table tr:hover {
-                background-color: #f1f1f1;  /* Changes background on hover for better interactivity */
-            }
-            ul {
-                margin: 0;  /* Removes margin */
-                padding-left: 20px; /* Adds padding to the left */
-                list-style-type: none; /* Removes bullet points from the list */
-            }
-            .centered-content {
-                text-align: center; /* Centers the content */
-            }
-            
-            /* Media Query for Smaller Screens */
-            @media (max-width: 600px) {
-                .table th, .table td {
-                    font-size: 12px; /* Smaller font size for better fit */
-                    padding: 6px; /* Reduced padding */
-                }
-            }        
-        </style>        
-        {% endblock styles %}
+    {% block styles %}      
+    {% endblock styles %}
         {% block meta_tags %}
             <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
             <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
@@ -118,6 +68,8 @@
         {% block link_tags %}
             <!-- Canonical link to help avoid duplicate content issues. -->
             <link rel="canonical" href="https://www.bencritt.net/projects/ssl-check/">
+            <!-- Other CSS styling and layout. -->
+            <link href="{% static 'template-css/ssl-check-css.css' %}" rel="stylesheet">
         {% endblock link_tags %}
         {% block title %}SSL Verification Tool | Check SSL Certificate Validity and Security Online{% endblock title %}
         <!-- This begins the contents that are unique to this page. -->

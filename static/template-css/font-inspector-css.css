@@ -1,3 +1,5 @@
-  @media (prefers-reduced-motion: reduce) {
-    .progress-bar-animated { animation: none; }
-  }
+@media (prefers-reduced-motion: reduce) {
+    .progress-bar-animated {
+        animation: none;
+    }
+}

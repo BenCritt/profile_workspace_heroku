@@ -1,0 +1,43 @@
+.table td {
+    vertical-align: middle;   /* Align table data vertically in the middle */
+    caption-side: top;        /* Position table captions at the top */
+    text-align: center;       /* Center text alignment for table data */
+}
+
+.table th {
+    text-align: center;     /* Center text alignment for table headers */
+}
+
+.card {
+    margin-bottom: 20px;
+}
+
+.card-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+}
+
+.card-body p {
+    margin: 5px 0;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.accordion-body p {
+    margin-bottom: 10px;
+}
+
+.weather-icon {
+    width: 50px;
+    margin-right: 15px;
+}
+
+.accordion-collapse {
+    transition: max-height 0.3s ease-out;
+}
