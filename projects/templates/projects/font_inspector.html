@@ -184,12 +184,6 @@ document.addEventListener('DOMContentLoaded', function () {
 {% endblock scripts %}
 
 {% block styles %}
-{{ block.super }}
-  <style>
-  @media (prefers-reduced-motion: reduce) {
-    .progress-bar-animated { animation: none; }
-  }
-  </style>
 {% endblock styles %}
 
 {% block meta_tags %}
@@ -232,6 +226,8 @@ Once I have a specific image meant for this, I can use these optimized dimension
 {% block link_tags %}
 <!-- Canonical link to help avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
+<!-- Other CSS styling and layout. -->
+<link href="{% static 'template-css/font-inspector-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 {% block title %}Font Inspector | Detect Web Fonts, License Requirements, & Sources{% endblock title %}
 {% block content %}
