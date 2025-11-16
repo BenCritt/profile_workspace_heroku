@@ -27,14 +27,18 @@
         }
         </script>
     {% endblock scripts %}    
-    {% block styles %} 
-    <!-- Custom CSS styles for the table. -->
-    <style>
-        .centered-content {
-            text-align: center; /* Centers the content */
-        }
-        #download_link[aria-disabled="true"] { pointer-events: none; opacity: .65; }
-    </style>
+    {% block styles %}
+        {{ block.super }}
+        <!-- Custom CSS styles for the table. -->
+        <style>
+            .centered-content {
+                text-align: center; /* Centers the content */
+            }
+            #download_link[aria-disabled="true"] {
+                pointer-events: none;
+                opacity: .65;
+            }
+        </style>
     {% endblock styles %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
@@ -126,7 +130,7 @@
             </svg>
             </a>
             <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;"></div>
+            <div class = "container" style = "width: 100%; max-width: 750px;">
             <p class="mt-3 text-muted small">
                 This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
             </p>
