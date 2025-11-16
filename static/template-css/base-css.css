@@ -1,0 +1,69 @@
+/* Generic inline content links */
+.content-link {
+    color: inherit;                /* match surrounding text color */
+    text-decoration: none;         /* no default underline */
+    border-bottom: 1px dotted currentColor; /* subtle "designer" underline */
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.content-link:hover,
+.content-link:focus {
+    border-bottom-style: solid;    /* stronger underline on hover/focus */
+    text-decoration: none;         /* keep decoration consistent */
+}
+
+body {
+    padding-top: 100px; /* Adjust based on your navbar height */
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-top: 100px; /* Adjust if the navbar height changes on smaller screens */
+    }
+}
+
+main {
+    padding-bottom: 150px; /* Adjust based on your footer height */
+}
+
+/* Remove all padding and margins when inside an iframe */
+body.in-iframe {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+}
+
+main.in-iframe {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+@media (min-width: 768px) {
+    .non-iframe-cards {
+        display: none !important; /* Hide non-iframe cards on larger screens */
+    }
+
+    .iframe-cards {
+        display: flex !important; /* Show iframe cards on larger screens */
+    }
+}
+
+@media (max-width: 767px) {
+    .iframe-cards {
+        display: none !important; /* Hide iframe cards on smaller screens */
+    }
+
+    .non-iframe-cards {
+        display: flex !important; /* Show non-iframe cards on smaller screens */
+    }
+}
+
+footer {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    margin: 0 auto;
+    padding: 1rem 0;
+    position: fixed;
+    bottom: 0;
+    border-top: 1px solid #ccc;
+}
