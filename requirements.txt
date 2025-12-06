@@ -13,7 +13,7 @@ tzdata==2025.1
 whitenoise==6.9.0
 contourpy==1.3.1
 cycler==0.12.1
-fonttools==4.60.2
+fonttools==4.56.0
 kiwisolver==1.4.8
 matplotlib==3.10.0
 numpy==2.2.3
