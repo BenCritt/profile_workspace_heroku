@@ -29,8 +29,21 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
-X_FRAME_OPTIONS = "ALLOWALL"  # To allow embedding for iframes everywhere
+ALLOWED_HOSTS = [
+    "bencritt.net",
+    "www.bencritt.net",
+    "bencritt-14166e04de86.herokuapp.com"
+]
+
+# To allow embedding for iframes everywhere
+X_FRAME_OPTIONS = "ALLOWALL" 
+
+# Tells Django to trust the 'X-Forwarded-Proto' header set by Heroku's load balancer
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Ensure cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 
 CSRF_TRUSTED_ORIGINS = [
