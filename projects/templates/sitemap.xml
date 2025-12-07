@@ -4,7 +4,7 @@
     <!-- Loop through each URL in the provided 'urlset'. -->
     {% for url in urlset %}
     <url>
-        <!-- Location element indicating the URL of the page. Slice is used to remove the first 7 characters ('https://'). -->
+        <!-- The URL of the web page. -->
         <loc>{{ url.location }}</loc>
         <!-- Change frequency element indicating how often the content at the URL is likely to change. -->
         <changefreq>{{ url.changefreq }}</changefreq>

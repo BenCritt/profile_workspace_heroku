@@ -12,7 +12,12 @@ class RootSitemap(Sitemap):
         return ["projects:home"]
 
     def location(self, item):
-        return reverse(item)
+        # Get the path.
+        path = reverse(item)
+        # Remove the trailing slash.
+        if path == "/":
+            return ""
+        return path
 
 
 class StaticViewSitemap(Sitemap):
