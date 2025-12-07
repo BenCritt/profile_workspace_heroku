@@ -52,9 +52,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://bencrittenden.com",
     "https://www.bencrittenden.com",
     "https://bencritt-14166e04de86.herokuapp.com",
-    "https://www.betncritt.com",
+    "https://bencritt.com",
+    "https://www.bencritt.com",
     "https://bencritt.org",
-    "https://www.betncritt.org",
+    "https://www.bencritt.org",
     "opaque-goldfish-bxnapirfpwq30j0v5z7f7gqc.herokudns.com",
     "angular-skunk-ee1kbbd962x9npzz6gjgrxk7.herokudns.com",
     "bencritt.net",
@@ -71,6 +72,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
 ]
 
 MIDDLEWARE = [
