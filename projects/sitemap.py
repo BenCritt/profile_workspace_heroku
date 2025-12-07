@@ -3,6 +3,7 @@ from django.contrib.sitemaps import Sitemap
 
 
 class RootSitemap(Sitemap):
+    protocol = "https"
     priority = 1.0
     changefreq = "daily"
 
@@ -15,6 +16,7 @@ class RootSitemap(Sitemap):
 
 
 class StaticViewSitemap(Sitemap):
+    protocol = "https"
     priority = 0.5
     changefreq = "weekly"
 
