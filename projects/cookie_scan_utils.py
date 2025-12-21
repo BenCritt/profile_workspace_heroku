@@ -422,14 +422,11 @@ def to_ui_cookie(pc: ParsedCookie) -> Dict[str, Any]:
 # Playwright launch (Heroku-safe)
 # ----------------------------
 
-def _launch_chromium(pw, headless: bool) -> Any:
+def _launch_chromium(pw, headless: bool):
     """
-    Supports Heroku buildpack installs via CHROMIUM_PATH/PLAYWRIGHT_BROWSERS_PATH,
-    while still working locally.
+    Heroku buildpack: rely on PLAYWRIGHT_BROWSERS_PATH (no executable_path hardcoding).
+    Local dev: Playwright-managed browsers.
     """
-    # If you set CHROMIUM_PATH in Heroku config, Playwright can use it.
-    executable_path = os.getenv("CHROMIUM_PATH") or os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
-
     args = [
         "--disable-dev-shm-usage",
         "--no-sandbox",
@@ -444,8 +441,7 @@ def _launch_chromium(pw, headless: bool) -> Any:
         "--mute-audio",
     ]
 
-    if executable_path:
-        return pw.chromium.launch(headless=headless, executable_path=executable_path, args=args)
+    # If you set PLAYWRIGHT_BROWSERS_PATH, Playwright will find chromium automatically.
     return pw.chromium.launch(headless=headless, args=args)
 
 
