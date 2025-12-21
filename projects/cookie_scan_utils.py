@@ -144,38 +144,41 @@ def infer_cookie_type_and_purpose(name: str) -> Tuple[str, str]:
     return "Unknown", "Purpose not identified."
 
 
-def _launch_chromium(p, *, headless: bool) -> Any:
+def _launch_chromium(p, *, headless: bool):
     """
-    Heroku-friendly + lower-memory launch:
+    Heroku-friendly launch:
     - If CHROMIUM_EXECUTABLE_PATH exists (buildpack), use it.
     - Otherwise, local dev: use Playwright-managed Chromium.
+    - Use flags that reduce RAM pressure on small dynos.
     """
     exe = (os.getenv("CHROMIUM_EXECUTABLE_PATH") or "").strip()
 
     args = [
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",  # use /tmp instead of /dev/shm
+        "--disable-dev-shm-usage",  # IMPORTANT: stops using /dev/shm (RAM) for Chromium
         "--disable-gpu",
         "--no-zygote",
         "--disable-extensions",
         "--disable-background-networking",
-        "--disable-default-apps",
-        "--disable-sync",
-        "--disable-translate",
-        "--metrics-recording-only",
-        "--mute-audio",
-        "--no-first-run",
-        "--disable-features=site-per-process,TranslateUI",
+        "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+        "--disable-breakpad",
     ]
 
     launch_kwargs: Dict[str, Any] = {
         "headless": bool(headless),
         "args": args,
-        "chromium_sandbox": False,
     }
+
     if exe:
         launch_kwargs["executable_path"] = exe
+
+    # Also encourage temp files to go to /tmp
+    # (Chromium/Playwright may respect these in subprocesses)
+    os.environ.setdefault("TMPDIR", "/tmp")
+    os.environ.setdefault("TEMP", "/tmp")
+    os.environ.setdefault("TMP", "/tmp")
 
     return p.chromium.launch(**launch_kwargs)
 
