@@ -76,7 +76,6 @@ def cookie_audit_start(request):
         }
     )
 
-
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_GET
@@ -84,27 +83,43 @@ def cookie_audit_status(request, task_id):
     from .forms import CookieAuditForm
     from . import cookie_scan_utils
     """
-    Polling endpoint for progress/status (supports queueing).
-    (This is basically what you already have, but kept here for completeness.)
+    Polling endpoint for progress/status.
+    Always returns JSON (even on server-side errors) so the frontend never crashes
+    trying to parse HTML as JSON.
     """
-    task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
-    if not task:
-        return JsonResponse({"state": "unknown"}, status=404)
+    try:
+        task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
 
-    state = task.get("state", "unknown")
-    progress = task.get("progress") or {}
-    queue_position = task.get("queue_position", None)
+        if not task:
+            return JsonResponse({"state": "unknown"}, status=404)
 
-    payload = {
-        "state": state,
-        "progress": progress,
-        "queue_position": queue_position,
-    }
+        if not isinstance(task, dict):
+            # Defensive: if cache ever returns something unexpected
+            return JsonResponse(
+                {"state": "error", "error": "Task data corrupted (non-dict)."},
+                status=500,
+            )
 
-    if state == "error":
-        payload["error"] = task.get("error") or "Unknown error"
+        payload = {
+            "state": task.get("state", "unknown"),
+            "progress": task.get("progress") or {},
+        }
 
-    return JsonResponse(payload)
+        if payload["state"] == "error":
+            payload["error"] = task.get("error") or "Unknown error"
+
+        # Include queue position if present (useful for UI)
+        if "queue_position" in task:
+            payload["queue_position"] = task.get("queue_position")
+
+        return JsonResponse(payload)
+
+    except Exception as exc:
+        # IMPORTANT: still return JSON
+        return JsonResponse(
+            {"state": "error", "error": f"{type(exc).__name__}: {exc}"},
+            status=500,
+        )
 
 
 @trim_memory_after

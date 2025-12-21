@@ -141,8 +141,19 @@
     try {
       const res = await fetch(statusUrl, { headers: { "Accept": "application/json" } });
       if (!res.ok) throw new Error("status not ok");
-      const data = await res.json();
+      const contentType = (res.headers.get("content-type") || "").toLowerCase();
+      const raw = await res.text();
 
+      let data = null;
+      if (contentType.includes("application/json")) {
+        try { data = JSON.parse(raw); } catch (e) {}
+      } else {
+        // Non-JSON response (likely Django/Heroku error page)
+      }
+
+      if (!data) {
+        throw new Error(raw.slice(0, 200) || "Non-JSON response from server");
+      }
       const state = data.state;
       const p = data.progress || {};
       const visited = p.visited || 0;
@@ -292,7 +303,20 @@
         }
       });
 
-      const data = await res.json();
+      const contentType = (res.headers.get("content-type") || "").toLowerCase();
+      const raw = await res.text();
+
+      let data = null;
+      if (contentType.includes("application/json")) {
+        try { data = JSON.parse(raw); } catch (e) {}
+      } else {
+        // Non-JSON response (likely Django/Heroku error page)
+      }
+
+      if (!data) {
+        throw new Error(raw.slice(0, 200) || "Non-JSON response from server");
+      }
+      
       if (!res.ok) throw new Error(data.error || "Invalid request");
 
       // Poll using URLs returned by server; task_id never enters the browser bar.
