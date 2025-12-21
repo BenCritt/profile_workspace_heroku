@@ -49,6 +49,9 @@ BLOCKED_RESOURCE_TYPES = {"image", "media", "font"}
 # Don’t let Set-Cookie capture grow without bound (memory safety)
 MAX_SET_COOKIE_OBSERVATIONS = 400
 
+# Truncate very long Set-Cookie lines to avoid storing large payloads
+MAX_SET_COOKIE_CHARS = 1024
+
 # Link extraction cap per page (memory/time safety)
 MAX_LINKS_PER_PAGE = 200
 
@@ -557,6 +560,7 @@ def scan_site_for_cookies(
 
     # set-cookie raw fallback
     set_cookie_observations: List[str] = []
+    set_cookie_seen: Set[str] = set()
 
     def emit_progress(current_url: str) -> None:
         if not progress_callback:
@@ -593,16 +597,30 @@ def scan_site_for_cookies(
             if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
                 return
             try:
-                sc = resp.header_value("set-cookie")
-                if not sc:
-                    return
-                # splitlines handles \r\n correctly
-                for line in sc.splitlines():
-                    line = (line or "").strip()
-                    if line:
-                        set_cookie_observations.append(line[:5000])
-                        if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
-                            break
+                header_val = resp.header_value("set-cookie")
+            except Exception:
+                return
+
+            if not header_val:
+                return
+
+            # splitlines handles \r\n correctly
+            try:
+                for raw_line in header_val.splitlines():
+                    line = (raw_line or "").strip()
+                    if not line:
+                        continue
+
+                    # Keep a short, deduped representation to avoid runaway memory
+                    short_line = line[:MAX_SET_COOKIE_CHARS]
+                    if short_line in set_cookie_seen:
+                        continue
+
+                    set_cookie_seen.add(short_line)
+                    set_cookie_observations.append(short_line)
+
+                    if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
+                        break
             except Exception:
                 return
 
