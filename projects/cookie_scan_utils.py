@@ -44,7 +44,7 @@ except Exception:
 # ----------------------------
 
 # On 512MB dynos, keep this conservative.
-DEFAULT_MAX_PAGES = 5
+DEFAULT_MAX_PAGES = 3
 DEFAULT_MAX_DEPTH = 1
 
 DEFAULT_WAIT_MS = 1200
@@ -56,7 +56,7 @@ DEFAULT_USER_AGENT = "Cookie Audit by Ben Crittenden (+https://www.bencritt.net)
 
 # Block heavy resource types to reduce bandwidth + memory.
 # IMPORTANT: do NOT block "script" or "xhr"/"fetch" if you want JS-set cookies.
-BLOCKED_RESOURCE_TYPES = {"image", "media", "font"}
+BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
 
 # Cache/job settings
 _COOKIE_TASK_TTL_SECONDS = 60 * 30  # 30 minutes
@@ -437,6 +437,8 @@ def _launch_chromium(p, *, headless: bool):
         "--mute-audio",
         "--no-first-run",
         "--disable-features=site-per-process,TranslateUI",
+        "--disable-site-isolation-trials",
+        "--renderer-process-limit=1",
     ]
 
     launch_kwargs: Dict[str, Any] = {
@@ -541,54 +543,73 @@ def scan_site_for_cookies(
 
                 page = context.new_page()
                 try:
-                    page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-                    if wait_ms:
-                        page.wait_for_timeout(wait_ms)
+                    while queue and len(visited) < max_pages:
+                        url, depth = queue.popleft()
+                        if url in visited or depth > max_depth:
+                            continue
 
-                    # Pull cookies from the context; store only minimal fields
-                    for c in context.cookies() or []:
-                        name = c.get("name") or ""
-                        domain = c.get("domain") or ""
-                        path = c.get("path") or ""
-                        key = (name, domain, path)
+                        visited.add(url)
+                        emit_progress(url, len(visited))
 
-                        cookie_jar[key] = {
-                            "name": name,
-                            "domain": domain,
-                            "path": path,
-                            "expires": c.get("expires"),
-                            "httpOnly": bool(c.get("httpOnly")),
-                            "secure": bool(c.get("secure")),
-                            "sameSite": c.get("sameSite") or "",
-                        }
-
-                    # Add internal links for shallow crawl
-                    if depth < max_depth and len(visited) < max_pages:
                         try:
-                            hrefs = page.eval_on_selector_all(
-                                "a[href]",
-                                "els => els.slice(0, 200).map(a => a.href)",
-                            )
-                        except Exception:
-                            hrefs = []
+                            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                            if wait_ms:
+                                page.wait_for_timeout(wait_ms)
 
-                        for href in hrefs or []:
-                            if not href:
-                                continue
+                            for c in context.cookies() or []:
+                                name = c.get("name") or ""
+                                domain = c.get("domain") or ""
+                                path = c.get("path") or ""
+                                cookie_jar[(name, domain, path)] = {
+                                    "name": name,
+                                    "domain": domain,
+                                    "path": path,
+                                    "expires": c.get("expires"),
+                                    "httpOnly": bool(c.get("httpOnly")),
+                                    "secure": bool(c.get("secure")),
+                                    "sameSite": c.get("sameSite") or "",
+                                }
+
+                            if depth < max_depth and len(visited) < max_pages:
+                                try:
+                                    hrefs = page.eval_on_selector_all(
+                                        "a[href]",
+                                        "els => els.slice(0, 120).map(a => a.href)",
+                                    )
+                                except Exception:
+                                    hrefs = []
+
+                                for href in hrefs or []:
+                                    if not href:
+                                        continue
+                                    try:
+                                        nxt = urljoin(url, href)
+                                    except Exception:
+                                        continue
+                                    if nxt in visited:
+                                        continue
+                                    if _should_follow_link(base_domain, nxt):
+                                        queue.append((nxt, depth + 1))
+
+                        finally:
+                            # Forcefully drop page state between navigations
                             try:
-                                nxt = urljoin(url, href)
+                                page.goto("about:blank", wait_until="domcontentloaded", timeout=timeout_ms)
                             except Exception:
-                                continue
-                            if nxt in visited:
-                                continue
-                            if _should_follow_link(base_domain, nxt):
-                                queue.append((nxt, depth + 1))
+                                pass
 
+                        gc.collect()
+                        if mem_utils:
+                            try:
+                                mem_utils.trim_now()
+                            except Exception:
+                                pass
                 finally:
                     try:
                         page.close()
                     except Exception:
                         pass
+
 
                 # Keep RSS down
                 gc.collect()
