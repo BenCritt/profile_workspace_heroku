@@ -422,27 +422,104 @@ def to_ui_cookie(pc: ParsedCookie) -> Dict[str, Any]:
 # Playwright launch (Heroku-safe)
 # ----------------------------
 
-def _launch_chromium(pw, headless: bool):
+import glob
+import os
+from typing import Any, Dict, Optional
+
+
+def _find_chromium_executable() -> Optional[str]:
     """
-    Heroku buildpack: rely on PLAYWRIGHT_BROWSERS_PATH (no executable_path hardcoding).
-    Local dev: Playwright-managed browsers.
+    Try to locate a Chromium/Chrome binary in common Heroku buildpack locations.
+    Returns a full path if found, otherwise None.
     """
-    args = [
-        "--disable-dev-shm-usage",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-gpu",
-        "--no-zygote",
-        "--disable-background-networking",
-        "--disable-default-apps",
-        "--disable-extensions",
-        "--disable-sync",
-        "--metrics-recording-only",
-        "--mute-audio",
+    # 1) Preferred: explicit env var (Thomas-Boi buildpack often sets this)
+    exe = (os.getenv("CHROMIUM_EXECUTABLE_PATH") or "").strip()
+    if exe and os.path.exists(exe):
+        return exe
+
+    # 2) If PLAYWRIGHT_BROWSERS_PATH is set, search inside it
+    bases = []
+    pwp = (os.getenv("PLAYWRIGHT_BROWSERS_PATH") or "").strip()
+    if pwp:
+        bases.append(pwp)
+
+    # 3) Common Heroku locations used by Playwright buildpacks
+    bases.extend([
+        "/app/.playwright",
+        "/app/.cache/ms-playwright",
+        "/app/.cache/playwright",
+    ])
+
+    # Look for the common binaries Playwright uses
+    patterns = [
+        "**/chrome-headless-shell",      # newer Playwright headless shell
+        "**/chrome",                    # chrome-linux/chrome
+        "**/Chromium.app/**/Chromium",  # (not for Heroku, but harmless)
     ]
 
-    # If you set PLAYWRIGHT_BROWSERS_PATH, Playwright will find chromium automatically.
-    return pw.chromium.launch(headless=headless, args=args)
+    for base in bases:
+        if not base or not os.path.exists(base):
+            continue
+        for pat in patterns:
+            hits = glob.glob(os.path.join(base, pat), recursive=True)
+            # Pick the first real file that is executable-ish
+            for h in hits:
+                if os.path.isfile(h):
+                    return h
+
+    return None
+
+
+def _launch_chromium(p, *, headless: bool) -> Any:
+    """
+    Heroku-friendly + lower-memory launch:
+    - Prefer buildpack-installed Chromium when available.
+    - Fall back to Playwright-managed Chromium for local dev (if installed).
+    """
+    exe = _find_chromium_executable()
+
+    args = [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",  # IMPORTANT on Heroku
+        "--disable-gpu",
+        "--no-zygote",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--disable-translate",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-first-run",
+    ]
+
+    launch_kwargs: Dict[str, Any] = {
+        "headless": bool(headless),
+        "args": args,
+        "chromium_sandbox": False,
+    }
+
+    if exe:
+        launch_kwargs["executable_path"] = exe
+    else:
+        # On Heroku, we *expect* a buildpack-installed browser.
+        # If we didn't find one, fail with a clearer message than Playwright's.
+        if os.getenv("DYNO"):
+            raise RuntimeError(
+                "No Chromium executable found on Heroku. "
+                "Your Playwright buildpack likely did not install browsers, or the cache is stale. "
+                "Ensure PLAYWRIGHT_BUILDPACK_BROWSERS=chromium is set, "
+                "and that the playwright buildpack is installed, then purge cache + redeploy."
+            )
+
+    # Encourage temp files to go to /tmp
+    os.environ.setdefault("TMPDIR", "/tmp")
+    os.environ.setdefault("TEMP", "/tmp")
+    os.environ.setdefault("TMP", "/tmp")
+
+    return p.chromium.launch(**launch_kwargs)
+
 
 
 # ----------------------------
