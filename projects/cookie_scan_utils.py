@@ -1,20 +1,10 @@
+# projects/cookie_scan_utils.py
 """
-cookie_scan_utils.py
-
-Cookie scanner + lightweight background job runner (in-process) WITH QUEUEING,
-optimized for low-memory dynos (512 MB).
-
-Key points:
-- FIFO queue in Django cache
-- Only ONE running scan at a time (Playwright/Chromium is heavy)
-- Heroku-friendly Playwright launch:
-  - Uses CHROMIUM_EXECUTABLE_PATH if set (buildpack)
-  - Falls back to Playwright-managed Chromium for local dev
-- Memory reducers:
-  - Block images/media/fonts
-  - Close each Page promptly
-  - Do not store cookie values (only metadata)
-  - Aggressive gc + optional malloc_trim via mem_utils
+Cookie Audit scanner (Playwright) with:
+- low-memory crawling (blocks images/fonts/media, closes pages promptly)
+- accurate cookie detection (context.cookies() + Set-Cookie fallback)
+- per-request task isolation + queueing (no task overriding)
+- progress reporting for polling endpoint
 """
 
 from __future__ import annotations
@@ -22,173 +12,98 @@ from __future__ import annotations
 import gc
 import os
 import re
-import threading
+import time
 import uuid
-from collections import deque
-from datetime import datetime, timezone
-from typing import Any, Callable, Deque, Dict, List, Optional, Set, Tuple
-from urllib.parse import urljoin, urlparse
+import threading
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from urllib.parse import urljoin, urlparse, urlunparse
+
+from django.core.cache import cache
+
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 import tldextract
-from django.core.cache import cache
-from playwright.sync_api import sync_playwright
 
-# Optional memory trimming helper (Linux); safe no-op elsewhere
+# Optional: your mem utility (safe if missing)
 try:
-    from . import mem_utils  # type: ignore
+    from .mem_utils import free_memory_aggressively  # type: ignore
 except Exception:
-    mem_utils = None  # type: ignore
+    free_memory_aggressively = None  # type: ignore
+
 
 # ----------------------------
-# Defaults (single source of truth)
+# Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-# On 512MB dynos, keep this conservative.
-DEFAULT_MAX_PAGES = 3
-DEFAULT_MAX_DEPTH = 1
-
-DEFAULT_WAIT_MS = 1200
-DEFAULT_TIMEOUT_MS = 20000
+DEFAULT_MAX_PAGES = 5          # keep small for 512MB dyno; raise cautiously
+DEFAULT_MAX_DEPTH = 1          # depth=1 catches typical nav/footer links
+DEFAULT_WAIT_MS = 1500         # post-load wait to allow JS-set cookies
+DEFAULT_TIMEOUT_MS = 20000     # page.goto timeout
 DEFAULT_HEADLESS = True
 DEFAULT_IGNORE_HTTPS_ERRORS = False
 
-DEFAULT_USER_AGENT = "Cookie Audit by Ben Crittenden (+https://www.bencritt.net)"
+# Block heavy resources to reduce memory; KEEP scripts/xhr so cookie banners & JS cookies still work.
+BLOCKED_RESOURCE_TYPES = {"image", "media", "font"}
 
-# Block heavy resource types to reduce bandwidth + memory.
-# IMPORTANT: do NOT block "script" or "xhr"/"fetch" if you want JS-set cookies.
-BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
+# Don’t let Set-Cookie capture grow without bound (memory safety)
+MAX_SET_COOKIE_OBSERVATIONS = 400
 
-# Cache/job settings
-_COOKIE_TASK_TTL_SECONDS = 60 * 30  # 30 minutes
-_COOKIE_TASK_KEY_PREFIX = "cookie_audit:task:"
+# Link extraction cap per page (memory/time safety)
+MAX_LINKS_PER_PAGE = 200
 
-# On 512MB, do not run multiple scans concurrently.
-_COOKIE_EXECUTOR_MAX_WORKERS = 1
 
-# Queue keys (stored in cache)
-_COOKIE_QUEUE_KEY = "cookie_audit:queue"           # list[str] task_ids
-_COOKIE_ACTIVE_TASK_KEY = "cookie_audit:active"    # str task_id (or empty)
-_COOKIE_QUEUE_LOCK = threading.Lock()
+# ----------------------------
+# Task store + queueing (single dyno safe)
+# ----------------------------
 
-try:
-    from concurrent.futures import ThreadPoolExecutor
+_TASK_TTL_SECONDS = 15 * 60  # 15 minutes
+_TASK_KEY_PREFIX = "cookie_audit:task:"
+_QUEUE_KEY = "cookie_audit:queue"
+_ACTIVE_KEY = "cookie_audit:active_task_id"
+_LOCK = threading.Lock()
 
-    _COOKIE_EXECUTOR = ThreadPoolExecutor(max_workers=_COOKIE_EXECUTOR_MAX_WORKERS)
-except Exception:
-    _COOKIE_EXECUTOR = None
+# Concurrency on a 512MB / 1-dyno plan should remain 1 for Playwright scans.
+# Extra concurrent scans = extra Chromium processes = OOM.
+MAX_CONCURRENT_SCANS = 1
 
 
 def _task_key(task_id: str) -> str:
-    return f"{_COOKIE_TASK_KEY_PREFIX}{task_id}"
+    return f"{_TASK_KEY_PREFIX}{task_id}"
 
 
-def _utc_iso_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+def get_cookie_audit_task(task_id: str) -> Optional[Dict[str, Any]]:
+    return cache.get(_task_key(task_id))
 
 
-def _safe_set_task(task_id: str, patch: Dict[str, Any]) -> None:
-    """
-    Merge `patch` into the existing task dict and write back to cache.
-    """
-    key = _task_key(task_id)
-    current = cache.get(key) or {}
-    current.update(patch)
-    cache.set(key, current, timeout=_COOKIE_TASK_TTL_SECONDS)
+def _set_task(task_id: str, data: Dict[str, Any]) -> None:
+    cache.set(_task_key(task_id), data, timeout=_TASK_TTL_SECONDS)
 
 
-# ----------------------------
-# Queue helpers
-# ----------------------------
+def _update_task(task_id: str, **patch: Any) -> None:
+    task = get_cookie_audit_task(task_id) or {}
+    task.update(patch)
+    _set_task(task_id, task)
+
 
 def _get_queue() -> List[str]:
-    q = cache.get(_COOKIE_QUEUE_KEY)
-    if isinstance(q, list):
-        return [str(x) for x in q]
-    return []
+    q = cache.get(_QUEUE_KEY)
+    return list(q) if isinstance(q, list) else []
 
 
 def _set_queue(q: List[str]) -> None:
-    cache.set(_COOKIE_QUEUE_KEY, q, timeout=_COOKIE_TASK_TTL_SECONDS)
+    cache.set(_QUEUE_KEY, q, timeout=_TASK_TTL_SECONDS)
 
 
-def _get_active_task_id() -> Optional[str]:
-    v = cache.get(_COOKIE_ACTIVE_TASK_KEY)
-    v = str(v) if v else ""
-    return v or None
+def _queue_position(task_id: str) -> Optional[int]:
+    q = _get_queue()
+    if task_id in q:
+        return q.index(task_id) + 1
+    return None
 
-
-def _set_active_task_id(task_id: Optional[str]) -> None:
-    cache.set(_COOKIE_ACTIVE_TASK_KEY, task_id or "", timeout=_COOKIE_TASK_TTL_SECONDS)
-
-
-def _prune_queue(q: List[str]) -> List[str]:
-    """
-    Remove queued task ids that have expired / no longer exist in cache.
-    """
-    kept: List[str] = []
-    for tid in q:
-        if cache.get(_task_key(tid)) is not None:
-            kept.append(tid)
-    return kept
-
-
-def _refresh_queue_positions(q: List[str]) -> None:
-    """
-    Store queue_position on each queued task (1-based).
-    """
-    for idx, tid in enumerate(q, start=1):
-        _safe_set_task(tid, {"queue_position": idx})
-
-
-def _dispatch_next_if_idle() -> None:
-    """
-    Start the next task if none is currently running.
-    """
-    if _COOKIE_EXECUTOR is None:
-        return
-
-    with _COOKIE_QUEUE_LOCK:
-        active = _get_active_task_id()
-        if active:
-            return
-
-        q = _prune_queue(_get_queue())
-        if not q:
-            _set_queue([])
-            _set_active_task_id(None)
-            return
-
-        next_task_id = q.pop(0)
-        _set_queue(q)
-        _set_active_task_id(next_task_id)
-
-        # Update remaining positions and set active position = 0
-        _refresh_queue_positions(q)
-        _safe_set_task(next_task_id, {"queue_position": 0, "state": "running", "started_at": _utc_iso_now()})
-
-        task = cache.get(_task_key(next_task_id)) or {}
-        params = task.get("params") or {}
-
-        fut = _COOKIE_EXECUTOR.submit(_run_cookie_audit_task_from_params, next_task_id, params)
-
-        def _done_callback(_f) -> None:
-            # Clear active and run next
-            try:
-                with _COOKIE_QUEUE_LOCK:
-                    if _get_active_task_id() == next_task_id:
-                        _set_active_task_id(None)
-            finally:
-                _dispatch_next_if_idle()
-
-        fut.add_done_callback(_done_callback)
-
-
-# ----------------------------
-# Public API (used by your views)
-# ----------------------------
 
 def start_cookie_audit_task(
-    start_url: str,
+    url: str,
     *,
     max_pages: int = DEFAULT_MAX_PAGES,
     max_depth: int = DEFAULT_MAX_DEPTH,
@@ -198,94 +113,93 @@ def start_cookie_audit_task(
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
 ) -> str:
     """
-    Enqueue a scan and return a task id immediately.
+    Enqueue a scan request and return a task_id immediately.
     """
     task_id = str(uuid.uuid4())
 
-    initial = {
-        "task_id": task_id,
-        "state": "queued",  # queued | running | done | error
-        "created_at": _utc_iso_now(),
-        "queue_position": None,
-        "progress": {
-            "visited": 0,
-            "max_pages": int(max_pages),
-            "current_url": "",
-            "percent": 0,
-        },
-        "error": None,
-        "results": None,
-        "params": {
-            "start_url": start_url,
-            "max_pages": int(max_pages),
-            "max_depth": int(max_depth),
-            "wait_ms": int(wait_ms),
-            "timeout_ms": int(timeout_ms),
-            "headless": bool(headless),
-            "ignore_https_errors": bool(ignore_https_errors),
-        },
+    params = {
+        "start_url": normalize_url(url),
+        "max_pages": int(max_pages),
+        "max_depth": int(max_depth),
+        "wait_ms": int(wait_ms),
+        "timeout_ms": int(timeout_ms),
+        "headless": bool(headless),
+        "ignore_https_errors": bool(ignore_https_errors),
     }
-    cache.set(_task_key(task_id), initial, timeout=_COOKIE_TASK_TTL_SECONDS)
 
-    if _COOKIE_EXECUTOR is None:
-        _safe_set_task(
-            task_id,
-            {
-                "state": "error",
-                "error": "Background executor could not be created.",
-                "finished_at": _utc_iso_now(),
+    _set_task(
+        task_id,
+        {
+            "id": task_id,
+            "state": "queued",
+            "created_at": time.time(),
+            "params": params,
+            "progress": {
+                "visited": 0,
+                "max_pages": params["max_pages"],
+                "current_url": "",
+                "percent": 0,
             },
-        )
-        return task_id
+        },
+    )
 
-    # Enqueue
-    with _COOKIE_QUEUE_LOCK:
-        q = _prune_queue(_get_queue())
+    with _LOCK:
+        q = _get_queue()
         q.append(task_id)
         _set_queue(q)
-        _refresh_queue_positions(q)
 
-    # Try to start immediately if nothing is running
-    _dispatch_next_if_idle()
+    _kick_queue()
     return task_id
 
 
-def get_cookie_audit_task(task_id: str) -> Optional[Dict[str, Any]]:
-    return cache.get(_task_key(task_id))
-
-
-# ----------------------------
-# Task runner
-# ----------------------------
-
-ProgressCallback = Callable[[Dict[str, Any]], None]
-
-
-def _run_cookie_audit_task_from_params(task_id: str, params: Dict[str, Any]) -> None:
+def _kick_queue() -> None:
     """
-    Run using the params stored in cache.
-    NOTE: state/started_at is set by dispatcher before calling this.
+    Start the next queued job if we have capacity.
     """
+    with _LOCK:
+        active = cache.get(_ACTIVE_KEY)
+        if active:
+            return  # already running (concurrency=1)
 
-    def progress_cb(progress: Dict[str, Any]) -> None:
-        visited = int(progress.get("visited", 0))
-        mp = int(progress.get("max_pages", int(params.get("max_pages", DEFAULT_MAX_PAGES))))
-        percent = int(progress.get("percent", 0))
-        _safe_set_task(
-            task_id,
-            {
-                "progress": {
-                    "visited": visited,
-                    "max_pages": mp,
-                    "current_url": progress.get("current_url", "") or "",
-                    "percent": percent,
-                }
-            },
+        q = _get_queue()
+        if not q:
+            return
+
+        next_id = q.pop(0)
+        _set_queue(q)
+        cache.set(_ACTIVE_KEY, next_id, timeout=_TASK_TTL_SECONDS)
+
+        _update_task(
+            next_id,
+            state="running",
+            started_at=time.time(),
         )
 
+    # Run scan outside lock
+    threading.Thread(target=_run_task, args=(next_id,), daemon=True).start()
+
+
+def _finish_task(task_id: str) -> None:
+    with _LOCK:
+        active = cache.get(_ACTIVE_KEY)
+        if active == task_id:
+            cache.delete(_ACTIVE_KEY)
+    _kick_queue()
+
+
+def _run_task(task_id: str) -> None:
+    task = get_cookie_audit_task(task_id) or {}
+    params = task.get("params") or {}
+
     try:
+        def progress_cb(progress: Dict[str, Any]) -> None:
+            # merge progress into task safely
+            cur = (get_cookie_audit_task(task_id) or {}).get("progress") or {}
+            cur.update(progress or {})
+            _update_task(task_id, progress=cur)
+
         results = scan_site_for_cookies(
-            start_url=str(params.get("start_url") or ""),
+            start_url=params.get("start_url", ""),
             max_pages=int(params.get("max_pages", DEFAULT_MAX_PAGES)),
             max_depth=int(params.get("max_depth", DEFAULT_MAX_DEPTH)),
             wait_ms=int(params.get("wait_ms", DEFAULT_WAIT_MS)),
@@ -294,168 +208,250 @@ def _run_cookie_audit_task_from_params(task_id: str, params: Dict[str, Any]) -> 
             ignore_https_errors=bool(params.get("ignore_https_errors", DEFAULT_IGNORE_HTTPS_ERRORS)),
             progress_callback=progress_cb,
         )
-        _safe_set_task(
+
+        _update_task(
             task_id,
-            {
-                "state": "done",
-                "results": results,
-                "finished_at": _utc_iso_now(),
-                "progress": {
-                    "visited": int(results["summary"].get("visited_urls", 0)),
-                    "max_pages": int(params.get("max_pages", DEFAULT_MAX_PAGES)),
-                    "current_url": "",
-                    "percent": 100,
-                },
+            state="done",
+            finished_at=time.time(),
+            results=results,
+            progress={
+                "visited": results["summary"]["visited_urls"],
+                "max_pages": results["summary"]["max_pages"],
+                "current_url": "",
+                "percent": 100,
             },
         )
-    except Exception as exc:
-        _safe_set_task(
+
+    except Exception as e:
+        _update_task(
             task_id,
-            {
-                "state": "error",
-                "error": str(exc),
-                "finished_at": _utc_iso_now(),
-            },
+            state="error",
+            finished_at=time.time(),
+            error=str(e),
         )
     finally:
-        gc.collect()
         try:
-            if mem_utils:
-                mem_utils.trim_now()
+            if free_memory_aggressively:
+                free_memory_aggressively()
+            gc.collect()
         except Exception:
             pass
+        _finish_task(task_id)
 
 
 # ----------------------------
-# Cookie scanning logic (low-memory)
+# URL + domain helpers
 # ----------------------------
 
-def _normalize_url(url: str) -> str:
-    url = (url or "").strip()
-    if not url:
-        return ""
-    if not re.match(r"^https?://", url, re.IGNORECASE):
-        url = "https://" + url
-    return url
+_TLDX = tldextract.TLDExtract(cache_dir="/tmp/tldextract", suffix_list_urls=None)
 
 
-def _registrable_domain(url_or_host: str) -> str:
-    """
-    Return the registrable domain (e.g., example.com, example.co.uk) for a URL or hostname.
-    """
+def normalize_url(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return raw
+    if not re.match(r"^https?://", raw, flags=re.I):
+        raw = "https://" + raw
+    return raw
+
+
+def _host_from_url(url_or_host: str) -> str:
     s = (url_or_host or "").strip()
-    if not s:
-        return ""
+    if "://" in s:
+        return (urlparse(s).hostname or "").lower()
+    return s.split("/")[0].split(":")[0].lower()
 
-    host = urlparse(s).hostname if "://" in s else s
-    host = (host or "").lower().strip(".")
+
+def registrable_domain(url_or_host: str) -> str:
+    host = _host_from_url(url_or_host)
     if not host:
         return ""
+    ext = _TLDX(host)
+    return ext.registered_domain or host
 
+
+def is_internal_url(candidate_url: str, base_reg_domain: str) -> bool:
     try:
-        ext = tldextract.extract(host)
-        return (ext.registered_domain or host).lower()
-    except Exception:
-        if host.startswith("www."):
-            host = host[4:]
-        return host
-
-
-def _should_follow_link(base_reg_domain: str, link: str) -> bool:
-    """
-    Allow crawling across subdomains as long as registrable domain matches.
-    """
-    if not link:
-        return False
-
-    try:
-        parsed = urlparse(link)
-        if parsed.scheme.lower() not in ("http", "https"):
+        p = urlparse(candidate_url)
+        if p.scheme not in ("http", "https"):
             return False
+        cand_reg = registrable_domain(p.hostname or "")
+        return bool(cand_reg) and cand_reg == base_reg_domain
     except Exception:
         return False
 
-    link_reg = _registrable_domain(link)
-    return bool(base_reg_domain) and link_reg == base_reg_domain
 
-
-def _cookie_type_and_purpose(name: str) -> Tuple[str, str]:
+def canonicalize_for_visit(url: str) -> str:
     """
-    Lightweight heuristic categorization.
+    Remove fragments; keep query (some sites gate cookie banners by query).
     """
-    n = (name or "").lower()
-
-    analytics = ("_ga", "_gid", "_gat", "amplitude", "mixpanel", "mp_", "optimizely", "_hj", "hotjar")
-    marketing = ("_fbp", "_fbc", "gcl_", "utm", "ttclid", "pin_", "criteo", "doubleclick", "ads", "adroll")
-    auth = ("session", "sess", "csrftoken", "csrf", "auth", "jwt", "token", "logged", "remember")
-    prefs = ("lang", "locale", "theme", "dark", "consent", "cookie_consent", "gdpr", "ccpa")
-
-    if any(k in n for k in auth):
-        return ("Strictly necessary", "Authentication / session security (login, CSRF, session state).")
-    if any(k in n for k in prefs):
-        return ("Functional", "Stores preferences (language, theme) or consent choices.")
-    if any(k in n for k in analytics):
-        return ("Analytics", "Measures site usage and performance (analytics).")
-    if any(k in n for k in marketing):
-        return ("Marketing", "Advertising / remarketing / campaign attribution.")
-    return ("Unclassified", "Purpose not identified by heuristic (review manually).")
+    p = urlparse(url)
+    return urlunparse((p.scheme, p.netloc, p.path, p.params, p.query, ""))
 
 
-def _human_expires(expires: Any) -> str:
-    if not expires:
-        return "Session"
+def extract_links_from_page(page, current_url: str, base_reg_domain: str) -> List[str]:
     try:
-        if isinstance(expires, (int, float)) and expires > 0:
-            dt = datetime.fromtimestamp(float(expires), tz=timezone.utc)
-            return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+        hrefs = page.eval_on_selector_all("a[href]", "els => els.map(a => a.getAttribute('href'))") or []
     except Exception:
-        pass
-    return str(expires)
+        return []
+
+    out: List[str] = []
+    seen: Set[str] = set()
+
+    for href in hrefs:
+        if not href:
+            continue
+        href = href.strip()
+        # Turn relative -> absolute
+        abs_url = href if re.match(r"^https?://", href, flags=re.I) else urljoin(current_url, href)
+        abs_url = canonicalize_for_visit(abs_url)
+
+        if abs_url in seen:
+            continue
+        seen.add(abs_url)
+
+        if is_internal_url(abs_url, base_reg_domain):
+            out.append(abs_url)
+            if len(out) >= MAX_LINKS_PER_PAGE:
+                break
+
+    return out
 
 
-def _launch_chromium(p, *, headless: bool):
+# ----------------------------
+# Cookie parsing + enrichment
+# ----------------------------
+
+@dataclass
+class ParsedCookie:
+    name: str
+    domain: str
+    path: str = "/"
+    expires_human: str = ""
+    secure: bool = False
+    httpOnly: bool = False
+    sameSite: str = ""
+    party: str = "first-party"
+    cookie_type: str = "Unknown"
+    purpose: str = "Unknown"
+
+
+def parse_set_cookie_line(line: str) -> Optional[ParsedCookie]:
     """
-    Heroku-friendly + lower-memory launch:
-    - If CHROMIUM_EXECUTABLE_PATH exists (buildpack), use it.
-    - Otherwise, local dev: use Playwright-managed Chromium.
+    Parse a Set-Cookie header line (without storing value).
     """
-    exe = (os.getenv("CHROMIUM_EXECUTABLE_PATH") or "").strip()
+    if not line:
+        return None
+    parts = [p.strip() for p in line.split(";") if p.strip()]
+    if not parts:
+        return None
 
-    # These flags are aimed at reducing RAM pressure on small dynos.
+    # name=value is first
+    nv = parts[0]
+    if "=" not in nv:
+        return None
+    name = nv.split("=", 1)[0].strip()
+    if not name:
+        return None
+
+    attrs = {}
+    for p in parts[1:]:
+        if "=" in p:
+            k, v = p.split("=", 1)
+            attrs[k.strip().lower()] = v.strip()
+        else:
+            attrs[p.strip().lower()] = True
+
+    domain = str(attrs.get("domain") or "").lstrip(".").lower()
+    path = str(attrs.get("path") or "/")
+    secure = bool(attrs.get("secure") is True)
+    http_only = bool(attrs.get("httponly") is True)
+    same_site = str(attrs.get("samesite") or "")
+
+    expires_human = ""
+    # We keep it simple: show Expires/Max-Age raw-ish (no heavy date parsing)
+    if "expires" in attrs:
+        expires_human = str(attrs["expires"])
+    elif "max-age" in attrs:
+        expires_human = f"Max-Age={attrs['max-age']}"
+
+    return ParsedCookie(
+        name=name,
+        domain=domain,
+        path=path,
+        expires_human=expires_human,
+        secure=secure,
+        httpOnly=http_only,
+        sameSite=same_site,
+    )
+
+
+def infer_cookie_type_and_purpose(cookie_name: str) -> Tuple[str, str]:
+    """
+    Very lightweight heuristic. Extend as you like.
+    """
+    n = (cookie_name or "").lower()
+
+    if any(k in n for k in ("_ga", "_gid", "_gat", "gtm", "gcl_", "utm")):
+        return ("Analytics", "Analytics / measurement")
+    if any(k in n for k in ("session", "sid", "phpsessid", "jsessionid")):
+        return ("Necessary", "Session management")
+    if any(k in n for k in ("csrf", "xsrf")):
+        return ("Necessary", "Security (CSRF protection)")
+    if any(k in n for k in ("consent", "cookie", "cmp", "optanon", "onetrust")):
+        return ("Necessary", "Consent preferences")
+    return ("Unknown", "Unknown")
+
+
+def to_ui_cookie(pc: ParsedCookie) -> Dict[str, Any]:
+    ctype, purpose = infer_cookie_type_and_purpose(pc.name)
+    return {
+        "name": pc.name,
+        "domain": pc.domain or "",
+        "expires_human": pc.expires_human or "",
+        "secure": bool(pc.secure),
+        "httpOnly": bool(pc.httpOnly),
+        "sameSite": pc.sameSite or "",
+        "party": pc.party,
+        "cookie_type": ctype,
+        "purpose": purpose,
+    }
+
+
+# ----------------------------
+# Playwright launch (Heroku-safe)
+# ----------------------------
+
+def _launch_chromium(pw, headless: bool) -> Any:
+    """
+    Supports Heroku buildpack installs via CHROMIUM_PATH/PLAYWRIGHT_BROWSERS_PATH,
+    while still working locally.
+    """
+    # If you set CHROMIUM_PATH in Heroku config, Playwright can use it.
+    executable_path = os.getenv("CHROMIUM_PATH") or os.getenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
+
     args = [
+        "--disable-dev-shm-usage",
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",  # avoid /dev/shm (RAM), use /tmp
         "--disable-gpu",
         "--no-zygote",
-        "--disable-extensions",
         "--disable-background-networking",
         "--disable-default-apps",
+        "--disable-extensions",
         "--disable-sync",
-        "--disable-translate",
         "--metrics-recording-only",
         "--mute-audio",
-        "--no-first-run",
-        "--disable-features=site-per-process,TranslateUI",
-        "--disable-site-isolation-trials",
-        "--renderer-process-limit=1",
     ]
 
-    launch_kwargs: Dict[str, Any] = {
-        "headless": bool(headless),
-        "args": args,
-        "chromium_sandbox": False,
-    }
-    if exe:
-        launch_kwargs["executable_path"] = exe
+    if executable_path:
+        return pw.chromium.launch(headless=headless, executable_path=executable_path, args=args)
+    return pw.chromium.launch(headless=headless, args=args)
 
-    # Encourage temp files to go to /tmp on Heroku.
-    os.environ.setdefault("TMPDIR", "/tmp")
-    os.environ.setdefault("TEMP", "/tmp")
-    os.environ.setdefault("TMP", "/tmp")
 
-    return p.chromium.launch(**launch_kwargs)
-
+# ----------------------------
+# Main scanner (single implementation)
+# ----------------------------
 
 def scan_site_for_cookies(
     *,
@@ -466,156 +462,143 @@ def scan_site_for_cookies(
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
-    progress_callback: Optional[ProgressCallback] = None,
+    progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """
-    Crawl up to `max_pages` pages and report cookies observed by the browser context.
-
-    Memory choices:
-    - Block images/media/fonts
-    - Close each Page quickly
-    - Store only cookie metadata (no cookie values)
+    Crawl up to max_pages within max_depth and return a cookie report.
     """
-    start_url = _normalize_url(start_url)
+
+    start_url = normalize_url(start_url)
     if not start_url:
-        raise ValueError("Start URL is empty.")
+        raise ValueError("URL is required")
 
     max_pages = max(1, int(max_pages))
     max_depth = max(0, int(max_depth))
-    wait_ms = max(0, int(wait_ms))
-    timeout_ms = max(1000, int(timeout_ms))
 
-    base_domain = _registrable_domain(start_url)
-
+    base_reg_domain = registrable_domain(start_url)
     visited: Set[str] = set()
-    queue: Deque[Tuple[str, int]] = deque([(start_url, 0)])
+    queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
-    # Minimal cookie store: (name, domain, path) -> minimal dict
-    cookie_jar: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+    # cookie jar: (name, domain) -> ParsedCookie-ish dict
+    cookie_jar: Dict[Tuple[str, str], ParsedCookie] = {}
 
-    def emit_progress(current_url: str, visited_count: int) -> None:
+    # set-cookie raw fallback
+    set_cookie_observations: List[str] = []
+
+    def emit_progress(current_url: str) -> None:
         if not progress_callback:
             return
-        pct = int(min(100, round((visited_count / max_pages) * 100)))
+        v = len(visited)
+        pct = int(min(100, (v / max_pages) * 100)) if max_pages else 0
         progress_callback(
             {
-                "visited": visited_count,
+                "visited": v,
                 "max_pages": max_pages,
-                "current_url": current_url,
+                "current_url": current_url or "",
                 "percent": pct,
             }
         )
 
-    with sync_playwright() as p:
-        browser = _launch_chromium(p, headless=headless)
-        context = browser.new_context(
-            ignore_https_errors=bool(ignore_https_errors),
-            user_agent=DEFAULT_USER_AGENT,
-            accept_downloads=False,
-            service_workers="block",
-        )
-        context.set_default_timeout(timeout_ms)
+    with sync_playwright() as pw:
+        browser = _launch_chromium(pw, headless=headless)
+        context = browser.new_context(ignore_https_errors=ignore_https_errors)
 
         # Block heavy resources
-        def _route_handler(route, request):
+        def _route_handler(route):
             try:
-                if request.resource_type in BLOCKED_RESOURCE_TYPES:
+                rtype = route.request.resource_type
+                if rtype in BLOCKED_RESOURCE_TYPES:
                     return route.abort()
             except Exception:
                 pass
             return route.continue_()
 
-        try:
-            context.route("**/*", _route_handler)
-        except Exception:
-            pass
+        context.route("**/*", _route_handler)
+
+        # Capture Set-Cookie headers (fallback)
+        def _on_response(resp):
+            if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
+                return
+            try:
+                sc = resp.header_value("set-cookie")
+                if not sc:
+                    return
+                # splitlines handles \r\n correctly
+                for line in sc.splitlines():
+                    line = (line or "").strip()
+                    if line:
+                        set_cookie_observations.append(line[:5000])
+                        if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
+                            break
+            except Exception:
+                return
+
+        context.on("response", _on_response)
 
         try:
             while queue and len(visited) < max_pages:
-                url, depth = queue.popleft()
+                url, depth = queue.pop(0)
+                url = canonicalize_for_visit(url)
+
                 if url in visited:
                     continue
                 if depth > max_depth:
                     continue
 
                 visited.add(url)
-                emit_progress(url, len(visited))
+                emit_progress(url)
 
                 page = context.new_page()
                 try:
-                    while queue and len(visited) < max_pages:
-                        url, depth = queue.popleft()
-                        if url in visited or depth > max_depth:
-                            continue
+                    page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    if wait_ms:
+                        page.wait_for_timeout(wait_ms)
 
-                        visited.add(url)
-                        emit_progress(url, len(visited))
+                    # Collect cookies in jar (no values)
+                    try:
+                        for c in context.cookies():
+                            name = (c.get("name") or "").strip()
+                            domain = (c.get("domain") or "").lstrip(".").lower()
+                            if not name:
+                                continue
+                            key = (name, domain)
+                            if key in cookie_jar:
+                                continue
 
-                        try:
-                            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-                            if wait_ms:
-                                page.wait_for_timeout(wait_ms)
+                            pc = ParsedCookie(
+                                name=name,
+                                domain=domain,
+                                path=str(c.get("path") or "/"),
+                                expires_human="",  # avoid heavy conversions
+                                secure=bool(c.get("secure")),
+                                httpOnly=bool(c.get("httpOnly")),
+                                sameSite=str(c.get("sameSite") or ""),
+                            )
+                            cookie_jar[key] = pc
+                    except Exception:
+                        pass
 
-                            for c in context.cookies() or []:
-                                name = c.get("name") or ""
-                                domain = c.get("domain") or ""
-                                path = c.get("path") or ""
-                                cookie_jar[(name, domain, path)] = {
-                                    "name": name,
-                                    "domain": domain,
-                                    "path": path,
-                                    "expires": c.get("expires"),
-                                    "httpOnly": bool(c.get("httpOnly")),
-                                    "secure": bool(c.get("secure")),
-                                    "sameSite": c.get("sameSite") or "",
-                                }
+                    # Enqueue more pages
+                    if depth < max_depth and len(visited) < max_pages:
+                        links = extract_links_from_page(page, url, base_reg_domain)
+                        for link in links:
+                            if link not in visited and len(queue) < (max_pages * 3):
+                                queue.append((link, depth + 1))
 
-                            if depth < max_depth and len(visited) < max_pages:
-                                try:
-                                    hrefs = page.eval_on_selector_all(
-                                        "a[href]",
-                                        "els => els.slice(0, 120).map(a => a.href)",
-                                    )
-                                except Exception:
-                                    hrefs = []
-
-                                for href in hrefs or []:
-                                    if not href:
-                                        continue
-                                    try:
-                                        nxt = urljoin(url, href)
-                                    except Exception:
-                                        continue
-                                    if nxt in visited:
-                                        continue
-                                    if _should_follow_link(base_domain, nxt):
-                                        queue.append((nxt, depth + 1))
-
-                        finally:
-                            # Forcefully drop page state between navigations
-                            try:
-                                page.goto("about:blank", wait_until="domcontentloaded", timeout=timeout_ms)
-                            except Exception:
-                                pass
-
-                        gc.collect()
-                        if mem_utils:
-                            try:
-                                mem_utils.trim_now()
-                            except Exception:
-                                pass
+                except PlaywrightTimeoutError:
+                    # Keep going—some pages are chatty and never “finish”
+                    pass
                 finally:
                     try:
                         page.close()
                     except Exception:
                         pass
 
-
-                # Keep RSS down
-                gc.collect()
+                # Aggressive cleanup after each page (helps 512MB dyno)
                 try:
-                    if mem_utils:
-                        mem_utils.trim_now()
+                    if free_memory_aggressively:
+                        free_memory_aggressively()
+                    gc.collect()
                 except Exception:
                     pass
 
@@ -628,49 +611,30 @@ def scan_site_for_cookies(
                 browser.close()
             except Exception:
                 pass
-            gc.collect()
-            try:
-                if mem_utils:
-                    mem_utils.trim_now()
-            except Exception:
-                pass
 
-    # Enrich for template
-    cookies_out: List[Dict[str, Any]] = []
-    for c in cookie_jar.values():
-        name = c.get("name", "")
-        domain = c.get("domain", "") or ""
+    # Merge in Set-Cookie observations (if cookie jar missed them)
+    for line in set_cookie_observations:
+        pc = parse_set_cookie_line(line)
+        if not pc:
+            continue
+        # Party classification based on base registrable domain
+        if pc.domain and registrable_domain(pc.domain) != base_reg_domain:
+            pc.party = "third-party"
+        else:
+            pc.party = "first-party"
 
-        cookie_type, purpose = _cookie_type_and_purpose(name)
+        key = (pc.name, pc.domain)
+        if key not in cookie_jar:
+            cookie_jar[key] = pc
 
-        party = "First-party"
-        try:
-            cd = domain.lstrip(".").lower()
-            if cd and base_domain and (cd != base_domain and not cd.endswith("." + base_domain)):
-                party = "Third-party"
-        except Exception:
-            pass
-
-        cookies_out.append(
-            {
-                "name": name,
-                "cookie_type": cookie_type,
-                "purpose": purpose,
-                "party": party,
-                "domain": domain,
-                "expires_human": _human_expires(c.get("expires")),
-                "httpOnly": bool(c.get("httpOnly")),
-                "secure": bool(c.get("secure")),
-                "sameSite": c.get("sameSite") or "",
-            }
-        )
-
-    cookies_out.sort(key=lambda x: (str(x.get("party")), str(x.get("domain")), str(x.get("name"))))
+    cookies_out = [to_ui_cookie(pc) for pc in cookie_jar.values()]
+    cookies_out.sort(key=lambda x: (x.get("party", ""), x.get("domain", ""), x.get("name", "")))
 
     return {
         "summary": {
-            "base_registrable_domain": base_domain,
+            "base_registrable_domain": base_reg_domain,
             "visited_urls": len(visited),
+            "max_pages": max_pages,
             "cookies_detected_total": len(cookies_out),
         },
         "cookies": cookies_out,
