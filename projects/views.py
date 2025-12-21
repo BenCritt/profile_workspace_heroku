@@ -2,10 +2,136 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, FileResponse, HttpRequest
 from django.conf import settings
 from django.views.decorators.cache import cache_control
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
+from django.urls import reverse
 from .decorators import trim_memory_after
 import os
 import requests
+
+
+# Cookie Audit
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@require_GET
+def cookie_audit_view(request):
+    from .forms import CookieAuditForm
+    from . import cookie_scan_utils
+    """
+    Renders a clean page (URL input only). No session-stored task_id.
+    Results/progress are driven entirely by JS calling start/status/results endpoints.
+    """
+    form = CookieAuditForm()
+    # If your form still has extra fields, make them optional so user submits URL only.
+    for field_name in (
+        "max_pages",
+        "max_depth",
+        "wait_ms",
+        "timeout_ms",
+        "headless",
+        "ignore_https_errors",
+    ):
+        if field_name in form.fields:
+            form.fields[field_name].required = False
+
+    ctx = {"form": form}
+    return render(request, "projects/cookie_audit.html", ctx)
+
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@require_POST
+def cookie_audit_start(request):
+    from .forms import CookieAuditForm
+    from . import cookie_scan_utils
+    """
+    Starts a scan and returns immediately with a task id (JSON).
+    Does NOT store task_id in session (prevents tab/user overwrite).
+    """
+    form = CookieAuditForm(request.POST)
+    for field_name in (
+        "max_pages",
+        "max_depth",
+        "wait_ms",
+        "timeout_ms",
+        "headless",
+        "ignore_https_errors",
+    ):
+        if field_name in form.fields:
+            form.fields[field_name].required = False
+
+    if not form.is_valid():
+        return JsonResponse(
+            {"error": "Please enter a valid website URL.", "form_errors": form.errors},
+            status=400,
+        )
+
+    url = form.cleaned_data["url"]
+    task_id = cookie_scan_utils.start_cookie_audit_task(url)
+
+    return JsonResponse(
+        {
+            "task_id": task_id,
+            "status_url": reverse("projects:cookie_audit_status", args=[task_id]),
+            "results_url": reverse("projects:cookie_audit_results", args=[task_id]),
+        }
+    )
+
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@require_GET
+def cookie_audit_status(request, task_id):
+    from .forms import CookieAuditForm
+    from . import cookie_scan_utils
+    """
+    Polling endpoint for progress/status (supports queueing).
+    (This is basically what you already have, but kept here for completeness.)
+    """
+    task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
+    if not task:
+        return JsonResponse({"state": "unknown"}, status=404)
+
+    state = task.get("state", "unknown")
+    progress = task.get("progress") or {}
+    queue_position = task.get("queue_position", None)
+
+    payload = {
+        "state": state,
+        "progress": progress,
+        "queue_position": queue_position,
+    }
+
+    if state == "error":
+        payload["error"] = task.get("error") or "Unknown error"
+
+    return JsonResponse(payload)
+
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@require_GET
+def cookie_audit_results(request, task_id):
+    from .forms import CookieAuditForm
+    from . import cookie_scan_utils
+    """
+    Returns results JSON once done. JS calls this after status says 'done'.
+    """
+    task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
+    if not task:
+        return JsonResponse({"state": "unknown"}, status=404)
+
+    state = task.get("state", "unknown")
+    payload = {"state": state}
+
+    if state == "done":
+        payload["results"] = task.get("results") or {}
+    elif state == "error":
+        payload["error"] = task.get("error") or "Unknown error"
+    else:
+        payload["progress"] = task.get("progress") or {}
+        payload["queue_position"] = task.get("queue_position", None)
+
+    return JsonResponse(payload)
 
 # Font Inspector
 # Force memory trim after work.

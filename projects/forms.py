@@ -15,6 +15,7 @@ from django.core.validators import (
     MaxValueValidator,
     MinLengthValidator,
     MaxLengthValidator,
+    URLValidator
 )
 
 # Used in IPForm to validate whether the input is a valid IPv4 or IPv6 address.
@@ -29,6 +30,36 @@ from .utils import normalize_url
 
 # Used by the Ham Radio Call Sign Lookup app.
 import re
+
+# Cookie Audit
+class CookieAuditForm(forms.Form):
+    url = forms.CharField(
+        label="Enter Website URL",
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "bencritt.net",
+                "class": "form-control",
+                "autofocus": "autofocus",
+            }
+        ),
+        # help_text="Example: bencritt.net, www.bencritt.net, etc.",
+    )
+
+    def clean_url(self):
+        raw = (self.cleaned_data.get("url") or "").strip()
+
+        # Add https:// if the user didn’t include a scheme
+        if raw and not urlparse(raw).scheme:
+            raw = f"https://{raw}"
+
+        validator = URLValidator(schemes=["http", "https"])
+        try:
+            validator(raw)
+        except ValidationError:
+            raise forms.ValidationError("Please enter a valid website URL (http/https).")
+
+        return raw
 
 
 # Font Inspector

@@ -49,3 +49,5 @@ tinycss2==1.2.1
 tldextract==5.1.2
 webencodings==0.5.1
 rich==13.7.1
+playwright==1.32.0
+tldextract==5.1.2

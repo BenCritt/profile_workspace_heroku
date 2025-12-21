@@ -1,0 +1,312 @@
+{% extends "projects/base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Keep table from expanding; wrap cell contents instead */
+  .cookie-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Body cells: allow wrapping anywhere so long tokens don't widen table */
+  .cookie-table td {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    vertical-align: top;
+  }
+
+  /* Header cells: default = DO NOT wrap single-word headings */
+  .cookie-table th {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    vertical-align: bottom;
+  }
+
+  /* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
+  .cookie-table th.th-wrap {
+    white-space: normal !important;
+  }
+
+  /* Let <code> wrap in body cells */
+  .cookie-table td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: inline-block;
+    max-width: 100%;
+  }
+</style>
+
+<div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
+  <h1 class="mb-3">Cookie Audit</h1>
+
+  <form method="post" class="mb-4" id="cookieAuditForm" action="{% url 'projects:cookie_audit_start' %}" novalidate>
+    {% csrf_token %}
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-8">
+        {{ form.url.label_tag }}
+        {{ form.url }}
+        <div class="form-text">{{ form.url.help_text }}</div>
+        {% for error in form.url.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <br>
+
+    <div class="col-12 col-lg-4 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit" id="scanBtn">
+        Scan Cookies
+      </button>
+    </div>
+  </form>
+
+  <div class="mb-4 d-none" id="scanProgress">
+    <div class="d-flex align-items-center gap-2">
+      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      <div>
+        <strong id="progressTitle">Scan in progress…</strong>
+        <span class="text-muted" id="progressText">Starting…</span>
+      </div>
+    </div>
+
+    <div class="progress mt-2" style="height: 10px;">
+      <div
+        id="progressBar"
+        class="progress-bar"
+        role="progressbar"
+        style="width: 0%;"
+        aria-valuenow="0"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      ></div>
+    </div>
+
+    <div class="form-text mt-2">
+      Please keep this tab open while the scan runs.
+    </div>
+  </div>
+</div>
+
+{# Results get injected here (same sizing as your old “good” version) #}
+<div class="container py-4" style="width: 100%; max-width: 900px; margin: auto;">
+  <div id="resultsArea"></div>
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById("cookieAuditForm");
+  const btn = document.getElementById("scanBtn");
+
+  const scanProgress = document.getElementById("scanProgress");
+  const progressTitle = document.getElementById("progressTitle");
+  const progressText = document.getElementById("progressText");
+  const progressBar = document.getElementById("progressBar");
+  const resultsArea = document.getElementById("resultsArea");
+
+  function getCookie(name) {
+    const v = document.cookie.split(";").map(s => s.trim());
+    for (const part of v) {
+      if (part.startsWith(name + "=")) return decodeURIComponent(part.slice(name.length + 1));
+    }
+    return "";
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  function setProgress(percent) {
+    const p = Math.max(0, Math.min(100, Number(percent) || 0));
+    progressBar.style.width = p + "%";
+    progressBar.setAttribute("aria-valuenow", String(p));
+  }
+
+  function showProgress() {
+    scanProgress.classList.remove("d-none");
+  }
+
+  function hideProgress() {
+    scanProgress.classList.add("d-none");
+  }
+
+  async function poll(statusUrl, resultsUrl) {
+    try {
+      const res = await fetch(statusUrl, { headers: { "Accept": "application/json" } });
+      if (!res.ok) throw new Error("status not ok");
+      const data = await res.json();
+
+      const state = data.state;
+      const p = data.progress || {};
+      const visited = p.visited || 0;
+      const maxPages = p.max_pages || 0;
+      const currentUrl = p.current_url || "";
+      const percent = p.percent || 0;
+      const qpos = data.queue_position;
+
+      if (state === "queued") {
+        progressTitle.textContent = "Queued…";
+        if (typeof qpos === "number" && qpos > 0) {
+          progressText.textContent = `In queue (position ${qpos})…`;
+        } else {
+          progressText.textContent = "Waiting to start…";
+        }
+        setProgress(0);
+      } else if (state === "running") {
+        progressTitle.textContent = "Scan in progress…";
+        if (maxPages) {
+          progressText.textContent =
+            `Visited ${visited}/${maxPages}` + (currentUrl ? ` — ${currentUrl}` : "");
+        } else {
+          progressText.textContent = currentUrl || "Working…";
+        }
+        setProgress(percent);
+      } else if (state === "error") {
+        progressTitle.textContent = "Scan failed.";
+        progressText.textContent = data.error || "Unknown error";
+        btn.disabled = false;
+        btn.textContent = "Scan Cookies";
+        return;
+      } else if (state === "done") {
+        progressTitle.textContent = "Complete.";
+        progressText.textContent = "Rendering results…";
+        setProgress(100);
+
+        const r = await fetch(resultsUrl, { headers: { "Accept": "application/json" } });
+        const rd = await r.json();
+        const results = rd.results || {};
+        renderResults(results);
+
+        hideProgress();
+        btn.disabled = false;
+        btn.textContent = "Scan Cookies";
+        return;
+      }
+    } catch (e) {
+      progressText.textContent = "Still working…";
+    }
+
+    setTimeout(() => poll(statusUrl, resultsUrl), 1000);
+  }
+
+  function renderResults(results) {
+    const summary = results.summary || {};
+    const cookies = Array.isArray(results.cookies) ? results.cookies : [];
+
+    let rows = "";
+    for (const c of cookies) {
+      rows += `
+        <tr>
+          <td><code>${escapeHtml(c.name)}</code></td>
+          <td>${escapeHtml(c.cookie_type)}</td>
+          <td>${escapeHtml(c.purpose)}</td>
+          <td>${escapeHtml(c.party)}</td>
+          <td><code>${escapeHtml(c.domain)}</code></td>
+          <td>${escapeHtml(c.expires_human)}</td>
+          <td>${escapeHtml(c.httpOnly ? "Yes" : "No")}</td>
+          <td>${escapeHtml(c.secure ? "Yes" : "No")}</td>
+          <td>${escapeHtml(c.sameSite)}</td>
+        </tr>
+      `;
+    }
+
+    if (!rows) {
+      rows = `<tr><td colspan="9">No cookies found.</td></tr>`;
+    }
+
+    // IMPORTANT: This table markup matches your old “good” version:
+    // - table-layout: fixed + colgroup widths
+    // - NO .table-responsive wrapper (prevents sideways scroll)
+    resultsArea.innerHTML = `
+      <h2 class="h4 mt-4">Summary</h2>
+      <ul class="small text-muted">
+        <li><strong>Base domain:</strong> ${escapeHtml(summary.base_registrable_domain)}</li>
+        <li><strong>Pages visited:</strong> ${escapeHtml(summary.visited_urls)}</li>
+        <li><strong>Total detected cookies:</strong> ${escapeHtml(summary.cookies_detected_total)}</li>
+      </ul>
+
+      <h2 class="h4 mt-4">Cookies</h2>
+
+      <table class="table table-striped table-hover table-sm cookie-table">
+        <colgroup>
+          <col style="width: 14%;">  <!-- Cookie name -->
+          <col style="width: 12%;">  <!-- Cookie type -->
+          <col style="width: 20%;">  <!-- Purpose -->
+          <col style="width: 8%;">   <!-- Party -->
+          <col style="width: 15%;">  <!-- Domain -->
+          <col style="width: 12%;">  <!-- Expires -->
+          <col style="width: 5%;">   <!-- HttpOnly -->
+          <col style="width: 7%;">   <!-- Secure -->
+          <col style="width: 7%;">   <!-- SameSite -->
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th scope="col">Cookie name</th>
+            <th scope="col">Cookie type</th>
+            <th scope="col">Purpose</th>
+            <th scope="col">Party</th>
+            <th scope="col">Domain</th>
+            <th scope="col">Expires</th>
+            <th scope="col" class="th-wrap">Http<wbr>Only</th>
+            <th scope="col">Secure</th>
+            <th scope="col" class="th-wrap">Same<wbr>Site</th>
+          </tr>
+        </thead>
+
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  form.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+
+    // Clear previous results
+    resultsArea.innerHTML = "";
+
+    btn.disabled = true;
+    btn.textContent = "Starting…";
+    showProgress();
+    progressTitle.textContent = "Starting…";
+    progressText.textContent = "Submitting scan…";
+    setProgress(0);
+
+    try {
+      const formData = new FormData(form);
+      const startUrl = form.getAttribute("action");
+
+      const res = await fetch(startUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json"
+        }
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Invalid request");
+
+      // Poll using URLs returned by server; task_id never enters the browser bar.
+      btn.textContent = "Scanning…";
+      poll(data.status_url, data.results_url);
+
+    } catch (e) {
+      progressTitle.textContent = "Scan failed.";
+      progressText.textContent = e.message || "Unknown error";
+      btn.disabled = false;
+      btn.textContent = "Scan Cookies";
+    }
+  });
+})();
+</script>
+
+{% endblock %}
