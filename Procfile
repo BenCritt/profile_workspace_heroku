@@ -3,5 +3,5 @@ web: gunicorn my_profile.wsgi:application \
   --workers 1 \
   --threads 12 \
   --timeout 120 \
-  --worker-tmp-dir /dev/shm \
+  --worker-tmp-dir /tmp \
   --log-file -
