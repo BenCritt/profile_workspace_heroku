@@ -15,6 +15,8 @@ import re
 import time
 import uuid
 import threading
+import glob
+import tldextract
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
@@ -24,14 +26,11 @@ from django.core.cache import cache
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-import tldextract
-
 # Optional: your mem utility (safe if missing)
 try:
     from .mem_utils import free_memory_aggressively  # type: ignore
 except Exception:
     free_memory_aggressively = None  # type: ignore
-
 
 # ----------------------------
 # Defaults (tune for Heroku 512MB)
@@ -65,7 +64,7 @@ MAX_LINKS_PER_PAGE = 200
 # Task store + queueing (single dyno safe)
 # ----------------------------
 
-_TASK_TTL_SECONDS = 15 * 60  # 15 minutes
+_TASK_TTL_SECONDS = 5 * 60  # 5 minutes
 _TASK_KEY_PREFIX = "cookie_audit:task:"
 _QUEUE_KEY = "cookie_audit:queue"
 _ACTIVE_KEY = "cookie_audit:active_task_id"
@@ -124,6 +123,38 @@ def _task_key(task_id: str) -> str:
 def get_cookie_audit_task(task_id: str) -> Optional[Dict[str, Any]]:
     return cache.get(_task_key(task_id))
 
+def set_cookie_audit_task(task_id: str, data: Dict[str, Any]) -> None:
+    """
+    Public setter used by views (e.g., to shrink cached payload after results are fetched once).
+    Keeps the same TTL semantics as other task cache entries.
+    """
+    if not isinstance(data, dict):
+        raise ValueError("Task data must be a dict")
+    cache.set(_task_key(task_id), data, timeout=_TASK_TTL_SECONDS)
+
+
+def delete_cookie_audit_task(task_id: str) -> None:
+    """
+    Delete a task from cache, and defensively remove it from queue/active pointers.
+    Useful for freeing memory after results have been delivered.
+    """
+    try:
+        with _LOCK:
+            # Remove from queue if present (defensive)
+            q = _get_queue()
+            if task_id in q:
+                q = [x for x in q if x != task_id]
+                _set_queue(q)
+
+            # Clear active pointer if it's pointing at this task (defensive)
+            active = cache.get(_ACTIVE_KEY)
+            if active == task_id:
+                cache.delete(_ACTIVE_KEY)
+
+        cache.delete(_task_key(task_id))
+    except Exception:
+        # Never let cache cleanup crash a request
+        pass
 
 def _set_task(task_id: str, data: Dict[str, Any]) -> None:
     cache.set(_task_key(task_id), data, timeout=_TASK_TTL_SECONDS)
@@ -495,11 +526,6 @@ def to_ui_cookie(pc: ParsedCookie) -> Dict[str, Any]:
 # Playwright launch (Heroku-safe)
 # ----------------------------
 
-import glob
-import os
-from typing import Any, Dict, Optional
-
-
 def _find_chromium_executable() -> Optional[str]:
     """
     Try to locate a Chromium/Chrome binary in common Heroku buildpack locations.
@@ -592,8 +618,6 @@ def _launch_chromium(p, *, headless: bool) -> Any:
     os.environ.setdefault("TMP", "/tmp")
 
     return p.chromium.launch(**launch_kwargs)
-
-from datetime import datetime, timezone
 
 def _expires_human_from_playwright(expires_val) -> str:
     """
@@ -701,7 +725,7 @@ def scan_site_for_cookies(
     max_depth: int = DEFAULT_MAX_DEPTH,
     wait_ms: int = DEFAULT_WAIT_MS,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
-    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,  # ✅ ADD
+    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
@@ -709,6 +733,12 @@ def scan_site_for_cookies(
     """
     Crawl up to max_pages within max_depth and return a cookie report.
     Enforces a HARD wall-clock budget per visited URL so one page can't hang the crawl.
+    Memory goals:
+      - Block heavy resources (image/media/font/stylesheet)
+      - Fresh page per visited URL (close page every time)
+      - Close context + browser reliably
+      - Bound Set-Cookie observation storage
+      - Bound link extraction work
     """
     start_url = normalize_url(start_url)
     if not start_url:
@@ -719,6 +749,7 @@ def scan_site_for_cookies(
     per_page_budget_ms = max(1000, int(per_page_budget_ms))  # never < 1s
 
     base_reg_domain = registrable_domain(start_url)
+
     visited: Set[str] = set()
     queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
@@ -731,122 +762,148 @@ def scan_site_for_cookies(
             return
         v = len(visited)
         pct = int(min(100, (v / max_pages) * 100)) if max_pages else 0
-        progress_callback(
-            {"visited": v, "max_pages": max_pages, "current_url": current_url or "", "percent": pct}
-        )
+        try:
+            progress_callback(
+                {"visited": v, "max_pages": max_pages, "current_url": current_url or "", "percent": pct}
+            )
+        except Exception:
+            # never let progress reporting break the scan
+            pass
 
     with sync_playwright() as pw:
         browser = _launch_chromium(pw, headless=headless)
         context = browser.new_context(ignore_https_errors=ignore_https_errors)
 
-        def _route_handler(route):
-            try:
-                if route.request.resource_type in BLOCKED_RESOURCE_TYPES:
-                    return route.abort()
-            except Exception:
-                pass
-            return route.continue_()
-
-        context.route("**/*", _route_handler)
-
-        def _on_response(resp):
-            if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
-                return
-            try:
-                header_val = resp.header_value("set-cookie")
-            except Exception:
-                return
-            if not header_val:
-                return
-
-            host = (urlparse(resp.url).hostname or "").lower()
-            try:
-                for raw_line in header_val.splitlines():
-                    line = (raw_line or "").strip()
-                    if not line:
-                        continue
-
-                    short_line = line[:MAX_SET_COOKIE_CHARS]
-                    seen_key = (short_line, host)
-                    if seen_key in set_cookie_seen:
-                        continue
-
-                    set_cookie_seen.add(seen_key)
-                    set_cookie_observations.append(seen_key)
-
-                    if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
-                        break
-            except Exception:
-                return
-
-        context.on("response", _on_response)
-
         try:
-            page = context.new_page()
-            # Keep defaults sane; we still pass explicit timeouts to goto.
-            page.set_default_navigation_timeout(int(timeout_ms))
+            # Block heavy resources to reduce memory, keep scripts/xhr for cookie banners.
+            def _route_handler(route):
+                try:
+                    if route.request.resource_type in BLOCKED_RESOURCE_TYPES:
+                        return route.abort()
+                except Exception:
+                    pass
+                return route.continue_()
 
             try:
-                while queue and len(visited) < max_pages:
-                    url, depth = queue.pop(0)
-                    url = canonicalize_for_visit(url)
+                context.route("**/*", _route_handler)
+            except Exception:
+                # If routing fails for some reason, continue without it
+                pass
 
-                    if url in visited or depth > max_depth:
-                        continue
+            # Capture Set-Cookie from responses (bounded)
+            def _on_response(resp):
+                if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
+                    return
+                try:
+                    header_val = resp.header_value("set-cookie")
+                except Exception:
+                    return
+                if not header_val:
+                    return
 
-                    visited.add(url)
-                    emit_progress(url)
-
-                    # ✅ hard deadline for this URL
-                    deadline = time.monotonic() + (per_page_budget_ms / 1000.0)
-
-                    def remaining_ms() -> int:
-                        return int(max(0.0, (deadline - time.monotonic()) * 1000))
-
-                    try:
-                        nav_timeout = min(int(timeout_ms), remaining_ms())
-                        if nav_timeout <= 0:
+                host = (urlparse(resp.url).hostname or "").lower()
+                try:
+                    for raw_line in header_val.splitlines():
+                        line = (raw_line or "").strip()
+                        if not line:
                             continue
 
-                        # ✅ commit returns earlier than domcontentloaded on heavy SPAs
-                        page.goto(url, wait_until="commit", timeout=nav_timeout)
+                        short_line = line[:MAX_SET_COOKIE_CHARS]
+                        seen_key = (short_line, host)
+                        if seen_key in set_cookie_seen:
+                            continue
 
-                        # small post-load wait (but never beyond the budget)
-                        if wait_ms:
-                            wm = min(int(wait_ms), remaining_ms())
-                            if wm > 0:
-                                page.wait_for_timeout(wm)
+                        set_cookie_seen.add(seen_key)
+                        set_cookie_observations.append(seen_key)
 
-                        # best-effort: stop runaway network/JS activity
-                        try:
-                            page.evaluate("() => { try { window.stop && window.stop(); } catch(e) {} }")
-                        except Exception:
-                            pass
+                        if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
+                            break
+                except Exception:
+                    return
 
-                        # only extract links if we have time left
-                        if depth < max_depth and len(visited) < max_pages and remaining_ms() >= 250:
-                            links = extract_links_from_page(
-                                page,
-                                url,
-                                base_reg_domain,
-                                deadline_monotonic=deadline,
-                            )
-                            for link in links:
-                                if link not in visited and len(queue) < (max_pages * 3):
-                                    queue.append((link, depth + 1))
+            try:
+                context.on("response", _on_response)
+            except Exception:
+                pass
 
-                    except PlaywrightTimeoutError:
-                        # ✅ timeout = skip this URL, keep crawling
-                        pass
+            page = None
+
+            # Emit initial progress so UI doesn't sit at 0 with no current_url
+            emit_progress(queue[0][0] if queue else start_url)
+
+            while queue and len(visited) < max_pages:
+                url, depth = queue.pop(0)
+                url = canonicalize_for_visit(url)
+
+                if url in visited or depth > max_depth:
+                    continue
+
+                # ✅ Fresh page per URL (memory goal)
+                try:
+                    page = context.new_page()
+                    page.set_default_navigation_timeout(int(timeout_ms))
+                except Exception:
+                    # ✅ Minor crawl accounting: if we can't create a page, don't burn a visit
+                    page = None
+                    continue
+
+                # ✅ Count visit only after page creation succeeds
+                visited.add(url)
+                emit_progress(url)
+
+                # Hard deadline for this URL
+                deadline = time.monotonic() + (per_page_budget_ms / 1000.0)
+
+                def remaining_ms() -> int:
+                    return int(max(0.0, (deadline - time.monotonic()) * 1000))
+
+                try:
+                    nav_timeout = min(int(timeout_ms), remaining_ms())
+                    if nav_timeout <= 0:
+                        continue
+
+                    # commit returns earlier than domcontentloaded on heavy SPAs
+                    page.goto(url, wait_until="commit", timeout=nav_timeout)
+
+                    # Small post-load wait (bounded by remaining budget)
+                    if wait_ms:
+                        wm = min(int(wait_ms), remaining_ms())
+                        if wm > 0:
+                            page.wait_for_timeout(wm)
+
+                    # Best-effort: stop runaway network/JS activity
+                    try:
+                        page.evaluate("() => { try { window.stop && window.stop(); } catch(e) {} }")
                     except Exception:
-                        # ✅ never let a single page crash the scan
                         pass
-                    finally:
-                        try:
-                            page.goto("about:blank", wait_until="commit", timeout=1000)
-                        except Exception:
-                            pass
 
+                    # Extract internal links if we still have time
+                    if depth < max_depth and len(visited) < max_pages and remaining_ms() >= 250:
+                        links = extract_links_from_page(
+                            page,
+                            url,
+                            base_reg_domain,
+                            deadline_monotonic=deadline,
+                        )
+                        # Keep queue bounded
+                        for link in links:
+                            if link not in visited and len(queue) < (max_pages * 3):
+                                queue.append((link, depth + 1))
+
+                except PlaywrightTimeoutError:
+                    pass
+                except Exception:
+                    pass
+                finally:
+                    # ✅ Close the page after every URL (memory goal)
+                    try:
+                        if page is not None:
+                            page.close()
+                    except Exception:
+                        pass
+                    page = None
+
+                    # Optional memory trimming
                     try:
                         if free_memory_aggressively:
                             free_memory_aggressively()
@@ -854,20 +911,16 @@ def scan_site_for_cookies(
                     except Exception:
                         pass
 
-                _harvest_context_cookies_once(
-                    context,
-                    cookie_jar=cookie_jar,
-                    base_reg_domain=base_reg_domain,
-                    host_fallback=_host_from_url(start_url),
-                )
-
-            finally:
-                try:
-                    page.close()
-                except Exception:
-                    pass
+            # Harvest cookies once from the context
+            _harvest_context_cookies_once(
+                context,
+                cookie_jar=cookie_jar,
+                base_reg_domain=base_reg_domain,
+                host_fallback=_host_from_url(start_url),
+            )
 
         finally:
+            # ✅ Must close context + browser or Chromium will linger in memory
             try:
                 context.close()
             except Exception:
@@ -877,13 +930,14 @@ def scan_site_for_cookies(
             except Exception:
                 pass
 
-    # Merge Set-Cookie observations
+    # Merge Set-Cookie observations (fallback) into cookie_jar
     for line, host in set_cookie_observations:
         pc = parse_set_cookie_line(line, host_fallback=host)
         if not pc:
             continue
 
-        if pc.domain and registrable_domain(pc.domain) != base_reg_domain:
+        effective_domain = (pc.domain or host or "").lstrip(".").lower()
+        if effective_domain and registrable_domain(effective_domain) != base_reg_domain:
             pc.party = "third-party"
         else:
             pc.party = "first-party"

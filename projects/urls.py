@@ -67,8 +67,8 @@ urlpatterns = [
     path("projects/font-inspector/status/<str:task_id>/", font_utils.fi_task_status, name="fi_task_status"),
     path("projects/font-inspector/rows/<str:task_id>/", font_utils.fi_rows, name="fi_rows"),
     path("projects/font-inspector/download/<str:task_id>/", font_utils.fi_download, name="fi_download"),
-    # path("projects/cookie-audit/", views.cookie_audit_view, name="cookie_audit"),
-    # path("projects/cookie-audit/start/", views.cookie_audit_start, name="cookie_audit_start"),
-    # path("projects/cookie-audit/status/<uuid:task_id>/", views.cookie_audit_status, name="cookie_audit_status"),
-    # path("projects/cookie-audit/results/<uuid:task_id>/", views.cookie_audit_results, name="cookie_audit_results"),
+    path("projects/cookie-audit/", views.cookie_audit_view, name="cookie_audit"),
+    path("projects/cookie-audit/start/", views.cookie_audit_start, name="cookie_audit_start"),
+    path("projects/cookie-audit/status/<uuid:task_id>/", views.cookie_audit_status, name="cookie_audit_status"),
+    path("projects/cookie-audit/results/<uuid:task_id>/", views.cookie_audit_results, name="cookie_audit_results"),
 ]
