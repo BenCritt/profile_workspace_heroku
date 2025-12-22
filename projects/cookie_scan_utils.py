@@ -46,7 +46,7 @@ DEFAULT_IGNORE_HTTPS_ERRORS = False
 
 # Hard wall-clock budget per visited URL (navigation + wait + link extraction).
 # If a page is slow/heavy, we skip link extraction and move on.
-DEFAULT_PER_PAGE_BUDGET_MS = 12000
+DEFAULT_PER_PAGE_BUDGET_MS = 8000
 
 # Block heavy resources to reduce memory; KEEP scripts/xhr so cookie banners & JS cookies still work.
 BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
@@ -158,12 +158,10 @@ def start_cookie_audit_task(
     max_depth: int = DEFAULT_MAX_DEPTH,
     wait_ms: int = DEFAULT_WAIT_MS,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
+    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,  # ✅ ADD
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
 ) -> str:
-    """
-    Enqueue a scan request and return a task_id immediately.
-    """
     task_id = str(uuid.uuid4())
 
     params = {
@@ -172,6 +170,7 @@ def start_cookie_audit_task(
         "max_depth": int(max_depth),
         "wait_ms": int(wait_ms),
         "timeout_ms": int(timeout_ms),
+        "per_page_budget_ms": int(per_page_budget_ms),  # ✅ ADD
         "headless": bool(headless),
         "ignore_https_errors": bool(ignore_https_errors),
     }
@@ -253,6 +252,7 @@ def _run_task(task_id: str) -> None:
             max_depth=int(params.get("max_depth", DEFAULT_MAX_DEPTH)),
             wait_ms=int(params.get("wait_ms", DEFAULT_WAIT_MS)),
             timeout_ms=int(params.get("timeout_ms", DEFAULT_TIMEOUT_MS)),
+            per_page_budget_ms=int(params.get("per_page_budget_ms", DEFAULT_PER_PAGE_BUDGET_MS)),  # ✅ ADD
             headless=bool(params.get("headless", DEFAULT_HEADLESS)),
             ignore_https_errors=bool(params.get("ignore_https_errors", DEFAULT_IGNORE_HTTPS_ERRORS)),
             progress_callback=progress_cb,
@@ -338,32 +338,41 @@ def canonicalize_for_visit(url: str) -> str:
     return urlunparse((p.scheme, p.netloc, p.path, p.params, p.query, ""))
 
 
-def extract_links_from_page(page, current_url: str, base_reg_domain: str, *, limit: int = MAX_LINKS_PER_PAGE) -> List[str]:
+def extract_links_from_page(
+    page,
+    current_url: str,
+    base_reg_domain: str,
+    *,
+    deadline_monotonic: Optional[float] = None,
+) -> List[str]:
     """
-    Bounded link extraction:
-    - Only pulls up to `limit` hrefs from the DOM (prevents huge lists / hangs on mega-pages)
-    - Skips non-http(s) schemes early
+    Fast link extraction that:
+    - avoids eval_on_selector_all (can be slow on huge DOMs)
+    - respects an optional monotonic() deadline
     """
-    try:
-        # Slice in JS to avoid returning a massive list to Python.
-        hrefs = page.eval_on_selector_all(
-            "a[href]",
-            f"els => els.slice(0, {int(limit)}).map(a => a.getAttribute('href'))"
-        ) or []
-    except Exception:
-        return []
-
     out: List[str] = []
     seen: Set[str] = set()
 
-    for href in hrefs:
-        if not href:
-            continue
-        href = href.strip()
+    try:
+        els = page.query_selector_all("a[href]") or []
+    except Exception:
+        return []
 
-        # Fast scheme rejects (common on nav-heavy sites)
-        low = href.lower()
-        if low.startswith(("javascript:", "mailto:", "tel:")):
+    # Hard cap how much DOM we even look at (safety on mega-pages)
+    # (MAX_LINKS_PER_PAGE is your output cap; this is an input cap.)
+    scan_cap = min(len(els), MAX_LINKS_PER_PAGE * 4)
+
+    for i in range(scan_cap):
+        if deadline_monotonic is not None and time.monotonic() >= deadline_monotonic:
+            break
+
+        el = els[i]
+        try:
+            href = (el.get_attribute("href") or "").strip()
+        except Exception:
+            continue
+
+        if not href:
             continue
 
         abs_url = href if re.match(r"^https?://", href, flags=re.I) else urljoin(current_url, href)
@@ -375,11 +384,10 @@ def extract_links_from_page(page, current_url: str, base_reg_domain: str, *, lim
 
         if is_internal_url(abs_url, base_reg_domain):
             out.append(abs_url)
-            if len(out) >= limit:
+            if len(out) >= MAX_LINKS_PER_PAGE:
                 break
 
     return out
-
 
 # ----------------------------
 # Cookie parsing + enrichment
@@ -686,7 +694,6 @@ def _harvest_context_cookies_once(
 # ----------------------------
 # Main scanner (single implementation)
 # ----------------------------
-
 def scan_site_for_cookies(
     *,
     start_url: str,
@@ -694,39 +701,29 @@ def scan_site_for_cookies(
     max_depth: int = DEFAULT_MAX_DEPTH,
     wait_ms: int = DEFAULT_WAIT_MS,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
-    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,
+    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,  # ✅ ADD
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """
     Crawl up to max_pages within max_depth and return a cookie report.
-
-    Key behavior added:
-      - Hard per-page wall-clock budget (per_page_budget_ms). If a single URL is too slow,
-        we skip it and move on so the crawl can't hang forever.
+    Enforces a HARD wall-clock budget per visited URL so one page can't hang the crawl.
     """
-
     start_url = normalize_url(start_url)
     if not start_url:
         raise ValueError("URL is required")
 
     max_pages = max(1, int(max_pages))
     max_depth = max(0, int(max_depth))
-
-    timeout_ms = max(1000, int(timeout_ms))
-    wait_ms = max(0, int(wait_ms))
-    per_page_budget_ms = max(1000, int(per_page_budget_ms))
+    per_page_budget_ms = max(1000, int(per_page_budget_ms))  # never < 1s
 
     base_reg_domain = registrable_domain(start_url)
     visited: Set[str] = set()
     queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
-    # cookie jar: (name, effective_domain, path) -> ParsedCookie-ish dict
     cookie_jar: Dict[CookieKey, ParsedCookie] = {}
-
-    # set-cookie raw fallback
-    set_cookie_observations: List[Tuple[str, str]] = []  # (set-cookie line, host)
+    set_cookie_observations: List[Tuple[str, str]] = []
     set_cookie_seen: Set[Tuple[str, str]] = set()
 
     def emit_progress(current_url: str) -> None:
@@ -735,23 +732,16 @@ def scan_site_for_cookies(
         v = len(visited)
         pct = int(min(100, (v / max_pages) * 100)) if max_pages else 0
         progress_callback(
-            {
-                "visited": v,
-                "max_pages": max_pages,
-                "current_url": current_url or "",
-                "percent": pct,
-            }
+            {"visited": v, "max_pages": max_pages, "current_url": current_url or "", "percent": pct}
         )
 
     with sync_playwright() as pw:
         browser = _launch_chromium(pw, headless=headless)
         context = browser.new_context(ignore_https_errors=ignore_https_errors)
 
-        # Block heavy resources
         def _route_handler(route):
             try:
-                rtype = route.request.resource_type
-                if rtype in BLOCKED_RESOURCE_TYPES:
+                if route.request.resource_type in BLOCKED_RESOURCE_TYPES:
                     return route.abort()
             except Exception:
                 pass
@@ -759,11 +749,9 @@ def scan_site_for_cookies(
 
         context.route("**/*", _route_handler)
 
-        # Capture Set-Cookie headers (fallback)
         def _on_response(resp):
             if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
                 return
-
             try:
                 header_val = resp.header_value("set-cookie")
             except Exception:
@@ -772,7 +760,6 @@ def scan_site_for_cookies(
                 return
 
             host = (urlparse(resp.url).hostname or "").lower()
-
             try:
                 for raw_line in header_val.splitlines():
                     line = (raw_line or "").strip()
@@ -795,87 +782,71 @@ def scan_site_for_cookies(
         context.on("response", _on_response)
 
         try:
-            # Reuse a single Page object for the whole crawl
             page = context.new_page()
-
-            # Keep Playwright operations from stalling too long; we'll also pass per-call timeouts.
-            try:
-                page.set_default_timeout(min(timeout_ms, per_page_budget_ms))
-                page.set_default_navigation_timeout(min(timeout_ms, per_page_budget_ms))
-            except Exception:
-                pass
+            # Keep defaults sane; we still pass explicit timeouts to goto.
+            page.set_default_navigation_timeout(int(timeout_ms))
 
             try:
                 while queue and len(visited) < max_pages:
                     url, depth = queue.pop(0)
                     url = canonicalize_for_visit(url)
 
-                    if url in visited:
-                        continue
-                    if depth > max_depth:
+                    if url in visited or depth > max_depth:
                         continue
 
                     visited.add(url)
                     emit_progress(url)
 
-                    # Hard wall-clock budget per URL
-                    t0 = time.monotonic()
-                    deadline = t0 + (per_page_budget_ms / 1000.0)
+                    # ✅ hard deadline for this URL
+                    deadline = time.monotonic() + (per_page_budget_ms / 1000.0)
 
                     def remaining_ms() -> int:
                         return int(max(0.0, (deadline - time.monotonic()) * 1000))
 
                     try:
-                        nav_timeout = min(timeout_ms, remaining_ms())
+                        nav_timeout = min(int(timeout_ms), remaining_ms())
                         if nav_timeout <= 0:
                             continue
 
-                        # "commit" returns earlier than "domcontentloaded" on some heavy SPA pages.
-                        # We still optionally wait a bit afterwards (budget-aware).
+                        # ✅ commit returns earlier than domcontentloaded on heavy SPAs
                         page.goto(url, wait_until="commit", timeout=nav_timeout)
 
+                        # small post-load wait (but never beyond the budget)
                         if wait_ms:
-                            wm = min(wait_ms, remaining_ms())
+                            wm = min(int(wait_ms), remaining_ms())
                             if wm > 0:
                                 page.wait_for_timeout(wm)
 
-                        # Only extract/enqueue links if we have some budget left
+                        # best-effort: stop runaway network/JS activity
+                        try:
+                            page.evaluate("() => { try { window.stop && window.stop(); } catch(e) {} }")
+                        except Exception:
+                            pass
+
+                        # only extract links if we have time left
                         if depth < max_depth and len(visited) < max_pages and remaining_ms() >= 250:
-                            # Make link extraction obey the remaining budget via default timeout
-                            try:
-                                page.set_default_timeout(min(1000, max(250, remaining_ms())))
-                            except Exception:
-                                pass
-
-                            try:
-                                links = extract_links_from_page(page, url, base_reg_domain)
-                            except Exception:
-                                links = []
-
+                            links = extract_links_from_page(
+                                page,
+                                url,
+                                base_reg_domain,
+                                deadline_monotonic=deadline,
+                            )
                             for link in links:
                                 if link not in visited and len(queue) < (max_pages * 3):
                                     queue.append((link, depth + 1))
 
                     except PlaywrightTimeoutError:
-                        # Slow pages shouldn't block the crawl
+                        # ✅ timeout = skip this URL, keep crawling
                         pass
                     except Exception:
-                        # Defensive: never let a weird page kill the scan
+                        # ✅ never let a single page crash the scan
                         pass
                     finally:
-                        # Cancel/tear down any in-flight work on that document quickly
-                        try:
-                            # window.stop() can help on pages that keep streaming/long-polling
-                            page.evaluate("() => { try { window.stop(); } catch (e) {} }")
-                        except Exception:
-                            pass
-
                         try:
                             page.goto("about:blank", wait_until="commit", timeout=1000)
                         except Exception:
                             pass
 
-                    # Aggressive cleanup after each visited URL (keep your behavior)
                     try:
                         if free_memory_aggressively:
                             free_memory_aggressively()
@@ -883,7 +854,6 @@ def scan_site_for_cookies(
                     except Exception:
                         pass
 
-                # Collect cookies once at the end (context still alive)
                 _harvest_context_cookies_once(
                     context,
                     cookie_jar=cookie_jar,
@@ -907,7 +877,7 @@ def scan_site_for_cookies(
             except Exception:
                 pass
 
-    # Merge in Set-Cookie observations (enrich existing jar entries too)
+    # Merge Set-Cookie observations
     for line, host in set_cookie_observations:
         pc = parse_set_cookie_line(line, host_fallback=host)
         if not pc:
