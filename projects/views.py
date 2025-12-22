@@ -126,27 +126,63 @@ def cookie_audit_status(request, task_id):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_GET
 def cookie_audit_results(request, task_id):
-    from .forms import CookieAuditForm
     from . import cookie_scan_utils
+
     """
     Returns results JSON once done. JS calls this after status says 'done'.
+    Defensive: always returns JSON, even if task data is corrupted or an exception occurs.
+    Optional: remove results from cache after first successful fetch to reduce memory.
     """
-    task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
-    if not task:
-        return JsonResponse({"state": "unknown"}, status=404)
+    try:
+        task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
 
-    state = task.get("state", "unknown")
-    payload = {"state": state}
+        if not task:
+            return JsonResponse({"state": "unknown"}, status=404)
 
-    if state == "done":
-        payload["results"] = task.get("results") or {}
-    elif state == "error":
-        payload["error"] = task.get("error") or "Unknown error"
-    else:
-        payload["progress"] = task.get("progress") or {}
-        payload["queue_position"] = task.get("queue_position", None)
+        if not isinstance(task, dict):
+            return JsonResponse(
+                {"state": "error", "error": "Task data corrupted (non-dict)."},
+                status=500,
+            )
 
-    return JsonResponse(payload)
+        state = task.get("state", "unknown")
+        payload = {"state": state}
+
+        if state == "done":
+            payload["results"] = task.get("results") or {}
+
+            # ---- OPTIONAL MEMORY SAVER ----
+            # After we successfully deliver results once, shrink the cached task so it
+            # doesn't keep a large 'results' object in memory for the whole TTL.
+            #
+            # This assumes you can update the task in cache. If you don't have a
+            # dedicated setter, you can add one in cookie_scan_utils, e.g.
+            # set_cookie_audit_task(task_id, task_dict).
+            try:
+                task.pop("results", None)
+                # If you have a setter, use it:
+                if hasattr(cookie_scan_utils, "set_cookie_audit_task"):
+                    cookie_scan_utils.set_cookie_audit_task(str(task_id), task)
+                # Or if you have a delete helper, delete the task entirely:
+                elif hasattr(cookie_scan_utils, "delete_cookie_audit_task"):
+                    cookie_scan_utils.delete_cookie_audit_task(str(task_id))
+            except Exception:
+                pass
+
+        elif state == "error":
+            payload["error"] = task.get("error") or "Unknown error"
+
+        else:
+            payload["progress"] = task.get("progress") or {}
+            payload["queue_position"] = task.get("queue_position", None)
+
+        return JsonResponse(payload)
+
+    except Exception as exc:
+        return JsonResponse(
+            {"state": "error", "error": f"{type(exc).__name__}: {exc}"},
+            status=500,
+        )
 
 # Font Inspector
 # Force memory trim after work.
