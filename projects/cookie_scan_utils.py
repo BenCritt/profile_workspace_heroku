@@ -16,6 +16,7 @@ import time
 import uuid
 import threading
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from urllib.parse import urljoin, urlparse, urlunparse
 
@@ -90,7 +91,27 @@ def make_cookie_key(
     effective_domain = d or h
     return (n, effective_domain, p)
 
+def merge_cookie(existing: ParsedCookie, incoming: ParsedCookie) -> None:
+    """
+    Merge 'incoming' into 'existing' without losing info.
+    Keep existing as the canonical object.
+    """
 
+    # Fill Expires if we don't have one yet
+    if (not existing.expires_human) and incoming.expires_human:
+        existing.expires_human = incoming.expires_human
+
+    # Prefer "true" for boolean flags if either saw it
+    existing.secure = bool(existing.secure or incoming.secure)
+    existing.httpOnly = bool(existing.httpOnly or incoming.httpOnly)
+
+    # Fill SameSite if missing
+    if (not existing.sameSite) and incoming.sameSite:
+        existing.sameSite = incoming.sameSite
+
+    # Party: if either classifies as third-party, keep that
+    if existing.party != "third-party" and incoming.party == "third-party":
+        existing.party = "third-party"
 
 def _task_key(task_id: str) -> str:
     return f"{_TASK_KEY_PREFIX}{task_id}"
@@ -546,6 +567,38 @@ def _launch_chromium(p, *, headless: bool) -> Any:
 
     return p.chromium.launch(**launch_kwargs)
 
+from datetime import datetime, timezone
+
+def _expires_human_from_playwright(expires_val) -> str:
+    """
+    Playwright cookie 'expires' can be:
+      - -1 / 0 / None  => session cookie (or not provided)
+      - number         => unix epoch seconds
+      - sometimes a string (depending on wrappers/serialization)
+    Returns a small, human-friendly string with minimal overhead.
+    """
+    if expires_val is None:
+        return ""
+
+    # Coerce to float safely
+    try:
+        exp = float(expires_val)
+    except (TypeError, ValueError):
+        # If it's some unexpected type, don't crash; keep it blank
+        return ""
+
+    # Session cookies are often represented as 0 or -1
+    if exp <= 0:
+        return "Session"
+
+    # Convert epoch seconds to a stable UTC string
+    try:
+        return datetime.fromtimestamp(exp, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
+    except (OverflowError, OSError, ValueError):
+        # Out-of-range epoch
+        return ""
+
+
 def _harvest_context_cookies_once(
     context,
     *,
@@ -555,13 +608,17 @@ def _harvest_context_cookies_once(
 ) -> None:
     """
     Pull cookies from the Playwright context exactly once and add them to cookie_jar.
+
+    Keys by (name, effective_domain, path) where effective_domain is:
+      - cookie domain if present
+      - otherwise host_fallback (host-only cookies)
     """
     try:
         all_cookies = context.cookies()
     except Exception:
         return
 
-    host_fallback = (host_fallback or "").lower()
+    host_fallback = (host_fallback or "").lstrip(".").lower()
 
     for c in all_cookies:
         try:
@@ -569,32 +626,44 @@ def _harvest_context_cookies_once(
             if not name:
                 continue
 
-            domain = (c.get("domain") or "").lstrip(".").lower()
-            path = str(c.get("path") or "/")
+            raw_domain = (c.get("domain") or "")
+            domain = raw_domain.lstrip(".").lower()
 
+            raw_path = c.get("path")
+            path = str(raw_path) if raw_path else "/"
+            if not path.startswith("/"):
+                path = "/" + path
+
+            # Build a stable key and skip if already present
             key = make_cookie_key(name, domain, path, host_fallback=host_fallback)
             if key in cookie_jar:
                 continue
 
-            # Classify party using effective domain (domain or host fallback)
-            effective_domain = domain or host_fallback
+            # Party classification based on effective domain (domain or host fallback)
+            effective_domain = (domain or host_fallback).lstrip(".").lower()
             party = "first-party"
             if effective_domain and registrable_domain(effective_domain) != base_reg_domain:
                 party = "third-party"
 
+            expires_human = _expires_human_from_playwright(c.get("expires"))
+
             pc = ParsedCookie(
                 name=name,
-                domain=domain or host_fallback,   # host-only cookies get a usable domain for display/merge
+                domain=effective_domain,  # store effective domain so host-only cookies are usable
                 path=path,
-                expires_human="",
+                expires_human=expires_human,
                 secure=bool(c.get("secure")),
                 httpOnly=bool(c.get("httpOnly")),
                 sameSite=str(c.get("sameSite") or ""),
                 party=party,
             )
+
             cookie_jar[key] = pc
+
         except Exception:
+            # Defensive: don't let one malformed cookie crash the scan
             continue
+
 
 # ----------------------------
 # Main scanner (single implementation)
@@ -769,8 +838,7 @@ def scan_site_for_cookies(
             except Exception:
                 pass
 
-
-    # Merge in Set-Cookie observations (if cookie jar missed them)
+    # Merge in Set-Cookie observations (enrich existing jar entries too)
     for line, host in set_cookie_observations:
         pc = parse_set_cookie_line(line, host_fallback=host)
         if not pc:
@@ -782,8 +850,11 @@ def scan_site_for_cookies(
             pc.party = "first-party"
 
         key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
-        if key not in cookie_jar:
+        if key in cookie_jar:
+            merge_cookie(cookie_jar[key], pc)
+        else:
             cookie_jar[key] = pc
+
 
     cookies_out = [to_ui_cookie(pc) for pc in cookie_jar.values()]
     cookies_out.sort(key=lambda x: (x.get("party", ""), x.get("domain", ""), x.get("name", "")))
