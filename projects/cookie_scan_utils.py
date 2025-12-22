@@ -44,6 +44,10 @@ DEFAULT_TIMEOUT_MS = 20000     # page.goto timeout
 DEFAULT_HEADLESS = True
 DEFAULT_IGNORE_HTTPS_ERRORS = False
 
+# Hard wall-clock budget per visited URL (navigation + wait + link extraction).
+# If a page is slow/heavy, we skip link extraction and move on.
+DEFAULT_PER_PAGE_BUDGET_MS = 12000
+
 # Block heavy resources to reduce memory; KEEP scripts/xhr so cookie banners & JS cookies still work.
 BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
 
@@ -334,9 +338,18 @@ def canonicalize_for_visit(url: str) -> str:
     return urlunparse((p.scheme, p.netloc, p.path, p.params, p.query, ""))
 
 
-def extract_links_from_page(page, current_url: str, base_reg_domain: str) -> List[str]:
+def extract_links_from_page(page, current_url: str, base_reg_domain: str, *, limit: int = MAX_LINKS_PER_PAGE) -> List[str]:
+    """
+    Bounded link extraction:
+    - Only pulls up to `limit` hrefs from the DOM (prevents huge lists / hangs on mega-pages)
+    - Skips non-http(s) schemes early
+    """
     try:
-        hrefs = page.eval_on_selector_all("a[href]", "els => els.map(a => a.getAttribute('href'))") or []
+        # Slice in JS to avoid returning a massive list to Python.
+        hrefs = page.eval_on_selector_all(
+            "a[href]",
+            f"els => els.slice(0, {int(limit)}).map(a => a.getAttribute('href'))"
+        ) or []
     except Exception:
         return []
 
@@ -347,7 +360,12 @@ def extract_links_from_page(page, current_url: str, base_reg_domain: str) -> Lis
         if not href:
             continue
         href = href.strip()
-        # Turn relative -> absolute
+
+        # Fast scheme rejects (common on nav-heavy sites)
+        low = href.lower()
+        if low.startswith(("javascript:", "mailto:", "tel:")):
+            continue
+
         abs_url = href if re.match(r"^https?://", href, flags=re.I) else urljoin(current_url, href)
         abs_url = canonicalize_for_visit(abs_url)
 
@@ -357,7 +375,7 @@ def extract_links_from_page(page, current_url: str, base_reg_domain: str) -> Lis
 
         if is_internal_url(abs_url, base_reg_domain):
             out.append(abs_url)
-            if len(out) >= MAX_LINKS_PER_PAGE:
+            if len(out) >= limit:
                 break
 
     return out
@@ -676,12 +694,17 @@ def scan_site_for_cookies(
     max_depth: int = DEFAULT_MAX_DEPTH,
     wait_ms: int = DEFAULT_WAIT_MS,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
+    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
     """
     Crawl up to max_pages within max_depth and return a cookie report.
+
+    Key behavior added:
+      - Hard per-page wall-clock budget (per_page_budget_ms). If a single URL is too slow,
+        we skip it and move on so the crawl can't hang forever.
     """
 
     start_url = normalize_url(start_url)
@@ -690,6 +713,10 @@ def scan_site_for_cookies(
 
     max_pages = max(1, int(max_pages))
     max_depth = max(0, int(max_depth))
+
+    timeout_ms = max(1000, int(timeout_ms))
+    wait_ms = max(0, int(wait_ms))
+    per_page_budget_ms = max(1000, int(per_page_budget_ms))
 
     base_reg_domain = registrable_domain(start_url)
     visited: Set[str] = set()
@@ -770,6 +797,14 @@ def scan_site_for_cookies(
         try:
             # Reuse a single Page object for the whole crawl
             page = context.new_page()
+
+            # Keep Playwright operations from stalling too long; we'll also pass per-call timeouts.
+            try:
+                page.set_default_timeout(min(timeout_ms, per_page_budget_ms))
+                page.set_default_navigation_timeout(min(timeout_ms, per_page_budget_ms))
+            except Exception:
+                pass
+
             try:
                 while queue and len(visited) < max_pages:
                     url, depth = queue.pop(0)
@@ -783,26 +818,60 @@ def scan_site_for_cookies(
                     visited.add(url)
                     emit_progress(url)
 
-                    try:
-                        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-                        if wait_ms:
-                            page.wait_for_timeout(wait_ms)
+                    # Hard wall-clock budget per URL
+                    t0 = time.monotonic()
+                    deadline = t0 + (per_page_budget_ms / 1000.0)
 
-                        # Enqueue more pages (same as before)
-                        if depth < max_depth and len(visited) < max_pages:
-                            links = extract_links_from_page(page, url, base_reg_domain)
+                    def remaining_ms() -> int:
+                        return int(max(0.0, (deadline - time.monotonic()) * 1000))
+
+                    try:
+                        nav_timeout = min(timeout_ms, remaining_ms())
+                        if nav_timeout <= 0:
+                            continue
+
+                        # "commit" returns earlier than "domcontentloaded" on some heavy SPA pages.
+                        # We still optionally wait a bit afterwards (budget-aware).
+                        page.goto(url, wait_until="commit", timeout=nav_timeout)
+
+                        if wait_ms:
+                            wm = min(wait_ms, remaining_ms())
+                            if wm > 0:
+                                page.wait_for_timeout(wm)
+
+                        # Only extract/enqueue links if we have some budget left
+                        if depth < max_depth and len(visited) < max_pages and remaining_ms() >= 250:
+                            # Make link extraction obey the remaining budget via default timeout
+                            try:
+                                page.set_default_timeout(min(1000, max(250, remaining_ms())))
+                            except Exception:
+                                pass
+
+                            try:
+                                links = extract_links_from_page(page, url, base_reg_domain)
+                            except Exception:
+                                links = []
+
                             for link in links:
                                 if link not in visited and len(queue) < (max_pages * 3):
                                     queue.append((link, depth + 1))
 
                     except PlaywrightTimeoutError:
-                        # Keep going—some pages are chatty and never “finish”
+                        # Slow pages shouldn't block the crawl
+                        pass
+                    except Exception:
+                        # Defensive: never let a weird page kill the scan
                         pass
                     finally:
-                        # Optional but helpful: navigate away to release document resources
-                        # without destroying/recreating the Page each time.
+                        # Cancel/tear down any in-flight work on that document quickly
                         try:
-                            page.goto("about:blank", wait_until="domcontentloaded", timeout=3000)
+                            # window.stop() can help on pages that keep streaming/long-polling
+                            page.evaluate("() => { try { window.stop(); } catch (e) {} }")
+                        except Exception:
+                            pass
+
+                        try:
+                            page.goto("about:blank", wait_until="commit", timeout=1000)
                         except Exception:
                             pass
 
@@ -814,7 +883,7 @@ def scan_site_for_cookies(
                     except Exception:
                         pass
 
-                # ✅ Collect cookies exactly once, at the end (context still alive here)
+                # Collect cookies once at the end (context still alive)
                 _harvest_context_cookies_once(
                     context,
                     cookie_jar=cookie_jar,
@@ -854,7 +923,6 @@ def scan_site_for_cookies(
             merge_cookie(cookie_jar[key], pc)
         else:
             cookie_jar[key] = pc
-
 
     cookies_out = [to_ui_cookie(pc) for pc in cookie_jar.values()]
     cookies_out.sort(key=lambda x: (x.get("party", ""), x.get("domain", ""), x.get("name", "")))
