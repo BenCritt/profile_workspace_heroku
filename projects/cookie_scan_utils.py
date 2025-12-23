@@ -38,12 +38,21 @@ except Exception:
 # Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-DEFAULT_MAX_PAGES = 1
+DEFAULT_MAX_PAGES = 5
 DEFAULT_MAX_DEPTH = 1
-DEFAULT_WAIT_MS = 1500
+DEFAULT_WAIT_MS = 1000
 DEFAULT_TIMEOUT_MS = 15000
 DEFAULT_HEADLESS = True
 DEFAULT_IGNORE_HTTPS_ERRORS = False
+
+# Early-exit tuning (safe defaults)
+# NOTE: cookie_early_exit_count is treated as "new cookies seen on THIS page"
+DEFAULT_COOKIE_EARLY_EXIT_COUNT = 50      # stop waiting once we have this many NEW cookies for this page
+DEFAULT_COOKIE_STABLE_ROUNDS = 2          # stop waiting once cookie count is unchanged this many steps
+DEFAULT_COOKIE_WAIT_STEP_MS = 250         # polling step
+DEFAULT_MIN_WAIT_MS = 250                 # always wait at least this long (best-effort) after DOMContentLoaded
+DEFAULT_MAX_COOKIE_WAIT_MS = 1500         # cap for cookie-wait loop (can be <= wait_ms)
+DEFAULT_SKIP_LINKS_ON_EARLY_EXIT = True   # optional
 
 # Hard wall-clock budget per visited URL (navigation + wait + link extraction).
 # If a page is slow/heavy, we skip link extraction and move on.
@@ -166,6 +175,7 @@ def merge_cookie(existing: ParsedCookie, incoming: ParsedCookie) -> ParsedCookie
 
     return existing
 
+
 def _expires_human_from_playwright(expires_val: Any) -> str:
     """
     Playwright cookie "expires" is often seconds-since-epoch.
@@ -206,11 +216,9 @@ def parse_set_cookie_line(set_cookie_line: str) -> List[ParsedCookie]:
 
     out: List[ParsedCookie] = []
     for name, morsel in sc.items():
-        # SimpleCookie does not preserve all attributes perfectly, but we can infer the common ones
         secure = "secure" in morsel.keys()
         httponly = "httponly" in morsel.keys()
 
-        # Path/Domain may be missing
         path = morsel["path"] or "/"
         domain = (morsel["domain"] or "").lstrip(".").lower()
 
@@ -239,7 +247,8 @@ def parse_set_cookie_header(header_value: str) -> List[ParsedCookie]:
     """
     if not header_value:
         return []
-    lines = []
+
+    lines: List[str] = []
     for raw in str(header_value).splitlines():
         raw = raw.strip()
         if raw:
@@ -266,7 +275,6 @@ def _harvest_document_cookie(page) -> List[ParsedCookie]:
         return []
 
     out: List[ParsedCookie] = []
-    # document.cookie returns name=value pairs separated by "; "
     for part in cookie_str.split(";"):
         part = part.strip()
         if not part or "=" not in part:
@@ -275,7 +283,6 @@ def _harvest_document_cookie(page) -> List[ParsedCookie]:
         name = name.strip()
         if not name:
             continue
-        # We do not know domain/path flags from document.cookie alone; keep minimal
         out.append(
             ParsedCookie(
                 name=name,
@@ -536,8 +543,6 @@ def _looks_like_static_url(url: str) -> bool:
         if path in STATIC_EXACT_PATHS:
             return True
         if any(path.startswith(prefix) for prefix in STATIC_PATH_PREFIXES):
-            # Still allow HTML under /static/ if you ever had it (rare),
-            # but generally this is safe to classify as static.
             return True
         if path.startswith("/favicon"):
             return True
@@ -582,7 +587,6 @@ def extract_links_from_page(
         abs_url = urljoin(current_url, href)
         abs_url = canonicalize_for_visit(abs_url)
 
-        # Don’t enqueue obvious static URLs
         if _looks_like_static_url(abs_url):
             continue
 
@@ -740,6 +744,12 @@ def scan_site_for_cookies(
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    cookie_early_exit_count: int = DEFAULT_COOKIE_EARLY_EXIT_COUNT,
+    cookie_stable_rounds: int = DEFAULT_COOKIE_STABLE_ROUNDS,
+    cookie_wait_step_ms: int = DEFAULT_COOKIE_WAIT_STEP_MS,
+    min_wait_ms: int = DEFAULT_MIN_WAIT_MS,
+    max_cookie_wait_ms: int = DEFAULT_MAX_COOKIE_WAIT_MS,
+    skip_links_on_early_exit: bool = DEFAULT_SKIP_LINKS_ON_EARLY_EXIT,
 ) -> Dict[str, Any]:
     start_url = normalize_url(start_url)
     if not start_url:
@@ -754,13 +764,10 @@ def scan_site_for_cookies(
         raise ValueError("Could not determine base domain from URL")
 
     visited: Set[str] = set()
-    # (url, depth)
     queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
     cookie_jar: Dict[CookieKey, ParsedCookie] = {}
-
-    # For debugging: keep a bounded set of observed Set-Cookie lines
-    set_cookie_observations: Set[str] = set()
+    set_cookie_observations: Set[str] = set()  # bounded
 
     def _progress(visited_count: int, current_url: str) -> None:
         if not progress_callback:
@@ -781,22 +788,20 @@ def scan_site_for_cookies(
 
     with sync_playwright() as p:
         browser = _launch_chromium(p, headless=headless)
-
         context = browser.new_context(ignore_https_errors=bool(ignore_https_errors))
 
         # Route blocking: keep it simple + safe.
         def _route_handler(route, request) -> None:
             try:
                 rtype = (request.resource_type or "").lower()
-                url = request.url or ""
-                path = (urlparse(url).path or "").lower()
+                req_url = request.url or ""
+                path = (urlparse(req_url).path or "").lower()
 
                 # Abort obvious static endpoints regardless of reported type
                 if path in STATIC_EXACT_PATHS or path.startswith("/favicon"):
                     route.abort()
                     return
                 if any(path.startswith(prefix) for prefix in STATIC_PATH_PREFIXES):
-                    # NOTE: If you ever serve real HTML from /static/, remove this.
                     route.abort()
                     return
                 if any(path.endswith(ext) for ext in STATIC_FILE_EXTENSIONS):
@@ -825,6 +830,7 @@ def scan_site_for_cookies(
                 header_val = resp.header_value("set-cookie")
                 if not header_val:
                     return
+
                 host = (urlparse(resp.url).hostname or "").lower()
 
                 for pc in parse_set_cookie_header(str(header_val)):
@@ -833,12 +839,11 @@ def scan_site_for_cookies(
                         key_line = f"{host}::{pc.name}"
                         set_cookie_observations.add(key_line)
 
-                    party = _classify_party(
+                    pc.party = _classify_party(
                         cookie_domain=pc.domain,
                         host_fallback=host,
                         base_reg_domain=base_reg_domain,
                     )
-                    pc.party = party
                     pc.domain = (pc.domain or host).lstrip(".").lower()
 
                     key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
@@ -855,6 +860,7 @@ def scan_site_for_cookies(
             while queue and len(visited) < max_pages:
                 url, depth = queue.pop(0)
                 url = canonicalize_for_visit(url)
+
                 if url in visited:
                     continue
                 if not is_internal_url(url, base_reg_domain):
@@ -869,30 +875,77 @@ def scan_site_for_cookies(
 
                 page = context.new_page()
                 try:
-                    # Navigate
+                    # Navigate (best-effort)
                     try:
                         page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
                     except PlaywrightTimeoutError:
-                        # Still harvest whatever we can
                         pass
                     except Exception:
                         pass
 
-                    # Give JS a moment to set cookies
-                    if wait_ms > 0:
+                    # Early-exit cookie wait loop (runs on normal pages too)
+                    did_early_exit = False
+
+                    # Track "new cookies during this page"
+                    page_cookie_start_count = len(cookie_jar)
+
+                    target_wait_ms = max(0, int(min(wait_ms, max_cookie_wait_ms)))
+                    step_ms = max(50, int(cookie_wait_step_ms))
+                    stable_needed = max(1, int(cookie_stable_rounds))
+                    min_wait_ms_int = max(0, int(min_wait_ms))
+
+                    start_wait = time.monotonic()
+                    end_wait = min(
+                        start_wait + (target_wait_ms / 1000.0),
+                        deadline,
+                    )
+
+                    last_count = len(cookie_jar)
+                    stable = 0
+
+                    while time.monotonic() < end_wait:
                         try:
-                            page.wait_for_timeout(wait_ms)
+                            page.wait_for_timeout(step_ms)
                         except Exception:
                             pass
 
-                    # Harvest cookies (context-level)
+                        _harvest_context_cookies_once(
+                            context,
+                            base_reg_domain=base_reg_domain,
+                            cookie_jar=cookie_jar,
+                        )
+
+                        cur_count = len(cookie_jar)
+                        new_on_page = cur_count - page_cookie_start_count
+
+                        # Rule A: hit per-page cookie threshold
+                        if cookie_early_exit_count > 0 and new_on_page >= cookie_early_exit_count:
+                            did_early_exit = True
+                            break
+
+                        # Rule B: stable cookie count for N rounds (after a minimum wait)
+                        if cur_count == last_count:
+                            stable += 1
+                            waited_ms = (time.monotonic() - start_wait) * 1000.0
+                            if stable >= stable_needed and waited_ms >= min_wait_ms_int:
+                                did_early_exit = True
+                                break
+                        else:
+                            last_count = cur_count
+                            stable = 0
+
+                    # Harvest cookies (context-level) once more at the end
                     _harvest_context_cookies_once(context, base_reg_domain=base_reg_domain, cookie_jar=cookie_jar)
 
-                    # Harvest document.cookie as an extra fallback (won’t include HttpOnly)
+                    # Harvest document.cookie as extra fallback (won’t include HttpOnly)
                     host = (urlparse(url).hostname or "").lower()
                     for pc in _harvest_document_cookie(page):
                         pc.domain = (pc.domain or host).lstrip(".").lower()
-                        pc.party = _classify_party(cookie_domain=pc.domain, host_fallback=host, base_reg_domain=base_reg_domain)
+                        pc.party = _classify_party(
+                            cookie_domain=pc.domain,
+                            host_fallback=host,
+                            base_reg_domain=base_reg_domain,
+                        )
 
                         key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
                         if key in cookie_jar:
@@ -900,17 +953,18 @@ def scan_site_for_cookies(
                         else:
                             cookie_jar[key] = pc
 
-                    # Link extraction
+                    # Link extraction (only once per page; optionally skip if early-exited)
                     if depth < max_depth and time.monotonic() < deadline:
-                        links = extract_links_from_page(
-                            page,
-                            current_url=url,
-                            base_reg_domain=base_reg_domain,
-                            deadline_monotonic=deadline,
-                        )
-                        for link in links:
-                            if link not in visited:
-                                queue.append((link, depth + 1))
+                        if not (skip_links_on_early_exit and did_early_exit):
+                            links = extract_links_from_page(
+                                page,
+                                current_url=url,
+                                base_reg_domain=base_reg_domain,
+                                deadline_monotonic=deadline,
+                            )
+                            for link in links:
+                                if link not in visited:
+                                    queue.append((link, depth + 1))
 
                 finally:
                     try:
@@ -949,7 +1003,6 @@ def scan_site_for_cookies(
         "cookies": cookies_out,
     }
 
-from typing import Tuple, Dict, Any
 
 def infer_cookie_type_and_purpose(cookie_name: str) -> Tuple[str, str]:
     """
@@ -972,7 +1025,6 @@ def to_ui_cookie(pc: "ParsedCookie") -> Dict[str, Any]:
     """
     Canonical formatter for the cookie table (cookie_audit.html expects these keys).
     """
-    # Safeguard: if something ever shadows the helper, don’t crash the whole scan.
     helper = globals().get("infer_cookie_type_and_purpose")
     if callable(helper):
         ctype, purpose = helper(getattr(pc, "name", "") or "")
@@ -996,4 +1048,3 @@ def to_ui_cookie(pc: "ParsedCookie") -> Dict[str, Any]:
 def pc_to_dict(pc: "ParsedCookie") -> Dict[str, Any]:
     # Backwards-compatible alias used by scan_site_for_cookies()
     return to_ui_cookie(pc)
-
