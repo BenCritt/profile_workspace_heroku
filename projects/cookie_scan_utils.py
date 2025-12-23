@@ -166,25 +166,6 @@ def merge_cookie(existing: ParsedCookie, incoming: ParsedCookie) -> ParsedCookie
 
     return existing
 
-
-def pc_to_dict(pc: ParsedCookie) -> Dict[str, Any]:
-    """
-    Minimal dict form safe for JSON responses.
-    (If you want more fields later, add them here.)
-    """
-    return {
-        "name": pc.name,
-        "domain": pc.domain,
-        "path": pc.path,
-        "expires_human": pc.expires_human,
-        "secure": bool(pc.secure),
-        "httpOnly": bool(pc.httpOnly),
-        "sameSite": pc.sameSite or "",
-        "party": pc.party,
-        "source": pc.source or "",
-    }
-
-
 def _expires_human_from_playwright(expires_val: Any) -> str:
     """
     Playwright cookie "expires" is often seconds-since-epoch.
@@ -967,3 +948,52 @@ def scan_site_for_cookies(
         },
         "cookies": cookies_out,
     }
+
+from typing import Tuple, Dict, Any
+
+def infer_cookie_type_and_purpose(cookie_name: str) -> Tuple[str, str]:
+    """
+    Very lightweight heuristic. Extend as you like.
+    """
+    n = (cookie_name or "").lower()
+
+    if any(k in n for k in ("_ga", "_gid", "_gat", "gtm", "gcl_", "utm")):
+        return ("Analytics", "Analytics / measurement")
+    if any(k in n for k in ("session", "sid", "phpsessid", "jsessionid")):
+        return ("Necessary", "Session management")
+    if any(k in n for k in ("csrf", "xsrf")):
+        return ("Necessary", "Security (CSRF protection)")
+    if any(k in n for k in ("consent", "cookie", "cmp", "optanon", "onetrust")):
+        return ("Necessary", "Consent preferences")
+    return ("Unknown", "Unknown")
+
+
+def to_ui_cookie(pc: "ParsedCookie") -> Dict[str, Any]:
+    """
+    Canonical formatter for the cookie table (cookie_audit.html expects these keys).
+    """
+    # Safeguard: if something ever shadows the helper, don’t crash the whole scan.
+    helper = globals().get("infer_cookie_type_and_purpose")
+    if callable(helper):
+        ctype, purpose = helper(getattr(pc, "name", "") or "")
+    else:
+        ctype, purpose = ("Unknown", "Unknown")
+
+    return {
+        "name": getattr(pc, "name", "") or "",
+        "domain": getattr(pc, "domain", "") or "",
+        "path": getattr(pc, "path", "") or "/",
+        "expires_human": getattr(pc, "expires_human", "") or "",
+        "secure": bool(getattr(pc, "secure", False)),
+        "httpOnly": bool(getattr(pc, "httpOnly", False)),
+        "sameSite": getattr(pc, "sameSite", "") or "",
+        "party": getattr(pc, "party", "") or "",
+        "cookie_type": ctype,
+        "purpose": purpose,
+    }
+
+
+def pc_to_dict(pc: "ParsedCookie") -> Dict[str, Any]:
+    # Backwards-compatible alias used by scan_site_for_cookies()
+    return to_ui_cookie(pc)
+
