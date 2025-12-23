@@ -2,7 +2,7 @@
 """
 Cookie Audit scanner (Playwright) with:
 - low-memory crawling (blocks images/fonts/media, closes pages promptly)
-- accurate cookie detection (context.cookies() + Set-Cookie fallback)
+- accurate cookie detection (context.cookies() + Set-Cookie + document.cookie fallback)
 - per-request task isolation + queueing (no task overriding)
 - progress reporting for polling endpoint
 """
@@ -10,21 +10,22 @@ Cookie Audit scanner (Playwright) with:
 from __future__ import annotations
 
 import gc
+import glob
 import os
 import re
+import threading
 import time
 import uuid
-import threading
-import glob
-import tldextract
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from http.cookies import SimpleCookie
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from urllib.parse import urljoin, urlparse, urlunparse
 
+import tldextract
 from django.core.cache import cache
-
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 
 # Optional: your mem utility (safe if missing)
 try:
@@ -32,14 +33,15 @@ try:
 except Exception:
     free_memory_aggressively = None  # type: ignore
 
+
 # ----------------------------
 # Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-DEFAULT_MAX_PAGES = 5          # keep small for 512MB dyno; raise cautiously
-DEFAULT_MAX_DEPTH = 1          # depth=1 catches typical nav/footer links
-DEFAULT_WAIT_MS = 1500         # post-load wait to allow JS-set cookies
-DEFAULT_TIMEOUT_MS = 10000     # page.goto timeout
+DEFAULT_MAX_PAGES = 5
+DEFAULT_MAX_DEPTH = 1
+DEFAULT_WAIT_MS = 1500
+DEFAULT_TIMEOUT_MS = 20000
 DEFAULT_HEADLESS = True
 DEFAULT_IGNORE_HTTPS_ERRORS = False
 
@@ -61,6 +63,24 @@ MAX_LINKS_PER_PAGE = 200
 
 
 # ----------------------------
+# Extra “obviously-static” URL blocking (helps reduce noise)
+# ----------------------------
+STATIC_PATH_PREFIXES = (
+    "/static/",
+    "/media/",
+)
+STATIC_EXACT_PATHS = (
+    "/site.webmanifest",
+    "/service-worker.js",
+)
+STATIC_FILE_EXTENSIONS = (
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico",
+    ".css", ".map",
+    ".woff", ".woff2", ".ttf", ".eot", ".otf",
+)
+
+
+# ----------------------------
 # Task store + queueing (single dyno safe)
 # ----------------------------
 
@@ -71,11 +91,30 @@ _ACTIVE_KEY = "cookie_audit:active_task_id"
 _LOCK = threading.Lock()
 
 # Concurrency on a 512MB / 1-dyno plan should remain 1 for Playwright scans.
-# Extra concurrent scans = extra Chromium processes = OOM.
 MAX_CONCURRENT_SCANS = 1
 
-# Cookie identity: (name, effective_domain, path)
-CookieKey = Tuple[str, str, str]
+
+# ----------------------------
+# Cookie modeling + parsing
+# ----------------------------
+
+CookieKey = Tuple[str, str, str]  # (name, effective_domain, path)
+
+
+@dataclass
+class ParsedCookie:
+    name: str
+    domain: str
+    path: str
+    expires_human: str = ""
+    secure: bool = False
+    httpOnly: bool = False
+    sameSite: str = ""
+    party: str = "first-party"  # "first-party" | "third-party"
+
+    # Optional provenance / debugging (keep small)
+    source: str = ""  # e.g. "context.cookies", "set-cookie", "document.cookie"
+
 
 def make_cookie_key(
     name: str,
@@ -94,7 +133,13 @@ def make_cookie_key(
     effective_domain = d or h
     return (n, effective_domain, p)
 
-def merge_cookie(existing: "ParsedCookie", incoming: "ParsedCookie") -> "ParsedCookie":
+
+# Alias: some callers expect cookie_key(...)
+def cookie_key(name: str, domain: str, path: str, *, host_fallback: str = "") -> CookieKey:
+    return make_cookie_key(name, domain, path, host_fallback=host_fallback)
+
+
+def merge_cookie(existing: ParsedCookie, incoming: ParsedCookie) -> ParsedCookie:
     """
     Merge 'incoming' into 'existing' without losing info.
     Keep existing as the canonical object.
@@ -104,25 +149,169 @@ def merge_cookie(existing: "ParsedCookie", incoming: "ParsedCookie") -> "ParsedC
         cookie_jar[key] = merge_cookie(cookie_jar[key], incoming)
       without accidentally setting the value to None.
     """
-
-    # Fill Expires if we don't have one yet
     if (not existing.expires_human) and incoming.expires_human:
         existing.expires_human = incoming.expires_human
 
-    # Prefer "true" for boolean flags if either saw it
     existing.secure = bool(existing.secure or incoming.secure)
     existing.httpOnly = bool(existing.httpOnly or incoming.httpOnly)
 
-    # Fill SameSite if missing
     if (not existing.sameSite) and incoming.sameSite:
         existing.sameSite = incoming.sameSite
 
-    # Party: if either classifies as third-party, keep that
     if existing.party != "third-party" and incoming.party == "third-party":
         existing.party = "third-party"
 
+    if (not existing.source) and incoming.source:
+        existing.source = incoming.source
+
     return existing
 
+
+def pc_to_dict(pc: ParsedCookie) -> Dict[str, Any]:
+    """
+    Minimal dict form safe for JSON responses.
+    (If you want more fields later, add them here.)
+    """
+    return {
+        "name": pc.name,
+        "domain": pc.domain,
+        "path": pc.path,
+        "expires_human": pc.expires_human,
+        "secure": bool(pc.secure),
+        "httpOnly": bool(pc.httpOnly),
+        "sameSite": pc.sameSite or "",
+        "party": pc.party,
+        "source": pc.source or "",
+    }
+
+
+def _expires_human_from_playwright(expires_val: Any) -> str:
+    """
+    Playwright cookie "expires" is often seconds-since-epoch.
+    -1 or 0 may be session cookies.
+    """
+    try:
+        if expires_val in (None, "", -1, 0):
+            return ""
+        ts = float(expires_val)
+        if ts <= 0:
+            return ""
+        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+    except Exception:
+        return ""
+
+
+def parse_set_cookie_line(set_cookie_line: str) -> List[ParsedCookie]:
+    """
+    Parse a single Set-Cookie header line into one or more cookies (rarely more than one).
+    We keep it defensive and small.
+
+    Example:
+      "sessionid=abc; Path=/; HttpOnly; Secure; SameSite=Lax"
+    """
+    line = (set_cookie_line or "").strip()
+    if not line:
+        return []
+
+    # Truncate extremely long lines to avoid memory blowups
+    if len(line) > MAX_SET_COOKIE_CHARS:
+        line = line[:MAX_SET_COOKIE_CHARS] + "…"
+
+    sc = SimpleCookie()
+    try:
+        sc.load(line)
+    except Exception:
+        return []
+
+    out: List[ParsedCookie] = []
+    for name, morsel in sc.items():
+        # SimpleCookie does not preserve all attributes perfectly, but we can infer the common ones
+        secure = "secure" in morsel.keys()
+        httponly = "httponly" in morsel.keys()
+
+        # Path/Domain may be missing
+        path = morsel["path"] or "/"
+        domain = (morsel["domain"] or "").lstrip(".").lower()
+
+        same_site = morsel["samesite"] or ""
+        expires = morsel["expires"] or ""  # human string, not epoch
+
+        out.append(
+            ParsedCookie(
+                name=name,
+                domain=domain,
+                path=path,
+                expires_human=str(expires or ""),
+                secure=bool(secure),
+                httpOnly=bool(httponly),
+                sameSite=str(same_site or ""),
+                source="set-cookie",
+            )
+        )
+    return out
+
+
+def parse_set_cookie_header(header_value: str) -> List[ParsedCookie]:
+    """
+    Some frameworks give you a single string that contains multiple Set-Cookie lines.
+    We split on newlines defensively.
+    """
+    if not header_value:
+        return []
+    lines = []
+    for raw in str(header_value).splitlines():
+        raw = raw.strip()
+        if raw:
+            lines.append(raw)
+
+    out: List[ParsedCookie] = []
+    for line in lines:
+        out.extend(parse_set_cookie_line(line))
+    return out
+
+
+def _harvest_document_cookie(page) -> List[ParsedCookie]:
+    """
+    Read document.cookie (JS-visible cookies only; NOT HttpOnly).
+    This is a fallback to catch cookies set by JS without relying on context.cookies timing.
+    """
+    try:
+        cookie_str = page.evaluate("document.cookie")  # e.g. "a=1; b=2"
+    except Exception:
+        return []
+
+    cookie_str = (cookie_str or "").strip()
+    if not cookie_str:
+        return []
+
+    out: List[ParsedCookie] = []
+    # document.cookie returns name=value pairs separated by "; "
+    for part in cookie_str.split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        name, _val = part.split("=", 1)
+        name = name.strip()
+        if not name:
+            continue
+        # We do not know domain/path flags from document.cookie alone; keep minimal
+        out.append(
+            ParsedCookie(
+                name=name,
+                domain="",
+                path="/",
+                secure=False,
+                httpOnly=False,
+                sameSite="",
+                source="document.cookie",
+            )
+        )
+    return out
+
+
+# ----------------------------
+# Task store helpers
+# ----------------------------
 
 def _task_key(task_id: str) -> str:
     return f"{_TASK_KEY_PREFIX}{task_id}"
@@ -130,6 +319,7 @@ def _task_key(task_id: str) -> str:
 
 def get_cookie_audit_task(task_id: str) -> Optional[Dict[str, Any]]:
     return cache.get(_task_key(task_id))
+
 
 def set_cookie_audit_task(task_id: str, data: Dict[str, Any]) -> None:
     """
@@ -148,21 +338,19 @@ def delete_cookie_audit_task(task_id: str) -> None:
     """
     try:
         with _LOCK:
-            # Remove from queue if present (defensive)
             q = _get_queue()
             if task_id in q:
                 q = [x for x in q if x != task_id]
                 _set_queue(q)
 
-            # Clear active pointer if it's pointing at this task (defensive)
             active = cache.get(_ACTIVE_KEY)
             if active == task_id:
                 cache.delete(_ACTIVE_KEY)
 
         cache.delete(_task_key(task_id))
     except Exception:
-        # Never let cache cleanup crash a request
         pass
+
 
 def _set_task(task_id: str, data: Dict[str, Any]) -> None:
     cache.set(_task_key(task_id), data, timeout=_TASK_TTL_SECONDS)
@@ -197,7 +385,7 @@ def start_cookie_audit_task(
     max_depth: int = DEFAULT_MAX_DEPTH,
     wait_ms: int = DEFAULT_WAIT_MS,
     timeout_ms: int = DEFAULT_TIMEOUT_MS,
-    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,  # ✅ ADD
+    per_page_budget_ms: int = DEFAULT_PER_PAGE_BUDGET_MS,
     headless: bool = DEFAULT_HEADLESS,
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
 ) -> str:
@@ -209,7 +397,7 @@ def start_cookie_audit_task(
         "max_depth": int(max_depth),
         "wait_ms": int(wait_ms),
         "timeout_ms": int(timeout_ms),
-        "per_page_budget_ms": int(per_page_budget_ms),  # ✅ ADD
+        "per_page_budget_ms": int(per_page_budget_ms),
         "headless": bool(headless),
         "ignore_https_errors": bool(ignore_https_errors),
     }
@@ -240,13 +428,10 @@ def start_cookie_audit_task(
 
 
 def _kick_queue() -> None:
-    """
-    Start the next queued job if we have capacity.
-    """
     with _LOCK:
         active = cache.get(_ACTIVE_KEY)
         if active:
-            return  # already running (concurrency=1)
+            return
 
         q = _get_queue()
         if not q:
@@ -256,13 +441,8 @@ def _kick_queue() -> None:
         _set_queue(q)
         cache.set(_ACTIVE_KEY, next_id, timeout=_TASK_TTL_SECONDS)
 
-        _update_task(
-            next_id,
-            state="running",
-            started_at=time.time(),
-        )
+        _update_task(next_id, state="running", started_at=time.time())
 
-    # Run scan outside lock
     threading.Thread(target=_run_task, args=(next_id,), daemon=True).start()
 
 
@@ -280,7 +460,6 @@ def _run_task(task_id: str) -> None:
 
     try:
         def progress_cb(progress: Dict[str, Any]) -> None:
-            # merge progress into task safely
             cur = (get_cookie_audit_task(task_id) or {}).get("progress") or {}
             cur.update(progress or {})
             _update_task(task_id, progress=cur)
@@ -291,7 +470,7 @@ def _run_task(task_id: str) -> None:
             max_depth=int(params.get("max_depth", DEFAULT_MAX_DEPTH)),
             wait_ms=int(params.get("wait_ms", DEFAULT_WAIT_MS)),
             timeout_ms=int(params.get("timeout_ms", DEFAULT_TIMEOUT_MS)),
-            per_page_budget_ms=int(params.get("per_page_budget_ms", DEFAULT_PER_PAGE_BUDGET_MS)),  # ✅ ADD
+            per_page_budget_ms=int(params.get("per_page_budget_ms", DEFAULT_PER_PAGE_BUDGET_MS)),
             headless=bool(params.get("headless", DEFAULT_HEADLESS)),
             ignore_https_errors=bool(params.get("ignore_https_errors", DEFAULT_IGNORE_HTTPS_ERRORS)),
             progress_callback=progress_cb,
@@ -311,12 +490,7 @@ def _run_task(task_id: str) -> None:
         )
 
     except Exception as e:
-        _update_task(
-            task_id,
-            state="error",
-            finished_at=time.time(),
-            error=str(e),
-        )
+        _update_task(task_id, state="error", finished_at=time.time(), error=str(e))
     finally:
         try:
             if free_memory_aggressively:
@@ -370,11 +544,27 @@ def is_internal_url(candidate_url: str, base_reg_domain: str) -> bool:
 
 
 def canonicalize_for_visit(url: str) -> str:
-    """
-    Remove fragments; keep query (some sites gate cookie banners by query).
-    """
     p = urlparse(url)
     return urlunparse((p.scheme, p.netloc, p.path, p.params, p.query, ""))
+
+
+def _looks_like_static_url(url: str) -> bool:
+    try:
+        p = urlparse(url)
+        path = (p.path or "").lower()
+        if path in STATIC_EXACT_PATHS:
+            return True
+        if any(path.startswith(prefix) for prefix in STATIC_PATH_PREFIXES):
+            # Still allow HTML under /static/ if you ever had it (rare),
+            # but generally this is safe to classify as static.
+            return True
+        if path.startswith("/favicon"):
+            return True
+        if any(path.endswith(ext) for ext in STATIC_FILE_EXTENSIONS):
+            return True
+        return False
+    except Exception:
+        return False
 
 
 def extract_links_from_page(
@@ -384,11 +574,6 @@ def extract_links_from_page(
     *,
     deadline_monotonic: Optional[float] = None,
 ) -> List[str]:
-    """
-    Fast link extraction that:
-    - avoids eval_on_selector_all (can be slow on huge DOMs)
-    - respects an optional monotonic() deadline
-    """
     out: List[str] = []
     seen: Set[str] = set()
 
@@ -397,8 +582,6 @@ def extract_links_from_page(
     except Exception:
         return []
 
-    # Hard cap how much DOM we even look at (safety on mega-pages)
-    # (MAX_LINKS_PER_PAGE is your output cap; this is an input cap.)
     scan_cap = min(len(els), MAX_LINKS_PER_PAGE * 4)
 
     for i in range(scan_cap):
@@ -407,227 +590,31 @@ def extract_links_from_page(
 
         el = els[i]
         try:
-            href = (el.get_attribute("href") or "").strip()
+            href = el.get_attribute("href")
         except Exception:
             continue
 
-        if not href:
+        href = (href or "").strip()
+        if not href or href.startswith("#") or href.lower().startswith(("mailto:", "tel:", "javascript:")):
             continue
 
-        abs_url = href if re.match(r"^https?://", href, flags=re.I) else urljoin(current_url, href)
+        abs_url = urljoin(current_url, href)
         abs_url = canonicalize_for_visit(abs_url)
 
-        if abs_url in seen:
+        # Don’t enqueue obvious static URLs
+        if _looks_like_static_url(abs_url):
             continue
-        seen.add(abs_url)
 
-        if is_internal_url(abs_url, base_reg_domain):
+        if not is_internal_url(abs_url, base_reg_domain):
+            continue
+
+        if abs_url not in seen:
+            seen.add(abs_url)
             out.append(abs_url)
             if len(out) >= MAX_LINKS_PER_PAGE:
                 break
 
     return out
-
-# ----------------------------
-# Cookie parsing + enrichment
-# ----------------------------
-
-@dataclass
-class ParsedCookie:
-    name: str
-    domain: str
-    path: str = "/"
-    expires_human: str = ""
-    secure: bool = False
-    httpOnly: bool = False
-    sameSite: str = ""
-    party: str = "first-party"
-    cookie_type: str = "Unknown"
-    purpose: str = "Unknown"
-
-
-def parse_set_cookie_line(line: str, *, host_fallback: str = "") -> Optional[ParsedCookie]:
-    """
-    Parse a Set-Cookie header line (without storing value).
-    """
-    if not line:
-        return None
-    parts = [p.strip() for p in line.split(";") if p.strip()]
-    if not parts:
-        return None
-
-    # name=value is first
-    nv = parts[0]
-    if "=" not in nv:
-        return None
-    name = nv.split("=", 1)[0].strip()
-    if not name:
-        return None
-
-    attrs = {}
-    for p in parts[1:]:
-        if "=" in p:
-            k, v = p.split("=", 1)
-            attrs[k.strip().lower()] = v.strip()
-        else:
-            attrs[p.strip().lower()] = True
-
-    domain = str(attrs.get("domain") or "").lstrip(".").lower()
-    if not domain and host_fallback:
-        domain = host_fallback.lstrip(".").lower()
-    path = str(attrs.get("path") or "/")
-    secure = bool(attrs.get("secure") is True)
-    http_only = bool(attrs.get("httponly") is True)
-    same_site = str(attrs.get("samesite") or "")
-
-    expires_human = ""
-    # We keep it simple: show Expires/Max-Age raw-ish (no heavy date parsing)
-    if "expires" in attrs:
-        expires_human = str(attrs["expires"])
-    elif "max-age" in attrs:
-        expires_human = f"Max-Age={attrs['max-age']}"
-
-    return ParsedCookie(
-        name=name,
-        domain=domain,
-        path=path,
-        expires_human=expires_human,
-        secure=secure,
-        httpOnly=http_only,
-        sameSite=same_site,
-    )
-
-
-def infer_cookie_type_and_purpose(cookie_name: str) -> Tuple[str, str]:
-    """
-    Very lightweight heuristic. Extend as you like.
-    """
-    n = (cookie_name or "").lower()
-
-    if any(k in n for k in ("_ga", "_gid", "_gat", "gtm", "gcl_", "utm")):
-        return ("Analytics", "Analytics / measurement")
-    if any(k in n for k in ("session", "sid", "phpsessid", "jsessionid")):
-        return ("Necessary", "Session management")
-    if any(k in n for k in ("csrf", "xsrf")):
-        return ("Necessary", "Security (CSRF protection)")
-    if any(k in n for k in ("consent", "cookie", "cmp", "optanon", "onetrust")):
-        return ("Necessary", "Consent preferences")
-    return ("Unknown", "Unknown")
-
-
-def to_ui_cookie(pc: ParsedCookie) -> Dict[str, Any]:
-    ctype, purpose = infer_cookie_type_and_purpose(pc.name)
-    return {
-        "name": pc.name,
-        "domain": pc.domain or "",
-        "expires_human": pc.expires_human or "",
-        "secure": bool(pc.secure),
-        "httpOnly": bool(pc.httpOnly),
-        "sameSite": pc.sameSite or "",
-        "party": pc.party,
-        "cookie_type": ctype,
-        "purpose": purpose,
-    }
-
-def pc_to_dict(pc: "ParsedCookie") -> Dict[str, Any]:
-    """
-    Backwards-compatible alias used by scan_site_for_cookies().
-    Your canonical formatter is `to_ui_cookie()`.
-    """
-    out = to_ui_cookie(pc)
-    # Keep path available (sometimes useful for debugging/deduping)
-    out.setdefault("path", pc.path or "/")
-    return out
-
-
-def cookie_key(pc: "ParsedCookie", *, host_fallback: str = "") -> CookieKey:
-    """
-    Backwards-compatible alias used by scan_site_for_cookies().
-    """
-    return make_cookie_key(
-        pc.name,
-        pc.domain,
-        pc.path,
-        host_fallback=host_fallback,
-    )
-
-
-def parse_set_cookie_header(raw: str, *, request_host: str = "") -> Optional["ParsedCookie"]:
-    """
-    Some Playwright environments may return multiple Set-Cookie lines joined together.
-    This parses the FIRST parseable Set-Cookie line.
-
-    (If you want to merge *all* Set-Cookie lines, we can adjust the caller to iterate
-    over each split line — but this keeps your current call-site unchanged.)
-    """
-    if not raw:
-        return None
-
-    # Prefer splitlines() so we don't break on commas in Expires=...
-    for line in str(raw).splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        pc = parse_set_cookie_line(line, host_fallback=request_host)
-        if pc:
-            return pc
-
-    # Fallback: try the whole string as one line
-    return parse_set_cookie_line(str(raw).strip(), host_fallback=request_host)
-
-
-def _harvest_document_cookie(page, *, cookie_jar: Dict[CookieKey, "ParsedCookie"], base_reg_domain: str) -> None:
-    """
-    Best-effort: capture cookies created via JS (document.cookie).
-    This complements context.cookies() (which you already harvest). :contentReference[oaicite:4]{index=4}
-    """
-    try:
-        current_url = getattr(page, "url", "") or ""
-        host = (_host_from_url(current_url) or "").lstrip(".").lower()
-        if not host:
-            return
-
-        # document.cookie returns "name=value; name2=value2"
-        dc = page.evaluate("() => document.cookie || ''")
-        if not dc:
-            return
-
-        for part in str(dc).split(";"):
-            part = part.strip()
-            if not part or "=" not in part:
-                continue
-
-            name = part.split("=", 1)[0].strip()
-            if not name:
-                continue
-
-            # document.cookie doesn't expose flags/domain/path; treat as host-only, path "/"
-            domain = host
-            path = "/"
-
-            key = make_cookie_key(name, domain, path, host_fallback=host)
-            if key in cookie_jar:
-                continue
-
-            party = "first-party"
-            if registrable_domain(domain) != base_reg_domain:
-                party = "third-party"
-
-            cookie_jar[key] = ParsedCookie(
-                name=name,
-                domain=domain,
-                path=path,
-                expires_human="Session",
-                secure=False,
-                httpOnly=False,
-                sameSite="",
-                party=party,
-            )
-
-    except Exception:
-        # never let cookie harvesting crash a scan
-        return
-
 
 
 # ----------------------------
@@ -635,33 +622,24 @@ def _harvest_document_cookie(page, *, cookie_jar: Dict[CookieKey, "ParsedCookie"
 # ----------------------------
 
 def _find_chromium_executable() -> Optional[str]:
-    """
-    Try to locate a Chromium/Chrome binary in common Heroku buildpack locations.
-    Returns a full path if found, otherwise None.
-    """
-    # 1) Preferred: explicit env var (Thomas-Boi buildpack often sets this)
     exe = (os.getenv("CHROMIUM_EXECUTABLE_PATH") or "").strip()
     if exe and os.path.exists(exe):
         return exe
 
-    # 2) If PLAYWRIGHT_BROWSERS_PATH is set, search inside it
-    bases = []
-    pwp = (os.getenv("PLAYWRIGHT_BROWSERS_PATH") or "").strip()
-    if pwp:
-        bases.append(pwp)
-
-    # 3) Common Heroku locations used by Playwright buildpacks
-    bases.extend([
-        "/app/.playwright",
-        "/app/.cache/ms-playwright",
-        "/app/.cache/playwright",
-    ])
-
-    # Look for the common binaries Playwright uses
+    bases = [
+        os.getenv("GOOGLE_CHROME_BIN", ""),
+        "/app/.apt/usr/bin",
+        "/app/.apt/opt/google/chrome",
+        "/usr/bin",
+        "/usr/local/bin",
+    ]
     patterns = [
-        "**/chrome-headless-shell",      # newer Playwright headless shell
-        "**/chrome",                    # chrome-linux/chrome
-        "**/Chromium.app/**/Chromium",  # (not for Heroku, but harmless)
+        "google-chrome",
+        "google-chrome-stable",
+        "chromium",
+        "chromium-browser",
+        "**/chrome",
+        "**/chromium",
     ]
 
     for base in bases:
@@ -669,30 +647,21 @@ def _find_chromium_executable() -> Optional[str]:
             continue
         for pat in patterns:
             hits = glob.glob(os.path.join(base, pat), recursive=True)
-            # Pick the first real file that is executable-ish
             for h in hits:
                 if os.path.isfile(h):
                     return h
-
     return None
 
 
 def _launch_chromium(p, *, headless: bool) -> Any:
-    """
-    Heroku-friendly + lower-memory launch:
-    - Prefer buildpack-installed Chromium when available.
-    - Fall back to Playwright-managed Chromium for local dev (if installed).
-    """
     exe = _find_chromium_executable()
 
     args = [
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",  # IMPORTANT on Heroku
-        "--disable-gpu",
-        "--no-zygote",
-        "--disable-extensions",
+        "--disable-dev-shm-usage",
         "--disable-background-networking",
+        "--disable-background-timer-throttling",
         "--disable-default-apps",
         "--disable-sync",
         "--disable-translate",
@@ -709,123 +678,76 @@ def _launch_chromium(p, *, headless: bool) -> Any:
 
     if exe:
         launch_kwargs["executable_path"] = exe
-    else:
-        # On Heroku, we *expect* a buildpack-installed browser.
-        # If we didn't find one, fail with a clearer message than Playwright's.
-        if os.getenv("DYNO"):
-            raise RuntimeError(
-                "No Chromium executable found on Heroku. "
-                "Your Playwright buildpack likely did not install browsers, or the cache is stale. "
-                "Ensure PLAYWRIGHT_BUILDPACK_BROWSERS=chromium is set, "
-                "and that the playwright buildpack is installed, then purge cache + redeploy."
-            )
-
-    # Encourage temp files to go to /tmp
-    os.environ.setdefault("TMPDIR", "/tmp")
-    os.environ.setdefault("TEMP", "/tmp")
-    os.environ.setdefault("TMP", "/tmp")
 
     return p.chromium.launch(**launch_kwargs)
 
-def _expires_human_from_playwright(expires_val) -> str:
-    """
-    Playwright cookie 'expires' can be:
-      - -1 / 0 / None  => session cookie (or not provided)
-      - number         => unix epoch seconds
-      - sometimes a string (depending on wrappers/serialization)
-    Returns a small, human-friendly string with minimal overhead.
-    """
-    if expires_val is None:
-        return ""
 
-    # Coerce to float safely
-    try:
-        exp = float(expires_val)
-    except (TypeError, ValueError):
-        # If it's some unexpected type, don't crash; keep it blank
-        return ""
-
-    # Session cookies are often represented as 0 or -1
-    if exp <= 0:
-        return "Session"
-
-    # Convert epoch seconds to a stable UTC string
-    try:
-        return datetime.fromtimestamp(exp, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
-    except (OverflowError, OSError, ValueError):
-        # Out-of-range epoch
-        return ""
-
+# ----------------------------
+# Cookie harvesting
+# ----------------------------
 
 def _harvest_context_cookies_once(
     context,
     *,
-    cookie_jar: Dict[CookieKey, "ParsedCookie"],
     base_reg_domain: str,
-    host_fallback: str = "",
+    cookie_jar: Dict[CookieKey, ParsedCookie],
 ) -> None:
-    """
-    Pull cookies from the Playwright context exactly once and add them to cookie_jar.
-
-    Keys by (name, effective_domain, path) where effective_domain is:
-      - cookie domain if present
-      - otherwise host_fallback (host-only cookies)
-    """
     try:
-        all_cookies = context.cookies()
+        raw = context.cookies()
     except Exception:
         return
 
-    host_fallback = (host_fallback or "").lstrip(".").lower()
-
-    for c in all_cookies:
+    for c in raw or []:
         try:
-            name = (c.get("name") or "").strip()
+            name = str(c.get("name") or "").strip()
             if not name:
                 continue
 
-            raw_domain = (c.get("domain") or "")
-            domain = raw_domain.lstrip(".").lower()
+            domain = str(c.get("domain") or "").lstrip(".").lower()
+            path = str(c.get("path") or "/") or "/"
+            host_fallback = domain  # if empty, key builder can fallback later
 
-            raw_path = c.get("path")
-            path = str(raw_path) if raw_path else "/"
-            if not path.startswith("/"):
-                path = "/" + path
-
-            # Build a stable key and skip if already present
             key = make_cookie_key(name, domain, path, host_fallback=host_fallback)
-            if key in cookie_jar:
-                continue
 
-            # Party classification based on effective domain (domain or host fallback)
-            effective_domain = (domain or host_fallback).lstrip(".").lower()
             party = "first-party"
+            effective_domain = (domain or host_fallback).lstrip(".").lower()
             if effective_domain and registrable_domain(effective_domain) != base_reg_domain:
                 party = "third-party"
 
             expires_human = _expires_human_from_playwright(c.get("expires"))
 
-            pc = ParsedCookie(
+            incoming = ParsedCookie(
                 name=name,
-                domain=effective_domain,  # store effective domain so host-only cookies are usable
+                domain=effective_domain,
                 path=path,
                 expires_human=expires_human,
                 secure=bool(c.get("secure")),
                 httpOnly=bool(c.get("httpOnly")),
                 sameSite=str(c.get("sameSite") or ""),
                 party=party,
+                source="context.cookies",
             )
 
-            cookie_jar[key] = pc
+            if key in cookie_jar:
+                cookie_jar[key] = merge_cookie(cookie_jar[key], incoming)
+            else:
+                cookie_jar[key] = incoming
 
         except Exception:
-            # Defensive: don't let one malformed cookie crash the scan
             continue
 
 
+def _classify_party(*, cookie_domain: str, host_fallback: str, base_reg_domain: str) -> str:
+    effective = (cookie_domain or host_fallback).lstrip(".").lower()
+    if effective and registrable_domain(effective) != base_reg_domain:
+        return "third-party"
+    return "first-party"
+
+
 # ----------------------------
-# Main scanner (single implementation)
+# Main scanner
 # ----------------------------
+
 def scan_site_for_cookies(
     *,
     start_url: str,
@@ -838,241 +760,192 @@ def scan_site_for_cookies(
     ignore_https_errors: bool = DEFAULT_IGNORE_HTTPS_ERRORS,
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Dict[str, Any]:
-    """
-    Crawl up to max_pages within the registrable domain of start_url, visit pages,
-    observe cookies (from context cookies + Set-Cookie headers), and return a report.
-
-    This implementation is intentionally memory-conscious:
-      - blocks heavy static resources (images/fonts/media/stylesheets + static path prefixes/extensions)
-      - closes every page after each URL
-      - bounds Set-Cookie observations to prevent unbounded growth
-    """
-    started_at = time.time()
-
+    start_url = normalize_url(start_url)
     if not start_url:
-        return {"error": "start_url is required", "cookies": [], "meta": {"visited": 0, "max_pages": max_pages}}
+        raise ValueError("URL is required")
 
-    start_url = canonicalize_for_visit(start_url)
+    max_pages = max(1, int(max_pages))
+    max_depth = max(0, int(max_depth))
+    per_page_budget_ms = max(1000, int(per_page_budget_ms))
+
     base_reg_domain = registrable_domain(start_url)
+    if not base_reg_domain:
+        raise ValueError("Could not determine base domain from URL")
 
     visited: Set[str] = set()
+    # (url, depth)
     queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
     cookie_jar: Dict[CookieKey, ParsedCookie] = {}
-    set_cookie_observations: List[Tuple[str, str]] = []
-    set_cookie_seen: Set[Tuple[str, str]] = set()
 
-    from urllib.parse import urlparse
+    # For debugging: keep a bounded set of observed Set-Cookie lines
+    set_cookie_observations: Set[str] = set()
 
-    STATIC_PATH_PREFIXES = (
-        "/static/img/",
-        "/static/template-css/",
-        "/static/vendors/bootstrap/",
-        "/static/img/favicons/",
-    )
-
-    STATIC_EXACT_PATHS = (
-        "/site.webmanifest",
-        "/favicon.ico",
-        "/service-worker.js",
-    )
-
-    STATIC_EXTENSIONS = (
-        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico",
-        ".css", ".map",
-        ".woff", ".woff2", ".ttf", ".otf",
-        ".mp4", ".webm", ".mp3",
-    )
-
-    def _should_abort_request(req_url: str) -> bool:
-        try:
-            p = urlparse(req_url)
-            path = p.path or ""
-            if path in STATIC_EXACT_PATHS:
-                return True
-            if any(path.startswith(prefix) for prefix in STATIC_PATH_PREFIXES):
-                return True
-            if path.lower().endswith(STATIC_EXTENSIONS):
-                return True
-        except Exception:
-            pass
-        return False
-
-    def _route_handler(route):
-        try:
-            req = route.request
-            # Strong path-based blocking first (works even if resource_type is weird)
-            if _should_abort_request(req.url):
-                return route.abort()
-
-            # Then resource-type blocking
-            if req.resource_type in BLOCKED_RESOURCE_TYPES:
-                return route.abort()
-        except Exception:
-            pass
-
-        return route.continue_()
-
-    def emit_progress(current_url: str) -> None:
+    def _progress(visited_count: int, current_url: str) -> None:
         if not progress_callback:
             return
-        v = len(visited)
-        pct = int(min(100, (v / max_pages) * 100)) if max_pages else 0
         try:
+            pct = int((visited_count / max_pages) * 100)
+            pct = max(0, min(99, pct)) if visited_count < max_pages else 100
             progress_callback(
-                {"visited": v, "max_pages": max_pages, "current_url": current_url or "", "percent": pct}
+                {
+                    "visited": visited_count,
+                    "max_pages": max_pages,
+                    "current_url": current_url,
+                    "percent": pct,
+                }
             )
         except Exception:
-            # never let progress reporting break the scan
             pass
 
-    with sync_playwright() as pw:
-        browser = _launch_chromium(pw, headless=headless)
-        context = browser.new_context(ignore_https_errors=ignore_https_errors)
+    with sync_playwright() as p:
+        browser = _launch_chromium(p, headless=headless)
 
-        try:
-            # IMPORTANT: do NOT redefine _route_handler here; use the one above that includes path blocking.
+        context = browser.new_context(ignore_https_errors=bool(ignore_https_errors))
+
+        # Route blocking: keep it simple + safe.
+        def _route_handler(route, request) -> None:
             try:
-                context.route("**/*", _route_handler)
+                rtype = (request.resource_type or "").lower()
+                url = request.url or ""
+                path = (urlparse(url).path or "").lower()
+
+                # Abort obvious static endpoints regardless of reported type
+                if path in STATIC_EXACT_PATHS or path.startswith("/favicon"):
+                    route.abort()
+                    return
+                if any(path.startswith(prefix) for prefix in STATIC_PATH_PREFIXES):
+                    # NOTE: If you ever serve real HTML from /static/, remove this.
+                    route.abort()
+                    return
+                if any(path.endswith(ext) for ext in STATIC_FILE_EXTENSIONS):
+                    route.abort()
+                    return
+
+                # Abort heavy resource types
+                if rtype in BLOCKED_RESOURCE_TYPES:
+                    route.abort()
+                    return
+
+                route.continue_()
             except Exception:
-                # If routing fails for some reason, continue without it
-                pass
-
-            # Capture Set-Cookie from responses (bounded)
-            def _on_response(resp):
-                if len(set_cookie_observations) >= MAX_SET_COOKIE_OBSERVATIONS:
-                    return
                 try:
-                    header_val = resp.header_value("set-cookie")
-                except Exception:
-                    return
-                if not header_val:
-                    return
-
-                host = (urlparse(resp.url).hostname or "").lower()
-                key = (host, header_val)
-                if key in set_cookie_seen:
-                    return
-                set_cookie_seen.add(key)
-                set_cookie_observations.append(key)
-
-            try:
-                context.on("response", _on_response)
-            except Exception:
-                pass
-
-            page = None
-
-            def is_probably_not_html(url: str) -> bool:
-                """Fast reject for non-HTML endpoints (avoid opening Playwright pages for static files)."""
-                try:
-                    path = (urlparse(url).path or "").lower()
-                    if path.startswith("/static/"):
-                        return True
-                    if path.startswith("/media/"):
-                        return True
-                    if path.endswith(STATIC_EXTENSIONS):
-                        return True
+                    route.continue_()
                 except Exception:
                     pass
-                return False
 
-            # Emit initial progress so UI doesn't sit at 0 with no current_url
-            emit_progress(queue[0][0] if queue else start_url)
+        context.route("**/*", _route_handler)
 
+        def _on_response(resp) -> None:
+            """
+            Capture Set-Cookie lines (bounded) as a fallback source of cookie discovery.
+            """
+            try:
+                header_val = resp.header_value("set-cookie")
+                if not header_val:
+                    return
+                host = (urlparse(resp.url).hostname or "").lower()
+
+                for pc in parse_set_cookie_header(str(header_val)):
+                    # track bounded observations
+                    if len(set_cookie_observations) < MAX_SET_COOKIE_OBSERVATIONS:
+                        key_line = f"{host}::{pc.name}"
+                        set_cookie_observations.add(key_line)
+
+                    party = _classify_party(
+                        cookie_domain=pc.domain,
+                        host_fallback=host,
+                        base_reg_domain=base_reg_domain,
+                    )
+                    pc.party = party
+                    pc.domain = (pc.domain or host).lstrip(".").lower()
+
+                    key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
+                    if key in cookie_jar:
+                        cookie_jar[key] = merge_cookie(cookie_jar[key], pc)
+                    else:
+                        cookie_jar[key] = pc
+            except Exception:
+                return
+
+        context.on("response", _on_response)
+
+        try:
             while queue and len(visited) < max_pages:
                 url, depth = queue.pop(0)
                 url = canonicalize_for_visit(url)
-
-                if url in visited or depth > max_depth:
+                if url in visited:
+                    continue
+                if not is_internal_url(url, base_reg_domain):
+                    continue
+                if _looks_like_static_url(url):
                     continue
 
-                # ✅ Skip non-HTML BEFORE creating a page (prevents page leaks)
-                if is_probably_not_html(url):
-                    continue
-
-                # ✅ Fresh page per URL (memory goal)
-                try:
-                    page = context.new_page()
-                    page.set_default_navigation_timeout(int(timeout_ms))
-                except Exception:
-                    # ✅ Minor crawl accounting: if we can't create a page, don't burn a visit
-                    page = None
-                    continue
-
-                # ✅ Count visit only after page creation succeeds
                 visited.add(url)
-                emit_progress(url)
+                _progress(len(visited), url)
 
-                # Hard deadline for this URL
                 deadline = time.monotonic() + (per_page_budget_ms / 1000.0)
 
-                def remaining_ms() -> int:
-                    return int(max(0.0, (deadline - time.monotonic()) * 1000))
-
+                page = context.new_page()
                 try:
-                    nav_timeout = min(int(timeout_ms), remaining_ms())
-                    if nav_timeout <= 0:
-                        continue
+                    # Navigate
+                    try:
+                        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    except PlaywrightTimeoutError:
+                        # Still harvest whatever we can
+                        pass
+                    except Exception:
+                        pass
 
-                    # commit returns earlier than domcontentloaded on heavy SPAs
-                    page.goto(url, wait_until="commit", timeout=nav_timeout)
-
-                    # Give banners a moment (bounded)
-                    if wait_ms and remaining_ms() > 0:
-                        time.sleep(min(wait_ms / 1000.0, remaining_ms() / 1000.0))
-
-                    # Harvest cookies visible via context
-                    _harvest_context_cookies_once(
-                        context,
-                        cookie_jar=cookie_jar,
-                        base_reg_domain=base_reg_domain,
-                        host_fallback=_host_from_url(url),
-                    )
-
-                    # Capture inline JS cookie sets (best-effort; bounded time)
-                    if remaining_ms() >= 150:
+                    # Give JS a moment to set cookies
+                    if wait_ms > 0:
                         try:
-                            _harvest_document_cookie(page, cookie_jar=cookie_jar, base_reg_domain=base_reg_domain)
+                            page.wait_for_timeout(wait_ms)
                         except Exception:
                             pass
 
-                    # Extract internal links if we still have time
-                    if depth < max_depth and len(visited) < max_pages and remaining_ms() >= 250:
+                    # Harvest cookies (context-level)
+                    _harvest_context_cookies_once(context, base_reg_domain=base_reg_domain, cookie_jar=cookie_jar)
+
+                    # Harvest document.cookie as an extra fallback (won’t include HttpOnly)
+                    host = (urlparse(url).hostname or "").lower()
+                    for pc in _harvest_document_cookie(page):
+                        pc.domain = (pc.domain or host).lstrip(".").lower()
+                        pc.party = _classify_party(cookie_domain=pc.domain, host_fallback=host, base_reg_domain=base_reg_domain)
+
+                        key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
+                        if key in cookie_jar:
+                            cookie_jar[key] = merge_cookie(cookie_jar[key], pc)
+                        else:
+                            cookie_jar[key] = pc
+
+                    # Link extraction
+                    if depth < max_depth and time.monotonic() < deadline:
                         links = extract_links_from_page(
                             page,
-                            url,
-                            base_reg_domain,
+                            current_url=url,
+                            base_reg_domain=base_reg_domain,
                             deadline_monotonic=deadline,
                         )
-                        # Keep queue bounded
                         for link in links:
-                            if link not in visited and len(queue) < (max_pages * 3):
+                            if link not in visited:
                                 queue.append((link, depth + 1))
 
-                except PlaywrightTimeoutError:
-                    pass
-                except Exception:
-                    pass
                 finally:
-                    # ✅ Close the page after every URL (memory goal)
                     try:
-                        if page is not None:
-                            page.close()
+                        page.close()
                     except Exception:
                         pass
-                    page = None
 
-            # Final cookie harvest (context may have gained cookies late)
-            _harvest_context_cookies_once(
-                context,
-                cookie_jar=cookie_jar,
-                base_reg_domain=base_reg_domain,
-                host_fallback=_host_from_url(start_url),
-            )
+                # periodic GC helps on small dynos
+                try:
+                    if free_memory_aggressively:
+                        free_memory_aggressively()
+                    gc.collect()
+                except Exception:
+                    pass
 
         finally:
-            # ✅ Must close context + browser or Chromium will linger in memory
             try:
                 context.close()
             except Exception:
@@ -1082,44 +955,15 @@ def scan_site_for_cookies(
             except Exception:
                 pass
 
-    # Convert cookie jar to output
-    cookies_out: List[Dict[str, Any]] = []
-    for key, pc in cookie_jar.items():
-        cookies_out.append(pc_to_dict(pc))
-
-    # Enrich with any Set-Cookie lines we saw but couldn't parse into cookie jar
-    # (bounded; you already limit MAX_SET_COOKIE_OBSERVATIONS)
-    for host, raw in set_cookie_observations:
-        # If parse_set_cookie_header returns something useful, merge it
-        try:
-            parsed = parse_set_cookie_header(raw, request_host=host)
-        except Exception:
-            parsed = None
-        if not parsed:
-            continue
-
-        ck = cookie_key(parsed)
-        if ck in cookie_jar:
-            merge_cookie(cookie_jar[ck], parsed)   # merge in-place
-        else:
-            cookie_jar[ck] = parsed
-
-
-    # Re-render cookies after merge
     cookies_out = [pc_to_dict(pc) for pc in cookie_jar.values()]
-    cookies_out.sort(key=lambda c: (c.get("domain", ""), c.get("name", "")))
+    cookies_out.sort(key=lambda x: (x.get("party", ""), x.get("domain", ""), x.get("name", "")))
 
-    ended_at = time.time()
     return {
-        "meta": {
-            "start_url": start_url,
-            "registrable_domain": base_reg_domain,
-            "visited": len(visited),
+        "summary": {
+            "base_registrable_domain": base_reg_domain,
+            "visited_urls": len(visited),
             "max_pages": max_pages,
-            "max_depth": max_depth,
-            "elapsed_seconds": round(ended_at - started_at, 3),
-            "blocked_resource_types": sorted(list(BLOCKED_RESOURCE_TYPES)),
-            "static_block_prefixes": list(STATIC_PATH_PREFIXES),
+            "cookies_detected_total": len(cookies_out),
         },
         "cookies": cookies_out,
     }
