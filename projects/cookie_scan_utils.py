@@ -884,7 +884,7 @@ def scan_site_for_cookies(
                         pass
 
                     # Early-exit cookie wait loop (runs on normal pages too)
-                    did_early_exit = False
+                    early_exit_reason = None  # None | "threshold" | "stable"
 
                     # Track "new cookies during this page"
                     page_cookie_start_count = len(cookie_jar)
@@ -917,22 +917,24 @@ def scan_site_for_cookies(
 
                         cur_count = len(cookie_jar)
                         new_on_page = cur_count - page_cookie_start_count
+                        waited_ms = (time.monotonic() - start_wait) * 1000.0
 
-                        # Rule A: hit per-page cookie threshold
+                        # Rule A (threshold):
                         if cookie_early_exit_count > 0 and new_on_page >= cookie_early_exit_count:
-                            did_early_exit = True
+                            early_exit_reason = "threshold"
                             break
 
-                        # Rule B: stable cookie count for N rounds (after a minimum wait)
+                        # Track stability
                         if cur_count == last_count:
                             stable += 1
-                            waited_ms = (time.monotonic() - start_wait) * 1000.0
-                            if stable >= stable_needed and waited_ms >= min_wait_ms_int:
-                                did_early_exit = True
-                                break
                         else:
                             last_count = cur_count
                             stable = 0
+
+                        # Rule B (stable):
+                        if stable >= stable_needed and waited_ms >= min_wait_ms_int:
+                            early_exit_reason = "stable"
+                            break
 
                     # Harvest cookies (context-level) once more at the end
                     _harvest_context_cookies_once(context, base_reg_domain=base_reg_domain, cookie_jar=cookie_jar)
@@ -955,7 +957,7 @@ def scan_site_for_cookies(
 
                     # Link extraction (only once per page; optionally skip if early-exited)
                     if depth < max_depth and time.monotonic() < deadline:
-                        if not (skip_links_on_early_exit and did_early_exit):
+                        if not (skip_links_on_early_exit and early_exit_reason == "threshold"):
                             links = extract_links_from_page(
                                 page,
                                 current_url=url,
