@@ -39,7 +39,7 @@ except Exception:
 # Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-DEFAULT_MAX_PAGES = 5
+DEFAULT_MAX_PAGES = 10
 DEFAULT_MAX_DEPTH = 1
 DEFAULT_WAIT_MS = 10000
 DEFAULT_TIMEOUT_MS = 15000
@@ -57,7 +57,7 @@ DEFAULT_SKIP_LINKS_ON_EARLY_EXIT = True   # optional (we only skip links if out 
 
 # Hard wall-clock budget per visited URL (navigation + wait + link extraction).
 # If a page is slow/heavy, we skip link extraction and move on.
-DEFAULT_PER_PAGE_BUDGET_MS = 3500
+DEFAULT_PER_PAGE_BUDGET_MS = 20000
 
 # Block heavy resources to reduce memory; KEEP scripts/xhr so cookie banners & JS cookies still work.
 BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
