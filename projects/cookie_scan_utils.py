@@ -39,37 +39,37 @@ except Exception:
 # Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-DEFAULT_MAX_PAGES = 10
+DEFAULT_MAX_PAGES = 4
 DEFAULT_MAX_DEPTH = 1
-DEFAULT_WAIT_MS = 10000
-DEFAULT_TIMEOUT_MS = 15000
+DEFAULT_WAIT_MS = 3000
+DEFAULT_TIMEOUT_MS = 9000
 DEFAULT_HEADLESS = True
 DEFAULT_IGNORE_HTTPS_ERRORS = False
 
 # Early-exit tuning (safe defaults)
 # NOTE: cookie_early_exit_count is treated as "new cookies seen on THIS page"
-DEFAULT_COOKIE_EARLY_EXIT_COUNT = 50      # stop waiting once we have this many NEW cookies for this page
+DEFAULT_COOKIE_EARLY_EXIT_COUNT = 20      # stop waiting once we have this many NEW cookies for this page
 DEFAULT_COOKIE_STABLE_ROUNDS = 1          # stop waiting once cookie count is unchanged this many steps
 DEFAULT_COOKIE_WAIT_STEP_MS = 250         # polling step
 DEFAULT_MIN_WAIT_MS = 200                 # always wait at least this long (best-effort) after DOMContentLoaded
-DEFAULT_MAX_COOKIE_WAIT_MS = 600          # cap for cookie-wait loop (can be <= wait_ms)
+DEFAULT_MAX_COOKIE_WAIT_MS = 500          # cap for cookie-wait loop (can be <= wait_ms)
 DEFAULT_SKIP_LINKS_ON_EARLY_EXIT = True   # optional (we only skip links if out of time/memory)
 
 # Hard wall-clock budget per visited URL (navigation + wait + link extraction).
 # If a page is slow/heavy, we skip link extraction and move on.
-DEFAULT_PER_PAGE_BUDGET_MS = 20000
+DEFAULT_PER_PAGE_BUDGET_MS = 10000
 
 # Block heavy resources to reduce memory; KEEP scripts/xhr so cookie banners & JS cookies still work.
 BLOCKED_RESOURCE_TYPES = {"image", "media", "font", "stylesheet"}
 
 # Don’t let Set-Cookie capture grow without bound (memory safety)
-MAX_SET_COOKIE_OBSERVATIONS = 400
+MAX_SET_COOKIE_OBSERVATIONS = 150
 
 # Truncate very long Set-Cookie lines to avoid storing large payloads
-MAX_SET_COOKIE_CHARS = 1024
+MAX_SET_COOKIE_CHARS = 512
 
 # Link extraction cap per page (memory/time safety)
-MAX_LINKS_PER_PAGE = 50
+MAX_LINKS_PER_PAGE = 15
 
 
 # ----------------------------
