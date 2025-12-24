@@ -107,6 +107,58 @@ MAX_CONCURRENT_SCANS = 1
 # Hard RSS safety wall (MiB). Tune to 440–460 as you prefer.
 DEFAULT_MAX_RSS_MB = 250
 
+def _read_int_file(path: str) -> Optional[int]:
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            raw = (f.read() or "").strip()
+        if not raw:
+            return None
+        if raw.lower() == "max":
+            return None
+        return int(raw)
+    except Exception:
+        return None
+
+
+def get_cgroup_memory_mb() -> Optional[float]:
+    """
+    Total memory usage for the *cgroup* in MiB.
+    This includes Python + Playwright/Chromium child processes.
+    Works on Heroku (Linux) when cgroups are available.
+
+    - cgroup v2: /sys/fs/cgroup/memory.current
+    - cgroup v1: /sys/fs/cgroup/memory/memory.usage_in_bytes
+    """
+    # cgroup v2 (most common on modern platforms)
+    v2_current = "/sys/fs/cgroup/memory.current"
+    b = _read_int_file(v2_current)
+    if b is not None:
+        return float(b) / (1024.0 * 1024.0)
+
+    # cgroup v1 fallback
+    v1_current = "/sys/fs/cgroup/memory/memory.usage_in_bytes"
+    b = _read_int_file(v1_current)
+    if b is not None:
+        return float(b) / (1024.0 * 1024.0)
+
+    return None
+
+
+def get_memory_wall_mb() -> Tuple[Optional[float], str]:
+    """
+    Returns (mem_mb, source):
+      - source = "cgroup" when available (preferred)
+      - source = "rss" fallback when cgroup is unavailable
+    """
+    mem = get_cgroup_memory_mb()
+    if mem is not None:
+        return mem, "cgroup"
+
+    rss = get_rss_mb()
+    if rss is not None:
+        return rss, "rss"
+
+    return None, "unknown"
 
 def get_rss_mb() -> Optional[float]:
     """
@@ -128,10 +180,10 @@ def get_rss_mb() -> Optional[float]:
 
 
 class MemoryWallHit(RuntimeError):
-    def __init__(self, rss_mb: float):
-        super().__init__(f"Memory wall hit: RSS {rss_mb:.1f} MiB")
-        self.rss_mb = rss_mb
-
+    def __init__(self, mem_mb: float, source: str):
+        super().__init__(f"Memory wall hit: {mem_mb:.1f} MiB ({source})")
+        self.mem_mb = mem_mb
+        self.source = source
 
 # ----------------------------
 # Cookie modeling + parsing
@@ -774,12 +826,21 @@ def scan_site_for_cookies(
 
         def _check_rss_or_abort(*, page=None) -> None:
             nonlocal aborted_reason, aborted_rss_mb
-            rss = get_rss_mb()
-            if rss is None:
+            mem_mb, source = get_memory_wall_mb()
+            if mem_mb is None:
                 return
-            if rss >= float(max_rss_mb):
+
+            if mem_mb >= float(max_rss_mb):
                 aborted_reason = "memory_wall"
-                aborted_rss_mb = rss
+                aborted_rss_mb = mem_mb  # keep existing field name for compatibility
+
+                # Optional: if you later want to show it in UI without breaking anything
+                try:
+                    # attach details for debugging without changing callers
+                    pass
+                except Exception:
+                    pass
+
                 try:
                     if page is not None:
                         page.close()
@@ -793,7 +854,8 @@ def scan_site_for_cookies(
                     browser.close()
                 except Exception:
                     pass
-                raise MemoryWallHit(rss)
+
+                raise MemoryWallHit(mem_mb, source)
 
         def _route_handler(route, request) -> None:
             try:
@@ -961,8 +1023,8 @@ def scan_site_for_cookies(
                     # to extract a few links, even if navigation ate the budget.
                     if depth < max_depth and (time.monotonic() < deadline or (not queue and len(visited) < max_pages)):
                         time_left = deadline - time.monotonic()
-                        rss_now = get_rss_mb()
-                        near_wall = (rss_now is not None) and (rss_now >= float(max_rss_mb) - 10.0)
+                        mem_now, _src = get_memory_wall_mb()
+                        near_wall = (mem_now is not None) and (mem_now >= float(max_rss_mb) - 10.0)
 
                         should_skip_links = bool(
                             skip_links_on_early_exit
