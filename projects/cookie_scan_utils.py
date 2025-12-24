@@ -873,13 +873,19 @@ def scan_site_for_cookies(
                 try:
                     host = (urlparse(url).hostname or "").lower()
 
+                    # --- Navigate (budget-bounded) ---
                     try:
-                        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-                        _check_rss_or_abort(page=page)
+                        # Only allow navigation to consume the remaining per-page budget.
+                        nav_left_ms = int((deadline - time.monotonic()) * 1000.0)
+                        if nav_left_ms > 250:
+                            nav_timeout_ms = max(250, min(int(timeout_ms), nav_left_ms))
+                            page.goto(url, wait_until="domcontentloaded", timeout=nav_timeout_ms)
                     except PlaywrightTimeoutError:
                         pass
                     except Exception:
                         pass
+
+                    _check_rss_or_abort(page=page)
 
                     early_exit_reason: Optional[str] = None
                     page_cookie_start_count = len(cookie_jar)
@@ -951,7 +957,9 @@ def scan_site_for_cookies(
 
                     # Fix "only 1 page scanned":
                     # Don't skip links just because threshold hit; only skip if out of time or near memory wall.
-                    if depth < max_depth and time.monotonic() < deadline:
+                    # If we'd otherwise stall (queue empty) give ourselves a tiny grace window
+                    # to extract a few links, even if navigation ate the budget.
+                    if depth < max_depth and (time.monotonic() < deadline or (not queue and len(visited) < max_pages)):
                         time_left = deadline - time.monotonic()
                         rss_now = get_rss_mb()
                         near_wall = (rss_now is not None) and (rss_now >= float(max_rss_mb) - 10.0)
@@ -964,7 +972,18 @@ def scan_site_for_cookies(
 
                         if not should_skip_links:
                             _check_rss_or_abort(page=page)
-                            links = extract_links_from_page(page, current_url=url, base_reg_domain=base_reg_domain, deadline_monotonic=deadline)
+
+                            link_deadline = deadline
+                            if time.monotonic() >= deadline:
+                                link_deadline = time.monotonic() + 0.25  # 250ms grace extraction window
+
+                            links = extract_links_from_page(
+                                page,
+                                current_url=url,
+                                base_reg_domain=base_reg_domain,
+                                deadline_monotonic=link_deadline,
+                            )
+
                             for link in links:
                                 if link not in visited:
                                     queue.append((link, depth + 1))
