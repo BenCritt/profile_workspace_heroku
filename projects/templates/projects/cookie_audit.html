@@ -81,47 +81,11 @@
 {% block link_tags %}
 <!-- Canonical link to help avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
+<!-- Other CSS styling and layout. -->
+<link href="{% static 'template-css/cookie-audit-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 {% block title %}Cookie Audit | Detect Cookies and Basic Cookie Information{% endblock title %}
 {% block content %}
-
-<style>
-  /* Keep table from expanding; wrap cell contents instead */
-  .cookie-table {
-    width: 100%;
-    table-layout: fixed;
-  }
-
-  /* Body cells: allow wrapping anywhere so long tokens don't widen table */
-  .cookie-table td {
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    vertical-align: top;
-  }
-
-  /* Header cells: default = DO NOT wrap single-word headings */
-  .cookie-table th {
-    white-space: nowrap !important;
-    overflow-wrap: normal !important;
-    word-break: normal !important;
-    vertical-align: bottom;
-  }
-
-  /* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
-  .cookie-table th.th-wrap {
-    white-space: normal !important;
-  }
-
-  /* Let <code> wrap in body cells */
-  .cookie-table td code {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    display: inline-block;
-    max-width: 100%;
-  }
-</style>
 <center>
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
   <h1 class="mb-3">Cookie Audit</h1>
@@ -296,21 +260,25 @@
     for (const c of cookies) {
       rows += `
         <tr>
-          <td><code>${escapeHtml(c.name)}</code></td>
-          <td>${escapeHtml(c.cookie_type)}</td>
-          <td>${escapeHtml(c.purpose)}</td>
-          <td>${escapeHtml(c.party)}</td>
-          <td><code>${escapeHtml(c.domain)}</code></td>
-          <td>${escapeHtml(c.expires_human)}</td>
-          <td>${escapeHtml(c.httpOnly ? "Yes" : "No")}</td>
-          <td>${escapeHtml(c.secure ? "Yes" : "No")}</td>
-          <td>${escapeHtml(c.sameSite)}</td>
+          <td data-label="Cookie name"><code>${escapeHtml(c.name)}</code></td>
+          <td data-label="Cookie type">${escapeHtml(c.cookie_type)}</td>
+          <td data-label="Purpose">${escapeHtml(c.purpose)}</td>
+          <td data-label="Party">${escapeHtml(c.party)}</td>
+          <td data-label="Domain"><code>${escapeHtml(c.domain)}</code></td>
+          <td data-label="Expires">${escapeHtml(c.expires_human)}</td>
+          <td data-label="HttpOnly">${escapeHtml(c.httpOnly ? "Yes" : "No")}</td>
+          <td data-label="Secure">${escapeHtml(c.secure ? "Yes" : "No")}</td>
+          <td data-label="SameSite">${escapeHtml(c.sameSite)}</td>
         </tr>
       `;
     }
 
     if (!rows) {
-      rows = `<tr><td colspan="9">No cookies found.</td></tr>`;
+      rows = `
+        <tr>
+          <td colspan="9">No cookies found.</td>
+        </tr>
+      `;
     }
 
     // IMPORTANT: This table markup matches your old “good” version:

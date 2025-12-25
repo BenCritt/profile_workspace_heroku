@@ -1,0 +1,88 @@
+  /* Keep table from expanding; wrap cell contents instead */
+  .cookie-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Body cells: allow wrapping anywhere so long tokens don't widen table */
+  .cookie-table td {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    vertical-align: top;
+  }
+
+  /* Header cells: default = DO NOT wrap single-word headings */
+  .cookie-table th {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    vertical-align: bottom;
+  }
+
+  /* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
+  .cookie-table th.th-wrap {
+    white-space: normal !important;
+  }
+
+  /* Let <code> wrap in body cells */
+  .cookie-table td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: inline-block;
+    max-width: 100%;
+  }
+    /* ✅ Mobile: turn the table into stacked "cards" */
+  @media (max-width: 576px) {
+    /* stop forcing the fixed column math on tiny screens */
+    .cookie-table {
+      table-layout: auto;
+    }
+
+    /* hide the header row on mobile */
+    .cookie-table thead {
+      display: none;
+    }
+
+    /* make the table elements block-level so each <tr> becomes a card */
+    .cookie-table,
+    .cookie-table tbody,
+    .cookie-table tr,
+    .cookie-table td {
+      display: block;
+      width: 100%;
+    }
+
+    /* each row becomes a card */
+    .cookie-table tr {
+      border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      background: var(--bs-body-bg, transparent);
+    }
+
+    /* each cell becomes a label/value line */
+    .cookie-table td {
+      border: 0 !important;
+      padding: 0.35rem 0 !important;
+      display: flex;
+      gap: 0.75rem;
+      align-items: baseline;
+    }
+
+    /* label column (from data-label attribute) */
+    .cookie-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      flex: 0 0 7.5rem;   /* label width */
+      max-width: 7.5rem;
+      opacity: 0.9;
+    }
+
+    /* let values wrap cleanly */
+    .cookie-table td code {
+      max-width: 100%;
+    }
+  }
