@@ -95,7 +95,7 @@ STATIC_FILE_EXTENSIONS = (
 # Task store + queueing (single dyno safe)
 # ----------------------------
 
-_TASK_TTL_SECONDS = 5 * 60  # 5 minutes
+_TASK_TTL_SECONDS = 2 * 60 * 60 # 2 hours
 _TASK_KEY_PREFIX = "cookie_audit:task:"
 _QUEUE_KEY = "cookie_audit:queue"
 _ACTIVE_KEY = "cookie_audit:active_task_id"
@@ -105,8 +105,7 @@ _LOCK = threading.Lock()
 MAX_CONCURRENT_SCANS = 1
 
 # Hard RSS safety wall (MiB). Tune to 440–460 as you prefer.
-DEFAULT_MAX_RSS_MB = 250
-
+DEFAULT_MAX_RSS_MB = 460
 def _read_int_file(path: str) -> Optional[int]:
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
@@ -460,7 +459,16 @@ def _kick_queue() -> None:
 
         next_id = q.pop(0)
         _set_queue(q)
-        cache.set(_ACTIVE_KEY, next_id, timeout=_TASK_TTL_SECONDS)
+
+        # ATOMIC reservation (important if you ever use multi-worker + shared cache)
+        claimed = cache.add(_ACTIVE_KEY, next_id, timeout=_TASK_TTL_SECONDS)
+        if not claimed:
+            # Someone else claimed an active task; put it back
+            q = _get_queue()
+            q.insert(0, next_id)
+            _set_queue(q)
+            return
+
         _update_task(next_id, state="running", started_at=time.time())
 
     threading.Thread(target=_run_task, args=(next_id,), daemon=True).start()
@@ -480,8 +488,18 @@ def _run_task(task_id: str) -> None:
 
     try:
         def progress_cb(progress: Dict[str, Any]) -> None:
+            # Merge incremental progress updates
             cur = (get_cookie_audit_task(task_id) or {}).get("progress") or {}
             cur.update(progress or {})
+
+            # Keep the active-task lock alive while we're still the active scan.
+            try:
+                if cache.get(_ACTIVE_KEY) == task_id:
+                    cache.set(_ACTIVE_KEY, task_id, timeout=_TASK_TTL_SECONDS)
+            except Exception:
+                pass
+
+            # Always persist progress (previous versions accidentally only updated on exception)
             _update_task(task_id, progress=cur)
 
         results = scan_site_for_cookies(
@@ -563,10 +581,22 @@ def is_internal_url(candidate_url: str, base_reg_domain: str) -> bool:
         return False
 
 
-def canonicalize_for_visit(url: str) -> str:
+def canonicalize_for_visit(url: str, *, force_netloc: str | None = None) -> str:
     p = urlparse(url)
-    return urlunparse((p.scheme, p.netloc, p.path, p.params, p.query, ""))
+    scheme = p.scheme or "https"
+    netloc = (force_netloc or p.netloc or "").lower()
+    path = p.path or "/"
+    # (optional) drop fragment always; keep query if you want
+    return urlunparse((scheme, netloc, path, "", p.query, ""))
 
+def _report_domain(raw_domain: str, *, base_reg_domain: str) -> str:
+    raw_domain = (raw_domain or "").lstrip(".").lower()
+    if not raw_domain:
+        return ""
+    # If it's first-party (same registrable domain), collapse to base registrable domain
+    if registrable_domain(raw_domain) == base_reg_domain:
+        return base_reg_domain
+    return raw_domain
 
 def _looks_like_static_url(url: str) -> bool:
     try:
@@ -671,14 +701,34 @@ def _launch_chromium(p, *, headless: bool) -> Any:
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
+
+        # reduce background activity
         "--disable-background-networking",
         "--disable-background-timer-throttling",
+        "--disable-renderer-backgrounding",
+
+        # reduce extra components
         "--disable-default-apps",
         "--disable-sync",
         "--disable-translate",
+        "--disable-extensions",
+        "--disable-component-extensions-with-background-pages",
+
+        # avoid extra crash/diagnostics overhead
+        "--disable-breakpad",
+        "--disable-hang-monitor",
+
+        # headless stability + lower overhead
         "--metrics-recording-only",
         "--mute-audio",
         "--no-first-run",
+        "--no-zygote",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+
+        # disable features that can keep memory around
+        "--disable-features=site-per-process,BackForwardCache,Prerender2",
+        "--disable-site-isolation-trials",
     ]
 
     launch_kwargs: Dict[str, Any] = {"headless": bool(headless), "args": args, "chromium_sandbox": False}
@@ -698,7 +748,13 @@ def _classify_party(*, cookie_domain: str, host_fallback: str, base_reg_domain: 
     return "first-party"
 
 
-def _harvest_context_cookies_once(context, *, base_reg_domain: str, cookie_jar: Dict[CookieKey, ParsedCookie], host_fallback: str) -> None:
+def _harvest_context_cookies_once(
+    context,
+    *,
+    base_reg_domain: str,
+    cookie_jar: Dict[CookieKey, ParsedCookie],
+    host_fallback: str
+) -> None:
     try:
         raw = context.cookies()
     except Exception:
@@ -716,23 +772,21 @@ def _harvest_context_cookies_once(context, *, base_reg_domain: str, cookie_jar: 
             path = str(c.get("path") or "/") or "/"
 
             effective_domain = (domain or host_fallback).lstrip(".").lower()
+            effective_domain = _report_domain(effective_domain, base_reg_domain=base_reg_domain)
             if not effective_domain:
                 continue
 
             key = make_cookie_key(name, effective_domain, path, host_fallback=host_fallback)
 
-            party = _classify_party(cookie_domain=effective_domain, host_fallback=host_fallback, base_reg_domain=base_reg_domain)
-            expires_human = _expires_human_from_playwright(c.get("expires"))
-
             incoming = ParsedCookie(
                 name=name,
                 domain=effective_domain,
                 path=path,
-                expires_human=expires_human,
+                expires_human=_expires_human_from_playwright(c.get("expires")),
                 secure=bool(c.get("secure")),
                 httpOnly=bool(c.get("httpOnly")),
                 sameSite=str(c.get("sameSite") or ""),
-                party=party,
+                party=_classify_party(cookie_domain=effective_domain, host_fallback=host_fallback, base_reg_domain=base_reg_domain),
                 source="context.cookies",
             )
 
@@ -769,6 +823,10 @@ def scan_site_for_cookies(
     max_rss_mb: int = DEFAULT_MAX_RSS_MB,
 ) -> Dict[str, Any]:
     start_url = normalize_url(start_url)
+    start_netloc = (urlparse(start_url).netloc or "").lower()
+
+    queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url, force_netloc=start_netloc), 0)]
+
     if not start_url:
         raise ValueError("URL is required")
 
@@ -781,7 +839,6 @@ def scan_site_for_cookies(
         raise ValueError("Could not determine base domain from URL")
 
     visited: Set[str] = set()
-    queue: List[Tuple[str, int]] = [(canonicalize_for_visit(start_url), 0)]
 
     cookie_jar: Dict[CookieKey, ParsedCookie] = {}
     set_cookie_observations: Set[str] = set()
@@ -820,11 +877,18 @@ def scan_site_for_cookies(
 
         return result
 
+    mem_mb, source = get_memory_wall_mb()
+    if mem_mb is not None and mem_mb >= float(max_rss_mb) - 20.0:
+        aborted_reason = "memory_wall_prelaunch"
+        aborted_rss_mb = mem_mb
+        return _finalize()
+
     with sync_playwright() as p:
-        browser = _launch_chromium(p, headless=headless)
-        context = browser.new_context(ignore_https_errors=bool(ignore_https_errors))
+        browser = None
+        context = None
 
         def _check_rss_or_abort(*, page=None) -> None:
+            """Abort quickly if dyno/cgroup memory is near the safety wall."""
             nonlocal aborted_reason, aborted_rss_mb
             mem_mb, source = get_memory_wall_mb()
             if mem_mb is None:
@@ -832,30 +896,37 @@ def scan_site_for_cookies(
 
             if mem_mb >= float(max_rss_mb):
                 aborted_reason = "memory_wall"
-                aborted_rss_mb = mem_mb  # keep existing field name for compatibility
+                aborted_rss_mb = mem_mb
 
-                # Optional: if you later want to show it in UI without breaking anything
-                try:
-                    # attach details for debugging without changing callers
-                    pass
-                except Exception:
-                    pass
-
+                # Close resources in a safe order to free memory ASAP
                 try:
                     if page is not None:
                         page.close()
                 except Exception:
                     pass
                 try:
-                    context.close()
+                    if context is not None:
+                        context.close()
                 except Exception:
                     pass
                 try:
-                    browser.close()
+                    if browser is not None:
+                        browser.close()
                 except Exception:
                     pass
 
                 raise MemoryWallHit(mem_mb, source)
+
+        # ---- Launch + context creation are the largest memory spikes ----
+        browser = _launch_chromium(p, headless=headless)
+        _check_rss_or_abort()
+
+        # Block service workers to reduce background activity/memory.
+        context = browser.new_context(
+            ignore_https_errors=bool(ignore_https_errors),
+            service_workers="block",
+        )
+        _check_rss_or_abort()
 
         def _route_handler(route, request) -> None:
             try:
@@ -885,6 +956,7 @@ def scan_site_for_cookies(
                     pass
 
         context.route("**/*", _route_handler)
+        _check_rss_or_abort()
 
         def _on_response(resp) -> None:
             try:
@@ -895,14 +967,12 @@ def scan_site_for_cookies(
                 host = (urlparse(resp.url).hostname or "").lower()
 
                 for pc in parse_set_cookie_header(str(header_val)):
-                    pc.domain = (pc.domain or host).lstrip(".").lower()
+                    raw = (pc.domain or host).lstrip(".").lower()
+                    pc.domain = _report_domain(raw, base_reg_domain=base_reg_domain)
                     pc.path = (pc.path or "/") or "/"
                     pc.party = _classify_party(cookie_domain=pc.domain, host_fallback=host, base_reg_domain=base_reg_domain)
-
-                    if len(set_cookie_observations) < MAX_SET_COOKIE_OBSERVATIONS:
-                        set_cookie_observations.add(f"{pc.name}::{pc.domain}::{pc.path}")
-
                     key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
+
                     if key in cookie_jar:
                         cookie_jar[key] = merge_cookie(cookie_jar[key], pc)
                     else:
@@ -911,13 +981,14 @@ def scan_site_for_cookies(
                 return
 
         context.on("response", _on_response)
+        _check_rss_or_abort()
 
         try:
             while queue and len(visited) < max_pages:
                 _check_rss_or_abort()
 
                 url, depth = queue.pop(0)
-                url = canonicalize_for_visit(url)
+                url = canonicalize_for_visit(url, force_netloc=start_netloc)
 
                 if url in visited:
                     continue
@@ -932,6 +1003,7 @@ def scan_site_for_cookies(
                 deadline = time.monotonic() + (per_page_budget_ms / 1000.0)
 
                 page = context.new_page()
+                _check_rss_or_abort(page=page)
                 try:
                     host = (urlparse(url).hostname or "").lower()
 
@@ -941,7 +1013,13 @@ def scan_site_for_cookies(
                         nav_left_ms = int((deadline - time.monotonic()) * 1000.0)
                         if nav_left_ms > 250:
                             nav_timeout_ms = max(250, min(int(timeout_ms), nav_left_ms))
+                            _check_rss_or_abort(page=page)
                             page.goto(url, wait_until="domcontentloaded", timeout=nav_timeout_ms)
+                            final_url = canonicalize_for_visit(page.url, force_netloc=start_netloc)
+                            if final_url and final_url != url:
+                                visited.discard(url)
+                                visited.add(final_url)
+                                url = final_url
                     except PlaywrightTimeoutError:
                         pass
                     except Exception:
@@ -1006,7 +1084,8 @@ def scan_site_for_cookies(
                         for pc in _harvest_document_cookie(page) or []:
                             if not pc.name:
                                 continue
-                            pc.domain = (pc.domain or host).lstrip(".").lower()
+                            raw_domain = (pc.domain or host).lstrip(".").lower()
+                            pc.domain = _report_domain(raw_domain, base_reg_domain=base_reg_domain)
                             pc.path = (pc.path or "/") or "/"
                             pc.party = _classify_party(cookie_domain=pc.domain, host_fallback=host, base_reg_domain=base_reg_domain)
                             key = make_cookie_key(pc.name, pc.domain, pc.path, host_fallback=host)
