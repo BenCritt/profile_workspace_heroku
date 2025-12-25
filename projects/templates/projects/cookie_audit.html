@@ -129,28 +129,25 @@
   <p>Enter the URL of a web page. A table below will identify cookies. Due to the limitations of the server, the scan will stop if page count, memory, or timeout thresholds are met.</p>
   <br>
   <form method="post" class="mb-4" id="cookieAuditForm" action="{% url 'projects:cookie_audit_start' %}" novalidate>
-    {% csrf_token %}
+  {% csrf_token %}
 
-    <div class="row g-3">
-      <div class="col-12 col-lg-8">
-        {{ form.url.label_tag }}
-        {{ form.url }}
-        <div class="form-text">{{ form.url.help_text }}</div>
-        {% for error in form.url.errors %}
-          <div class="text-danger">{{ error }}</div>
-        {% endfor %}
-      </div>
+  <div class="row g-3 justify-content-center align-items-end">
+    <div class="col-12 col-lg-8">
+      {{ form.url.label_tag }}
+      {{ form.url }}
+      <div class="form-text">{{ form.url.help_text }}</div>
+      {% for error in form.url.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
-    <br>
-
-    <div class="col-12 col-lg-4 d-flex align-items-end">
+    <div class="col-12 col-lg-4 d-flex">
       <button class="btn btn-primary w-100" type="submit" id="scanBtn">
         Scan Cookies
       </button>
     </div>
+  </div>
   </form>
-
   <div class="mb-4 d-none" id="scanProgress">
     <div class="d-flex align-items-center gap-2">
       <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
