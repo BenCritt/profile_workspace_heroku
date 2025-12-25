@@ -4,3 +4,12 @@
         margin-bottom: 20px;
     }
 }
+
+.tool-iframe{
+  width: 100%;
+  height: 75vh;        /* fills most of the viewport */
+  min-height: 700px;   /* prevents tiny iframes on desktop */
+  border: 0;
+  overflow: auto;      /* ensures scrollbars appear when needed */
+  display: block;
+}
