@@ -1,5 +1,88 @@
 {% extends "projects/base.html" %}
 {% load static %}
+{% block scripts %}
+<!-- Schema for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
+      "name": "Cookie Audit",
+      "description": "Scan a public webpage to detect cookies in use and view key attributes such as domain, expiration, HttpOnly, Secure, and SameSite.",
+      "url": "https://www.bencritt.net/projects/cookie-audit/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript enabled",
+      "image": "",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "featureList": [
+        "Scans a public webpage to detect cookies in use.",
+        "Indicates whether each cookie is first-party or third-party.",
+        "Identifies the cookie source (Set-Cookie header, document.cookie).",
+        "Shows cookie attributes: name, domain, expiration, HttpOnly, Secure, SameSite.",
+        "Displays detected cookies in a table."
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.bencritt.net/projects/cookie-audit/#webpage",
+      "url": "https://www.bencritt.net/projects/cookie-audit/",
+      "name": "Cookie Audit | Detect Cookies and Basic Cookie Information",
+      "description": "Scan a URL to list cookies found on the page and view key cookie flags and attributes.",
+      "isPartOf": {
+        "@id": "https://www.bencritt.net/#website"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": ""
+      },
+      "about": {
+        "@id": "https://www.bencritt.net/projects/cookie-audit/#app"
+      }
+    }
+  ]
+}
+</script>
+{% endblock scripts %}
+{% block meta_tags %}
+<!-- Prevent browser caching to avoid stale CSRF tokens -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- SEO fundamentals -->
+<meta name="description" content="Scan any public web page to detect cookies in use and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
+
+<!-- Open Graph -->
+<meta property="og:url" content="https://www.bencritt.net/projects/cookie-audit/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
+<meta property="og:description" content="Scan any page to list its cookies and view key cookie attributes like expiration, HttpOnly, Secure, and SameSite.">
+<meta property="og:image" content="">
+<meta property="og:image:type" content="image/webp">
+<meta property="og:image:alt" content="Cookie Audit tool screenshot showing a cookie results table">
+<meta property="og:site_name" content="Ben Crittenden">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:domain" content="bencritt.net">
+<meta name="twitter:url" content="https://www.bencritt.net/projects/cookie-audit/">
+<meta name="twitter:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
+<meta name="twitter:description" content="Scan a URL to detect cookies and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
+<meta name="twitter:image" content="">
+<meta name="twitter:creator" content="@bencritt89">
+{% endblock meta_tags %}
+{% block link_tags %}
+<!-- Canonical link to help avoid duplicate content issues. -->
+<link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
+{% endblock link_tags %}
+{% block title %}Cookie Audit | Detect Cookies and Basic Cookie Information{% endblock title %}
 {% block content %}
 
 <style>
@@ -39,10 +122,12 @@
     max-width: 100%;
   }
 </style>
-
+<center>
 <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
   <h1 class="mb-3">Cookie Audit</h1>
-
+  <br>
+  <p>Enter the URL of a web page. A table below will identify cookies. Due to the limitations of the server, the scan will stop if page count, memory, or timeout thresholds are met.</p>
+  <br>
   <form method="post" class="mb-4" id="cookieAuditForm" action="{% url 'projects:cookie_audit_start' %}" novalidate>
     {% csrf_token %}
 
@@ -65,6 +150,7 @@
       </button>
     </div>
   </form>
+  </center>
 
   <div class="mb-4 d-none" id="scanProgress">
     <div class="d-flex align-items-center gap-2">
@@ -97,7 +183,6 @@
 <div class="container py-4" style="width: 100%; max-width: 900px; margin: auto;">
   <div id="resultsArea"></div>
 </div>
-
 <script>
 (function () {
   const form = document.getElementById("cookieAuditForm");
