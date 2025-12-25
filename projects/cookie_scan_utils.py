@@ -39,7 +39,7 @@ except Exception:
 # Defaults (tune for Heroku 512MB)
 # ----------------------------
 
-DEFAULT_MAX_PAGES = 4
+DEFAULT_MAX_PAGES = 10
 DEFAULT_MAX_DEPTH = 1
 DEFAULT_WAIT_MS = 3000
 DEFAULT_TIMEOUT_MS = 9000
@@ -105,7 +105,7 @@ _LOCK = threading.Lock()
 MAX_CONCURRENT_SCANS = 1
 
 # Hard RSS safety wall (MiB). Tune to 440–460 as you prefer.
-DEFAULT_MAX_RSS_MB = 460
+DEFAULT_MAX_RSS_MB = 400
 def _read_int_file(path: str) -> Optional[int]:
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
