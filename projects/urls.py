@@ -34,6 +34,7 @@ urlpatterns = [
     path("projects/ip-tool/", views.ip_tool, name="ip_tool"),
     path("projects/dns-lookup/", views.dns_tool, name="dns_tool"),
     path("projects/it-tools/", views.it_tools, name="it_tools"),
+    path("projects/seo-tools/", views.seo_tools, name="seo_tools"),
     path("robots.txt", views.robots_txt, name="robots_txt"),
     path("requirements.txt", views.requirements_txt, name="requirements_txt"),
     path("", views.home, name="home"),

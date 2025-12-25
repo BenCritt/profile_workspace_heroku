@@ -32,6 +32,7 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("seo_tools", "seo-tools"),
     ("cookie_audit", "cookie-audit"),
     ("font_inspector", "font-inspector"),
     ("ham_radio_call_sign_lookup", "ham-radio-call-sign-lookup"),

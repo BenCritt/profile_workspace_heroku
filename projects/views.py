@@ -1059,10 +1059,18 @@ def ssl_check(request):
     return response
 
 
-# This is the view for the IT Tools page.
+# This is the view for the IT Professional Toolkit page.
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def it_tools(request):
     return render(request, "projects/it_tools.html")
+
+# This is the view for the SEO Professional Toolkit page.
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def seo_tools(request):
+    return render(request, "projects/seo_tools.html")
