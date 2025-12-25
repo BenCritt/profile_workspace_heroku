@@ -5,7 +5,7 @@ Cookie Audit scanner (Playwright) with:
 - accurate cookie detection (context.cookies() + Set-Cookie + document.cookie fallback)
 - per-request task isolation + queueing (no task overriding)
 - progress reporting for polling endpoint
-- Enforces a hard RSS wall (defaults to 250 MiB) and returns partial results immediately on breach.
+- Enforces a hard RSS wall (defaults to 300 MB) and returns partial results immediately on breach.
 """
 
 from __future__ import annotations
@@ -71,7 +71,6 @@ MAX_SET_COOKIE_CHARS = 512
 # Link extraction cap per page (memory/time safety)
 MAX_LINKS_PER_PAGE = 15
 
-
 # ----------------------------
 # Extra “obviously-static” URL blocking (helps reduce noise)
 # ----------------------------
@@ -104,8 +103,9 @@ _LOCK = threading.Lock()
 # Concurrency on a 512MB / 1-dyno plan should remain 1 for Playwright scans.
 MAX_CONCURRENT_SCANS = 1
 
-# Hard RSS safety wall (MiB). Tune to 440–460 as you prefer.
-DEFAULT_MAX_RSS_MB = 400
+# Hard RSS safety wall (MiB).
+DEFAULT_MAX_RSS_MB = 300
+
 def _read_int_file(path: str) -> Optional[int]:
     try:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
