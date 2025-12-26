@@ -1,4 +1,3 @@
-# projects/cookie_scan_utils.py
 """
 Cookie Audit scanner (Playwright) with:
 - low-memory crawling (blocks images/fonts/media, closes pages promptly)

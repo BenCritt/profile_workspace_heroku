@@ -1,14 +1,59 @@
 @media (prefers-reduced-motion: reduce) {
-    .progress-bar-animated {
-        animation: none;
-    }
+  .progress-bar-animated {
+    animation: none;
+  }
 }
-/* Font Inspector: when embedded in an iframe, make results scrollable and user-friendly */
+
+/* Embedded iframe: use “mobile cards” layout even on desktop */
 html.embedded #fi-results .table-responsive {
-  max-height: 55vh;
-  overflow-y: auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border: 1px solid rgba(255,255,255,.15);
+  max-height: none;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+}
+
+html.embedded #fi-results thead {
+  display: none;
+}
+
+html.embedded #fi-results table,
+html.embedded #fi-results tbody,
+html.embedded #fi-results tr,
+html.embedded #fi-results td {
+  display: block;
+  width: 100%;
+}
+
+html.embedded #fi-results tr {
+  border: 1px solid rgba(255, 255, 255, .15);
   border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+html.embedded #fi-results td {
+  border: 0 !important;
+  padding: 0.35rem 0 !important;
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+html.embedded #fi-results td::before {
+  content: attr(data-label);
+  font-weight: 600;
+  flex: 0 0 7.25rem;
+  max-width: 7.25rem;
+  opacity: 0.9;
+}
+
+/* Slightly tighter labels on very small screens */
+@media (max-width: 420px) {
+  html.embedded #fi-results td::before {
+    flex-basis: 6.25rem;
+    max-width: 6.25rem;
+  }
 }
