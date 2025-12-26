@@ -3,3 +3,12 @@
         animation: none;
     }
 }
+/* Font Inspector: when embedded in an iframe, make results scrollable and user-friendly */
+html.embedded #fi-results .table-responsive {
+  max-height: 55vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 0.75rem;
+}
