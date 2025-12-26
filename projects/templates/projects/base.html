@@ -43,24 +43,27 @@
       });
     </script>
     <!-- This adjusts iframe height as needed by the page content.-->
+    <!-- Resize non-tool iframes only (tool iframes use fixed height + internal scrolling) -->
     <script>
       function resizeIframe(iframe) {
-        // Set the iframe's height based on its content's height
-        iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+        try {
+          iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+        } catch (e) {
+          // ignore cross-origin or access issues
+        }
       }
-    
-      document.addEventListener("DOMContentLoaded", function() {
-        // Get all iframes on the page
-        const iframes = document.querySelectorAll('iframe');
-        
-        // Resize each iframe when it's fully loaded
-        iframes.forEach(function(iframe) {
-          iframe.onload = function() {
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Only auto-resize iframes that are NOT tool iframes
+        const iframes = document.querySelectorAll('iframe:not(.tool-iframe)');
+
+        iframes.forEach(function (iframe) {
+          iframe.addEventListener("load", function () {
             resizeIframe(iframe);
-          };
+          });
         });
       });
-    </script>    
+    </script>
     <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
     <meta name="viewport"             content="width=device-width, initial-scale=1.0">
@@ -144,11 +147,11 @@
 
               <!-- SEO Professional Toolkit dropdown -->
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="/projects/it-tools/" id="itToolsDropdown"
+                <a class="nav-link dropdown-toggle" href="/projects/seo-tools/" id="seoToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   SEO Professional Toolkit
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itToolsDropdown">
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
                   <li><a class="dropdown-item" href="/projects/font-inspector/">Font Inspector</a></li>
                   <li><a class="dropdown-item" href="/projects/seo-head-checker/">SEO Head Checker</a></li>
                   <li><a class="dropdown-item" href="/projects/cookie-audit/">Cookie Audit</a></li>

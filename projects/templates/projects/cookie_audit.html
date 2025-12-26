@@ -381,6 +381,11 @@
   });
 })();
 </script>
+<script>
+  if (window.self !== window.top) {
+    document.documentElement.classList.add("embedded");
+  }
+</script>
 <center>
   <!-- Link to the source code repository with a GitHub icon. -->
   <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
