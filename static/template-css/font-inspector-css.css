@@ -4,7 +4,30 @@
   }
 }
 
-/* Embedded iframe: use “mobile cards” layout even on desktop */
+/*
+  Font Inspector – iframe behavior
+
+  Goal:
+  - When embedded (html.embedded), keep the form/header visible
+  - Make ONLY the results area scroll (like Cookie Audit)
+  - Force the “mobile cards” table layout inside the iframe even on desktop
+*/
+
+html.embedded body {
+  overflow: hidden !important; /* prevent double-scroll; results area becomes the scroller */
+}
+
+/* Scroll container inside iframe */
+html.embedded #fi-results-area {
+  max-height: 55vh;               /* tweak 50–65vh */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;             /* prevents scrollbar overlay */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Don’t let Bootstrap’s table wrapper fight the scroll container */
 html.embedded #fi-results .table-responsive {
   max-height: none;
   overflow: visible;
@@ -12,6 +35,7 @@ html.embedded #fi-results .table-responsive {
   border-radius: 0;
 }
 
+/* Force “cards” layout in iframe */
 html.embedded #fi-results thead {
   display: none;
 }
@@ -25,7 +49,7 @@ html.embedded #fi-results td {
 }
 
 html.embedded #fi-results tr {
-  border: 1px solid rgba(255, 255, 255, .15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   padding: 0.75rem;
   margin-bottom: 0.75rem;
@@ -38,6 +62,8 @@ html.embedded #fi-results td {
   gap: 0.75rem;
   align-items: baseline;
   flex-wrap: wrap;
+
+  /* Ensure long values wrap instead of blowing out the iframe */
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -45,7 +71,7 @@ html.embedded #fi-results td {
 html.embedded #fi-results td::before {
   content: attr(data-label);
   font-weight: 600;
-  flex: 0 0 7.25rem;
+  flex: 0 0 7.25rem;   /* label width */
   max-width: 7.25rem;
   opacity: 0.9;
 }

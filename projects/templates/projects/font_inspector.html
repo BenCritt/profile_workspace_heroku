@@ -108,9 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const j = await res.json();
       setProgress(j.progress ?? 0, j.message || '', j.queue_position || 0);
 
-      if (j.status === 'QUEUED' || j.status === 'RUNNING') {
-        return; // keep polling
-      }
+      if (j.status === 'QUEUED' || j.status === 'RUNNING') return;
 
       if (j.status === 'DONE') {
         try {
@@ -130,7 +128,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-
     } catch (e) {
       // transient errors; keep polling
     }
@@ -172,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = setInterval(() => poll(j.task_id), 650);
-
     } catch (e) {
       disableButtons(false);
       statusText.textContent = 'Error starting task.';
@@ -256,11 +252,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <br>
 
-    <!-- Results (grouped so the container closing is unambiguous) -->
-    <div id="fi-results-area">
-      <div id="fi-results">
+    <!-- Results (FIXED: proper nesting + scroll container focusable) -->
+    <div id="fi-results-area" tabindex="0">
+      <div id="fi-results"></div>
       <p class="mt-2 text-muted small">CSV files are stored temporarily and auto-deleted after 30 minutes.</p>
     </div>
+
   </div>
 
   <br>
