@@ -36,13 +36,14 @@ def cookie_audit_view(request):
     ctx = {"form": form}
     return render(request, "projects/cookie_audit.html", ctx)
 
-
+# NEW Beginning
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_POST
 def cookie_audit_start(request):
     from .forms import CookieAuditForm
     from . import cookie_scan_utils
+
     """
     Starts a scan and returns immediately with a task id (JSON).
     Does NOT store task_id in session (prevents tab/user overwrite).
@@ -73,8 +74,10 @@ def cookie_audit_start(request):
             "task_id": task_id,
             "status_url": reverse("projects:cookie_audit_status", args=[task_id]),
             "results_url": reverse("projects:cookie_audit_results", args=[task_id]),
+            "download_url": reverse("projects:cookie_audit_download", args=[task_id]),
         }
     )
+# NEW END
 
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -121,7 +124,7 @@ def cookie_audit_status(request, task_id):
             status=500,
         )
 
-
+# NEW BEGIN
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_GET
@@ -131,7 +134,9 @@ def cookie_audit_results(request, task_id):
     """
     Returns results JSON once done. JS calls this after status says 'done'.
     Defensive: always returns JSON, even if task data is corrupted or an exception occurs.
-    Optional: remove results from cache after first successful fetch to reduce memory.
+
+    IMPORTANT:
+    We do NOT pop/remove results here because the CSV download endpoint needs them.
     """
     try:
         task = cookie_scan_utils.get_cookie_audit_task(str(task_id))
@@ -151,24 +156,6 @@ def cookie_audit_results(request, task_id):
         if state == "done":
             payload["results"] = task.get("results") or {}
 
-            # ---- OPTIONAL MEMORY SAVER ----
-            # After we successfully deliver results once, shrink the cached task so it
-            # doesn't keep a large 'results' object in memory for the whole TTL.
-            #
-            # This assumes you can update the task in cache. If you don't have a
-            # dedicated setter, you can add one in cookie_scan_utils, e.g.
-            # set_cookie_audit_task(task_id, task_dict).
-            try:
-                task.pop("results", None)
-                # If you have a setter, use it:
-                if hasattr(cookie_scan_utils, "set_cookie_audit_task"):
-                    cookie_scan_utils.set_cookie_audit_task(str(task_id), task)
-                # Or if you have a delete helper, delete the task entirely:
-                elif hasattr(cookie_scan_utils, "delete_cookie_audit_task"):
-                    cookie_scan_utils.delete_cookie_audit_task(str(task_id))
-            except Exception:
-                pass
-
         elif state == "error":
             payload["error"] = task.get("error") or "Unknown error"
 
@@ -183,7 +170,55 @@ def cookie_audit_results(request, task_id):
             {"state": "error", "error": f"{type(exc).__name__}: {exc}"},
             status=500,
         )
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@require_GET
+def cookie_audit_download(request, task_id):
+    import os
+    import time
+    from . import cookie_scan_utils
+    from . import csv_utils
 
+    # Best-effort cleanup of stale exports (30 min)
+    csv_utils.cleanup_old_files(export_subdir="cookie_audit", max_age_seconds=30 * 60)
+
+    task_id_str = str(task_id)
+    task = cookie_scan_utils.get_cookie_audit_task(task_id_str)
+    if not task or not isinstance(task, dict):
+        return HttpResponseNotFound("Task not found.")
+
+    if task.get("state") != "done":
+        return HttpResponseNotFound("Results not ready yet.")
+
+    csv_meta = task.get("csv") or {}
+    path = (csv_meta.get("path") or "").strip()
+    filename = (csv_meta.get("filename") or "cookie_audit.csv").strip()
+    created_at = float(csv_meta.get("created_at") or 0.0)
+
+    # Expire after 30 minutes even if never downloaded
+    if created_at and (time.time() - created_at) >= 30 * 60:
+        # If it's expired, delete it and behave like it doesn't exist
+        try:
+            if path:
+                os.remove(path)
+        except Exception:
+            pass
+        path = ""
+
+    if not path or not os.path.exists(path):
+        return HttpResponseNotFound("CSV file expired or missing. Please run the scan again.")
+
+    # IMPORTANT: mark it as consumed so it can't be downloaded multiple times
+    task["csv"] = None
+    task["csv_downloaded_at"] = time.time()
+    cookie_scan_utils.set_cookie_audit_task(task_id_str, task)
+
+    return csv_utils.file_response_with_cleanup(
+        path=path,
+        download_filename=filename,
+        content_type="text/csv",
+    )
+# NEW END
 # Font Inspector
 # Force memory trim after work.
 @trim_memory_after

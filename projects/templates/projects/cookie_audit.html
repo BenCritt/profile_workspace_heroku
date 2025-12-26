@@ -100,10 +100,14 @@
       novalidate>
     {% csrf_token %}
 
-    <div class="input-group">
-      {{ form.url }}
-      <button class="btn btn-primary" type="submit" id="scanBtn">Scan Cookies</button>
-    </div>
+  <div class="input-group">
+    {{ form.url }}
+    <button class="btn btn-primary" type="submit" id="scanBtn">Scan Cookies</button>
+
+    <button class="btn btn-outline-secondary d-none" type="button" id="downloadBtn" disabled>
+      Download CSV
+    </button>
+  </div>
 
     {% if form.url.help_text %}
       <div class="form-text">{{ form.url.help_text }}</div>
@@ -148,7 +152,8 @@
 (function () {
   const form = document.getElementById("cookieAuditForm");
   const btn = document.getElementById("scanBtn");
-
+  const downloadBtn = document.getElementById("downloadBtn");
+  let currentDownloadUrl = "";
   const scanProgress = document.getElementById("scanProgress");
   const progressTitle = document.getElementById("progressTitle");
   const progressText = document.getElementById("progressText");
@@ -183,7 +188,7 @@
     scanProgress.classList.add("d-none");
   }
 
-  async function poll(statusUrl, resultsUrl) {
+  async function poll(statusUrl, resultsUrl, downloadUrl) {
     try {
       const res = await fetch(statusUrl, { headers: { "Accept": "application/json" } });
       if (!res.ok) throw new Error("status not ok");
@@ -230,6 +235,8 @@
         progressText.textContent = data.error || "Unknown error";
         btn.disabled = false;
         btn.textContent = "Scan Cookies";
+        downloadBtn.classList.add("d-none");
+        currentDownloadUrl = "";
         return;
       } else if (state === "done") {
         progressTitle.textContent = "Complete.";
@@ -239,8 +246,14 @@
         const r = await fetch(resultsUrl, { headers: { "Accept": "application/json" } });
         const rd = await r.json();
         const results = rd.results || {};
-        renderResults(results);
-
+        renderResults(results, downloadUrl);
+        currentDownloadUrl = downloadUrl || "";
+        downloadBtn.disabled = !currentDownloadUrl;
+        if (currentDownloadUrl) {
+          downloadBtn.classList.remove("d-none");  // show it now that it’s ready
+        } else {
+          downloadBtn.classList.add("d-none");     // keep hidden if for some reason no URL
+        }
         hideProgress();
         btn.disabled = false;
         btn.textContent = "Scan Cookies";
@@ -250,10 +263,10 @@
       progressText.textContent = "Still working…";
     }
 
-    setTimeout(() => poll(statusUrl, resultsUrl), 1000);
+    setTimeout(() => poll(statusUrl, resultsUrl, downloadUrl), 1000);
   }
 
-  function renderResults(results) {
+  function renderResults(results, downloadUrl) {
     const summary = results.summary || {};
     const cookies = Array.isArray(results.cookies) ? results.cookies : [];
 
@@ -293,7 +306,9 @@
         <li><strong>Total detected cookies:</strong> ${escapeHtml(summary.cookies_detected_total)}</li>
       </ul>
 
-      <h2 class="h4 mt-4">Cookies</h2>
+      <div class="d-flex align-items-center justify-content-between mt-4">
+        <h2 class="h4 mb-0">Cookies</h2>
+      </div>
 
       <table class="table table-striped table-hover table-sm cookie-table">
         <colgroup>
@@ -328,6 +343,9 @@
   }
 
   form.addEventListener("submit", async function (ev) {
+    currentDownloadUrl = "";
+    downloadBtn.disabled = true;
+    downloadBtn.classList.add("d-none");
     ev.preventDefault();
 
     // Clear previous results
@@ -371,7 +389,7 @@
 
       // Poll using URLs returned by server; task_id never enters the browser bar.
       btn.textContent = "Scanning…";
-      poll(data.status_url, data.results_url);
+      poll(data.status_url, data.results_url, data.download_url);
 
     } catch (e) {
       progressTitle.textContent = "Scan failed.";
@@ -380,6 +398,42 @@
       btn.textContent = "Scan Cookies";
     }
   });
+  downloadBtn.addEventListener("click", async function () {
+  if (!currentDownloadUrl) return;
+
+  downloadBtn.disabled = true;
+
+  try {
+    const res = await fetch(currentDownloadUrl, { headers: { "Accept": "text/csv" } });
+    if (!res.ok) throw new Error("Download failed.");
+
+    // Pull filename from Content-Disposition if present
+    let filename = "cookie_audit.csv";
+    const disp = res.headers.get("content-disposition") || "";
+    const m = disp.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i);
+    if (m) filename = decodeURIComponent(m[1] || m[2]);
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    // Requirement #2: disappear after click + file served
+    downloadBtn.classList.add("d-none");
+    currentDownloadUrl = "";
+
+  } catch (e) {
+    downloadBtn.disabled = false;
+    alert(e.message || "Could not download CSV. Please try again.");
+  }
+});
 })();
 </script>
 <script>

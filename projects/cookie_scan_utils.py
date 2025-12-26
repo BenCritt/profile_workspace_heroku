@@ -513,11 +513,32 @@ def _run_task(task_id: str) -> None:
             progress_callback=progress_cb,
         )
 
+        from . import csv_utils
+
+        # Best-effort cleanup of older exports (30 minutes)
+        csv_utils.cleanup_old_files(export_subdir="cookie_audit", max_age_seconds=30 * 60)
+
+        spec = _cookie_audit_rows_for_csv(results)
+
+        stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        safe_domain = csv_utils.safe_filename_component(spec["base_domain"] or "cookie_audit")
+        filename = f"cookie_audit_{safe_domain}_{stamp}_{task_id[:8]}.csv"
+
+        csv_meta = csv_utils.write_rows_to_csv_file(
+            spec["rows"],
+            filename=filename,
+            columns=spec["columns"],
+            header_map=spec["header_map"],
+            export_subdir="cookie_audit",
+            add_utf8_bom=True,
+        )
+
         _update_task(
             task_id,
             state="done",
             finished_at=time.time(),
             results=results,
+            csv=csv_meta,
             progress={
                 "visited": results["summary"]["visited_urls"],
                 "max_pages": results["summary"]["max_pages"],
@@ -537,6 +558,66 @@ def _run_task(task_id: str) -> None:
             pass
         _finish_task(task_id)
 
+def _cookie_audit_rows_for_csv(results: Dict[str, Any]) -> Dict[str, Any]:
+    summary = (results or {}).get("summary") or {}
+    cookies = (results or {}).get("cookies") or []
+    if not isinstance(cookies, list):
+        cookies = []
+
+    base_domain = summary.get("base_registrable_domain") or ""
+    visited_urls = summary.get("visited_urls") or ""
+    cookies_total = summary.get("cookies_detected_total") or ""
+
+    rows = []
+    for c in cookies:
+        if not isinstance(c, dict):
+            continue
+        rows.append(
+            {
+                "base_registrable_domain": base_domain,
+                "visited_urls": visited_urls,
+                "cookies_detected_total": cookies_total,
+                "name": c.get("name", ""),
+                "cookie_type": c.get("cookie_type", ""),
+                "purpose": c.get("purpose", ""),
+                "party": c.get("party", ""),
+                "domain": c.get("domain", ""),
+                "path": c.get("path", ""),
+                "expires_human": c.get("expires_human", ""),
+                "httpOnly": c.get("httpOnly", ""),
+                "secure": c.get("secure", ""),
+                "sameSite": c.get("sameSite", ""),
+                "source": c.get("source", ""),
+            }
+        )
+
+    columns = [
+        "base_registrable_domain",
+        "visited_urls",
+        "cookies_detected_total",
+        "name",
+        "cookie_type",
+        "purpose",
+        "party",
+        "domain",
+        "path",
+        "expires_human",
+        "httpOnly",
+        "secure",
+        "sameSite",
+        "source",
+    ]
+
+    header_map = {
+        "base_registrable_domain": "Base domain",
+        "visited_urls": "Pages visited",
+        "cookies_detected_total": "Total detected cookies",
+        "expires_human": "Expires",
+        "httpOnly": "HttpOnly",
+        "sameSite": "SameSite",
+    }
+
+    return {"rows": rows, "columns": columns, "header_map": header_map, "base_domain": base_domain}
 
 # ----------------------------
 # URL + domain helpers
