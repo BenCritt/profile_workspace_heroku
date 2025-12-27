@@ -10,6 +10,11 @@
   height: 75vh;        /* fills most of the viewport */
   min-height: 700px;   /* prevents tiny iframes on desktop */
   border: 0;
-  overflow: auto;      /* ensures scrollbars appear when needed */
   display: block;
+  overflow: auto;      /* default: allow iframe scrolling when tool needs it */
+}
+
+/* Cookie Audit only: we do NOT want the iframe itself to scroll */
+.tool-iframe--no-scroll{
+  overflow: hidden;
 }

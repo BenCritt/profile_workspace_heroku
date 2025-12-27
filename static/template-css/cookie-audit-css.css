@@ -1,124 +1,156 @@
-  /* Keep table from expanding; wrap cell contents instead */
+/* Keep table from expanding; wrap cell contents instead */
+.cookie-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Body cells: allow wrapping anywhere so long tokens don't widen table */
+.cookie-table td {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  vertical-align: top;
+}
+
+/* Header cells: default = DO NOT wrap single-word headings */
+.cookie-table th {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  vertical-align: bottom;
+}
+
+/* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
+.cookie-table th.th-wrap {
+  white-space: normal !important;
+}
+
+/* Let <code> wrap in body cells */
+.cookie-table td code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* ✅ Mobile: turn the table into stacked "cards" */
+@media (max-width: 576px) {
   .cookie-table {
-    width: 100%;
-    table-layout: fixed;
+    table-layout: auto;
   }
 
-  /* Body cells: allow wrapping anywhere so long tokens don't widen table */
+  .cookie-table thead {
+    display: none;
+  }
+
+  .cookie-table,
+  .cookie-table tbody,
+  .cookie-table tr,
   .cookie-table td {
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    vertical-align: top;
+    display: block;
+    width: 100%;
   }
 
-  /* Header cells: default = DO NOT wrap single-word headings */
-  .cookie-table th {
-    white-space: nowrap !important;
-    overflow-wrap: normal !important;
-    word-break: normal !important;
-    vertical-align: bottom;
+  .cookie-table tr {
+    border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: var(--bs-body-bg, transparent);
   }
 
-  /* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
-  .cookie-table th.th-wrap {
-    white-space: normal !important;
+  .cookie-table td {
+    border: 0 !important;
+    padding: 0.35rem 0 !important;
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
   }
 
-  /* Let <code> wrap in body cells */
+  .cookie-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    flex: 0 0 7.5rem;
+    max-width: 7.5rem;
+    opacity: 0.9;
+  }
+
   .cookie-table td code {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    display: inline-block;
     max-width: 100%;
   }
-    /* ✅ Mobile: turn the table into stacked "cards" */
-  @media (max-width: 576px) {
-    /* stop forcing the fixed column math on tiny screens */
-    .cookie-table {
-      table-layout: auto;
-    }
+}
 
-    /* hide the header row on mobile */
-    .cookie-table thead {
-      display: none;
-    }
+/* =========================================================
+   EMBEDDED (inside iframe): ONE vertical scrollbar only
+   - Disable page scrolling
+   - Make results/cards area the only scroll region
+   ========================================================= */
 
-    /* make the table elements block-level so each <tr> becomes a card */
-    .cookie-table,
-    .cookie-table tbody,
-    .cookie-table tr,
-    .cookie-table td {
-      display: block;
-      width: 100%;
-    }
+/* Kill page/body scrolling when embedded */
+html.embedded,
+html.embedded body {
+  height: 100%;
+  overflow: hidden !important; /* important: prevent second scrollbar */
+}
 
-    /* each row becomes a card */
-    .cookie-table tr {
-      border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
-      border-radius: 0.75rem;
-      padding: 0.75rem;
-      margin-bottom: 0.75rem;
-      background: var(--bs-body-bg, transparent);
-    }
+/* Use a header + scrollable results layout */
+html.embedded .cookie-audit-main {
+  height: 100vh;
+}
 
-    /* each cell becomes a label/value line */
-    .cookie-table td {
-      border: 0 !important;
-      padding: 0.35rem 0 !important;
-      display: flex;
-      gap: 0.75rem;
-      align-items: baseline;
-    }
+html.embedded .cookie-audit-layout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-    /* label column (from data-label attribute) */
-    .cookie-table td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      flex: 0 0 7.5rem;   /* label width */
-      max-width: 7.5rem;
-      opacity: 0.9;
-    }
+html.embedded .cookie-audit-header {
+  flex: 0 0 auto;
+}
 
-    /* let values wrap cleanly */
-    .cookie-table td code {
-      max-width: 100%;
-    }
-  }
-/* Only when the Cookie Audit page is inside an iframe */
-.embedded #resultsArea {
-  max-height: 55vh;      /* adjust: 50–65vh usually feels good */
+/* This is the ONE scrollbar you want (scroll through the cards/results) */
+html.embedded .cookie-audit-results {
+  flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 6px;    /* prevents scrollbar overlay */
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-right: 6px; /* prevents scrollbar overlay */
 }
 
-/* Optional: avoid double scroll, but don’t block body scroll entirely */
-.embedded body {
-  overflow-x: hidden;
-  overflow-y: auto;
+/* Hide footer/GitHub section inside the iframe */
+html.embedded .cookie-audit-footer {
+  display: none !important;
 }
 
-/* Force the MOBILE "table → cards" layout when embedded in an iframe (even on desktop) */
-.embedded .cookie-table thead {
+/* Hide base template nav/footer inside the iframe to avoid extra height */
+html.embedded .navbar,
+html.embedded footer,
+html.embedded .footer,
+html.embedded .fixed-bottom {
+  display: none !important;
+  position: static !important;
+}
+
+/* Force the “table → cards” layout when embedded (even on desktop) */
+html.embedded .cookie-table thead {
   display: none;
 }
 
-.embedded .cookie-table {
-  table-layout: auto; /* stop fixed col math */
+html.embedded .cookie-table {
+  table-layout: auto;
 }
 
-.embedded .cookie-table,
-.embedded .cookie-table tbody,
-.embedded .cookie-table tr,
-.embedded .cookie-table td {
+html.embedded .cookie-table,
+html.embedded .cookie-table tbody,
+html.embedded .cookie-table tr,
+html.embedded .cookie-table td {
   display: block;
   width: 100%;
 }
 
-.embedded .cookie-table tr {
+html.embedded .cookie-table tr {
   border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
   border-radius: 0.75rem;
   padding: 0.75rem;
@@ -126,15 +158,16 @@
   background: var(--bs-body-bg, transparent);
 }
 
-.embedded .cookie-table td {
+html.embedded .cookie-table td {
   border: 0 !important;
   padding: 0.35rem 0 !important;
   display: flex;
   gap: 0.75rem;
   align-items: baseline;
+  flex-wrap: wrap;
 }
 
-.embedded .cookie-table td::before {
+html.embedded .cookie-table td::before {
   content: attr(data-label);
   font-weight: 600;
   flex: 0 0 7.5rem;
@@ -142,27 +175,6 @@
   opacity: 0.9;
 }
 
-.embedded .cookie-table td {
-  flex-wrap: wrap;
-}
-
-.embedded .cookie-table td > * {
+html.embedded .cookie-table td > * {
   min-width: 0;
 }
-
-/* Embedded iframe: force scrolling even if the base template locks overflow */
-.embedded,
-.embedded body {
-  height: auto !important;
-  min-height: 100vh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
-
-/* If base.html uses a fixed footer, disable it inside iframes to prevent overlap */
-.embedded footer,
-.embedded .footer,
-.embedded .fixed-bottom {
-  position: static !important;
-}
-
