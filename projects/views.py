@@ -1109,3 +1109,11 @@ def it_tools(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_tools(request):
     return render(request, "projects/seo_tools.html")
+
+# This is the view for the Privacy & Cookies page.
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def privacy_cookies(request):
+    return render(request, "privacy_cookies.html")

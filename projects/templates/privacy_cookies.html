@@ -1,0 +1,178 @@
+{# templates/projects/privacy_cookies.html #}
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Privacy & Cookies{% endblock title %}
+
+{% block styles %}
+<style>
+  /*Keep accordion text white (dark-theme friendly) even when expanded */
+  #privacyCookiesFaq .accordion-button,
+  #privacyCookiesFaq .accordion-button:not(.collapsed),
+  #privacyCookiesFaq .accordion-body {
+    color: var(--bs-body-color) !important;
+  }
+</style>
+{% endblock styles %}
+
+{% block meta_tags %}
+<meta name="description" content="Privacy & Cookies for bencritt.net. Learn what data may be collected when you browse the site, how cookies are used, and how tool inputs are handled." />
+<meta name="robots" content="noindex" />
+
+<!-- Open Graph -->
+<meta property="og:url" content="https://www.bencritt.net/privacy-cookies/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Privacy & Cookies" />
+<meta property="og:description" content="How bencritt.net handles privacy, cookies, analytics, and tool input data." />
+<meta property="og:site_name" content="Ben Crittenden" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": "https://www.bencritt.net/privacy-cookies/#faq",
+  "url": "https://www.bencritt.net/privacy-cookies/",
+  "inLanguage": "en-US",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are cookies?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The definition of cookies can be found here: https://www.cloudflare.com/learning/privacy/what-are-cookies/"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What cookies are used on this website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The cookies used on this website can be identified in your web browser's console or by using this website's Cookie Audit app: https://www.bencritt.net/projects/cookie-audit/"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What if I don't approve of the cookies on this website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can either block cookies in your web browser's settings or not use this website."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is any personally identifiable user data captured on this website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Google Analytics collects usage data related to general location, device, browser info, etc., but no information that can personally identify you is collected."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is any personal user data monetized by this website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No."
+      }
+    }
+  ]
+}
+</script>
+{% endblock meta_tags %}
+{% block link_tags %}
+<!-- Canonical link to help avoid duplicate content issues. -->
+<link rel="canonical" href="https://www.bencritt.net/privacy-cookies/">
+{% endblock link_tags %}
+
+{% block content %}
+<div class="container px-5 my-5">
+
+  <div class="text-center mb-4" style="width: 100%; max-width: 700px; margin: auto;">
+    <h1>Privacy & Cookies</h1>
+    <p class="lead fw-normal text-muted mb-0">
+      FAQ about cookies and privacy on bencritt.net.
+    </p>
+    <p class="text-muted mb-0"><small>Last updated: December 27, 2025</small></p>
+  </div>
+
+  <div class="accordion" id="privacyCookiesFaq" style="width: 100%; max-width: 700px; margin: auto;">
+
+    <!-- Q1 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeadingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseOne" aria-expanded="true" aria-controls="faqCollapseOne">
+          What are cookies?
+        </button>
+      </h2>
+      <div id="faqCollapseOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadingOne" data-bs-parent="#privacyCookiesFaq">
+        <div class="accordion-body">
+          The definition of cookies can be found here:
+          <a class="content-link" href="https://www.cloudflare.com/learning/privacy/what-are-cookies/" target="_blank" rel="noopener noreferrer">
+            What are Cookies? - Cloudflare Learning Center
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeadingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo" aria-expanded="false" aria-controls="faqCollapseTwo">
+          What cookies are used on this website?
+        </button>
+      </h2>
+      <div id="faqCollapseTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#privacyCookiesFaq">
+        <div class="accordion-body">
+          The cookies used on this website can be identified in your web browser's console or by using this website's
+          <a class="content-link" href="https://www.bencritt.net/projects/cookie-audit/" rel="noopener noreferrer">
+            Cookie Audit app.
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeadingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseThree" aria-expanded="false" aria-controls="faqCollapseThree">
+          What if I don't approve of the cookies on this website?
+        </button>
+      </h2>
+      <div id="faqCollapseThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#privacyCookiesFaq">
+        <div class="accordion-body">
+          You can either block cookies in your web browser's settings or not use this website.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeadingFour">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFour" aria-expanded="false" aria-controls="faqCollapseFour">
+          Is any personally identifiable user data captured on this website?
+        </button>
+      </h2>
+      <div id="faqCollapseFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#privacyCookiesFaq">
+        <div class="accordion-body">
+          No. Google Analytics collects usage data related to general location, device, browser info, etc., but no information that can personally identify you is collected.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeadingFive">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFive" aria-expanded="false" aria-controls="faqCollapseFive">
+          Is any personal user data monetized by this website?
+        </button>
+      </h2>
+      <div id="faqCollapseFive" class="accordion-collapse collapse" aria-labelledby="faqHeadingFive" data-bs-parent="#privacyCookiesFaq">
+        <div class="accordion-body">
+          No.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock content %}

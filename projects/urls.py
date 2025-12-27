@@ -73,4 +73,5 @@ urlpatterns = [
     path("projects/cookie-audit/status/<uuid:task_id>/", views.cookie_audit_status, name="cookie_audit_status"),
     path("projects/cookie-audit/results/<uuid:task_id>/", views.cookie_audit_results, name="cookie_audit_results"),
     path("projects/cookie-audit/download/<uuid:task_id>/", views.cookie_audit_download, name="cookie_audit_download",),
+    path("privacy-cookies/", views.privacy_cookies, name="privacy_cookies"),
 ]
