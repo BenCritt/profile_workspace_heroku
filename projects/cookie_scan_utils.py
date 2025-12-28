@@ -33,6 +33,10 @@ try:
 except Exception:
     free_memory_aggressively = None  # type: ignore
 
+# User Agent declaration
+# Line 1010, currently using extra header instead. Savin this for future use
+# DEFAULT_USER_AGENT = "Cookie Audit by Ben Crittenden (+https://www.bencritt.net)"
+COOKIE_AUDIT_ID = "Cookie Audit by Ben Crittenden (+https://www.bencritt.net)"
 
 # ----------------------------
 # Defaults (tune for Heroku 512MB)
@@ -1005,6 +1009,8 @@ def scan_site_for_cookies(
         context = browser.new_context(
             ignore_https_errors=bool(ignore_https_errors),
             service_workers="block",
+            # user_agent=DEFAULT_USER_AGENT,
+            extra_http_headers={"X-Cookie-Audit": COOKIE_AUDIT_ID}, # Going with extra header instead of a custom user agent for now.
         )
         _check_rss_or_abort()
 
