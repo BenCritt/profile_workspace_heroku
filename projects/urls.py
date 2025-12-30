@@ -29,7 +29,8 @@ urlpatterns = [
     ),
     path("projects/freight-safety/", views.freight_safety, name="freight_safety"),
     path("projects/seo-head-checker/", views.seo_head_checker, name="seo_head_checker"),
-    path("projects/iss-tracker/", views.iss_tracker, name="iss_tracker"),
+    # Temporarily disabling ISS Tracker.  The API is currently unreliable.
+    #path("projects/iss-tracker/", views.iss_tracker, name="iss_tracker"),
     path("projects/ssl-check/", views.ssl_check, name="ssl_check"),
     path("projects/ip-tool/", views.ip_tool, name="ip_tool"),
     path("projects/dns-lookup/", views.dns_tool, name="dns_tool"),
@@ -63,7 +64,6 @@ urlpatterns = [
     path("projects/ham-radio-call-sign-lookup/", views.ham_radio_call_sign_lookup, name="ham_radio_call_sign_lookup"),
     path("projects/font-inspector/", views.font_inspector, name="font_inspector"),
     path("llms.txt", views.llms_txt, name="llms_txt"),
-    # Font Inspector async endpoints
     path("projects/font-inspector/start/", font_utils.start_font_inspector, name="start_font_inspector"),
     path("projects/font-inspector/status/<str:task_id>/", font_utils.fi_task_status, name="fi_task_status"),
     path("projects/font-inspector/rows/<str:task_id>/", font_utils.fi_rows, name="fi_rows"),
