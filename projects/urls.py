@@ -29,8 +29,7 @@ urlpatterns = [
     ),
     path("projects/freight-safety/", views.freight_safety, name="freight_safety"),
     path("projects/seo-head-checker/", views.seo_head_checker, name="seo_head_checker"),
-    # Temporarily disabling ISS Tracker.  The API is currently unreliable.
-    #path("projects/iss-tracker/", views.iss_tracker, name="iss_tracker"),
+    path("projects/iss-tracker/", views.iss_tracker, name="iss_tracker"),
     path("projects/ssl-check/", views.ssl_check, name="ssl_check"),
     path("projects/ip-tool/", views.ip_tool, name="ip_tool"),
     path("projects/dns-lookup/", views.dns_tool, name="dns_tool"),

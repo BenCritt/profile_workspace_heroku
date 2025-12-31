@@ -42,8 +42,7 @@ mappings = [
     ("grade_level_analyzer", "grade-level-analyzer"),
     ("freight_safety", "freight-safety"),
     ("seo_head_checker", "seo-head-checker"),
-    # Temporarily disabling ISS Tracker.  The API is currently unreliable.
-    #("iss_tracker", "iss-tracker"),
+    ("iss_tracker", "iss-tracker"),
     ("ssl_check", "ssl-check"),
     ("ip_tool", "ip-tool"),
     ("dns_tool", "dns-lookup"),
