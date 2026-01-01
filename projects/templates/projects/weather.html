@@ -1,213 +1,186 @@
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-
-{% block title %}Weather Forecast App | Accurate Weather by ZIP Code{% endblock title %}
-
-{% block meta_tags %}
-  <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
-  <meta name="description" content="Get accurate and detailed weather forecasts with our Weather Forecast App. Enter a ZIP code to receive real-time weather updates, including temperature, precipitation, and more. Powered by Google Maps and OpenWeatherMap APIs.">
-  <meta name="keywords" content="Weather Forecast, ZIP Code Weather, Real-time Weather, Weather Updates">
-
-  <!-- Open Graph -->
-  <meta property="og:url" content="https://www.bencritt.net/projects/weather/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Weather Forecast App">
-  <meta property="og:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
-  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/weather.webp">
-  <meta property="og:image:type" content="image/webp">
-  <meta property="og:image:alt" content="Weather Forecast Screenshot">
-  <meta property="og:site_name" content="Ben Crittenden">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:domain" content="bencritt.net">
-  <meta name="twitter:url" content="https://www.bencritt.net/projects/weather/">
-  <meta name="twitter:title" content="Weather Forecast App">
-  <meta name="twitter:description" content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
-  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/weather.webp">
-  <meta name="twitter:creator" content="@bencritt89"/>
-
-  <!-- Schema -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Weather Forecast App",
-      "description": "A web-based application that provides detailed weather forecasts based on ZIP code input using Google Maps and OpenWeatherMap APIs.",
-      "url": "https://www.bencritt.net/projects/weather/",
-      "applicationCategory": "Weather Forecasting Software",
-      "operatingSystem": "Web-based",
-      "image": "https://www.bencritt.net/static/img/all-projects/weather.webp",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net"
+    {% block scripts %}
+    <!-- This is schema to help with SEO. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Weather Forecast App",
+        "description": "A web-based application that provides detailed weather forecasts based on ZIP code input using Google Maps and OpenWeatherMap APIs.",
+        "url": "https://www.bencritt.net/projects/weather/",
+        "applicationCategory": "Weather Forecasting Software",
+        "operatingSystem": "Web-based",
+        "image": "https://www.bencritt.net/static/img/all-projects/weather.webp",
+        "creator": {
+          "@type": "Person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net"
+        },
+        "featureList": [
+          "Accurate weather forecasts based on ZIP code input.",
+          "Uses Google Maps Platform API for geographic coordinates.",
+          "Fetches weather data using OpenWeatherMap One Call API.",
+          "User-friendly interface with real-time weather updates.",
+          "Accessible from any device with internet connection."
+        ],
+        "softwareVersion": "1.0",
+        "applicationSubCategory": "Weather Forecasting"
       }
-    }
-  </script>
-{% endblock meta_tags %}
+      
+    </script>
+    {% endblock scripts %}    
+    {% block styles %}  
+    {% endblock styles %}
+    {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma"         content="no-cache">
+    <meta http-equiv="Expires"        content="0">
 
-{% block link_tags %}
-  <link rel="canonical" href="https://www.bencritt.net/projects/weather/">
-  <link href="{% static 'template-css/weather-css.css' %}" rel="stylesheet">
-{% endblock link_tags %}
+    <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description"          content="Get accurate and detailed weather forecasts with our Weather Forecast App. Enter a ZIP code to receive real-time weather updates, including temperature, precipitation, and more. Powered by Google Maps and OpenWeatherMap APIs.">
+    <meta name="keywords"             content="Weather Forecast, ZIP Code Weather, Real-time Weather, Weather Updates">
 
-{% block content %}
-  <section class="py-4">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+    <!-- Open Graph -->
+    <meta property="og:url"           content="https://www.bencritt.net/projects/weather/">
+    <meta property="og:type"          content="website">
+    <meta property="og:title"         content="Weather Forecast App">
+    <meta property="og:description"   content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
+    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/weather.webp">
+    <meta property="og:image:type"    content="image/webp">
+    <meta property="og:image:alt"     content="Weather Forecast Screenshot">
+    <meta property="og:site_name"     content="Ben Crittenden">
 
-          <header class="text-center mb-4">
-            <h1 class="mb-2">Weather Forecast App</h1>
-            <p class="text-muted mb-0">Enter a ZIP code to get the current weather and daily forecast.</p>
-          </header>
+    <!--
+    Once I have a specific image meant for this, I can use these optimized dimensions.
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    -->
 
+    <!-- Twitter -->
+    <meta name="twitter:card"         content="summary_large_image">
+    <meta name="twitter:domain"       content="bencritt.net">
+    <meta name="twitter:url"          content="https://www.bencritt.net/projects/weather/">
+    <meta name="twitter:title"        content="Weather Forecast App">
+    <meta name="twitter:description"  content="This weather forecast app takes a ZIP code and returns a forecast and other weather information.">
+    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/weather.webp">
+    <meta name="twitter:creator"      content="@bencritt89"/>
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    <!-- Canonical link to help avoid duplicate content issues. -->
+    <link rel="canonical" href="https://www.bencritt.net/projects/weather/">
+    <!-- Other CSS styling and layout. -->
+    <link href="{% static 'template-css/weather-css.css' %}" rel="stylesheet">
+    {% endblock link_tags %}
+    {% block title %}Weather Forecast App | Accurate Weather by ZIP Code{% endblock title %}
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <main>
+      <center>
+        <h1>Weather Forecast App</h1>
+          <br>
+          <!-- Display error messages if any. -->
           {% if error_message %}
-            <div class="alert alert-danger" role="alert">
+          <div class="alert alert-danger" style = "width: 100%; max-width: 750px;">
               {{ error_message }}
-            </div>
-          {% endif %}
-
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              {% if form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                  {{ form.non_field_errors }}
-                </div>
-              {% endif %}
-
-              <form action="{% url 'projects:weather' %}" method="post" novalidate>
-                {% csrf_token %}
-
-                {% for field in form %}
-                  <div class="mb-3">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                      <div class="invalid-feedback d-block">
-                        {{ field.errors }}
-                      </div>
-                    {% endif %}
-                  </div>
-                {% endfor %}
-
-                <div class="d-grid gap-2">
-                  <input
-                    type="submit"
-                    id="weather-btn"
-                    class="btn btn-primary"
-                    value="Get Weather Forecast"
-                    aria-label="Get Weather Forecast">
-                </div>
-              </form>
-            </div>
           </div>
-
-          {% if city_name and state_name %}
-            <div class="text-center mb-3">
-              <h2 class="h5 mb-0">Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
-            </div>
           {% endif %}
-
-          {% if current_weather_report %}
-            <div class="card shadow-sm mb-4">
-              <div class="card-header">Current Weather Overview</div>
+          <!-- Container for the weather forecast form. -->
+          <div class = "container" style = "width: 100%; max-width: 750px;">
+              <!-- Form to submit the ZIP code for the weather forecast. -->
+              <form action="{% url 'projects:weather' %}" method="post">
+                  {% csrf_token %} <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
+                  {{ form.as_p }} <!-- Render form fields as paragraphs -->
+                  <input type="submit" id="weather-btn" class="btn btn-primary" value="Get Weather Forecast" aria-label="Get Weather Forecast">
+              </form>
+          </div>
+          <br>
+          {% if city_name and state_name %}
+          <h2>Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
+          {% endif %}
+          <br>
+            <!-- Container for the weather data. -->
+            <div class = "container" style = "width: 100%; max-width: 750px;">
+            <!-- Display current weather information within a card. -->
+            {% if current_weather_report %}
+            <div class="card">
+              <div class="card-header">
+                Current Weather Overview
+              </div>
               <div class="card-body">
+                <!-- Loop through current weather report -->
                 {% for current in current_weather_report %}
-                  <div class="d-flex align-items-center mb-3">
-                    <img src="{{ current.icon_url_current }}" alt="Weather Icon" class="weather-icon">
-                    <div class="ms-3">
-                      <p class="mb-1"><strong>Description:</strong> {{ current.current_description }}</p>
-                      <p class="mb-1"><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
-                      <p class="mb-0"><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
-                    </div>
+                <div class="d-flex align-items-center mb-3">
+                  <img src="{{ current.icon_url_current }}" alt="Weather Icon" class="weather-icon">
+                  <div>
+                    <p><strong>Description:</strong> {{ current.current_description }}</p>
+                    <p><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
+                    <p><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
                   </div>
-
-                  <hr>
-
-                  <div class="row">
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
-                      <p class="mb-1"><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
-                      <p class="mb-0"><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
-                    </div>
-                    <div class="col-md-6">
-                      <p class="mb-1"><strong>UV Index:</strong> {{ current.current_uv }}</p>
-                      <p class="mb-1"><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
-                      <p class="mb-0"><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
-                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
+                    <p><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
+                    <p><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
                   </div>
+                  <div class="col-md-6">
+                    <p><strong>UV Index:</strong> {{ current.current_uv }}</p>
+                    <p><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
+                    <!--
+                    <p><strong>Visibility:</strong> {{ current.current_visibility }} miles</p>
+                    -->
+                    <p><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
+                  </div>
+                </div>
                 {% endfor %}
               </div>
             </div>
-
-            <h2 class="h5 text-center mb-3">Daily Forecast</h2>
-
+            {% endif %}
+            <br>
+            <!-- Display weather forcast inside an accordion. -->
+            {% if current_weather_report %}
+            <h2>Daily Forecast</h2>
+            {% endif %}
+            <br>
             <div class="accordion" id="dailyForecastAccordion">
               {% for day in daily_forecast %}
-                <div class="accordion-item">
-                  <h3 class="accordion-header" id="heading{{ forloop.counter }}">
-                    <button
-                      class="accordion-button collapsed"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#collapse{{ forloop.counter }}"
-                      aria-expanded="false"
-                      aria-controls="collapse{{ forloop.counter }}">
-                      {{ day.day_of_week }}, {{ day.date_display }}
-                    </button>
-                  </h3>
-
-                  <div
-                    id="collapse{{ forloop.counter }}"
-                    class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
-                    aria-labelledby="heading{{ forloop.counter }}"
-                    data-bs-parent="#dailyForecastAccordion">
-
-                    <div class="accordion-body">
-                      <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
-                      <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
-                      <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
-                      <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
-                      <p><strong>Humidity:</strong> {{ day.humidity }}%</p>
-                      <p><strong>Dew Point:</strong> {{ day.dew_point }}°F</p>
-
-                      <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F <span class="text-muted">(Feels like: {{ day.morn_temp_feel }}°F)</span></p>
-                      <p><strong>Day Temp:</strong> {{ day.day_temp }}°F <span class="text-muted">(Feels like: {{ day.day_temp_feel }}°F)</span></p>
-                      <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F <span class="text-muted">(Feels like: {{ day.eve_temp_feel }}°F)</span></p>
-                      <p class="mb-0"><strong>Night Temp:</strong> {{ day.night_temp }}°F <span class="text-muted">(Feels like: {{ day.night_temp_feel }}°F)</span></p>
-                    </div>
+              <div class="accordion-item">
+                <h3 class="accordion-header" id="heading{{ forloop.counter }}">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                    {{ day.day_of_week }}, {{ day.date|date:"F d" }}
+                  </button>
+                </h3>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
+                    <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
+                    <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
+                    <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
+                    <p><strong>Humidity:</strong> {{day.humidity}}%</p>
+                    <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
+                    <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F <span class="text-muted">(Feels like: {{ day.morn_temp_feel }}°F)</p>
+                    <p><strong>Day Temp:</strong> {{ day.day_temp }}°F <span class="text-muted">(Feels like: {{ day.day_temp_feel }}°F)</p>
+                    <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F <span class="text-muted">(Feels like: {{ day.eve_temp_feel }}°F)</p>
+                    <p><strong>Night Temp:</strong> {{ day.night_temp }}°F <span class="text-muted">(Feels like: {{ day.night_temp_feel }}°F)</p>
                   </div>
                 </div>
+              </div>
               {% endfor %}
             </div>
-          {% endif %}
-
-          <div class="text-center mt-4">
-            <a
-              href="https://github.com/BenCritt/profile_workspace_heroku"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-bs-toggle="tooltip"
-              title="View the source code for this app."
-              class="btn btn-outline-secondary">
-              View source on GitHub
-            </a>
-
-            <p class="mt-3 text-muted small mb-0">
-              This tool was created by
-              <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
-              an IT professional with experience in web development, systems administration, and project management.
+          <br><br>
+          <!-- Link to the GitHub repository for the project. -->
+          <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg></a>
+          <br>
+          <div class = "container" style = "width: 100%; max-width: 750px;">
+            <p class="mt-3 text-muted small">
+              This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
             </p>
           </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-{% endblock content %}
+      </center>
+    {% endblock content %}

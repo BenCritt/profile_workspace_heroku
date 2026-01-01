@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, FileResponse, HttpRequest, HttpResponseNotAllowed
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, FileResponse, HttpRequest
 from django.conf import settings
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST, require_GET
@@ -7,6 +7,7 @@ from django.urls import reverse
 from .decorators import trim_memory_after
 import os
 import requests
+
 
 # Cookie Audit
 @trim_memory_after
@@ -35,6 +36,7 @@ def cookie_audit_view(request):
     ctx = {"form": form}
     return render(request, "projects/cookie_audit.html", ctx)
 
+# NEW Beginning
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_POST
@@ -75,6 +77,7 @@ def cookie_audit_start(request):
             "download_url": reverse("projects:cookie_audit_download", args=[task_id]),
         }
     )
+# NEW END
 
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -552,7 +555,8 @@ def freight_safety(request):
         },  # "safety_score": safety_score
     )
 
-# Grade Level Text Analyzer
+
+# Grade Level Text Analyzer.
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
@@ -560,131 +564,137 @@ def freight_safety(request):
 def grade_level_analyzer(request):
     import textstat
     from .forms import TextForm
-    import re
-    from django.shortcuts import render, redirect
-
-    # ---- Helpers ----
-    def _to_float_1dp(value):
-        """Best-effort conversion to a simple JSON-serializable float rounded to 1 dp."""
-        try:
-            return round(float(value), 1)
-        except Exception:
-            return value
-
-    # ---- GET: show form and (optionally) results from session ----
-    if request.method == "GET":
-        session_results = request.session.pop("gl_results", None)
-
-        form = TextForm()
-        context = {"form": form}
-        if isinstance(session_results, dict):
-            context["results"] = session_results
-
-        return render(request, "projects/grade_level_analyzer.html", context)
-
-    # ---- POST: validate, compute results, then redirect (PRG) ----
+    # Check if the request method is POST.
     if request.method == "POST":
+        # Initialize the form with data from the request.
         form = TextForm(request.POST)
-        if not form.is_valid():
-            return render(request, "projects/grade_level_analyzer.html", {"form": form})
+        # Validate the form.
+        if form.is_valid():
+            # Extract the input text from the form.
+            input_text = form.cleaned_data["text"]
 
-        input_text = form.cleaned_data["text"]
+            # --- Hardening & helpers (self-contained) ---
+            import re
+            # If available, ensure English rules for textstat
+            if hasattr(textstat, "set_lang"):
+                try:
+                    textstat.set_lang("en_US")
+                except Exception:
+                    pass
 
-        # If available, ensure English rules for textstat
-        if hasattr(textstat, "set_lang"):
+            def _sanitize_for_readability(s: str) -> str:
+                # Normalize punctuation that can confuse tokenizers
+                s = s.replace("—", " ").replace("–", " ").replace("…", ". ")
+                s = s.translate(str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'}))
+                # Remove standalone numbers/ordinals that can trip syllable tokenizers
+                s = re.sub(r"\b\d+(?:[.,]\d+)?(?:st|nd|rd|th)?\b", " ", s)
+                # Collapse whitespace
+                return re.sub(r"\s{2,}", " ", s).strip()
+
+            # Naive, dependency-free readability estimators (no CMU dict lookups)
+            def _sentences(s: str):
+                return [x for x in re.split(r"[.!?]+", s) if x.strip()]
+
+            def _words(s: str):
+                # keep contractions as a single token
+                return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", s)
+
+            _vowels = set("aeiouy")
+
+            def _syllables(word: str) -> int:
+                w = word.lower()
+                count, prev_vowel = 0, False
+                for ch in w:
+                    is_vowel = ch in _vowels
+                    if is_vowel and not prev_vowel:
+                        count += 1
+                    prev_vowel = is_vowel
+                # Drop a trailing silent 'e' when plausible
+                if w.endswith("e") and count > 1:
+                    count -= 1
+                return max(count, 1)
+
+            def _metrics(s: str):
+                # Keep letters, digits, basic punctuation; normalize whitespace
+                s2 = re.sub(r"[^A-Za-z0-9\.\!\?,;:\s']", " ", s)
+                s2 = re.sub(r"\s{2,}", " ", s2).strip()
+                sents = _sentences(s2) or [s2]
+                words = _words(s2)
+                n_w = max(len(words), 1)
+                n_s = max(len(sents), 1)
+                n_letters = sum(len(re.findall(r"[A-Za-z]", w)) for w in words)
+                syl_per_word = (sum(_syllables(w) for w in words) / n_w) if n_w else 0.0
+                words_per_sent = n_w / n_s
+                # Flesch–Kincaid Grade
+                fk = 0.39 * words_per_sent + 11.8 * syl_per_word - 15.59
+                # Coleman–Liau Index
+                L = (n_letters / n_w) * 100.0
+                S = (n_s / n_w) * 100.0
+                cli = 0.0588 * L - 0.296 * S - 15.8
+                # Gunning Fog
+                complex_words = sum(1 for w in words if _syllables(w) >= 3)
+                fog = 0.4 * (words_per_sent + 100.0 * (complex_words / n_w))
+                return fk, fog, cli
+
+            clean_text = _sanitize_for_readability(input_text)
+
+            # Calculate readability scores using different indices.
             try:
-                textstat.set_lang("en_US")
+                results = {
+                    "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
+                    "gunning_fog":          textstat.gunning_fog(clean_text),
+                    "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
+                }
+            except KeyError:
+                # Dictionary miss (numbers, brand names, OOV words): use safe estimators
+                fk, fog, cli = _metrics(clean_text)
+                results = {
+                    "flesch_kincaid_grade": fk,
+                    "gunning_fog":          fog,
+                    "coleman_liau_index":   cli,
+                }
             except Exception:
-                pass
+                # Last-ditch: aggressively strip non-letters and compute safe estimators
+                safer_text = re.sub(r"[^A-Za-z\.\!\?,;:\s']", " ", clean_text)
+                fk, fog, cli = _metrics(safer_text)
+                results = {
+                    "flesch_kincaid_grade": fk,
+                    "gunning_fog":          fog,
+                    "coleman_liau_index":   cli,
+                }
 
-        def _sanitize_for_readability(s: str) -> str:
-            s = s.replace("—", " ").replace("–", " ").replace("…", ". ")
-            s = s.translate(str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'}))
-            s = re.sub(r"\b\d+(?:[.,]\d+)?(?:st|nd|rd|th)?\b", " ", s)
-            return re.sub(r"\s{2,}", " ", s).strip()
+            # Calculate the weighted average of the scores.
+            average_score = round(
+                (0.5 * results["flesch_kincaid_grade"])
+                + (0.3 * results["gunning_fog"])
+                + (0.2 * results["coleman_liau_index"]),
+                1,
+            )
+            # Calculate the uniform average of the scores.
+            uniform_average_score = round(
+                (
+                    results["flesch_kincaid_grade"]
+                    + results["gunning_fog"]
+                    + results["coleman_liau_index"]
+                )
+                / 3,
+                1,
+            )
+            # Add the calculated scores to the results dictionary.
+            results["average_score"] = average_score
+            results["uniform_average_score"] = uniform_average_score
+            # Prepare the context with the form and results for rendering.
+            context = {"form": form, "results": results}
+            # Render the results page with the context.
+            return render(request, "projects/grade_level_results.html", context)
+        else:
+            # If the form is invalid, re-render the page with the form.
+            return render(request, "projects/grade_level_analyzer.html", {"form": form})
+    else:
+        # If the request is not POST, create a new form and render the page.
+        form = TextForm()
+        return render(request, "projects/grade_level_analyzer.html", {"form": form})
 
-        def _sentences(s: str):
-            return [x for x in re.split(r"[.!?]+", s) if x.strip()]
-
-        def _words(s: str):
-            return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", s)
-
-        _vowels = set("aeiouy")
-
-        def _syllables(word: str) -> int:
-            w = word.lower()
-            count, prev_vowel = 0, False
-            for ch in w:
-                is_vowel = ch in _vowels
-                if is_vowel and not prev_vowel:
-                    count += 1
-                prev_vowel = is_vowel
-            if w.endswith("e") and count > 1:
-                count -= 1
-            return max(count, 1)
-
-        def _metrics(s: str):
-            s2 = re.sub(r"[^A-Za-z0-9\.\!\?,;:\s']", " ", s)
-            s2 = re.sub(r"\s{2,}", " ", s2).strip()
-            sents = _sentences(s2) or [s2]
-            words = _words(s2)
-            n_w = max(len(words), 1)
-            n_s = max(len(sents), 1)
-            n_letters = sum(len(re.findall(r"[A-Za-z]", w)) for w in words)
-            syl_per_word = (sum(_syllables(w) for w in words) / n_w) if n_w else 0.0
-            words_per_sent = n_w / n_s
-
-            fk = 0.39 * words_per_sent + 11.8 * syl_per_word - 15.59
-            L = (n_letters / n_w) * 100.0
-            S = (n_s / n_w) * 100.0
-            cli = 0.0588 * L - 0.296 * S - 15.8
-            complex_words = sum(1 for w in words if _syllables(w) >= 3)
-            fog = 0.4 * (words_per_sent + 100.0 * (complex_words / n_w))
-            return fk, fog, cli
-
-        clean_text = _sanitize_for_readability(input_text)
-
-        try:
-            results = {
-                "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
-                "gunning_fog":          textstat.gunning_fog(clean_text),
-                "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
-            }
-        except KeyError:
-            fk, fog, cli = _metrics(clean_text)
-            results = {
-                "flesch_kincaid_grade": fk,
-                "gunning_fog":          fog,
-                "coleman_liau_index":   cli,
-            }
-        except Exception:
-            safer_text = re.sub(r"[^A-Za-z\.\!\?,;:\s']", " ", clean_text)
-            fk, fog, cli = _metrics(safer_text)
-            results = {
-                "flesch_kincaid_grade": fk,
-                "gunning_fog":          fog,
-                "coleman_liau_index":   cli,
-            }
-
-        average_score = (0.5 * results["flesch_kincaid_grade"]) + (0.3 * results["gunning_fog"]) + (0.2 * results["coleman_liau_index"])
-        uniform_average_score = (results["flesch_kincaid_grade"] + results["gunning_fog"] + results["coleman_liau_index"]) / 3
-
-        results["average_score"] = round(float(average_score), 1)
-        results["uniform_average_score"] = round(float(uniform_average_score), 1)
-
-        # Make sure everything in session is JSON-serializable and nicely rounded
-        session_results = {
-            "flesch_kincaid_grade": _to_float_1dp(results["flesch_kincaid_grade"]),
-            "gunning_fog": _to_float_1dp(results["gunning_fog"]),
-            "coleman_liau_index": _to_float_1dp(results["coleman_liau_index"]),
-            "average_score": _to_float_1dp(results["average_score"]),
-            "uniform_average_score": _to_float_1dp(results["uniform_average_score"]),
-        }
-
-        request.session["gl_results"] = session_results
-        return redirect(reverse("projects:grade_level_analyzer"))
-
-    return HttpResponseNotAllowed(["GET", "POST"])
 
 # This is the code for the view for my website's llms.txt file.
 def llms_txt(request):
@@ -851,119 +861,53 @@ def monte_carlo_simulator(request):
     return render(request, "projects/monte_carlo_simulator.html", context={"form": form})
 
 
+
 # Weather Forecast
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
-    import datetime
-    from django.shortcuts import render, redirect
-
-    from .forms import WeatherForm
-    from .utils import get_coordinates
+    import json, datetime
     from .weather_utils import get_city_and_state
+    from .utils import get_coordinates
+    from .forms import WeatherForm
+    # Initialize the weather form, allowing for POST or None (for GET requests).
+    form = WeatherForm(request.POST or None)
 
-    # ---- Helpers ----
-    def _dt_to_iso(value):
-        """Convert datetime (or None) to an ISO string for session-safe storage."""
-        if isinstance(value, datetime.datetime):
-            return value.isoformat()
-        return value
-
-    def _serialize_results_for_session(payload: dict) -> dict:
-        """Ensure everything is session-serializable (no datetime objects)."""
-        out = dict(payload)
-
-        # current_weather_report: list[dict]
-        cwr = out.get("current_weather_report") or []
-        for item in cwr:
-            if isinstance(item, dict):
-                item["current_sunrise"] = _dt_to_iso(item.get("current_sunrise"))
-                item["current_sunset"] = _dt_to_iso(item.get("current_sunset"))
-
-        # daily_forecast: list[dict]
-        df = out.get("daily_forecast") or []
-        for day in df:
-            if isinstance(day, dict):
-                day["date"] = _dt_to_iso(day.get("date"))
-                day["sunrise"] = _dt_to_iso(day.get("sunrise"))
-                day["sunset"] = _dt_to_iso(day.get("sunset"))
-
-        return out
-
-    # ---- GET (after redirect): show form and (optionally) results from session ----
-    if request.method == "GET":
-        session_payload = request.session.pop("weather_payload", None)
-        session_zip = request.session.pop("weather_zip", None)
-
-        form = WeatherForm(initial={"zip_code": session_zip} if session_zip else None)
-
-        context = {"form": form}
-        if isinstance(session_payload, dict):
-            context.update(session_payload)
-
-        return render(request, "projects/weather.html", context)
-
-    # ---- POST: validate, compute results, then redirect (PRG) ----
+    # Retrieve the zip code from the POST request, if present.
     if request.method == "POST":
-        form = WeatherForm(request.POST)
-        if not form.is_valid():
-            return render(request, "projects/weather.html", {"form": form})
+        zip_code = request.POST["zip_code"]
 
-        zip_code = form.cleaned_data["zip_code"]
-
+    # If the form is valid, process the form data and render the weather forecast.
+    if form.is_valid():
+        # Obtain the coordinates for the given zip code.
         coordinates = get_coordinates(zip_code)
-        if coordinates is None:
-            return render(
-                request,
-                "projects/weather.html",
-                {
-                    "form": form,
-                    "error_message": (
-                        "The ZIP code you entered is valid, but the server was unable to find coordinates for it. "
-                        "This is a Google Maps Platform API error and not a problem with my code."
-                    ),
-                },
-            )
-
-        latitude, longitude = coordinates
-
-        city_state = get_city_and_state(zip_code)
-        if not city_state:
-            return render(
-                request,
-                "projects/weather.html",
-                {"form": form, "error_message": "Could not determine city/state for that ZIP code."},
-            )
-
-        city_name, state_name = city_state
-
+        # Handle cases where coordinates cannot be found.
+        if coordinates == None:
+            context = {
+                "form": form,
+                "error_message": "The ZIP code you entered is valid, but the server was unable to find coordinates for it.  This is a Google Maps Platform API error and not a problem with my code.",
+            }
+            return render(request, "projects/weather.html", context)
+        else:
+            # Retrieve city and state names based on the zip code.
+            city_name, state_name = get_city_and_state(zip_code)
+            latitude, longitude = coordinates
+        # API key for accessing the weather information.
         API_KEY_WEATHER = os.environ["OPEN_WEATHER_MAP_KEY"]
-        API_URL = (
-            f"https://api.openweathermap.org/data/3.0/onecall?"
-            f"lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
-        )
-
-        try:
-            response = requests.get(API_URL, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-        except Exception as exc:
-            return render(
-                request,
-                "projects/weather.html",
-                {
-                    "form": form,
-                    "error_message": f"Weather service error. Please try again. ({type(exc).__name__})",
-                },
-            )
-
+        # Construct the API URL with coordinates and API key.
+        API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
+        # Send a GET request to the weather API.
+        response = requests.get(API_URL)
+        data = json.loads(response.content)
+        # Parse and extract current weather information.
         icon_code_current = data["current"]["weather"][0]["icon"]
         icon_url_current = f"https://openweathermap.org/img/wn/{icon_code_current}.png"
         current_weather = data["current"]
-
-        current_weather_report = [
+        day = data["daily"]
+        current_weather_report = []
+        current_weather_report.append(
             {
                 "icon_url_current": icon_url_current,
                 "current_temperature": int(current_weather["temp"]),
@@ -977,19 +921,25 @@ def weather(request):
                 "current_cloud": current_weather.get("clouds", "N/A"),
                 "current_uv": current_weather.get("uvi", "N/A"),
                 "current_dew": int(current_weather["dew_point"]),
-                "current_sunrise": datetime.datetime.fromtimestamp(current_weather["sunrise"]),
-                "current_sunset": datetime.datetime.fromtimestamp(current_weather["sunset"]),
+                # Temporarily commenting out current visibility because an API error is causing a server error.
+                # "current_visibility": int((current_weather["visibility"]) * 0.00062137),
+                "current_sunrise": datetime.datetime.fromtimestamp(
+                    current_weather["sunrise"]
+                ),
+                "current_sunset": datetime.datetime.fromtimestamp(
+                    current_weather["sunset"]
+                ),
             }
-        ]
-
+        )
+        # Parse and extract daily weather forecast information.
         daily_forecast = []
         for day in data["daily"]:
-            dt = datetime.datetime.fromtimestamp(day["dt"])
             daily_forecast.append(
                 {
-                    "day_of_week": dt.strftime("%A"),
-                    "date": dt,
-                    "date_display": dt.strftime("%B %d"),
+                    "day_of_week": datetime.datetime.fromtimestamp(day["dt"]).strftime(
+                        "%A"
+                    ),
+                    "date": datetime.datetime.fromtimestamp(day["dt"]),
                     "high_temp": int(day["temp"]["max"]),
                     "low_temp": int(day["temp"]["min"]),
                     "morn_temp": int(day["temp"]["morn"]),
@@ -1000,29 +950,33 @@ def weather(request):
                     "eve_temp_feel": int(day["feels_like"]["eve"]),
                     "night_temp": int(day["temp"]["night"]),
                     "night_temp_feel": int(day["feels_like"]["night"]),
-                    "summary": day.get("summary", ""),
+                    "summary": day["summary"],
                     "sunrise": datetime.datetime.fromtimestamp(day["sunrise"]),
                     "sunset": datetime.datetime.fromtimestamp(day["sunset"]),
-                    "dew_point": day.get("dew_point", "N/A"),
-                    "humidity": day.get("humidity", "N/A"),
-                    "precipitation_chance": round(day.get("pop", 0) * 100),
+                    "dew_point": day["dew_point"],
+                    "humidity": day["humidity"],
+                    "precipitation_chance": round(day["pop"] * 100),
                 }
             )
 
-        payload = {
+        # Prepare context with weather and location data for rendering.
+        context = {
+            "form": form,
             "daily_forecast": daily_forecast,
             "city_name": city_name,
             "state_name": state_name,
             "current_weather_report": current_weather_report,
         }
+        # Render the page with weather results.
+        return render(request, "projects/weather.html", context)
 
-        request.session["weather_payload"] = _serialize_results_for_session(payload)
-        request.session["weather_zip"] = zip_code
+    # If the form is not valid or it's a GET request, render the form again.
+    else:
+        context = {
+            "form": form,
+        }
+        return render(request, "projects/weather.html", context)
 
-        return redirect(reverse("projects:weather"))
-
-    # Anything else: reject.
-    return HttpResponseNotAllowed(["GET", "POST"])
 
 # This is the code for the page containing information on all of my projects.
 # Force memory trim after work.

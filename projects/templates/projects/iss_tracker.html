@@ -1,198 +1,199 @@
 {% extends "projects/base.html" %}
 {% load static %}
+    {% block scripts %}
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "ISS Tracker",
+          "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
+          "url": "https://www.bencritt.net/projects/iss-tracker/",
+          "applicationCategory": "Astronomy Utility",
+          "operatingSystem": "Web-based",
+          "image": "https://www.bencritt.net/static/img/all-projects/iss-tracker.webp",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden",
+            "url": "https://www.bencritt.net"
+          },
+          "featureList": [
+            "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
+            "Tracks upcoming ISS pass times with precise local time and positional information.",
+            "Region detection for both land and ocean coverage using geolocation services.",
+            "Web-based application accessible from any internet-connected device.",
+            "Provides regular data updates every 60 seconds for dynamic tracking."
+          ]
+        }
+        </script> 
+    {% endblock scripts %}
+    {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma"         content="no-cache">
+    <meta http-equiv="Expires"        content="0">
 
-{% block meta_tags %}
-  <meta name="description" content="Track the International Space Station (ISS) in real time and generate an ISS passover schedule for your ZIP code.">
-  <meta name="keywords" content="ISS tracker, International Space Station, real-time ISS location, ISS altitude, ISS velocity, ISS passover schedule, ZIP code">
+    <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description"          content="Track the International Space Station (ISS) in real-time with the ISS Tracker. View the current location, altitude, velocity, and regional position of the ISS, and predict its upcoming passes over your location.">
+    <meta name="keywords"             content="ISS Tracker, International Space Station, real-time ISS location, ISS altitude, ISS velocity, ISS pass prediction, track ISS, space station tracker, astronomy tools, real-time satellite tracking">
 
-  <meta property="og:url" content="https://www.bencritt.net/projects/iss-tracker/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="ISS Tracker">
-  <meta property="og:description" content="Track the International Space Station (ISS) in real time and generate an ISS passover schedule for your ZIP code.">
-  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/iss-tracker.webp">
+    <!-- Open Graph -->
+    <meta property="og:url"           content="https://www.bencritt.net/projects/iss-tracker/">
+    <meta property="og:type"          content="website">
+    <meta property="og:title"         content="ISS Tracker">
+    <meta property="og:description"   content="Track the International Space Station (ISS) in real-time with the ISS Tracker. View the current location, altitude, velocity, and regional position of the ISS, and predict its upcoming passes over your location.">
+    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/iss-tracker.webp">
+    <meta property="og:image:type"    content="image/webp">
+    <meta property="og:image:alt"     content="ISS Tracker Screenshot">
+    <meta property="og:site_name"     content="Ben Crittenden">
+    
+    <!--
+    Once I have a specific image meant for this, I can use these optimized dimensions.
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    -->
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:domain" content="bencritt.net">
-  <meta name="twitter:url" content="https://www.bencritt.net/projects/iss-tracker/">
-  <meta name="twitter:title" content="ISS Tracker">
-  <meta name="twitter:description" content="Track the International Space Station (ISS) in real time and generate an ISS passover schedule for your ZIP code.">
-  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/iss-tracker.webp">
-  <meta name="twitter:creator" content="@bencritt89"/>
-{% endblock meta_tags %}
+    <!-- Twitter -->
+    <meta name="twitter:card"         content="summary_large_image">
+    <meta name="twitter:domain"       content="bencritt.net">
+    <meta name="twitter:url"          content="https://www.bencritt.net/projects/iss-tracker/">
+    <meta name="twitter:title"        content="ISS Tracker">
+    <meta name="twitter:description"  content="Track the International Space Station (ISS) in real-time with the ISS Tracker. View the current location, altitude, velocity, and regional position of the ISS, and predict its upcoming passes over your location.">
+    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/iss-tracker.webp">
+    <meta name="twitter:creator"      content="@bencritt89">
 
-{% block link_tags %}
-  <link rel="canonical" href="https://www.bencritt.net/projects/iss-tracker/">
-  <link href="{% static 'template-css/iss-tracker-css.css' %}" rel="stylesheet">
-{% endblock link_tags %}
-
-{% block title %}ISS Tracker | Real-Time ISS Location and Passover Schedule{% endblock title %}
-
-{% block content %}
-  <section class="py-4">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
-
-          <header class="text-center mb-4">
-            <h1 class="mb-2">ISS Tracker</h1>
-            <p class="mb-0 text-muted">
-              Track the International Space Station and generate a passover schedule for your ZIP code.
-            </p>
-          </header>
-
-          <div class="alert alert-secondary iss-max-900" role="note">
-            <p class="mb-0">
-              I've temporarily disabled the ISS API due to a stability issue. The passover schedule feature still works.
-            </p>
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    <!-- Canonical link to help avoid duplicate content issues. -->
+    <link rel="canonical" href="https://www.bencritt.net/projects/iss-tracker/">
+    {% endblock link_tags %}
+    {% block title %}ISS Tracker | Real-Time International Space Station Tracking Tool{% endblock title %}
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <main>
+        <center>
+            <h1>International Space Station Tracker</h1>
+            <br>
+            <p>I've temporarily disabled the ISS passover schedule due to API unreliability.</p>
             <!--
-            <form method="post">
-              {% csrf_token %}
-              {{ form.as_p }}
-              <div class="d-grid">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <br>
                 <input type="submit" id="iss-track-btn" class="btn btn-primary" value="Project ISS Passover Schedule" aria-label="Project ISS Passover Schedule">
-              </div>
             </form>
             -->
-          </div>
-
-          <section class="mb-5" aria-labelledby="current-iss-data-heading">
-            <h2 id="current-iss-data-heading" class="h3 mb-3">Current ISS Data</h2>
-
-            <p id="iss-api-status" class="small text-muted mb-3"></p>
-
-            <div class="table-responsive iss-max-900">
-              <table class="table table-striped table-hover align-middle">
-                <thead>
-                  <tr>
-                    <th scope="col">Metric</th>
-                    <th scope="col">Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">Latitude</th>
-                    <td id="iss-latitude">—</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Longitude</th>
-                    <td id="iss-longitude">—</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Altitude</th>
-                    <td id="iss-altitude">—</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Velocity</th>
-                    <td id="iss-velocity">—</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Visibility</th>
-                    <td id="iss-visibility">—</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section aria-label="ISS Passover Schedule">
-            <h2 class="h3 mb-3">ISS Passover Schedule</h2>
-
-            <div class="card shadow-sm iss-max-900">
-              <div class="card-body">
-                {% if error_message %}
-                  <div class="alert alert-danger mt-3 mb-0" role="alert">
-                    {{ error_message }}
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-
-            {% if iss_location_data %}
-              <div class="table-responsive iss-max-900 mt-4">
-                <table class="table table-striped table-hover align-middle">
-                  <thead>
-                    <tr>
-                      <th scope="col">Field</th>
-                      <th scope="col">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for item in iss_location_data %}
-                      <tr>
-                        <th scope="row">{{ item.label }}</th>
-                        <td>{{ item.value }}</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
+            <br>
+            
+            <!-- Current ISS Data Section -->
+            <h2>Current ISS Data</h2>
+            <br>
+            <div class="table-container" style="width: 100%; max-width: 750px;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Region</th>
+                            <th>Altitude</th>
+                            <th>Velocity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="latitude">{{ current_data.latitude }}</td>
+                            <td id="longitude">{{ current_data.longitude }}</td>
+                            <td id="region">{{ current_data.region }}</td>
+                            <td id="altitude">{{ current_data.altitude }}</td>
+                            <td id="velocity">{{ current_data.velocity }}</td>
+                        </tr>
+                    </tbody>
                 </table>
-              </div>
-            {% endif %}
+            </div>
+            <br>
 
-            {% if iss_passover_schedule %}
-              <div class="table-responsive iss-max-900 mt-4">
-                <table class="table table-striped table-hover align-middle">
-                  <thead>
-                    <tr>
-                      <th scope="col">Date</th>
-                      <th scope="col">Start</th>
-                      <th scope="col">End</th>
-                      <th scope="col">Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for passover in iss_passover_schedule %}
-                      <tr>
-                        <td>{{ passover.date }}</td>
-                        <td>{{ passover.start_time }}</td>
-                        <td>{{ passover.end_time }}</td>
-                        <td>{{ passover.duration }}</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
+            <!-- ISS Pass Times Section -->
+            {% if iss_pass_times %}
+                <h2>Upcoming ISS Pass Times</h2>
+                <br>
+                <div class="table-container" style="width: 100%; max-width: 750px;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Position</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pass in iss_pass_times %}
+                            <tr>
+                                <td>{{ pass.event }}</td>
+                                <td>{{ pass.date }}</td>
+                                <td>{{ pass.time }}</td>
+                                <td>{{ pass.position }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif error %}
+                <p style="color: red;">{{ error }}</p>
             {% endif %}
-          </section>
-
-          <div class="text-center mt-4">
-            <a
-              href="https://github.com/BenCritt/profile_workspace_heroku"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn btn-outline-secondary"
-              data-bs-toggle="tooltip"
-              title="View the source code for this app.">
-              View source on GitHub
+            <br>
+            <!-- Link to the source code repository with a GitHub icon. -->
+            <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
             </a>
+            <br>
+            <div class = "container" style = "width: 100%; max-width: 750px;">
+                <p class="mt-3 text-muted small">
+                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
+                </p>
+            </div>
+        </center>
+    </main>
 
-            <p class="mt-3 text-muted small mb-0 iss-footer-text">
-              This tool was created by
-              <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
-              an IT professional with experience in web development, systems administration, and project management.
-            </p>
-          </div>
+    <!-- Real-time Updates -->
+    <script>
+        /**
+        * Fetches the current ISS data from the backend API and updates the HTML elements
+        * to display the most recent information (e.g., latitude, longitude, altitude, velocity, and region).
+        */
+        function updateCurrentData() {
+            // Make a GET request to the backend endpoint that provides current ISS data in JSON format.
+            fetch('/current-iss-data/')
+                // Parse the JSON response from the API.
+                .then(response => response.json())
+                .then(data => {
+                    // Log the received data for debugging purposes (useful for development).
+                    console.log("API Data:", data);
+                    // Update latitude value.
+                    document.getElementById('latitude').innerText = data.latitude;
+                    // Update longitude value.
+                    document.getElementById('longitude').innerText = data.longitude;
+                    // Update region value (land or ocean).
+                    document.getElementById('region').innerText = data.region;
+                    // Update altitude value.
+                    document.getElementById('altitude').innerText = data.altitude;
+                    // Update velocity value.
+                    document.getElementById('velocity').innerText = data.velocity;
+                })
+                // Log an error message to the console if the API call fails.
+                .catch(error => console.error("Error fetching current ISS data:", error));
+        }
 
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const statusEl = document.getElementById("iss-api-status");
-
-      // Best practice: build endpoint via Django URL routing
-      const endpoint = "{% url 'projects:current_iss_data' %}";
-
-      // If your API is disabled, you can bail early.
-      // (Leave this block if you want the table to remain static while disabled.)
-      if (statusEl) {
-        statusEl.textContent = "ISS API currently disabled.";
-      }
-
-      // If/when you re-enable the API, you can fetch:
-      // fetch(endpoint).then(...)
-
-    });
-  </script>
+        /**
+        * Sets up the real-time ISS data updates.
+        * This ensures the data is updated immediately on page load and every 60 seconds thereafter.
+        */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch and display current ISS data as soon as the page loads.
+            updateCurrentData();
+            // Set up an interval to refresh the ISS data every 60 seconds.
+            // The interval should not be too short, as it makes an API call with every refresh.
+            setInterval(updateCurrentData, 60000);
+        });
+    </script>
 {% endblock content %}

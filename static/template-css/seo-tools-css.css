@@ -1,13 +1,11 @@
-/* SEO Tools hub - page-specific CSS */
-
-/* Only apply 100% width behavior inside this page's iframes/cards */
 @media (max-width: 600px) {
-  .tool-iframe {
-    min-height: 600px; /* a little smaller on mobile so it doesn't feel endless */
-  }
+    .card {
+        width: 100%;
+        margin-bottom: 20px;
+    }
 }
 
-.tool-iframe {
+.tool-iframe{
   width: 100%;
   height: 75vh;        /* fills most of the viewport */
   min-height: 700px;   /* prevents tiny iframes on desktop */
@@ -17,6 +15,6 @@
 }
 
 /* Cookie Audit only: we do NOT want the iframe itself to scroll */
-.tool-iframe--no-scroll {
+.tool-iframe--no-scroll{
   overflow: hidden;
 }

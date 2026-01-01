@@ -83,21 +83,3 @@ html.embedded #fi-results td::before {
     max-width: 6.25rem;
   }
 }
-/* Layout helpers to replace inline styles */
-.fi-container {
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.fi-progress {
-  max-width: 700px;
-}
-
-.fi-footer {
-  max-width: 750px;
-  margin: 0 auto;
-}
-.fi-progressbar {
-  height: 18px;
-}

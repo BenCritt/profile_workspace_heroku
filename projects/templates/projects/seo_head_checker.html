@@ -1,414 +1,354 @@
+<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-
-{% block title %}SEO Head Checker | Free Tool to Analyze SEO Head Elements{% endblock title %}
-
-{% block meta_tags %}
-  <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
-  <!-- Meta tags providing essential information about the page to search engines. -->
-  <meta name="description" content="Analyze the &lt;head&gt; section of your webpages with the SEO Head Checker Tool. Check for meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your website for search engines.">
-  <meta name="keywords" content="SEO Head Checker, Analyze head section, SEO tags checker, meta tags analyzer, canonical tags checker, Open Graph tags, Twitter Card tags, SEO optimization tool, website SEO analysis">
-
-  <!-- Open Graph -->
-  <meta property="og:url" content="https://www.bencritt.net/projects/seo-head-checker/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="SEO Head Checker">
-  <meta property="og:description" content="Analyze the &lt;head&gt; section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
-  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp">
-  <meta property="og:image:type" content="image/webp">
-  <meta property="og:image:alt" content="SEO Head Checker Screenshot">
-  <meta property="og:site_name" content="Ben Crittenden">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:domain" content="bencritt.net">
-  <meta name="twitter:url" content="https://www.bencritt.net/projects/seo-head-checker/">
-  <meta name="twitter:title" content="SEO Head Checker">
-  <meta name="twitter:description" content="Analyze the head section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
-  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp">
-  <meta name="twitter:creator" content="@bencritt89">
-
-  <!-- Schema for SEO -->
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "SEO Head Checker",
-      "description": "The SEO Head Checker allows users to analyze the head section of webpages for SEO elements, ensuring proper meta tags, canonical tags, Open Graph tags, and more to optimize their website's performance in search engines.",
-      "url": "https://www.bencritt.net/projects/seo-head-checker/",
-      "applicationCategory": "SEO Utility",
-      "operatingSystem": "Web-based",
-      "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net"
-      },
-      "featureList": [
-        "Analyzes the head section of webpages for critical SEO elements.",
-        "Checks for meta tags, canonical tags, Open Graph tags, Twitter Card tags, and more.",
-        "Provides detailed reports on present and missing SEO elements.",
-        "Web-based application accessible from any device with an internet connection.",
-        "Helps optimize websites for better search engine performance."
-      ]
-    }
-  </script>
-{% endblock meta_tags %}
-
-{% block link_tags %}
-  <!-- Canonical link to help avoid duplicate content issues. -->
-  <link rel="canonical" href="https://www.bencritt.net/projects/seo-head-checker/">
-  <!-- Other CSS styling and layout. -->
-  <link href="{% static 'template-css/seo-head-checker-css.css' %}" rel="stylesheet">
-{% endblock link_tags %}
-
-{% block content %}
-  <section class="py-4">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
-
-          <header class="text-center mb-4">
-            <h1 class="mb-2">SEO Head Checker</h1>
-            <p class="text-muted mb-0">
-              Enter a sitemap URL or a single web page URL, generate a report, then download the CSV.
-            </p>
-          </header>
-
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h2 class="h5">Instructions</h2>
-              <p class="mb-0">
-                Enter the URL of a sitemap or web page and click <strong>Generate SEO Report</strong>.
-                Progress will update below. Once <strong>Download SEO Report</strong> appears, click it.
-                Your file will be sent to your default downloads folder.
-              </p>
-            </div>
-          </div>
-
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-
-              {% if form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                  {{ form.non_field_errors }}
-                </div>
-              {% endif %}
-
-              <form method="POST" id="sitemap-form" novalidate>
-                {% csrf_token %}
-
-                {# Keep your existing widget IDs (e.g., sitemap_url) and styling #}
-                {{ form.as_p }}
-
-                <div class="d-grid gap-2">
-                  <button
-                    id="seo-head-btn"
-                    class="btn btn-primary"
-                    type="button"
-                    onclick="startProcessing()"
-                    aria-label="Generate a detailed SEO report based on the provided sitemap or webpage URL">
-                    Generate SEO Report
-                  </button>
-                </div>
-              </form>
-
-              {% if error %}
-                <div class="alert alert-danger mt-3 mb-0" role="alert">
-                  {{ error }}
-                </div>
-              {% endif %}
-            </div>
-          </div>
-
-          {# Status and download elements #}
-          <div id="status" class="alert alert-info mb-3" style="display:block;" aria-live="polite">
-            Progress: 0%
-          </div>
-
-          <div class="d-grid gap-2 mb-4">
-            <a
-              id="download_link"
-              style="display: none;"
-              class="btn btn-success"
-              href="#"
-              aria-label="Download the generated SEO report">
-              Download SEO Report
-            </a>
-          </div>
-
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h2 class="h5">Limitations</h2>
-              <p class="mb-0">
-                Due to server limitations, reports are limited to the first 1,000 pages in the sitemap.
-                Scanning is also slower than it could be. There may be a slight delay between clicking
-                “Generate SEO Report” and progress beginning. If you don’t click the download button
-                after 30 minutes, your CSV file will be deleted from the server and you’ll have to
-                resubmit your request.
-              </p>
-            </div>
-          </div>
-
-          <div class="text-center mt-4">
-            <a
-              href="https://github.com/BenCritt/profile_workspace_heroku"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-bs-toggle="tooltip"
-              title="View the source code for this app."
-              class="btn btn-outline-secondary"
-              aria-label="View the source code for this app.">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-github me-1" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-              </svg>
-              View source on GitHub
-            </a>
-
-            <p class="mt-3 text-muted small mb-0">
-              This tool was created by
-              <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
-              an IT professional with experience in web development, systems administration, and project management.
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- JavaScript for handling form submission and progress updates. -->
-  <script>
-    // Django best-practice: read CSRF token from cookie for AJAX POSTs
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + "=")) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
+    {% block scripts %}
+    <!-- Schema for SEO -->
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "SEO Head Checker",
+          "description": "The SEO Head Checker allows users to analyze the <head> section of webpages for SEO elements, ensuring proper meta tags, canonical tags, Open Graph tags, and more to optimize their website's performance in search engines.",
+          "url": "https://www.bencritt.net/projects/seo-head-checker/",
+          "applicationCategory": "SEO Utility",
+          "operatingSystem": "Web-based",
+          "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
+          "creator": {
+            "@type": "Person",
+            "name": "Ben Crittenden",
+            "url": "https://www.bencritt.net"
+          },
+          "featureList": [
+            "Analyzes the <head> section of webpages for critical SEO elements.",
+            "Checks for meta tags, canonical tags, Open Graph tags, Twitter Card tags, and more.",
+            "Provides detailed reports on present and missing SEO elements.",
+            "Web-based application accessible from any device with an internet connection.",
+            "Helps optimize websites for better search engine performance."
+          ]
         }
-      }
-      return cookieValue;
-    }
+        </script>
+    {% endblock scripts %}    
+    {% block styles %}
+    {% endblock styles %}
+    {% block meta_tags %}
+    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma"         content="no-cache">
+    <meta http-equiv="Expires"        content="0">
 
+    <!-- Meta tags providing essential information about the page to search engines. -->
+    <meta name="description"          content="Analyze the &lt;head&gt; section of your webpages with the SEO Head Checker Tool. Check for meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your website for search engines.">
+    <meta name="keywords"             content="SEO Head Checker, Analyze <head> section, SEO tags checker, meta tags analyzer, canonical tags checker, Open Graph tags, Twitter Card tags, SEO optimization tool, website SEO analysis">
+    
+        <!-- Open Graph -->
+    <meta property="og:url"           content="https://www.bencritt.net/projects/seo-head-checker/">
+    <meta property="og:type"          content="website">
+    <meta property="og:title"         content="SEO Head Checker">
+    <meta property="og:description"   content="Analyze the &lt;head&gt; section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
+    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp">
+    <meta property="og:image:type"    content="image/webp">
+    <meta property="og:image:alt"     content="SEO Head Checker Screenshot">
+    <meta property="og:site_name"     content="Ben Crittenden">
+    
+    <!--
+    Once I have a specific image meant for this, I can use these optimized dimensions.
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    -->
+
+    <!-- Twitter -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:domain"      content="bencritt.net">
+    <meta name="twitter:url"         content="https://www.bencritt.net/projects/seo-head-checker/">
+    <meta name="twitter:title"       content="SEO Head Checker">
+    <meta name="twitter:description" content="Analyze the <head> section of your website with the SEO Head Checker Tool. Check meta tags, canonical tags, Open Graph tags, and other essential SEO elements to optimize your site for search engines.">
+    <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp">
+    <meta name="twitter:creator"     content="@bencritt89">
+    {% endblock meta_tags %}
+    {% block link_tags %}
+    <!-- Canonical link to help avoid duplicate content issues. -->
+    <link rel="canonical" href="https://www.bencritt.net/projects/seo-head-checker/">
+    <!-- Other CSS styling and layout. -->
+    <link href="{% static 'template-css/seo-head-checker-css.css' %}" rel="stylesheet">
+    {% endblock link_tags %}
+    {% block title %}SEO Head Checker | Free Tool to Analyze SEO Head Elements{% endblock title %}
+    <!-- This begins the contents that are unique to this page. -->
+    {% block content %}
+    <main>
+        <center>
+            <h1>SEO Head Checker</h1>
+            <br>
+            <div style="width: 100%; max-width: 500px;">
+                <h2>Instructions</h2>
+                <br>
+                <p>Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it. Your file will be sent to your default downloads folder.</p>
+            </div>
+            <br>
+            <form method="POST" id="sitemap-form" onsubmit="return false;">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button id="seo-head-btn" class="btn btn-primary" type="button" onclick="startProcessing()" aria-label="Generate a detailed SEO report based on the provided sitemap or webpage URL">Generate SEO Report</button>
+            </form>
+            <br>
+            <div style="width: 100%; max-width: 500px;">
+                {% if error %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endif %}
+            </div>
+            <br>
+            <!-- Status and download elements -->
+            <div id="status" class="alert alert-info" style="display: block; width: 100%; max-width: 500px;" aria-live="polite">Progress: 0%</div>
+            <div style="width: 100%; max-width: 500px;">
+                <a
+                id="download_link"
+                style="display: none;"
+                class="btn btn-success"
+                href="#"
+                aria-label="Download the generated SEO report"
+                >
+                Download SEO Report
+                </a>
+            </div>
+            <br>
+            <div style="width: 100%; max-width: 500px;">
+                <h2>Limitations</h2>
+                <br>
+                <p>Due to the limitations of the server, reports are limited to the first 1,000 pages in the sitemap. Scanning is also slower than it could be. There may also be a slight delay between clicking "Generate SEO Report" and progress beginning. If you don't click the download button after 30 minutes, your CSV file will be deleted from the server and you'll have to resubmit your request.</p>
+            </div>
+            <br>
+            <!-- Link to the source code repository with a GitHub icon. -->
+            <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            </a>
+            <br>
+            <div class = "container" style = "width: 100%; max-width: 750px;">
+            <p class="mt-3 text-muted small">
+                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
+            </p>
+            </div>
+        </center>
+    </main>
+    
+    <!-- JavaScript for handling form submission and progress updates. -->
+    <!-- This must be below everything else, which is why it's not with the other script. -->
+    <script>
     // Helper: set text + Bootstrap alert style in one place
     function setStatus(message, klass) {
-      const el = document.getElementById("status");
-      if (!el) return;
-      el.className = `alert ${klass}`;
-      el.innerText = message;
+        const el = document.getElementById("status");
+        if (!el) return;
+        el.className = `alert ${klass}`;
+        el.innerText = message;
     }
 
     // Start the job and immediately show "queued" if the pool is full
     async function startProcessing() {
-      const sitemapInput = document.getElementById("sitemap_url");
-      const btn = document.getElementById("seo-head-btn");
-      const downloadLink = document.getElementById("download_link");
+        const sitemapInput = document.getElementById("sitemap_url");
+        const btn = document.getElementById("seo-head-btn");
+        const downloadLink = document.getElementById("download_link");
 
-      if (downloadLink) {
+        // Hide any previous download link to avoid stale clicks
+        if (downloadLink) {
         downloadLink.style.display = "none";
         downloadLink.removeAttribute("href");
-      }
+        }
 
-      if (!sitemapInput) { alert("Sitemap URL input field is missing from the page."); return; }
-      const sitemapUrl = sitemapInput.value.trim();
-      if (!sitemapUrl) { alert("Sitemap URL is required. Please enter a valid URL."); return; }
+        if (!sitemapInput) { alert("Sitemap URL input field is missing from the page."); return; }
+        const sitemapUrl = sitemapInput.value.trim();
+        if (!sitemapUrl) { alert("Sitemap URL is required. Please enter a valid URL."); return; }
 
-      try {
+        try {
         setStatus("Submitting…", "alert-info");
         if (btn) btn.disabled = true;
 
         const response = await fetch("/start_sitemap_processing/", {
-          method: "POST",
-          headers: {
+            method: "POST",
+            headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({ sitemap_url: sitemapUrl }),
+            "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ sitemap_url: sitemapUrl }),
         });
 
         let data = {};
         try { data = await response.json(); } catch (_) {}
 
         if (response.status !== 202) {
-          setStatus((data && data.error) || "Failed to start processing.", "alert-danger");
-          if (btn) btn.disabled = false;
-          return;
+            setStatus((data && data.error) || "Failed to start processing.", "alert-danger");
+            if (btn) btn.disabled = false;
+            return;
         }
 
         const taskId = data.task_id;
         setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
         pollTaskStatus(taskId);
-      } catch (err) {
+        } catch (err) {
         console.error(err);
         setStatus("An error occurred while starting the task.", "alert-danger");
         if (btn) btn.disabled = false;
-      }
+        }
     }
 
     // Poll for status, including the explicit "pending" queue state
     async function pollTaskStatus(taskId) {
-      const downloadLink = document.getElementById("download_link");
-      const btn = document.getElementById("seo-head-btn");
+        const downloadLink = document.getElementById("download_link");
+        const btn = document.getElementById("seo-head-btn");
 
-      const interval = setInterval(async () => {
+        const interval = setInterval(async () => {
         let response, data;
         try {
-          response = await fetch(`/get_task_status/${taskId}/`);
-          data = await response.json();
+            response = await fetch(`/get_task_status/${taskId}/`);
+            data = await response.json();
         } catch (err) {
-          console.warn("Polling error:", err);
-          return;
+            // Network hiccup: keep polling silently
+            console.warn("Polling error:", err);
+            return;
         }
 
         if (response.status === 404) {
-          clearInterval(interval);
-          setStatus("Error: Task not found.", "alert-danger");
-          if (btn) btn.disabled = false;
-          return;
+            clearInterval(interval);
+            setStatus("Error: Task not found.", "alert-danger");
+            if (btn) btn.disabled = false;
+            return;
         }
 
         if (data.status === "pending" || data.status === "queued") {
-          setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
-          return;
+            setStatus("Your request is in a queue. Thank you for your patience.", "alert-warning");
+            return;
         }
 
         if (data.status === "processing") {
-          setStatus(`Progress: ${data.progress || 0}%`, "alert-info");
-          return;
+            setStatus(`Progress: ${data.progress || 0}%`, "alert-info");
+            return;
         }
 
         if (data.status === "completed") {
-          clearInterval(interval);
-          setStatus("Processing completed! 100%", "alert-success");
-          if (downloadLink) {
+            clearInterval(interval);
+            setStatus("Processing completed! 100%", "alert-success");
+            if (downloadLink) {
             downloadLink.href = `/download_task_file/${taskId}/`;
             downloadLink.style.display = "block";
-          }
-          if (btn) btn.disabled = false;
-          return;
+            }
+            if (btn) btn.disabled = false;
+            return;
         }
 
         if (data.status === "error") {
-          clearInterval(interval);
-          setStatus("Error occurred during processing.", "alert-danger");
-          alert(data.error || "An error occurred.");
-          if (btn) btn.disabled = false;
-          return;
+            clearInterval(interval);
+            setStatus("Error occurred during processing.", "alert-danger");
+            alert(data.error || "An error occurred.");
+            if (btn) btn.disabled = false;
+            return;
         }
-      }, 2000);
+        }, 2000);
     }
 
     // Pressing Enter in the form triggers the button click (no full page submit)
     document.addEventListener("DOMContentLoaded", function () {
-      const form = document.getElementById("sitemap-form");
-      if (form) {
+        const form = document.getElementById("sitemap-form");
+        if (form) {
         form.addEventListener("keydown", function (event) {
-          if (event.key === "Enter") {
+            if (event.key === "Enter") {
             event.preventDefault();
             const btn = document.getElementById("seo-head-btn");
             if (btn) btn.click();
-          }
+            }
         });
-      }
+        }
     });
 
     // Refresh page shortly after download click (so UI resets)
     function refreshPageAfterDownload() {
-      setTimeout(() => { location.reload(); }, 1000);
+        setTimeout(() => { location.reload(); }, 1000);
     }
-  </script>
-
-  <script>
+    </script>
+    <script>
     (function () {
-      const dl = document.getElementById("download_link");
-      if (!dl) return;
+    const dl = document.getElementById("download_link");
+    if (!dl) return;
 
-      function getTaskIdFromHref(href) {
+    function getTaskIdFromHref(href) {
+        // expects /download_task_file/<uuid>/
         const m = (href || "").match(/\/download_task_file\/([^/]+)\//);
         return m ? m[1] : null;
-      }
+    }
 
-      async function downloadWithRetry(taskId, attempt = 1) {
+    async function downloadWithRetry(taskId, attempt = 1) {
         const url = `/download_task_file/${taskId}/`;
         try {
-          setStatus("Preparing your download…", "alert-info");
-          const res = await fetch(url);
+        setStatus("Preparing your download…", "alert-info");
+        const res = await fetch(url);
 
-          if (res.ok) {
-            const disposition = res.headers.get("Content-Disposition") || "";
-            let filename = `seo_report_${taskId}.csv`;
-            const m = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
-            if (m) filename = decodeURIComponent(m[1]);
+        if (res.ok) {
+        const disposition = res.headers.get("Content-Disposition") || "";
+        let filename = `seo_report_${taskId}.csv`;
+        const m = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+        if (m) filename = decodeURIComponent(m[1]);
 
-            const ctype = (res.headers.get("Content-Type") || "").toLowerCase();
-            if (!ctype.includes("csv") && !ctype.includes("octet-stream") && !disposition.toLowerCase().includes("attachment")) {
-              const text = await res.text();
-              setStatus(`Unexpected response while downloading. ${text.slice(0,200)}`, "alert-danger");
-              return;
-            }
-
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-            setStatus("Download started.", "alert-success");
-
-            if (typeof refreshPageAfterDownload === "function") {
-              refreshPageAfterDownload();
-            }
+        const ctype = (res.headers.get("Content-Type") || "").toLowerCase();
+        // If it doesn't look like a file, show the error text instead of downloading junk
+        if (!ctype.includes("csv") && !ctype.includes("octet-stream") && !disposition.toLowerCase().includes("attachment")) {
+            const text = await res.text();
+            setStatus(`Unexpected response while downloading. ${text.slice(0,200)}`, "alert-danger");
             return;
-          }
+        }
 
-          if (res.status === 425 || res.status === 503) {
-            if (attempt >= 10) {
-              setStatus("Still preparing. Please try again in a moment.", "alert-warning");
-              return;
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        setStatus("Download started.", "alert-success");
+        // Refresh the page shortly after a successful download
+        if (typeof refreshPageAfterDownload === "function") {
+            refreshPageAfterDownload();
             }
-            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-            setStatus("File is getting ready… retrying shortly.", "alert-warning");
-            setTimeout(() => downloadWithRetry(taskId, attempt + 1), delay);
-            return;
-          }
+        return;
+        }
 
-          let msg = `Download failed (${res.status}).`;
-          try { msg += " " + (await res.text()); } catch {}
-          setStatus(msg, "alert-danger");
+        // Handle “too early” (425) or “busy” (503) with a short backoff
+        if (res.status === 425 || res.status === 503) {
+        if (attempt >= 10) { // ~ up to ~1 min with your backoff
+            setStatus("Still preparing. Please try again in a moment.", "alert-warning");
+            return;
+        }
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+        setStatus("File is getting ready… retrying shortly.", "alert-warning");
+        setTimeout(() => downloadWithRetry(taskId, attempt + 1), delay);
+        return;
+        }
+
+        // Other errors: surface message if available
+        let msg = `Download failed (${res.status}).`;
+        try { msg += " " + (await res.text()); } catch {}
+        setStatus(msg, "alert-danger");
 
         } catch (e) {
-          setStatus("Network error while downloading. Please try again.", "alert-danger");
+        setStatus("Network error while downloading. Please try again.", "alert-danger");
         }
-      }
+    }
 
-      dl.addEventListener("click", (ev) => {
+        dl.addEventListener("click", (ev) => {
         const taskId = getTaskIdFromHref(dl.href);
         if (!taskId) return;
         ev.preventDefault();
 
-        if (dl.getAttribute("aria-disabled") === "true") return;
+        if (dl.getAttribute("aria-disabled") === "true") return; // guard double clicks
         dl.setAttribute("aria-busy", "true");
         dl.setAttribute("aria-disabled", "true");
         dl.classList.add("disabled");
 
         downloadWithRetry(taskId).finally(() => {
-          dl.removeAttribute("aria-busy");
-          dl.setAttribute("aria-disabled", "false");
-          dl.classList.remove("disabled");
+            dl.removeAttribute("aria-busy");
+            dl.setAttribute("aria-disabled", "false");
+            dl.classList.remove("disabled");
         });
-      });
+        });
     })();
-  </script>
+    </script>
+
 {% endblock content %}
