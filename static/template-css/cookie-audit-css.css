@@ -178,3 +178,36 @@ html.embedded .cookie-table td::before {
 html.embedded .cookie-table td > * {
   min-width: 0;
 }
+/* Layout helpers to replace inline styles */
+.cookie-audit-container {
+  max-width: 700px;
+}
+
+.cookie-audit-results-container {
+  max-width: 900px;
+}
+
+.cookie-audit-progress {
+  height: 10px;
+}
+
+.cookie-audit-footer-text {
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   Cookie Audit results column widths (no inline col styles)
+   Only applies if your results table includes:
+   - class="cookie-audit-results-table"
+   - a <colgroup> with <col class="ca-col-1"> ... <col class="ca-col-9">
+   ========================================================= */
+.cookie-audit-results-table col.ca-col-1 { width: 14%; }  /* Cookie Name */
+.cookie-audit-results-table col.ca-col-2 { width: 12%; }  /* Domain */
+.cookie-audit-results-table col.ca-col-3 { width: 20%; }  /* Path */
+.cookie-audit-results-table col.ca-col-4 { width: 8%;  }  /* Expiration */
+.cookie-audit-results-table col.ca-col-5 { width: 15%; }  /* Category */
+.cookie-audit-results-table col.ca-col-6 { width: 12%; }  /* Description */
+.cookie-audit-results-table col.ca-col-7 { width: 5%;  }  /* Secure */
+.cookie-audit-results-table col.ca-col-8 { width: 7%;  }  /* HttpOnly */
+.cookie-audit-results-table col.ca-col-9 { width: 7%;  }  /* SameSite */

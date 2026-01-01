@@ -1,144 +1,163 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-    <!-- Schema for SEO -->
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "SSL Verification Tool",
-          "description": "The SSL Verification Tool allows users to verify SSL certificates for any website, retrieving information about the certificate's issuer, validity period, and expiration dates to ensure secure online connections.",
-          "url": "https://www.bencritt.net/projects/ssl-check/",
-          "applicationCategory": "Network Utility",
-          "operatingSystem": "Web-based",
-          "image": "https://www.bencritt.net/static/img/all-projects/ssl-check.webp",
-          "creator": {
-            "@type": "Person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net"
-          },
-          "featureList": [
-            "Quickly verifies SSL certificates for any website.",
-            "Displays detailed SSL certificate information, including issuer, validity period, and expiration dates.",
-            "Helps ensure websites maintain secure connections by verifying SSL configurations.",
-            "Web-based application, accessible from any device with an internet connection.",
-            "Simple interface for easy SSL checks and certificate verification."
-          ]
-        }
-    </script>
-    {% endblock scripts %}    
-    {% block styles %}      
-    {% endblock styles %}
-        {% block meta_tags %}
-            <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
-            <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-            <meta http-equiv="Pragma"         content="no-cache">
-            <meta http-equiv="Expires"        content="0">
 
-            <!-- Meta tags providing essential information about the page to search engines. -->
-            <meta name="description"          content="Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.">
-            <meta name="keywords"             content="SSL verification, SSL checker, verify SSL certificate, website security, SSL certificate tool, SSL certificate expiration, check SSL, SSL details, secure website, SSL issuer">
-            
-            <!-- Open Graph -->
-            <meta property="og:url"           content="https://www.bencritt.net/projects/ssl-check/">
-            <meta property="og:type"          content="website">
-            <meta property="og:title"         content="SSL Verification Tool">
-            <meta property="og:description"   content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
-            <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
-            <meta property="og:image:type"    content="image/webp">
-            <meta property="og:image:alt"     content="SSL Verification Tool Screenshot">
-            <meta property="og:site_name"     content="Ben Crittenden">
-            
-            <!--
-            Once I have a specific image meant for this, I can use these optimized dimensions.
-            <meta property="og:image:width" content="1200">
-            <meta property="og:image:height" content="630">
-            -->
+{% block meta_tags %}
+  <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+  <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma"         content="no-cache">
+  <meta http-equiv="Expires"        content="0">
 
-            <!-- Twitter -->
-            <meta name="twitter:card"         content="summary_large_image">
-            <meta name="twitter:domain"       content="bencritt.net">
-            <meta name="twitter:url"          content="https://www.bencritt.net/projects/ssl-check/">
-            <meta name="twitter:title"        content="SSL Verification Tool">
-            <meta name="twitter:description"  content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
-            <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
-            <meta name="twitter:creator"      content="@bencritt89"/>
-        {% endblock meta_tags %}
-        {% block link_tags %}
-            <!-- Canonical link to help avoid duplicate content issues. -->
-            <link rel="canonical" href="https://www.bencritt.net/projects/ssl-check/">
-            <!-- Other CSS styling and layout. -->
-            <link href="{% static 'template-css/ssl-check-css.css' %}" rel="stylesheet">
-        {% endblock link_tags %}
-        {% block title %}SSL Verification Tool | Check SSL Certificate Validity and Security Online{% endblock title %}
-        <!-- This begins the contents that are unique to this page. -->
-        {% block content %}
-        <main>
-            <center>
-                <h1>SSL Verification Tool</h1>
-                <br>
-                <!-- Form for submitting SSL verification requests -->
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <input type="submit" id="ssl-lookup-btn" class="btn btn-primary" value="Look Up SSL Certificate Info" aria-label="Look Up SSL Certificate Info">
-                    <br>
-                    <!-- Link to navigate back to the IT Tools section -->
-                    <a href="/projects/it_tools/" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
-                </form>
-                <br>
-                {% if result %}
-                <h5>SSL Certification Info for {{ url }}</h5>
-                {% if result.error %}
-                    <p>Error: {{ result.error }}</p>
-                {% else %}
-                    <div class="table-container" style="width: 100%; max-width: 750px;">
-                        <!-- Table displaying the SSL certificate details -->
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Field</th>
-                                    <th>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Subject</td>
-                                    <td>{{ result.subject }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Issuer</td>
-                                    <td>{{ result.issuer }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Serial Number</td>
-                                    <td>{{ result.serial_number }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Valid From</td>
-                                    <td>{{ result.not_before|date:"F j, Y, g:i a T" }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Valid Until</td>
-                                    <td>{{ result.not_after|date:"F j, Y, g:i a T" }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            {% endif %}
-                <br><br>
-                <!-- Link to the GitHub repository for the project. -->
-                <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                </svg></a>
-            <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;">
-                <p class="mt-3 text-muted small">
-                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
-                </p>
+  <meta name="description" content="Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.">
+  <meta name="keywords" content="SSL verification, SSL checker, verify SSL certificate, website security, SSL certificate tool, SSL certificate expiration, check SSL, SSL details, secure website, SSL issuer">
+
+  <!-- Open Graph -->
+  <meta property="og:url" content="https://www.bencritt.net/projects/ssl-check/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SSL Verification Tool">
+  <meta property="og:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
+  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:alt" content="SSL Verification Tool Screenshot">
+  <meta property="og:site_name" content="Ben Crittenden">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:domain" content="bencritt.net">
+  <meta name="twitter:url" content="https://www.bencritt.net/projects/ssl-check/">
+  <meta name="twitter:title" content="SSL Verification Tool">
+  <meta name="twitter:description" content="Easily verify the SSL certificate of any website using the SSL Verification Tool. Get detailed information on certificate validity, issuer, expiration date, and ensure your site is secure for users.">
+  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
+  <meta name="twitter:creator" content="@bencritt89"/>
+
+  <!-- Schema for SEO -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SSL Verification Tool",
+      "description": "The SSL Verification Tool allows users to verify SSL certificates for any website, retrieving information about the certificate's issuer, validity period, and expiration dates to ensure secure online connections.",
+      "url": "https://www.bencritt.net/projects/ssl-check/",
+      "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/ssl-check.webp",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
+      },
+      "featureList": [
+        "Quickly verifies SSL certificates for any website.",
+        "Displays detailed SSL certificate information, including issuer, validity period, and expiration dates.",
+        "Helps ensure websites maintain secure connections by verifying SSL configurations.",
+        "Web-based application, accessible from any device with an internet connection.",
+        "Simple interface for easy SSL checks and certificate verification."
+      ]
+    }
+  </script>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  <link rel="canonical" href="https://www.bencritt.net/projects/ssl-check/">
+  <link href="{% static 'template-css/ssl-check-css.css' %}" rel="stylesheet">
+{% endblock link_tags %}
+
+{% block title %}SSL Verification Tool | Check SSL Certificate Validity and Security Online{% endblock title %}
+
+{% block content %}
+  <section class="py-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+
+          <header class="text-center mb-4">
+            <h1 class="mb-2">SSL Verification Tool</h1>
+            <p class="text-muted mb-0">Enter a URL to fetch certificate details.</p>
+          </header>
+
+          <div class="card shadow-sm">
+            <div class="card-body">
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="d-grid gap-2">
+                  <input
+                    type="submit"
+                    id="ssl-lookup-btn"
+                    class="btn btn-primary"
+                    value="Look Up SSL Certificate Info"
+                    aria-label="Look Up SSL Certificate Info">
+
+                  <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary">
+                    Go to All IT Tools
+                  </a>
+                </div>
+              </form>
+
+              {% if result and result.error %}
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                  Error: {{ result.error }}
+                </div>
+              {% endif %}
             </div>
-            </center>
-        </main>
-        {% endblock content %}
+          </div>
+
+          {% if result and not result.error %}
+            <section class="mt-4" aria-label="SSL Results">
+              <div class="text-center mb-3">
+                <h2 class="h5 mb-0">SSL Certificate Info for {{ url }}</h2>
+              </div>
+
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table mb-0">
+                      <thead>
+                        <tr>
+                          <th scope="col">Field</th>
+                          <th scope="col">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row">Subject</th><td>{{ result.subject }}</td></tr>
+                        <tr><th scope="row">Issuer</th><td>{{ result.issuer }}</td></tr>
+                        <tr><th scope="row">Serial Number</th><td>{{ result.serial_number }}</td></tr>
+                        <tr><th scope="row">Valid From</th><td>{{ result.not_before|date:"F j, Y, g:i a T" }}</td></tr>
+                        <tr><th scope="row">Valid Until</th><td>{{ result.not_after|date:"F j, Y, g:i a T" }}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+          {% endif %}
+
+          <div class="text-center mt-4">
+            <a
+              href="https://github.com/BenCritt/profile_workspace_heroku"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-outline-secondary"
+              data-bs-toggle="tooltip"
+              title="View the source code for this app.">
+              View source on GitHub
+            </a>
+
+            <p class="mt-3 text-muted small mb-0">
+              This tool was created by
+              <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
+              an IT professional with experience in web development, systems administration, and project management.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}

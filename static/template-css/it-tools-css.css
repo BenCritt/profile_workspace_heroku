@@ -1,6 +1,3 @@
 @media (max-width: 600px) {
-    .card {
-        width: 100%;
-        margin-bottom: 20px;
-    }
+  .it-tools-page .card { width: 100%; margin-bottom: 20px; }
 }

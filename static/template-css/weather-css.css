@@ -1,3 +1,62 @@
+/* =========================================================
+   Weather App Styles (combined: weather-css + weather-results-css)
+   ========================================================= */
+
+/* Django form error list (from weather-css.css) */
 .errorlist {
     list-style: none; /* Removes bullet points from error messages */
+    padding-left: 0;
+    margin-bottom: 0.5rem;
+}
+
+/* Table styling (from weather-results-css.css) */
+.table td {
+    vertical-align: middle;   /* Align table data vertically in the middle */
+    caption-side: top;        /* Position table captions at the top */
+    text-align: center;       /* Center text alignment for table data */
+}
+
+.table th {
+    text-align: center;       /* Center text alignment for table headers */
+}
+
+/* Card spacing */
+.card {
+    margin-bottom: 20px;
+}
+
+/* Card header styling */
+.card-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+}
+
+/* Paragraph spacing inside cards */
+.card-body p {
+    margin: 5px 0;
+}
+
+/* Divider line */
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+}
+
+/* Accordion body spacing */
+.accordion-body p {
+    margin-bottom: 10px;
+}
+
+/* Weather icon size */
+.weather-icon {
+    width: 50px;
+    margin-right: 15px;
+}
+
+/* Accordion animation */
+.accordion-collapse {
+    transition: max-height 0.3s ease-out;
 }

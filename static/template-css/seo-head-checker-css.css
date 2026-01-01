@@ -1,8 +1,16 @@
+/* SEO Head Checker - page-specific CSS */
+
+/* Optional helper class (Bootstrap text-center often makes this unnecessary) */
 .centered-content {
-    text-align: center; /* Centers the content */
+  text-align: center;
 }
 
+/* Ensure disabled download button can't be clicked */
 #download_link[aria-disabled="true"] {
-    pointer-events: none;
-    opacity: .65;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+#status {
+  margin-bottom: 1rem;
 }

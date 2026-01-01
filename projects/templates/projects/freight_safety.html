@@ -1,169 +1,181 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-    <!-- This is schema to help with SEO. -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            "name": "Freight Safety Tool",
-            "description": "Generate safety reports and scores for freight carriers, including safety ratings, crash statistics, and driver inspections.",
-            "url": "https://www.bencritt.net/projects/freight-safety/",
-            "applicationCategory": "Transportation Utility",
-            "operatingSystem": "Web-based",
-            "image": "https://www.bencritt.net/static/img/all-projects/freight-safety.webp",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden",
-              "url": "https://www.bencritt.net"
-            },
-            "featureList": [
-              "Generate comprehensive safety reports for freight carriers.",
-              "Calculate safety scores based on crash statistics, inspections, and safety ratings.",
-              "Retrieve detailed safety-related information for carriers using USDOT numbers.",
-              "Accessible via any web-enabled device with a user-friendly interface.",
-              "Developed with Python and Django for reliable safety report generation."
-            ]
-        }
-        </script>
-        
-    {% endblock scripts %}    
-    {% block styles %} 
-    {% endblock styles %}
-    {% block meta_tags %}
-    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
-    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma"         content="no-cache">
-    <meta http-equiv="Expires"        content="0">
 
-    <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description"          content="The Freight Carrier Safety Reporter allows users to generate comprehensive safety reports for freight carriers, providing safety scores based on crash statistics, inspections, and safety ratings. Ideal for freight brokers and assessing carrier performance.">
-    <meta name="keywords"             content="Freight Carrier Safety, Carrier Safety Reports, Safety Score, Crash Statistics, Driver Inspections, Carrier Performance, USDOT Number, Freight Brokers">
-    
-    <!-- Open Graph -->
-    <meta property="og:url"           content="https://www.bencritt.net/projects/freight-safety/">
-    <meta property="og:type"          content="website">
-    <meta property="og:title"         content="Freight Carrier Safety Reporter">
-    <meta property="og:description"   content="Generate comprehensive safety reports for freight carriers, calculate safety scores, and retrieve important safety information for freight operations.">
-    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/freight-safety.webp">
-    <meta property="og:image:type"    content="image/webp">
-    <meta property="og:image:alt"     content="Freight Carrier Safety Reporter Screenshot">
-    <meta property="og:site_name"     content="Ben Crittenden">
-    
-    <!--
-    Once I have a specific image meant for this, I can use these optimized dimensions.
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    -->
+{% block title %}
+Freight Carrier Safety Reporter | Generate Comprehensive Safety Reports for Freight Carriers
+{% endblock title %}
 
-    <!-- Twitter -->
-    <meta name="twitter:card"         content="summary_large_image">
-    <meta name="twitter:domain"       content="bencritt.net">
-    <meta name="twitter:url"          content="https://www.bencritt.net/projects/freight-safety/">
-    <meta name="twitter:title"        content="Freight Carrier Safety Reporter">
-    <meta name="twitter:description"  content="Generate safety reports and scores for freight carriers, with insights into crash statistics, driver inspections, and safety ratings.">
-    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/freight-safety.webp">
-    <meta name="twitter:creator"      content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-    <!-- Canonical link to help avoid duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net/projects/freight-safety/">
-    <!-- Other CSS styling and layout. -->
-    <link href="{% static 'template-css/freight-safety-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}Freight Carrier Safety Reporter | Generate Comprehensive Safety Reports for Freight Carriers{% endblock title %}
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
-    <main>
-        <center>
-            <div style="width: 100%; max-width: 500px;">
-                <h1>Freight Carrier Safety Reporter</h1>
-                <br>
-                <p>
-                    <strong>NOTICE: </strong>The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, has become unreliable.  Their developer website is also 
-                    sporadically up or down. If you recieve an error after entering a valid DOT number, this is why.
-                </p>
-                <br>
-                <form method="POST">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <input type="submit" id="freight-lookup-btn" class="btn btn-primary" value="Generate Safety Report" aria-label="Generate Safety Report">
-                </form>
+{% block meta_tags %}
+  {# Meta to prevent caching (kept because you intentionally added it). #}
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <meta name="description" content="The Freight Carrier Safety Reporter allows users to generate comprehensive safety reports for freight carriers, providing safety scores based on crash statistics, inspections, and safety ratings. Ideal for freight brokers and assessing carrier performance.">
+  <meta name="keywords" content="Freight Carrier Safety, Carrier Safety Reports, Safety Score, Crash Statistics, Driver Inspections, Carrier Performance, USDOT Number, Freight Brokers">
+
+  {# Open Graph #}
+  <meta property="og:url" content="https://www.bencritt.net/projects/freight-safety/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Freight Carrier Safety Reporter">
+  <meta property="og:description" content="Generate comprehensive safety reports for freight carriers, calculate safety scores, and retrieve important safety information for freight operations.">
+  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/freight-safety.webp">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:alt" content="Freight Carrier Safety Reporter Screenshot">
+  <meta property="og:site_name" content="Ben Crittenden">
+
+  {# Twitter #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:domain" content="bencritt.net">
+  <meta name="twitter:url" content="https://www.bencritt.net/projects/freight-safety/">
+  <meta name="twitter:title" content="Freight Carrier Safety Reporter">
+  <meta name="twitter:description" content="Generate safety reports and scores for freight carriers, with insights into crash statistics, driver inspections, and safety ratings.">
+  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/freight-safety.webp">
+  <meta name="twitter:creator" content="@bencritt89">
+
+  {# JSON-LD belongs in head (via meta_tags in your base). #}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Freight Safety Tool",
+      "description": "Generate safety reports and scores for freight carriers, including safety ratings, crash statistics, and driver inspections.",
+      "url": "https://www.bencritt.net/projects/freight-safety/",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-safety.webp",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
+      },
+      "featureList": [
+        "Generate comprehensive safety reports for freight carriers.",
+        "Calculate safety scores based on crash statistics, inspections, and safety ratings.",
+        "Retrieve detailed safety-related information for carriers using USDOT numbers.",
+        "Accessible via any web-enabled device with a user-friendly interface.",
+        "Developed with Python and Django for reliable safety report generation."
+      ]
+    }
+  </script>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  <link rel="canonical" href="https://www.bencritt.net/projects/freight-safety/">
+  <link href="{% static 'template-css/freight-safety-css.css' %}" rel="stylesheet">
+{% endblock link_tags %}
+
+{% block content %}
+  <section class="py-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+
+          <header class="text-center mb-4">
+            <h1 class="mb-3">Freight Carrier Safety Reporter</h1>
+
+            <div class="alert alert-warning text-start mb-0" role="alert">
+              <strong>NOTICE:</strong>
+              The Federal Motor Carrier Safety Administration's QCMobile API, which this app relies on, has become unreliable.
+              Their developer website is also sporadically up or down. If you receive an error after entering a valid DOT number, this is why.
             </div>
-            <br>
-            {% if error %}
-                <p style="color: red;">{{ error }}</p>
-            {% endif %}
+          </header>
 
-            {% if carrier %}
-                <p>Freight Carrier Safety Report for:</p><br>
-                <p>{{ carrier.name }}</p>
-                <br>
-                <!-- Table 1: Non-Safety Information -->
-                <h3>Basic Carrier Information</h3>
-                <div class = "table-container" style = "width: 100%; max-width: 750px;">
-                    <table class="table">
-                        <tr><td><strong>Physical Address</strong></td><td>{{ carrier.phyStreet }}, {{ carrier.phyCity }}, {{ carrier.phyState }} {{ carrier.phyZipcode }}</td></tr>
-                        <tr><td><strong>USDOT Number</strong></td><td>{{ carrier.dotNumber }}</td></tr>
-                        <tr><td><strong>MC Number</strong></td><td>{{ carrier.mcNumber }}</td></tr>
-                        <tr><td><strong>Employer Identification Number (EIN)</strong></td><td>{{ carrier.ein }}</td></tr>
-                        <tr><td><strong>Allowed to Operate</strong></td><td>{{ carrier.allowedToOperate }}</td></tr>
-                        <tr><td><strong>BIPD Insurance on File</strong></td><td>{{ carrier.bipdInsuranceOnFile }}</td></tr>
-                        <tr><td><strong>BIPD Insurance Required</strong></td><td>{{ carrier.bipdInsuranceRequired }}</td></tr>
-                        <tr><td><strong>Bond Insurance on File</strong></td><td>{{ carrier.bondInsuranceOnFile }}</td></tr>
-                        <tr><td><strong>Broker Authority Status</strong></td><td>{{ carrier.brokerAuthorityStatus }}</td></tr>
-                        <tr><td><strong>Cargo Insurance on File</strong></td><td>{{ carrier.cargoInsuranceOnFile }}</td></tr>
-                        <tr><td><strong>Carrier Operation Code</strong></td><td>{{ carrier.carrierOperationCode }}</td></tr>
-                        <tr><td><strong>Carrier Operation Description</strong></td><td>{{ carrier.carrierOperationDesc }}</td></tr>
-                        <tr><td><strong>Common Authority Status</strong></td><td>{{ carrier.commonAuthorityStatus }}</td></tr>
-                        <tr><td><strong>Contract Authority Status</strong></td><td>{{ carrier.contractAuthorityStatus }}</td></tr>
-                        <tr><td><strong>Review Date</strong></td><td>{{ carrier.reviewDate }}</td></tr>
-                        <tr><td><strong>Total Drivers</strong></td><td>{{ carrier.totalDrivers }}</td></tr>
-                        <tr><td><strong>Total Power Units</strong></td><td>{{ carrier.totalPowerUnits }}</td></tr>
-                    </table>
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="d-grid gap-2">
+                  <input
+                    type="submit"
+                    id="freight-lookup-btn"
+                    class="btn btn-primary"
+                    value="Generate Safety Report"
+                    aria-label="Generate Safety Report">
                 </div>
-                <br>
-                <!-- Table 2: Safety Information -->
-                <h3>Safety Report</h3>
-                <div class = "table-container" style = "width: 100%; max-width: 750px;">
-                    <table class="table">
-                        <tr><td><strong>Total Crashes</strong></td><td>{{ carrier.crashTotal }}</td></tr>
-                        <tr><td><strong>Total Driver Inspections</strong></td><td>{{ carrier.driverInsp }}</td></tr>
-                        <tr><td><strong>Total Driver Out-of-Service Inspections</strong></td><td>{{ carrier.driverOosInsp }}</td></tr>
-                        <tr><td><strong>Driver Out-of-Service Rate</strong></td><td>{{ carrier.driverOosRate }}</td></tr>
-                        <tr><td><strong>Total Fatal Crashes</strong></td><td>{{ carrier.fatalCrash }}</td></tr>
-                        <tr><td><strong>Total Injury Crashes</strong></td><td>{{ carrier.injCrash }}</td></tr>
-                        <tr><td><strong>Towaway Crashes</strong></td><td>{{ carrier.towawayCrash }}</td></tr>
-                        <tr><td><strong>Total Hazmat Inspections</strong></td><td>{{ carrier.hazmatInsp }}</td></tr>
-                        <tr><td><strong>Total Hazmat Out-of-Service Inspections</strong></td><td>{{ carrier.hazmatOosInsp }}</td></tr>
-                        <tr><td><strong>Hazmat Out-of-Service Rate</strong></td><td>{{ carrier.hazmatOosRate }}</td></tr>
-                        <tr><td><strong>Total Vehicle Inspections</strong></td><td>{{ carrier.vehicleInsp }}</td></tr>
-                        <tr><td><strong>Total Vehicle Out-of-Service Inspections</strong></td><td>{{ carrier.vehicleOosInsp }}</td></tr>
-                        <tr><td><strong>Vehicle Out-of-Service Rate</strong></td><td>{{ carrier.vehicleOosRate }}</td></tr>
-                        <tr><td><strong>FMCSA Safety Rating</strong></td><td>{{ carrier.safetyRating }}</td></tr>
-                        <tr><td><strong>FMCSA Safety Rating Date</strong></td><td>{{ carrier.safetyRatingDate }}</td></tr>
-                    </table>
+              </form>
+
+              {% if error %}
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                  {{ error }}
                 </div>
-                <!-- Add a button to download the report as a PDF - I'm still working on this feature. -->
-                <!--
-                <form method="POST">
-                    {% csrf_token %}
-                    <input type="submit" id="download_pdf" class="btn btn-secondary" value="Download PDF">
-                </form>
-                -->
-            {% endif %}
-            <br><br>
-            <!-- Link to the GitHub repository for the project. -->
-            <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-            </svg></a>
-            <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;">
-                <p class="mt-3 text-muted small">
-                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
-                </p>
+              {% endif %}
             </div>
-        </center>
-    </main>
+          </div>
+
+          {% if carrier %}
+            <section class="mt-4">
+              <div class="text-center mb-3">
+                <p class="mb-1">Freight Carrier Safety Report for:</p>
+                <p class="fs-5 fw-semibold mb-0">{{ carrier.name }}</p>
+              </div>
+
+              <h2 class="h4 mt-4">Basic Carrier Information</h2>
+              <div class="table-responsive">
+                <table class="table">
+                  <tbody>
+                    <tr><th scope="row">Physical Address</th><td>{{ carrier.phyStreet }}, {{ carrier.phyCity }}, {{ carrier.phyState }} {{ carrier.phyZipcode }}</td></tr>
+                    <tr><th scope="row">USDOT Number</th><td>{{ carrier.dotNumber }}</td></tr>
+                    <tr><th scope="row">MC Number</th><td>{{ carrier.mcNumber }}</td></tr>
+                    <tr><th scope="row">Employer Identification Number (EIN)</th><td>{{ carrier.ein }}</td></tr>
+                    <tr><th scope="row">Allowed to Operate</th><td>{{ carrier.allowedToOperate }}</td></tr>
+                    <tr><th scope="row">BIPD Insurance on File</th><td>{{ carrier.bipdInsuranceOnFile }}</td></tr>
+                    <tr><th scope="row">BIPD Insurance Required</th><td>{{ carrier.bipdInsuranceRequired }}</td></tr>
+                    <tr><th scope="row">Bond Insurance on File</th><td>{{ carrier.bondInsuranceOnFile }}</td></tr>
+                    <tr><th scope="row">Broker Authority Status</th><td>{{ carrier.brokerAuthorityStatus }}</td></tr>
+                    <tr><th scope="row">Cargo Insurance on File</th><td>{{ carrier.cargoInsuranceOnFile }}</td></tr>
+                    <tr><th scope="row">Carrier Operation Code</th><td>{{ carrier.carrierOperationCode }}</td></tr>
+                    <tr><th scope="row">Carrier Operation Description</th><td>{{ carrier.carrierOperationDesc }}</td></tr>
+                    <tr><th scope="row">Common Authority Status</th><td>{{ carrier.commonAuthorityStatus }}</td></tr>
+                    <tr><th scope="row">Contract Authority Status</th><td>{{ carrier.contractAuthorityStatus }}</td></tr>
+                    <tr><th scope="row">Review Date</th><td>{{ carrier.reviewDate }}</td></tr>
+                    <tr><th scope="row">Total Drivers</th><td>{{ carrier.totalDrivers }}</td></tr>
+                    <tr><th scope="row">Total Power Units</th><td>{{ carrier.totalPowerUnits }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h2 class="h4 mt-4">Safety Report</h2>
+              <div class="table-responsive">
+                <table class="table">
+                  <tbody>
+                    <tr><th scope="row">Total Crashes</th><td>{{ carrier.crashTotal }}</td></tr>
+                    <tr><th scope="row">Total Driver Inspections</th><td>{{ carrier.driverInsp }}</td></tr>
+                    <tr><th scope="row">Total Driver Out-of-Service Inspections</th><td>{{ carrier.driverOosInsp }}</td></tr>
+                    <tr><th scope="row">Driver Out-of-Service Rate</th><td>{{ carrier.driverOosRate }}</td></tr>
+                    <tr><th scope="row">Total Fatal Crashes</th><td>{{ carrier.fatalCrash }}</td></tr>
+                    <tr><th scope="row">Total Injury Crashes</th><td>{{ carrier.injCrash }}</td></tr>
+                    <tr><th scope="row">Towaway Crashes</th><td>{{ carrier.towawayCrash }}</td></tr>
+                    <tr><th scope="row">Total Hazmat Inspections</th><td>{{ carrier.hazmatInsp }}</td></tr>
+                    <tr><th scope="row">Total Hazmat Out-of-Service Inspections</th><td>{{ carrier.hazmatOosInsp }}</td></tr>
+                    <tr><th scope="row">Hazmat Out-of-Service Rate</th><td>{{ carrier.hazmatOosRate }}</td></tr>
+                    <tr><th scope="row">Total Vehicle Inspections</th><td>{{ carrier.vehicleInsp }}</td></tr>
+                    <tr><th scope="row">Total Vehicle Out-of-Service Inspections</th><td>{{ carrier.vehicleOosInsp }}</td></tr>
+                    <tr><th scope="row">Vehicle Out-of-Service Rate</th><td>{{ carrier.vehicleOosRate }}</td></tr>
+                    <tr><th scope="row">FMCSA Safety Rating</th><td>{{ carrier.safetyRating }}</td></tr>
+                    <tr><th scope="row">FMCSA Safety Rating Date</th><td>{{ carrier.safetyRatingDate }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="text-center mt-4">
+                <a
+                  href="https://github.com/BenCritt/profile_workspace_heroku"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-outline-secondary"
+                  data-bs-toggle="tooltip"
+                  title="View the source code for this app.">
+                  View source on GitHub
+                </a>
+              </div>
+            </section>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </section>
 {% endblock content %}

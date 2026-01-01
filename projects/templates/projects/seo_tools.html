@@ -1,230 +1,265 @@
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-    <!-- Schema for SEO Professional Toolkit -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "CollectionPage",
-          "@id": "https://www.bencritt.net/projects/seo-tools/#webpage",
-          "name": "SEO Professional Toolkit",
-          "description": "A collection of web-based SEO utilities: SEO Head Checker, Font Inspector, and Cookie Audit.",
-          "url": "https://www.bencritt.net/projects/seo-tools/",
-          "inLanguage": "en-US",
-          "isPartOf": {
-            "@type": "WebSite",
-            "@id": "https://www.bencritt.net/#website",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net/"
-          },
-          "about": {
-            "@type": "Person",
-            "@id": "https://www.bencritt.net/#person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net/"
-          },
-          "primaryImageOfPage": {
-            "@type": "ImageObject",
-            "@id": "https://www.bencritt.net/projects/seo-tools/#primaryimage",
-            "url": "https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp",
-            "caption": "SEO Professional Toolkit"
-          },
-          "mainEntity": {
-            "@type": "ItemList",
-            "name": "SEO Tools",
-            "itemListOrder": "https://schema.org/ItemListOrderAscending",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "item": { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" }
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "item": { "@id": "https://www.bencritt.net/projects/font-inspector/#app" }
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "item": { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" }
-              }
-            ]
-          },
-          "hasPart": [
-            { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" },
-            { "@id": "https://www.bencritt.net/projects/font-inspector/#app" },
-            { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" }
+
+{% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
+
+{% block meta_tags %}
+  <!-- Meta tags for SEO Professional Toolkit -->
+  <meta name="description" content="SEO Professional Toolkit by Ben Crittenden: run technical audits with SEO Head Checker, inspect typography with Font Inspector, and analyze security attributes with Cookie Audit.">
+  <meta name="keywords" content="SEO toolkit, technical SEO, SEO head checker, meta tags audit, canonical tag checker, robots meta checker, font inspector, cookie audit, SameSite, HttpOnly, Secure cookies">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:url" content="https://www.bencritt.net/projects/seo-tools/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
+  <meta property="og:description" content="A collection of web-based SEO utilities: head tag auditing, font inspection, and cookie analysis for compliance and security attributes.">
+  <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
+  <meta property="og:image:alt" content="SEO Professional Toolkit by Ben Crittenden">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="bencritt.net">
+  <meta property="twitter:url" content="https://www.bencritt.net/projects/seo-tools/">
+  <meta name="twitter:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
+  <meta name="twitter:description" content="Head tag auditing, font inspection, and cookie analysis in one SEO toolkit.">
+  <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
+  <meta name="twitter:creator" content="@bencritt89"/>
+
+  <!-- Schema for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://www.bencritt.net/projects/seo-tools/#webpage",
+        "name": "SEO Professional Toolkit",
+        "description": "A collection of web-based SEO utilities: SEO Head Checker, Font Inspector, and Cookie Audit.",
+        "url": "https://www.bencritt.net/projects/seo-tools/",
+        "inLanguage": "en-US",
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://www.bencritt.net/#website",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net/"
+        },
+        "about": {
+          "@type": "Person",
+          "@id": "https://www.bencritt.net/#person",
+          "name": "Ben Crittenden",
+          "url": "https://www.bencritt.net/"
+        },
+        "primaryImageOfPage": {
+          "@type": "ImageObject",
+          "@id": "https://www.bencritt.net/projects/seo-tools/#primaryimage",
+          "url": "https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp",
+          "caption": "SEO Professional Toolkit"
+        },
+        "mainEntity": {
+          "@type": "ItemList",
+          "name": "SEO Tools",
+          "itemListOrder": "https://schema.org/ItemListOrderAscending",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" } },
+            { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/font-inspector/#app" } },
+            { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" } }
           ]
         },
+        "hasPart": [
+          { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" },
+          { "@id": "https://www.bencritt.net/projects/font-inspector/#app" },
+          { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" }
+        ]
+      },
 
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://www.bencritt.net/projects/seo-head-checker/#app",
-          "name": "SEO Head Checker",
-          "description": "Generate a technical SEO report for a web page or sitemap by checking key head elements such as title tags, meta descriptions, canonicals, robots directives, Open Graph, Twitter cards, and structured data.",
-          "applicationCategory": "SEO Tool",
-          "operatingSystem": "Web-based",
-          "isAccessibleForFree": true,
-          "url": "https://www.bencritt.net/projects/seo-head-checker/",
-          "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
-          "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "featureList": [
-            "Scan a sitemap or single URL",
-            "Validate canonical, robots, meta tags, and social tags",
-            "Export results as a downloadable report"
-          ]
-        },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://www.bencritt.net/projects/seo-head-checker/#app",
+        "name": "SEO Head Checker",
+        "description": "Generate a technical SEO report for a web page or sitemap by checking key head elements such as title tags, meta descriptions, canonicals, robots directives, Open Graph, Twitter cards, and structured data.",
+        "applicationCategory": "SEO Tool",
+        "operatingSystem": "Web-based",
+        "isAccessibleForFree": true,
+        "url": "https://www.bencritt.net/projects/seo-head-checker/",
+        "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
+        "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
 
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://www.bencritt.net/projects/font-inspector/#app",
-          "name": "Font Inspector",
-          "description": "Inspect fonts used on a web page and identify font families, weights, and styles to support performance tuning and brand consistency.",
-          "applicationCategory": "SEO Tool",
-          "operatingSystem": "Web-based",
-          "isAccessibleForFree": true,
-          "url": "https://www.bencritt.net/projects/font-inspector/",
-          "image": "https://www.bencritt.net/static/img/all-projects/font-inspector.webp",
-          "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "featureList": [
-            "Identify font families in use",
-            "Review weights/styles for consistency",
-            "Support debugging CLS/FOIT/FOUT-related typography issues"
-          ]
-        },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://www.bencritt.net/projects/font-inspector/#app",
+        "name": "Font Inspector",
+        "description": "Inspect fonts used on a web page and identify font families, weights, and styles to support performance tuning and brand consistency.",
+        "applicationCategory": "SEO Tool",
+        "operatingSystem": "Web-based",
+        "isAccessibleForFree": true,
+        "url": "https://www.bencritt.net/projects/font-inspector/",
+        "image": "https://www.bencritt.net/static/img/all-projects/font-inspector.webp",
+        "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
 
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
-          "name": "Cookie Audit",
-          "description": "Analyze cookies on a web page and review cookie names, domains, paths, expirations, and security attributes such as Secure, HttpOnly, and SameSite.",
-          "applicationCategory": "SEO Tool",
-          "operatingSystem": "Web-based",
-          "isAccessibleForFree": true,
-          "url": "https://www.bencritt.net/projects/cookie-audit/",
-          "image": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp",
-          "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "featureList": [
-            "Inventory cookies set by a page",
-            "Review cookie domains/paths/expirations",
-            "Flag security attributes (Secure/HttpOnly/SameSite)"
-          ]
-        }
-      ]
-    }
-    </script>
-    {% endblock scripts %}
-    {% block meta_tags %}
-    <!-- Meta tags for SEO Professional Toolkit -->
-    <meta name="description" content="SEO Professional Toolkit by Ben Crittenden: run technical audits with SEO Head Checker, inspect typography with Font Inspector, and analyze security attributes with Cookie Audit.">
-    <meta name="keywords" content="SEO toolkit, technical SEO, SEO head checker, meta tags audit, canonical tag checker, robots meta checker, font inspector, cookie audit, SameSite, HttpOnly, Secure cookies">
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
+        "name": "Cookie Audit",
+        "description": "Analyze cookies on a web page and review cookie names, domains, paths, expirations, and security attributes such as Secure, HttpOnly, and SameSite.",
+        "applicationCategory": "SEO Tool",
+        "operatingSystem": "Web-based",
+        "isAccessibleForFree": true,
+        "url": "https://www.bencritt.net/projects/cookie-audit/",
+        "image": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp",
+        "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    ]
+  }
+  </script>
+{% endblock meta_tags %}
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:url" content="https://www.bencritt.net/projects/seo-tools/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
-    <meta property="og:description" content="A collection of web-based SEO utilities: head tag auditing, font inspection, and cookie analysis for compliance and security attributes.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
-    <meta property="og:image:alt" content="SEO Professional Toolkit by Ben Crittenden">
+{% block link_tags %}
+  <link rel="canonical" href="https://www.bencritt.net/projects/seo-tools/">
+  <link href="{% static 'template-css/seo-tools-css.css' %}" rel="stylesheet">
+{% endblock link_tags %}
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/seo-tools/">
-    <meta name="twitter:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
-    <meta name="twitter:description" content="Head tag auditing, font inspection, and cookie analysis in one SEO toolkit.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-        <!-- Canonical link to help avoid duplicate content issues. -->
-        <link rel="canonical" href="https://www.bencritt.net/projects/seo-tools/">
-        <!-- Other CSS styling and layout. -->
-        <link href="{% static 'template-css/seo-tools-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
-    {% block styles %} 
-    {% endblock styles %}
-    {% block content %}
-    <main>
-        <center>
-            <h1>SEO Professional Toolkit</h1>
-            <br>
-            <!-- Non-iframe Cards -->
-            <div class="card-container non-iframe-cards" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+{% block content %}
+  <section class="py-4">
+    <div class="container">
 
-              <!-- SEO Head Checker Card -->
-              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
-                  <h2>SEO Head Checker</h2>
-                  <img src="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp" alt="SEO Head Checker Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it. Your file will be sent to your default downloads folder.</p>
-                  <a href="/projects/seo-head-checker/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use SEO Head Checker</a>
-              </div>
+      <header class="text-center mb-4">
+        <h1 class="mb-2">SEO Professional Toolkit</h1>
+        <p class="text-muted mb-0">
+          Head auditing, font inspection, and cookie analysis — all in one place.
+        </p>
+      </header>
 
-              <!-- Font Inspector Card -->
-              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
-                  <h2>Font Inspector</h2>
-                  <img src="https://www.bencritt.net/static/img/all-projects/font-inspector.webp" alt="Font Inspector" style="width: 100%; height: auto; border-radius: 8px;">
-                  <p>Use the Font Inspector to analyze and inspect fonts on any web page. Identify font families, weights, and styles used on a page.</p>
-                  <a href="/projects/font-inspector/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use Font Inspector</a>
-              </div>
-
-              <!-- Cookie Audit Card -->
-              <div class="card non-iframe-cards" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);">
-                  <h2>Cookie Audit</h2>
-                  <img src="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp" alt="Cookie Audit Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Use the Cookie Audit tool to analyze and inspect cookies on any web page. Identify cookie names, domains, paths, and security attributes used on a page.</p>
-                  <a href="/projects/cookie-audit/" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use Cookie Audit</a>
-              </div>
-
-            </div>  
-            <br>
-            <!-- Iframe cards for displaying apps inline -->          
-            <div class="card-container iframe-cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
-
-              <!-- SEO Head Checker Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe src="/projects/seo-head-checker/" style="width: 100%; height: auto; min-height: 553px; border: none;" scrolling="no"></iframe>
-                      <a href="/projects/seo-head-checker/" class="btn btn-secondary" style="margin-top: 10px;">Open SEO Head Checker Page</a>
-                  </div>
-              </div>
-          
-              <!-- Font Inspector Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe
-                        src="/projects/font-inspector/"
-                        class="tool-iframe"
-                        title="Font Inspector"
-                        loading="lazy"
-                        scrolling="yes">
-                      </iframe>
-                      <a href="/projects/font-inspector/" class="btn btn-secondary" style="margin-top: 10px;">Open Font Inspector Page</a>
-                  </div>
-              </div>
-          
-              <!-- Cookie Audit Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe
-                        src="/projects/cookie-audit/"
-                        class="tool-iframe tool-iframe--no-scroll"
-                        title="Cookie Audit"
-                        loading="lazy"
-                        scrolling="no">
-                      </iframe>
-                      <a href="/projects/cookie-audit/" class="btn btn-secondary" style="margin-top: 10px;">Open Cookie Audit Page</a>
-                  </div>
-              </div>
+      <!-- Non-iframe Cards -->
+      <div class="row g-4 mb-5">
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <img src="https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp" class="card-img-top" alt="SEO Head Checker Tool">
+            <div class="card-body">
+              <h2 class="h5 card-title">SEO Head Checker</h2>
+              <p class="card-text">
+                Enter a sitemap or page URL, generate a report, then download the CSV.
+              </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+              <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary w-100">Use SEO Head Checker</a>
+            </div>
           </div>
-            <br>
-        </center>
-    </main>
-    {% endblock content %}
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <img src="https://www.bencritt.net/static/img/all-projects/font-inspector.webp" class="card-img-top" alt="Font Inspector Tool">
+            <div class="card-body">
+              <h2 class="h5 card-title">Font Inspector</h2>
+              <p class="card-text">
+                Inspect fonts on any page. Identify families, weights, and styles.
+              </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+              <a href="{% url 'projects:font_inspector' %}" class="btn btn-primary w-100">Use Font Inspector</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <img src="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp" class="card-img-top" alt="Cookie Audit Tool">
+            <div class="card-body">
+              <h2 class="h5 card-title">Cookie Audit</h2>
+              <p class="card-text">
+                Analyze cookies and review domains, expirations, and security attributes.
+              </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+              <a href="{% url 'projects:cookie_audit' %}" class="btn btn-primary w-100">Use Cookie Audit</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline tools -->
+      <h2 class="h4 text-center mb-3">Use tools inline</h2>
+      <p class="text-muted text-center mb-4">
+        Prefer not to leave this page? Use the tools below directly within the toolkit.
+      </p>
+
+      <div class="row g-4">
+        <div class="col-12 col-lg-6">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <iframe
+                src="{% url 'projects:seo_head_checker' %}?embedded=1"
+                class="tool-iframe"
+                title="SEO Head Checker"
+                loading="lazy">
+              </iframe>
+              <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-outline-secondary w-100 mt-3">
+                Open SEO Head Checker Page
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <iframe
+                src="{% url 'projects:font_inspector' %}?embedded=1"
+                class="tool-iframe"
+                title="Font Inspector"
+                loading="lazy">
+              </iframe>
+              <a href="{% url 'projects:font_inspector' %}" class="btn btn-outline-secondary w-100 mt-3">
+                Open Font Inspector Page
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <iframe
+                src="{% url 'projects:cookie_audit' %}?embedded=1"
+                class="tool-iframe tool-iframe--no-scroll"
+                title="Cookie Audit"
+                loading="lazy">
+              </iframe>
+              <a href="{% url 'projects:cookie_audit' %}" class="btn btn-outline-secondary w-100 mt-3">
+                Open Cookie Audit Page
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-5">
+        <a
+          href="https://github.com/BenCritt/profile_workspace_heroku"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-bs-toggle="tooltip"
+          title="View the source code for this hub."
+          class="btn btn-outline-secondary">
+          View source on GitHub
+        </a>
+
+        <p class="mt-3 text-muted small mb-0">
+          This toolkit was created by
+          <a 
+            href="{% url 'projects:home' %}" 
+            class="content-link" 
+            title="Ben Crittenden – IT Professional">Ben Crittenden
+          </a>
+          .
+        </p>
+      </div>
+
+    </div>
+  </section>
+{% endblock content %}

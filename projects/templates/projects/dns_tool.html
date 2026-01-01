@@ -1,156 +1,172 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-    <!-- This is schema to help with SEO. -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            "name": "DNS Lookup Tool",
-            "description": "Perform DNS lookups for various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
-            "url": "https://www.bencritt.net/projects/dns-lookup/",
-            "applicationCategory": "Network Utility",
-            "operatingSystem": "Web-based",
-            "image": "https://www.bencritt.net/static/img/all-projects/dns-lookup.webp",
-            "creator": {
-              "@type": "Person",
-              "name": "Ben Crittenden",
-              "url": "https://www.bencritt.net"
-            },
-            "featureList": [
-              "Perform DNS lookups for various DNS record types.",
-              "Retrieve detailed DNS information useful for network troubleshooting and domain management.",
-              "Accessible from any web-enabled device with a user-friendly interface.",
-              "Developed with Python and Django for reliable DNS resolution."
-            ]
-          }          
-    </script>
-    {% endblock scripts %}    
-    {% block styles %} 
-    {% endblock styles %}
-    {% block meta_tags %}
-    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
-    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma"         content="no-cache">
-    <meta http-equiv="Expires"        content="0">
 
-    <!-- Meta tags providing essential information about the page to search engines. -->
-    <meta name="description"          content="The DNS Lookup Tool allows users to perform detailed DNS lookups for domain names, retrieving various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. Use it for network troubleshooting and domain management.">
-    <meta name="keywords"             content="DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records">
-    
-    <!-- Open Graph -->
-    <meta property="og:url"           content="https://www.bencritt.net/projects/dns-lookup/">
-    <meta property="og:type"          content="website">
-    <meta property="og:title"         content="DNS Lookup Tool">
-    <meta property="og:description"   content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
-    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
-    <meta property="og:image:type"    content="image/webp">
-    <meta property="og:image:alt"     content="DNS Lookup Tool Screenshot">
-    <meta property="og:site_name"     content="Ben Crittenden">
+{% block meta_tags %}
+  <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
-    <!--
-    Once I have a specific image meant for this, I can use these optimized dimensions.
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    -->
-    
-    <!-- Twitter -->
-    <meta name="twitter:card"         content="summary_large_image">
-    <meta name="twitter:domain"       content="bencritt.net">
-    <meta name="twitter:url"          content="https://www.bencritt.net/projects/dns-lookup/">
-    <meta name="twitter:title"        content="DNS Lookup Tool">
-    <meta name="twitter:description"  content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
-    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
-    <meta name="twitter:creator"      content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-    <!-- Canonical link to help avoid duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net/projects/dns-lookup/">
-    <!-- Other CSS styling and layout. -->
-    <link href="{% static 'template-css/dns-tool-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}DNS Lookup Tool | Perform Detailed DNS Record Checks Online{% endblock title %}
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
-    <main>
-        <center>
-            <h1>DNS Lookup Tool</h1>
-            <br>
-                <!-- Form for submitting domain name -->
-                <form method="post">
-                    {% csrf_token %}
-                    <!-- Renders form fields with paragraph tags -->
-                    {{ form.as_p }}
-                    <!-- Submit button for form -->
-                    <input type="submit" id="dns-lookup-btn" class="btn btn-primary" value="Look Up DNS Info" aria-label="Look Up DNS Info">
-                    <br>
-                    <a href="/projects/it_tools/" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
-                </form>
-                <br>
-                <!-- Error message display -->
-                {% if error_message %}
-                    <p style="color: red;">{{ error_message }}</p>
-                {% endif %}
+  <meta name="description" content="The DNS Lookup Tool allows users to perform detailed DNS lookups for domain names, retrieving various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. Use it for network troubleshooting and domain management.">
+  <meta name="keywords" content="DNS Lookup, DNS Records, Domain Name System, A Records, MX Records, NS Records, CNAME Records, TXT Records, SOA Records, SRV Records, CAA Records">
 
-                <!-- Display results if they exist -->
-                {% if results %}
-                <br>
-                    <!-- Header for results -->
-                    <h5>DNS Information for {{ form.cleaned_data.domain }}</h5>
-                    <center>
-                    <div class = "table-container table-responsive" style="width: 100%; max-width: 750px;">
-                    <!-- Table displaying DNS information -->
-                    <table class="table">
-                        <colgroup>
-                            <col style="width: 15%;">
-                            <col style="width: 85%;">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <!-- Column header for record type -->
-                                <th>Record Type</th>
-                                <!-- Column header for details -->
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Loop through the results to display each record type and its details -->
-                            {% for record_type, records in results.items %}
-                                <tr>
-                                    <!-- Displays the record type -->
-                                    <td>{{ record_type }}</td>
-                                    <td>
-                                        {% if records %}
-                                            <ul>
-                                                {% for record in records %}
-                                                    <!-- Displays each record in a list item -->
-                                                    <li>{{ record }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <!-- Message if no records are found -->
-                                            No records found
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    </div>
-                    </center>
-                {% endif %}
-                <br><br>
-                <!-- Link to the GitHub repository for the project. -->
-                <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                </svg></a>
-            <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;">
-                <p class="mt-3 text-muted small">
-                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
-                </p>
+  <!-- Open Graph -->
+  <meta property="og:url" content="https://www.bencritt.net/projects/dns-lookup/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="DNS Lookup Tool">
+  <meta property="og:description" content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
+  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:alt" content="DNS Lookup Tool Screenshot">
+  <meta property="og:site_name" content="Ben Crittenden">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:domain" content="bencritt.net">
+  <meta name="twitter:url" content="https://www.bencritt.net/projects/dns-lookup/">
+  <meta name="twitter:title" content="DNS Lookup Tool">
+  <meta name="twitter:description" content="The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name and retrieve various DNS records.">
+  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
+  <meta name="twitter:creator" content="@bencritt89"/>
+
+  <!-- Structured data (schema) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "DNS Lookup Tool",
+      "description": "Perform DNS lookups for various DNS records including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
+      "url": "https://www.bencritt.net/projects/dns-lookup/",
+      "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/dns-lookup.webp",
+      "creator": {
+        "@type": "Person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net"
+      },
+      "featureList": [
+        "Perform DNS lookups for various DNS record types.",
+        "Retrieve detailed DNS information useful for network troubleshooting and domain management.",
+        "Accessible from any web-enabled device with a user-friendly interface.",
+        "Developed with Python and Django for reliable DNS resolution."
+      ]
+    }
+  </script>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  <link rel="canonical" href="https://www.bencritt.net/projects/dns-lookup/">
+  <link href="{% static 'template-css/dns-tool-css.css' %}" rel="stylesheet">
+{% endblock link_tags %}
+
+{% block title %}DNS Lookup Tool | Perform Detailed DNS Record Checks Online{% endblock title %}
+
+{% block content %}
+  <section class="py-4">
+    <div class="container">
+      <header class="text-center mb-4">
+        <h1 class="mb-2">DNS Lookup Tool</h1>
+        <p class="text-muted mb-0">
+          Enter a domain name to retrieve common DNS record types (A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, CAA).
+        </p>
+      </header>
+
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              <form method="post" class="d-grid gap-3" novalidate>
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                  <button type="submit" id="dns-lookup-btn" class="btn btn-primary" aria-label="Look Up DNS Info">
+                    Look Up DNS Info
+                  </button>
+                  <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary">
+                    Go to All IT Tools
+                  </a>
+                </div>
+              </form>
+
+              {% if error_message %}
+                <div class="alert alert-danger mt-3 mb-0" role="alert">
+                  {{ error_message }}
+                </div>
+              {% endif %}
             </div>
-        </center>
-    </main>
-    {% endblock content %}
+          </div>
+
+          {% if results %}
+            <section aria-label="DNS Lookup Results">
+              <div class="text-center mb-3">
+                <h2 class="h5 mb-0">DNS Information for {{ form.cleaned_data.domain }}</h2>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle">
+                  <colgroup>
+                    <col style="width: 18%;">
+                    <col style="width: 82%;">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th scope="col">Record Type</th>
+                      <th scope="col">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for record_type, records in results.items %}
+                      <tr>
+                        <th scope="row">{{ record_type }}</th>
+                        <td>
+                          {% if records %}
+                            <ul class="mb-0">
+                              {% for record in records %}
+                                <li>{{ record }}</li>
+                              {% endfor %}
+                            </ul>
+                          {% else %}
+                            <span class="text-muted">No records found</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          {% endif %}
+
+          <div class="text-center mt-4">
+            <a href="https://github.com/BenCritt/profile_workspace_heroku"
+               target="_blank"
+               rel="noopener noreferrer"
+               data-bs-toggle="tooltip"
+               title="View the source code for this app."
+               aria-label="View the source code for this app on GitHub"
+               class="btn btn-outline-secondary">
+              View source on GitHub
+            </a>
+
+            <p class="mt-3 text-muted small mb-0">
+              This tool was created by
+              <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
+              an IT professional with experience in web development, systems administration, and project management.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}

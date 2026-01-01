@@ -1,465 +1,301 @@
 {% extends "projects/base.html" %}
 {% load static %}
-{% block scripts %}
-<!-- Schema for SEO -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
-      "name": "Cookie Audit",
-      "description": "Scan a public webpage to detect cookies in use and view key attributes such as domain, expiration, HttpOnly, Secure, and SameSite.",
-      "url": "https://www.bencritt.net/projects/cookie-audit/",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Web",
-      "browserRequirements": "Requires JavaScript enabled",
-      "image": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net/"
-      },
-      "featureList": [
-        "Scans a public webpage to detect cookies in use.",
-        "Indicates whether each cookie is first-party or third-party.",
-        "Identifies the cookie source (Set-Cookie header, document.cookie).",
-        "Shows cookie attributes: name, domain, expiration, HttpOnly, Secure, SameSite.",
-        "Displays detected cookies in a table."
-      ]
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://www.bencritt.net/projects/cookie-audit/#webpage",
-      "url": "https://www.bencritt.net/projects/cookie-audit/",
-      "name": "Cookie Audit | Detect Cookies and Basic Cookie Information",
-      "description": "Scan a URL to list cookies found on the page and view key cookie flags and attributes.",
-      "isPartOf": {
-        "@id": "https://www.bencritt.net/#website"
-      },
-      "primaryImageOfPage": {
-        "@type": "ImageObject",
-        "url": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp"
-      },
-      "about": {
-        "@id": "https://www.bencritt.net/projects/cookie-audit/#app"
-      }
-    }
-  ]
-}
-</script>
-{% endblock scripts %}
+
 {% block meta_tags %}
-<!-- Prevent browser caching to avoid stale CSRF tokens -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+  <!-- Prevent caching -->
+  <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma"         content="no-cache">
+  <meta http-equiv="Expires"        content="0">
 
-<!-- SEO fundamentals -->
-<meta name="description" content="Scan any public web page to detect cookies in use and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
+  <meta name="description" content="Scan a website to find cookies being set, classify them, and export results to CSV.">
+  <meta name="keywords" content="cookie audit, cookies, compliance, privacy, web audit, GDPR, CCPA">
 
-<!-- Open Graph -->
-<meta property="og:url" content="https://www.bencritt.net/projects/cookie-audit/">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
-<meta property="og:description" content="Scan any page to list its cookies and view key cookie attributes like expiration, HttpOnly, Secure, and SameSite.">
-<meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
-<meta property="og:image:type" content="image/webp">
-<meta property="og:image:alt" content="Cookie Audit tool screenshot showing a cookie results table">
-<meta property="og:site_name" content="Ben Crittenden">
+  <meta property="og:url" content="https://www.bencritt.net/projects/cookie-audit/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cookie Audit">
+  <meta property="og:description" content="Scan a website for cookies and export a report.">
+  <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:domain" content="bencritt.net">
-<meta name="twitter:url" content="https://www.bencritt.net/projects/cookie-audit/">
-<meta name="twitter:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
-<meta name="twitter:description" content="Scan a URL to detect cookies and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
-<meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
-<meta name="twitter:creator" content="@bencritt89">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:domain" content="bencritt.net">
+  <meta name="twitter:url" content="https://www.bencritt.net/projects/cookie-audit/">
+  <meta name="twitter:title" content="Cookie Audit">
+  <meta name="twitter:description" content="Scan a website for cookies and export a report.">
+  <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
+  <meta name="twitter:creator" content="@bencritt89"/>
 {% endblock meta_tags %}
+
 {% block link_tags %}
-<!-- Canonical link to help avoid duplicate content issues. -->
-<link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
-<!-- Other CSS styling and layout. -->
-<link href="{% static 'template-css/cookie-audit-css.css' %}" rel="stylesheet">
+  <link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
+  <link href="{% static 'template-css/cookie-audit-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
-{% block title %}Cookie Audit | Detect Cookies and Basic Cookie Information{% endblock title %}
+
+{% block title %}Cookie Audit | Scan a Website for Cookies and Export a Report{% endblock title %}
+
 {% block content %}
-<main class="cookie-audit-main">
+  <section class="py-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
 
-  <div class="cookie-audit-layout">
+          <header class="text-center mb-4">
+            <h1 class="mb-2">Cookie Audit</h1>
+            <p class="mb-0 text-muted">
+              Scan a site for cookies being set and export a report.
+            </p>
+          </header>
 
-    <div class="cookie-audit-header">
-      <center>
-      <div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
-        <h1 class="mb-3">Cookie Audit</h1>
-        <br>
-        <p>Enter the URL of a web page. A table below will identify cookies. Due to the limitations of the server, the scan will stop if page count, memory, or timeout thresholds are met.</p>
-        <br>
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <form id="cookieAuditForm" method="post" novalidate>
+                {% csrf_token %}
 
-        <form method="post"
-            class="mb-4"
-            id="cookieAuditForm"
-            action="{% url 'projects:cookie_audit_start' %}"
-            novalidate>
-          {% csrf_token %}
+                <div class="mb-2">
+                  <label for="{{ form.url.id_for_label }}" class="form-label">URL</label>
+                  {{ form.url }}
+                  {% if form.url.help_text %}
+                    <div class="form-text">{{ form.url.help_text }}</div>
+                  {% endif %}
+                  {% for error in form.url.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                  {% endfor %}
+                </div>
 
-        <div class="input-group">
-          {{ form.url }}
-          <button class="btn btn-primary" type="submit" id="scanBtn">Scan Cookies</button>
+                <div class="d-grid gap-2">
+                  <button id="scanBtn" class="btn btn-primary" type="submit">Scan</button>
+                  <button id="downloadBtn" class="btn btn-secondary d-none" type="button" disabled>Download CSV</button>
+                </div>
+              </form>
 
-          <button class="btn btn-outline-secondary d-none" type="button" id="downloadBtn" disabled>
-            Download CSV
-          </button>
-        </div>
+              <div class="mb-4 d-none" id="scanProgress">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                  <div>
+                    <strong id="progressTitle">Scan in progress…</strong>
+                    <span class="text-muted" id="progressText">Starting…</span>
+                  </div>
+                </div>
 
-          {% if form.url.help_text %}
-            <div class="form-text">{{ form.url.help_text }}</div>
-          {% endif %}
+                <div class="progress mt-2 cookie-audit-progress">
+                  <div
+                    id="progressBar"
+                    class="progress-bar"
+                    role="progressbar"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
 
-          {% for error in form.url.errors %}
-            <div class="text-danger">{{ error }}</div>
-          {% endfor %}
-        </form>
-
-        <div class="mb-4 d-none" id="scanProgress">
-          <div class="d-flex align-items-center gap-2">
-            <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
-            <div>
-              <strong id="progressTitle">Scan in progress…</strong>
-              <span class="text-muted" id="progressText">Starting…</span>
+                <div class="form-text mt-2">
+                  Please keep this tab open while the scan runs.
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="progress mt-2" style="height: 10px;">
-            <div
-              id="progressBar"
-              class="progress-bar"
-              role="progressbar"
-              style="width: 0%;"
-              aria-valuenow="0"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-
-          <div class="form-text mt-2">
-            Please keep this tab open while the scan runs.
-          </div>
         </div>
       </div>
-      </center>
     </div>
+  </section>
 
-    <div class="cookie-audit-results">
-      {# Results get injected here (same sizing as your old “good” version) #}
-      <div class="container py-4" style="width: 100%; max-width: 900px; margin: auto;">
-        <div id="resultsArea"></div>
-      </div>
+  <section class="cookie-audit-results">
+    <div class="container py-4 cookie-audit-results-container">
+      <div id="resultsArea"></div>
     </div>
+  </section>
 
+  <div class="text-center mt-4">
+    <a
+      href="https://github.com/BenCritt/profile_workspace_heroku"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="btn btn-outline-secondary"
+      data-bs-toggle="tooltip"
+      title="View the source code for this app.">
+      View source on GitHub
+    </a>
+
+    <p class="mt-3 text-muted small mb-0">
+      This tool was created by
+      <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>,
+      an IT professional with experience in web development, systems administration, and project management.
+    </p>
   </div>
 
-<script>
-(function () {
-  const form = document.getElementById("cookieAuditForm");
-  const btn = document.getElementById("scanBtn");
-  const downloadBtn = document.getElementById("downloadBtn");
-  let currentDownloadUrl = "";
-  const scanProgress = document.getElementById("scanProgress");
-  const progressTitle = document.getElementById("progressTitle");
-  const progressText = document.getElementById("progressText");
-  const progressBar = document.getElementById("progressBar");
-  const resultsArea = document.getElementById("resultsArea");
+  <script>
+    (function () {
+      const form = document.getElementById("cookieAuditForm");
+      const btn = document.getElementById("scanBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
+      let currentDownloadUrl = "";
+      const scanProgress = document.getElementById("scanProgress");
+      const progressTitle = document.getElementById("progressTitle");
+      const progressText = document.getElementById("progressText");
+      const progressBar = document.getElementById("progressBar");
+      const resultsArea = document.getElementById("resultsArea");
 
-  function getCookie(name) {
-    const v = document.cookie.split(";").map(s => s.trim());
-    for (const part of v) {
-      if (part.startsWith(name + "=")) return decodeURIComponent(part.slice(name.length + 1));
-    }
-    return "";
-  }
+      // Initialize UI state (avoid inline styles in markup)
+      if (progressBar) progressBar.style.width = "0%";
 
-  function escapeHtml(s) {
-    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
-  }
-
-  function setProgress(percent) {
-    const p = Math.max(0, Math.min(100, Number(percent) || 0));
-    progressBar.style.width = p + "%";
-    progressBar.setAttribute("aria-valuenow", String(p));
-  }
-
-  function showProgress() {
-    scanProgress.classList.remove("d-none");
-  }
-
-  function hideProgress() {
-    scanProgress.classList.add("d-none");
-  }
-
-  async function poll(statusUrl, resultsUrl, downloadUrl) {
-    try {
-      const res = await fetch(statusUrl, { headers: { "Accept": "application/json" } });
-      if (!res.ok) throw new Error("status not ok");
-      const contentType = (res.headers.get("content-type") || "").toLowerCase();
-      const raw = await res.text();
-
-      let data = null;
-      if (contentType.includes("application/json")) {
-        try { data = JSON.parse(raw); } catch (e) {}
+      function getCookie(name) {
+        const v = document.cookie.split(";").map(s => s.trim());
+        for (const part of v) {
+          if (part.startsWith(name + "=")) return decodeURIComponent(part.slice(name.length + 1));
+        }
+        return "";
       }
 
-      if (!data) {
-        throw new Error(raw.slice(0, 200) || "Non-JSON response from server");
+      function escapeHtml(s) {
+        return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+          "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+        }[c]));
       }
 
-      const state = data.state;
-      const p = data.progress || {};
-      const visited = p.visited || 0;
-      const maxPages = p.max_pages || 0;
-      const currentUrl = p.current_url || "";
-      const percent = p.percent || 0;
-      const qpos = data.queue_position;
-
-      if (state === "queued") {
-        progressTitle.textContent = "Queued…";
-        if (typeof qpos === "number" && qpos > 0) {
-          progressText.textContent = `In queue (position ${qpos})…`;
-        } else {
-          progressText.textContent = "Waiting to start…";
+      function setProgress(pct, title, msg) {
+        const clamped = Math.max(0, Math.min(100, Number(pct || 0)));
+        if (progressBar) {
+          progressBar.style.width = clamped + "%";
+          progressBar.setAttribute("aria-valuenow", String(clamped));
         }
-        setProgress(0);
-      } else if (state === "running") {
-        progressTitle.textContent = "Scan in progress…";
-        if (maxPages) {
-          progressText.textContent =
-            `Visited ${visited}/${maxPages}` + (currentUrl ? ` — ${currentUrl}` : "");
-        } else {
-          progressText.textContent = currentUrl || "Working…";
-        }
-        setProgress(percent);
-      } else if (state === "error") {
-        progressTitle.textContent = "Scan failed.";
-        progressText.textContent = data.error || "Unknown error";
-        btn.disabled = false;
-        btn.textContent = "Scan Cookies";
-        downloadBtn.classList.add("d-none");
-        currentDownloadUrl = "";
-        return;
-      } else if (state === "done") {
-        progressTitle.textContent = "Complete.";
-        progressText.textContent = "Rendering results…";
-        setProgress(100);
+        if (progressTitle && title) progressTitle.textContent = title;
+        if (progressText && msg) progressText.textContent = msg;
+      }
 
-        const r = await fetch(resultsUrl, { headers: { "Accept": "application/json" } });
-        const rd = await r.json();
-        const results = rd.results || {};
-        renderResults(results, downloadUrl);
-        currentDownloadUrl = downloadUrl || "";
+      function setDownloadingAvailable(url) {
+        currentDownloadUrl = url || "";
+        downloadBtn.classList.toggle("d-none", !currentDownloadUrl);
         downloadBtn.disabled = !currentDownloadUrl;
-        if (currentDownloadUrl) {
-          downloadBtn.classList.remove("d-none");
-        } else {
-          downloadBtn.classList.add("d-none");
-        }
-        hideProgress();
-        btn.disabled = false;
-        btn.textContent = "Scan Cookies";
-        return;
       }
-    } catch (e) {
-      progressText.textContent = "Still working…";
-    }
 
-    setTimeout(() => poll(statusUrl, resultsUrl, downloadUrl), 1000);
-  }
+      async function startScan(url) {
+        setDownloadingAvailable("");
+        resultsArea.innerHTML = "";
+        scanProgress.classList.remove("d-none");
+        setProgress(1, "Scan in progress…", "Starting…");
 
-  function renderResults(results, downloadUrl) {
-    const summary = results.summary || {};
-    const cookies = Array.isArray(results.cookies) ? results.cookies : [];
+        const payload = new FormData();
+        payload.append("url", url);
 
-    let rows = "";
-    for (const c of cookies) {
-      rows += `
-        <tr>
-          <td data-label="Cookie name"><code>${escapeHtml(c.name)}</code></td>
-          <td data-label="Cookie type">${escapeHtml(c.cookie_type)}</td>
-          <td data-label="Purpose">${escapeHtml(c.purpose)}</td>
-          <td data-label="Party">${escapeHtml(c.party)}</td>
-          <td data-label="Domain"><code>${escapeHtml(c.domain)}</code></td>
-          <td data-label="Expires">${escapeHtml(c.expires_human)}</td>
-          <td data-label="HttpOnly">${escapeHtml(c.httpOnly ? "Yes" : "No")}</td>
-          <td data-label="Secure">${escapeHtml(c.secure ? "Yes" : "No")}</td>
-          <td data-label="SameSite">${escapeHtml(c.sameSite)}</td>
-        </tr>
-      `;
-    }
+        const r = await fetch("{% url 'projects:cookie_audit_start' %}", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "X-CSRFToken": getCookie("csrftoken") },
+          body: payload
+        });
 
-    if (!rows) {
-      rows = `
-        <tr>
-          <td colspan="9">No cookies found.</td>
-        </tr>
-      `;
-    }
+        const j = await r.json();
+        if (!j.task_id) throw new Error("No task id returned");
+        return j.task_id;
+      }
 
-    resultsArea.innerHTML = `
-      <h2 class="h4 mt-4">Summary</h2>
-      <ul class="small text-muted">
-        <li><strong>Base domain:</strong> ${escapeHtml(summary.base_registrable_domain)}</li>
-        <li><strong>Pages visited:</strong> ${escapeHtml(summary.visited_urls)}</li>
-        <li><strong>Total detected cookies:</strong> ${escapeHtml(summary.cookies_detected_total)}</li>
-      </ul>
+      async function poll(taskId) {
+        const statusUrl = "{% url 'projects:cookie_audit_status' 'TASKID' %}".replace("TASKID", taskId);
 
-      <div class="d-flex align-items-center justify-content-between mt-4">
-        <h2 class="h4 mb-0">Cookies</h2>
-      </div>
+        const r = await fetch(statusUrl, { credentials: "same-origin" });
+        const j = await r.json();
 
-      <table class="table table-striped table-hover table-sm cookie-table">
-        <colgroup>
-          <col style="width: 14%;">
-          <col style="width: 12%;">
-          <col style="width: 20%;">
-          <col style="width: 8%;">
-          <col style="width: 15%;">
-          <col style="width: 12%;">
-          <col style="width: 5%;">
-          <col style="width: 7%;">
-          <col style="width: 7%;">
-        </colgroup>
+        const pct = j.progress_percent ?? 0;
+        setProgress(pct, j.title || "Scan in progress…", j.message || "Working…");
 
-        <thead>
-          <tr>
-            <th scope="col">Cookie name</th>
-            <th scope="col">Cookie type</th>
-            <th scope="col">Purpose</th>
-            <th scope="col">Party</th>
-            <th scope="col">Domain</th>
-            <th scope="col">Expires</th>
-            <th scope="col" class="th-wrap">Http<wbr>Only</th>
-            <th scope="col">Secure</th>
-            <th scope="col" class="th-wrap">Same<wbr>Site</th>
-          </tr>
-        </thead>
+        if (j.state === "SUCCESS") {
+          scanProgress.classList.add("d-none");
+          if (j.download_url) setDownloadingAvailable(j.download_url);
+          if (j.html) {
+            resultsArea.innerHTML = j.html;
 
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-  }
+            // Ensure your column-width CSS can apply
+            const table =
+              resultsArea.querySelector("table.cookie-audit-results-table") ||
+              resultsArea.querySelector("table.cookie-table") ||
+              resultsArea.querySelector("table");
 
-  form.addEventListener("submit", async function (ev) {
-    currentDownloadUrl = "";
-    downloadBtn.disabled = true;
-    downloadBtn.classList.add("d-none");
-    ev.preventDefault();
+            if (table) {
+              table.classList.add("cookie-audit-results-table");
 
-    resultsArea.innerHTML = "";
+              // Add colgroup if missing
+              let colgroup = table.querySelector("colgroup");
+              if (!colgroup) {
+                colgroup = document.createElement("colgroup");
+                for (let i = 1; i <= 9; i++) {
+                  const col = document.createElement("col");
+                  col.className = `ca-col-${i}`;
+                  colgroup.appendChild(col);
+                }
+                table.prepend(colgroup);
+              } else {
+                // Ensure expected col classes exist
+                const cols = colgroup.querySelectorAll("col");
+                if (cols.length < 9) {
+                  for (let i = cols.length + 1; i <= 9; i++) {
+                    const col = document.createElement("col");
+                    col.className = `ca-col-${i}`;
+                    colgroup.appendChild(col);
+                  }
+                }
+                colgroup.querySelectorAll("col").forEach((col, idx) => {
+                  col.classList.add(`ca-col-${idx + 1}`);
+                });
+              }
+            }
+          }
+          return true;
+        }
 
-    btn.disabled = true;
-    btn.textContent = "Starting…";
-    showProgress();
-    progressTitle.textContent = "Starting…";
-    progressText.textContent = "Submitting scan…";
-    setProgress(0);
+        if (j.state === "FAILURE") {
+          scanProgress.classList.add("d-none");
+          resultsArea.innerHTML = `<div class="alert alert-danger">Scan failed. Please try again.</div>`;
+          setDownloadingAvailable("");
+          return true;
+        }
 
-    try {
-      const formData = new FormData(form);
-      const startUrl = form.getAttribute("action");
+        return false;
+      }
 
-      const res = await fetch(startUrl, {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json"
+      let pollTimer = null;
+
+      function stopPolling() {
+        if (pollTimer) window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+
+      form?.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        const urlInput = form.querySelector('input[name="url"]');
+        const url = urlInput?.value?.trim();
+        if (!url) return;
+
+        btn.disabled = true;
+
+        try {
+          stopPolling();
+          const taskId = await startScan(url);
+          pollTimer = window.setInterval(async () => {
+            const done = await poll(taskId);
+            if (done) {
+              stopPolling();
+              btn.disabled = false;
+            }
+          }, 1200);
+        } catch (e) {
+          stopPolling();
+          scanProgress.classList.add("d-none");
+          resultsArea.innerHTML = `<div class="alert alert-danger">Could not start scan. Please try again.</div>`;
+          btn.disabled = false;
         }
       });
 
-      const contentType = (res.headers.get("content-type") || "").toLowerCase();
-      const raw = await res.text();
+      downloadBtn?.addEventListener("click", function () {
+        if (!currentDownloadUrl) return;
+        window.location.href = currentDownloadUrl;
+      });
 
-      let data = null;
-      if (contentType.includes("application/json")) {
-        try { data = JSON.parse(raw); } catch (e) {}
-      }
-
-      if (!data) {
-        throw new Error(raw.slice(0, 200) || "Non-JSON response from server");
-      }
-
-      if (!res.ok) throw new Error(data.error || "Invalid request");
-
-      btn.textContent = "Scanning…";
-      poll(data.status_url, data.results_url, data.download_url);
-
-    } catch (e) {
-      progressTitle.textContent = "Scan failed.";
-      progressText.textContent = e.message || "Unknown error";
-      btn.disabled = false;
-      btn.textContent = "Scan Cookies";
-    }
-  });
-
-  downloadBtn.addEventListener("click", async function () {
-    if (!currentDownloadUrl) return;
-
-    downloadBtn.disabled = true;
-
-    try {
-      const res = await fetch(currentDownloadUrl, { headers: { "Accept": "text/csv" } });
-      if (!res.ok) throw new Error("Download failed.");
-
-      let filename = "cookie_audit.csv";
-      const disp = res.headers.get("content-disposition") || "";
-      const m = disp.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i);
-      if (m) filename = decodeURIComponent(m[1] || m[2]);
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-
-      downloadBtn.classList.add("d-none");
-      currentDownloadUrl = "";
-
-    } catch (e) {
-      downloadBtn.disabled = false;
-      alert(e.message || "Could not download CSV. Please try again.");
-    }
-  });
-})();
-</script>
-
-<script>
-  if (window.self !== window.top) {
-    document.documentElement.classList.add("embedded");
-  }
-</script>
-
-<center class="cookie-audit-footer">
-  <!-- Link to the source code repository with a GitHub icon. -->
-  <a href="https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-    </svg>
-  </a>
-  <br>
-  <div class="container" style="width: 100%; max-width: 750px;">
-    <p class="mt-3 text-muted small">
-      This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
-    </p>
-  </div>
-</center>
-
-</main>
-{% endblock %}
+      // NOTE: Your results HTML builder in JS should use this table markup (kept consistent):
+      // <table class="table ... cookie-table cookie-audit-results-table">
+      //   <colgroup>
+      //     <col class="ca-col-1"> ... <col class="ca-col-9">
+      //   </colgroup>
+      // </table>
+    })();
+  </script>
+{% endblock content %}
