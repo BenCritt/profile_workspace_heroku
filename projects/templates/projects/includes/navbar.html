@@ -1,0 +1,82 @@
+      <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+          <a 
+            class="navbar-brand" 
+            href="{% url 'projects:home' %}">
+            Ben Crittenden
+            </a>
+
+          <!-- mobile hamburger -->
+          <button 
+            class="navbar-toggler" 
+            type="button" 
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarMain" 
+            aria-controls="navbarMain"
+            aria-expanded="false" 
+            aria-label="Toggle navigation">
+            <span 
+                class="navbar-toggler-icon">
+            </span>
+          </button>
+
+          <!-- collapsible content -->
+          <div class="collapse navbar-collapse" id="navbarMain">
+            <!-- left-aligned links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+              <!-- single-link items -->
+              <li class="nav-item"><a class="nav-link" href="{% url 'projects:all_projects' %}">All Projects</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'projects:qr_code_generator' %}">QR Code Generator</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'projects:weather' %}">Weather Forecast</a></li>
+              <li class="nav-item"><a class="nav-link" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
+
+              <!-- SEO Professional Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:seo_tools' %}" id="seoToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  SEO Professional Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:font_inspector' %}">Font Inspector</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:seo_head_checker' %}">SEO Head Checker</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:cookie_audit' %}">Cookie Audit</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:seo_tools' %}">View All SEO Tools</a></li>
+                  
+                </ul>
+              </li>
+
+              <!-- IT Professional Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:it_tools' %}" id="itToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  IT Professional Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:ssl_check' %}">SSL Verification Tool</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:ip_tool' %}">IP Address Lookup Tool</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:dns_tool' %}">DNS Lookup Tool</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:it_tools' %}">View All IT Tools</a></li>
+                </ul>
+              </li>
+
+              <!-- More Tools dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="moreToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  More Tools
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:monte_carlo_simulator' %}">Monte Carlo Simulator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:grade_level_analyzer' %}">Grade Level Text Analyzer</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+      </nav>

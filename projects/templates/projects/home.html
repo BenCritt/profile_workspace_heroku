@@ -116,10 +116,7 @@
     </script>
 
     {% endblock scripts %}    
-    {% block styles %}
-    <!-- Custom styles for the page, specifically targeting the accordion component. -->
-    <!--background-color: #076CF6; This is an alternative color I want to save as a comment for now. -->
-    {% endblock styles %}
+
     {% block meta_tags %}
         <!-- Meta tags for providing basic information about the website to search engines and social media platforms. -->
         <meta name="description" content="The official website of Ben Crittenden. IT professional specializing in web development, systems administration, and project management.">
@@ -143,13 +140,18 @@
         <meta name="twitter:image"      content="https://www.bencritt.net/static/img/ben-crittenden-profile-picture.webp">
         <meta name="twitter:creator"    content="@bencritt89"/>
     {% endblock meta_tags %}
+
     {% block link_tags %}
-    <!-- Canonical URL to prevent duplicate content issues. -->
-    <link rel="canonical" href="https://www.bencritt.net">
-    <!-- Other CSS styling and layout. -->
-    <link href="{% static 'template-css/home-css.css' %}" rel="stylesheet">
+      {{ block.super }}
+      <link rel="canonical" href="https://www.bencritt.net">
     {% endblock link_tags %}
+
+    {% block page_stylesheets %}
+      <link href="{% static 'template-css/home-css.css' %}" rel="stylesheet">
+    {% endblock page_stylesheets %}
+
     {% block title %}Ben Crittenden | Official Website{% endblock title %}
+
     <!-- This begins the contents that are unique to the body of this page. -->
     {% block content %}
       <h1 class="text-center">Ben Crittenden</h1>

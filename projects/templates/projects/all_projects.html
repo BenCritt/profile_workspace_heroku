@@ -264,20 +264,22 @@
             <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
             <meta name="twitter:creator"     content="@bencritt89"/>
         {% endblock meta_tags %}
-        <!-- Custom styles for the page. -->
-        {% block styles %}
-        {% endblock styles %}
+
         {% block link_tags %}
-            <link rel="canonical" href="https://www.bencritt.net/projects/">
-            <!-- Other CSS styling and layout. -->
-            <link href="{% static 'template-css/all-projects-css.css' %}" rel="stylesheet">
+        {{ block.super }}
+        <link rel="canonical" href="https://www.bencritt.net/projects/">
         {% endblock link_tags %}
+
+        {% block page_stylesheets %}
+        <link href="{% static 'template-css/all-projects-css.css' %}" rel="stylesheet">
+        {% endblock page_stylesheets %}
+
         {% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
         <!-- This begins the contents that are unique to this page. -->
         {% block content %}
             <h1 class="text-center">Ben Crittenden's Projects</h1>
             <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;">
+            <div class="container u-container-narrow">
                 <section class="mb-4 text-center">
                     <h2 class="h4">About Ben Crittenden</h2>
                     <p class="lead fw-normal text-muted mb-0">
@@ -293,10 +295,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/qr-code-generator/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:qr_code_generator' %}" class="project-title-link">
                                 <h2 class="fw-bolder">QR Code Generator</h2>
                             </a>
-                            <a href="/projects/qr-code-generator/">
+                            <a href="{% url 'projects:qr_code_generator' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/qr-code-generator.webp' %}" alt="QR Code Generator" />
                             </a>
                         </div>
@@ -312,10 +314,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/monte-carlo-simulator/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:monte_carlo_simulator' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Monte Carlo Simulator</h2>
                             </a>
-                            <a href="/projects/monte-carlo-simulator/">
+                            <a href="{% url 'projects:monte_carlo_simulator' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/monte-carlo-simulator.webp' %}" alt="Monte Carlo Simulator" />
                             </a>
                         </div>
@@ -332,10 +334,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/weather/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:weather' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Weather Forecast App</h2>
                             </a>
-                            <a href="/projects/weather/">
+                            <a href="{% url 'projects:weather' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/weather.webp' %}" alt="Weather Forecast App" />
                             </a>
                         </div>
@@ -353,10 +355,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/grade-level-analyzer/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:grade_level_analyzer' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Grade Level Text Analyzer</h2>
                             </a>
-                            <a href="/projects/grade-level-analyzer/">
+                            <a href="{% url 'projects:grade_level_analyzer' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/grade-level-text-analyzer.webp' %}" alt="Grade Level Text Analyzer" />
                             </a>
                         </div>
@@ -374,10 +376,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/dns-lookup/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:dns_tool' %}" class="project-title-link">
                                 <h2 class="fw-bolder">DNS Lookup Tool</h2>
                             </a>
-                            <a href="/projects/dns-lookup/">
+                            <a href="{% url 'projects:dns_tool' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" />
                             </a>
                         </div>
@@ -395,10 +397,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/ip-tool/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:ip_tool' %}" class="project-title-link">
                                 <h2 class="fw-bolder">IP Address Lookup Tool</h2>
                             </a>
-                            <a href="/projects/ip-tool/">
+                            <a href="{% url 'projects:ip_tool' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" />
                             </a>
                         </div>
@@ -416,10 +418,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/ssl-check/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:ssl_check' %}" class="project-title-link">
                                 <h2 class="fw-bolder">SSL Verification Tool</h2>
                             </a>
-                            <a href="/projects/ssl-check/">
+                            <a href="{% url 'projects:ssl_check' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" />
                             </a>
                         </div>
@@ -437,10 +439,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/freight-safety/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:freight_safety' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Freight Carrier Safety Reporter</h2>
                             </a>
-                            <a href="/projects/freight-safety/">
+                            <a href="{% url 'projects:freight_safety' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/freight-safety.webp' %}" alt="Freight Carrier Safety Reporter" />
                             </a>
                         </div>
@@ -458,10 +460,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/seo-head-checker/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:seo_head_checker' %}" class="project-title-link">
                                 <h2 class="fw-bolder">SEO Head Checker</h2>
                             </a>
-                            <a href="/projects/seo-head-checker/">
+                            <a href="{% url 'projects:seo_head_checker' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker" />
                             </a>
                         </div>
@@ -479,10 +481,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/iss-tracker/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:iss_tracker' %}" class="project-title-link">
                                 <h2 class="fw-bolder">ISS Tracker</h2>
                             </a>
-                            <a href="/projects/iss-tracker/">
+                            <a href="{% url 'projects:iss_tracker' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/iss-tracker.webp' %}" alt="ISS Tracker" />
                             </a>
                         </div>
@@ -502,10 +504,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/xml-splitter/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:xml_splitter' %}" class="project-title-link">
                                 <h2 class="fw-bolder">XML Splitter</h2>
                             </a>
-                            <a href="/projects/xml-splitter/">
+                            <a href="{% url 'projects:xml_splitter' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/xml-splitter.webp' %}" alt="XML Splitter" />
                             </a>
                         </div>
@@ -523,10 +525,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/ham-radio-call-sign-lookup/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Ham Radio Call Sign Lookup</h2>
                             </a>
-                            <a href="/projects/ham-radio-call-sign-lookup/">
+                            <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" />
                             </a>
                         </div>
@@ -546,10 +548,10 @@
                     <div class="col-lg-6">
                         <!-- Project link and image. -->
                         <div class="text-center">
-                            <a href="/projects/font-inspector/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:font_inspector' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Font Inspector</h2>
                             </a>
-                            <a href="/projects/font-inspector/">
+                            <a href="{% url 'projects:font_inspector' %}">
                                 <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" />
                             </a>
                         </div>
@@ -567,10 +569,10 @@
                     <div class="col-lg-6 order-lg-last">
                         <!-- Project link and image -->
                         <div class="text-center">
-                            <a href="/projects/cookie-audit/" style="text-decoration: none; color: inherit;">
+                            <a href="{% url 'projects:cookie_audit' %}" class="project-title-link">
                                 <h2 class="fw-bolder">Cookie Audit</h2>
                             </a>
-                            <a href="/projects/cookie-audit/">
+                            <a href="{% url 'projects:cookie_audit' %}">
                                 <img
                                     class="img-fluid rounded mb-5 mb-lg-0"
                                     src="{% static 'img/all-projects/cookie-audit.webp' %}"

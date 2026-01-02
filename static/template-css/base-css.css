@@ -1,3 +1,29 @@
+/* When a page is embedded in an iframe, hide site chrome */
+body.in-iframe header,
+body.in-iframe footer {
+  display: none !important;
+}
+
+/* If you want to hide secondary buttons only in embedded mode */
+body.in-iframe .btn.btn-secondary {
+  display: none !important;
+}
+
+/* Utilities (only apply when you add these classes in templates) */
+.u-container-narrow {
+    width: 100%;
+    max-width: 750px;
+}
+
+/* Replaces inline style="text-decoration: none;" safely */
+.footer-brand-link {
+    text-decoration: none;
+}
+.footer-brand-link:hover,
+.footer-brand-link:focus {
+    text-decoration: none;
+}
+
 /* Generic inline content links */
 .content-link {
     color: inherit;                /* match surrounding text color */

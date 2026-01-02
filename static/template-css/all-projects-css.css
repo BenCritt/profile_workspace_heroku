@@ -18,3 +18,19 @@
     display: block;
     margin: 0 auto;
 }
+
+/* Keep project title links looking like plain headings (no blue, no underline) */
+a.project-title-link,
+a.project-title-link:visited,
+a.project-title-link:hover,
+a.project-title-link:focus,
+a.project-title-link:active {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+/* Ensure children (your <h2>) never re-pick up underline/color */
+a.project-title-link > * {
+    color: inherit !important;
+    text-decoration: none !important;
+}
