@@ -1,46 +1,18 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-    <!-- This is schema to help with SEO. -->
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "IP Address Lookup Tool",
-          "description": "The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records for a specified IP address, providing information about the domain name associated with the IP Address.",
-          "url": "https://www.bencritt.net/projects/ip-tool/",
-          "applicationCategory": "Network Utility",
-          "operatingSystem": "Web-based",
-          "image": "https://www.bencritt.net/static/img/all-projects/ip-tool.webp",
-          "creator": {
-            "@type": "Person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net"
-          },
-          "featureList": [
-            "Performs reverse DNS lookups to retrieve PTR records for specified IP addresses.",
-            "Displays the domain name associated with an IP address, useful for network diagnostics and verification.",
-            "Web-based application, accessible from any device with an internet connection.",
-            "Simple and intuitive interface for entering IP addresses and viewing reverse DNS results.",
-            "Built using Python and Django, utilizing powerful DNS libraries for accurate results and error handling."
-          ]
-        }
-    </script>
-    {% endblock scripts %}    
-    {% block styles %}
-    {% endblock styles %}
-    {% block meta_tags %}
-    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+
+{% block scripts %}
+    {% include "includes/schemas/ip_tool_schema.html" %}
+{% endblock scripts %}    
+
+{% block meta_tags %}
     <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma"         content="no-cache">
     <meta http-equiv="Expires"        content="0">
 
-    <!-- Meta tags providing essential information about the page to search engines. -->
     <meta name="description"          content="Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.">
-    <meta name="keywords"             content="IP, Address, Lookup, tool">
+    <meta name="keywords"             content="IP, Address, Lookup, tool, reverse DNS, geolocation, blacklist">
 
-    <!-- Open Graph -->
     <meta property="og:url"           content="https://www.bencritt.net/projects/ip-tool/">
     <meta property="og:type"          content="website">
     <meta property="og:title"         content="IP Address Lookup Tool">
@@ -49,14 +21,7 @@
     <meta property="og:image:type"    content="image/webp">
     <meta property="og:image:alt"     content="IP Address Lookup Tool Screenshot">
     <meta property="og:site_name"     content="Ben Crittenden">
-    
-    <!--
-    Once I have a specific image meant for this, I can use these optimized dimensions.
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    -->
 
-    <!-- Twitter -->
     <meta name="twitter:card"         content="summary_large_image">
     <meta name="twitter:domain"       content="bencritt.net">
     <meta name="twitter:url"          content="https://www.bencritt.net/projects/ip-tool/">
@@ -64,54 +29,71 @@
     <meta name="twitter:description"  content="The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve information for a specified IP address, including PTR records, geolocation data, and blacklist status.">
     <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/ip-tool.webp">
     <meta name="twitter:creator"      content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-    <!-- Canonical link to help avoid duplicate content issues. -->
+{% endblock meta_tags %}
+
+{% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/ip-tool/">
-    <!-- Other CSS styling and layout. -->
     <link href="{% static 'template-css/ip-tool-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}IP Address Lookup Tool | Reverse DNS, Geolocation, and Blacklist Check{% endblock title %}
-    <!-- This begins the contents that are unique to this page. -->
-    {% block content %}
-    <main>
-        <div class="centered-content">
-            <h1>IP Address Lookup Tool</h1>
-            <br>
-            <!-- Form for submitting IP address -->
+{% endblock link_tags %}
+
+{% block title %}IP Address Lookup Tool | Reverse DNS, Geolocation, and Blacklist Check{% endblock title %}
+
+{% block content %}
+<main>
+    <div class="text-center"> <h1>IP Address Lookup Tool</h1>
+        <br>
+        
+        <div class="container u-container-narrow">
+            {% if error_message %}
+                <div class="alert alert-danger">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
             <form method="post">
                 {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 {{ form.as_p }}
+                
                 <input type="submit" id="ip-lookup-btn" class="btn btn-primary" value="Look Up IP Address Info" aria-label="Look Up IP Address Info">
                 <br>
-                <a href="/projects/it_tools/" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
+                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
             </form>
+        </div>
+        <br>
+
+        {% if results %}
             <br>
-            <!-- Error message display -->
-            {% if error_message %}
-                <p style="color: red;">{{ error_message }}</p>
-            {% endif %}
-    
-            <!-- Display results if they exist -->
-            {% if results %}
-                <br>
+            <div class="container u-container-narrow">
                 <h5>IP Address Information for {{ form.cleaned_data.ip_address }}</h5>
-                <div class="container" style="width: 100%; max-width: 750px;">
-                    <!-- Table displaying various types of IP-related information -->
-                    <table class="table">
+                <br>
+                <div class="table-container">
+                    <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>Information Type</th>
+                                <th style="width: 30%;">Information Type</th>
                                 <th>Details</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- PTR Records -->
                             <tr>
                                 <td>PTR Records</td>
                                 <td>
                                     {% if results.PTR %}
-                                        <ul>
+                                        <ul class="text-start">
                                             {% for record in results.PTR %}
                                                 <li>{{ record }}</li>
                                             {% endfor %}
@@ -122,12 +104,11 @@
                                 </td>
                             </tr>
                             
-                            <!-- Geolocation Information -->
                             {% if results.Geolocation %}
                             <tr>
                                 <td>Geolocation</td>
                                 <td>
-                                    <ul>
+                                    <ul class="text-start">
                                         {% for key, value in results.Geolocation.items %}
                                             <li><strong>{{ key }}:</strong> {{ value }}</li>
                                         {% endfor %}
@@ -136,12 +117,11 @@
                             </tr>
                             {% endif %}
                             
-                            <!-- Blacklist Information -->
                             {% if results.Blacklist %}
                             <tr>
                                 <td>Blacklist Status</td>
                                 <td>
-                                    <ul>
+                                    <ul class="text-start">
                                         {% for status in results.Blacklist %}
                                             <li>{{ status }}</li>
                                         {% endfor %}
@@ -150,13 +130,13 @@
                             </tr>
                             {% endif %}
                             
-                            <!-- Additional Information Types -->
                             {% if results.ISP %}
                             <tr>
                                 <td>ISP</td>
                                 <td>{{ results.ISP }}</td>
                             </tr>
                             {% endif %}
+                            
                             {% if results.ASN %}
                             <tr>
                                 <td>ASN</td>
@@ -166,18 +146,23 @@
                         </tbody>
                     </table>
                 </div>
-            {% endif %}
-                <br><br>
-                <!-- Link to the GitHub repository for the project. -->
-                <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                </svg></a>
-            <br>
-            <div class = "container" style = "width: 100%; max-width: 750px;">
-                <p class="mt-3 text-muted small">
-                This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
-                </p>
             </div>
-        </center>
-    </main>
-    {% endblock content %}
+        {% endif %}
+        
+        <br><br>
+        
+        <a href="https://github.com/BenCritt/profile_workspace_heroku" class="repo-link" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app.">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+        </a>
+        <br>
+        
+        <div class="container u-container-narrow">
+            <p class="mt-3 text-muted small">
+            This tool was created by <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
+            </p>
+        </div>
+    </div>
+</main>
+{% endblock content %}
