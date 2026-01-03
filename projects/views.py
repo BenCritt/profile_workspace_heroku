@@ -564,29 +564,32 @@ def grade_level_analyzer(request):
     from .forms import TextForm
     from .grade_level_utils import calculate_grade_levels
 
-    # Initialize context with an empty form by default
+    # Default: Initialize an empty form
     form = TextForm()
-    context = {"form": form}
-
+    context = {} # Initialize context
+    
     if request.method == "POST":
+        # Bind data to the form
         form = TextForm(request.POST)
+        
         if form.is_valid():
-            # Extract input
+            # SUCCESS CASE
             input_text = form.cleaned_data["text"]
-            
-            # Pass input text back to context so it persists in the textarea
             context['text'] = input_text
             
-            # Calculate results using the utility function
+            # Calculate and add results
             results = calculate_grade_levels(input_text)
-            
-            # Add results to context
             context["results"] = results
-            
-            # Update the form in context (to show any errors if they existed, though is_valid passed)
-            context["form"] = form
+        else:
+            # FAILURE CASE - IMPORTANT
+            # If valid fails, we must ensure 'text' is passed back 
+            # so the user doesn't lose their input.
+            context['text'] = request.POST.get('text', '')
 
-    # Render the SAME template for both GET and POST
+    # ALWAYS pass the form to the context.
+    # If it was invalid, this 'form' object contains the errors.
+    context["form"] = form
+
     return render(request, "projects/grade_level_analyzer.html", context)
 
 
