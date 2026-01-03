@@ -478,7 +478,6 @@ def get_task_status(request, task_id):
 def download_task_file(request, task_id):
     return _download_task_file(request, task_id)
 
-
 # This is code for generating favicons on Android devices.
 # This dynamically creates a web.manifest JSON file, similar to how my sitemap is dynamically generated.
 def manifest(request):
@@ -503,7 +502,6 @@ def manifest(request):
         "background_color": "#000000",
     }
     return JsonResponse(manifest_json)
-
 
 # Freight Carrier Safety Reporter
 # Force memory trim after work.

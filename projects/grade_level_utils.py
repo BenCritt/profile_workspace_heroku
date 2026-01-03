@@ -78,7 +78,7 @@ def calculate_grade_levels(input_text):
     try:
         results = {
             "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
-            "gunning_fog":          textstat.gunning_fog(clean_text),
+            "gunning_fog_index":          textstat.gunning_fog_index(clean_text),
             "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
         }
     except (KeyError, Exception):
@@ -86,14 +86,14 @@ def calculate_grade_levels(input_text):
         fk, fog, cli = _metrics(clean_text)
         results = {
             "flesch_kincaid_grade": fk,
-            "gunning_fog":          fog,
+            "gunning_fog_index":          fog,
             "coleman_liau_index":   cli,
         }
 
     # Calculate averages
     results["average_score"] = round(
         (0.5 * results["flesch_kincaid_grade"])
-        + (0.3 * results["gunning_fog"])
+        + (0.3 * results["gunning_fog_index"])
         + (0.2 * results["coleman_liau_index"]),
         1,
     )
@@ -101,7 +101,7 @@ def calculate_grade_levels(input_text):
     results["uniform_average_score"] = round(
         (
             results["flesch_kincaid_grade"]
-            + results["gunning_fog"]
+            + results["gunning_fog_index"]
             + results["coleman_liau_index"]
         )
         / 3,
