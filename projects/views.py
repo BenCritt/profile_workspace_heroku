@@ -868,115 +868,61 @@ def monte_carlo_simulator(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def weather(request):
-    import json, datetime
-    from .weather_utils import get_city_and_state
-    from .utils import get_coordinates
+    import requests
     from .forms import WeatherForm
-    # Initialize the weather form, allowing for POST or None (for GET requests).
+    from .utils import get_coordinates
+    from .weather_utils import get_city_and_state, parse_weather_data
+
+    # Initialize form
     form = WeatherForm(request.POST or None)
+    context = {"form": form}
 
-    # Retrieve the zip code from the POST request, if present.
-    if request.method == "POST":
-        zip_code = request.POST["zip_code"]
+    # Only process if POST and Valid
+    if request.method == "POST" and form.is_valid():
+        # use cleaned_data for safety
+        zip_code = form.cleaned_data["zip_code"]
 
-    # If the form is valid, process the form data and render the weather forecast.
-    if form.is_valid():
-        # Obtain the coordinates for the given zip code.
+        # 1. Get Coordinates
         coordinates = get_coordinates(zip_code)
-        # Handle cases where coordinates cannot be found.
-        if coordinates == None:
-            context = {
-                "form": form,
-                "error_message": "The ZIP code you entered is valid, but the server was unable to find coordinates for it.  This is a Google Maps Platform API error and not a problem with my code.",
-            }
-            return render(request, "projects/weather.html", context)
-        else:
-            # Retrieve city and state names based on the zip code.
-            city_name, state_name = get_city_and_state(zip_code)
-            latitude, longitude = coordinates
-        # API key for accessing the weather information.
-        API_KEY_WEATHER = os.environ["OPEN_WEATHER_MAP_KEY"]
-        # Construct the API URL with coordinates and API key.
-        API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
-        # Send a GET request to the weather API.
-        response = requests.get(API_URL)
-        data = json.loads(response.content)
-        # Parse and extract current weather information.
-        icon_code_current = data["current"]["weather"][0]["icon"]
-        icon_url_current = f"https://openweathermap.org/img/wn/{icon_code_current}.png"
-        current_weather = data["current"]
-        day = data["daily"]
-        current_weather_report = []
-        current_weather_report.append(
-            {
-                "icon_url_current": icon_url_current,
-                "current_temperature": int(current_weather["temp"]),
-                "current_description": data["current"]["weather"][0]["description"],
-                "current_humidity": current_weather.get("humidity", "N/A"),
-                "current_rain": current_weather.get("rain", "No Rain"),
-                "current_snow": current_weather.get("snow", "No Snow"),
-                "current_wind_gust": current_weather.get("wind_gust", "N/A"),
-                "current_wind_speed": current_weather.get("wind_speed", "N/A"),
-                "current_wind_direction": current_weather.get("wind_deg", "N/A"),
-                "current_cloud": current_weather.get("clouds", "N/A"),
-                "current_uv": current_weather.get("uvi", "N/A"),
-                "current_dew": int(current_weather["dew_point"]),
-                # Temporarily commenting out current visibility because an API error is causing a server error.
-                # "current_visibility": int((current_weather["visibility"]) * 0.00062137),
-                "current_sunrise": datetime.datetime.fromtimestamp(
-                    current_weather["sunrise"]
-                ),
-                "current_sunset": datetime.datetime.fromtimestamp(
-                    current_weather["sunset"]
-                ),
-            }
-        )
-        # Parse and extract daily weather forecast information.
-        daily_forecast = []
-        for day in data["daily"]:
-            daily_forecast.append(
-                {
-                    "day_of_week": datetime.datetime.fromtimestamp(day["dt"]).strftime(
-                        "%A"
-                    ),
-                    "date": datetime.datetime.fromtimestamp(day["dt"]),
-                    "high_temp": int(day["temp"]["max"]),
-                    "low_temp": int(day["temp"]["min"]),
-                    "morn_temp": int(day["temp"]["morn"]),
-                    "morn_temp_feel": int(day["feels_like"]["morn"]),
-                    "day_temp": int(day["temp"]["day"]),
-                    "day_temp_feel": int(day["feels_like"]["day"]),
-                    "eve_temp": int(day["temp"]["eve"]),
-                    "eve_temp_feel": int(day["feels_like"]["eve"]),
-                    "night_temp": int(day["temp"]["night"]),
-                    "night_temp_feel": int(day["feels_like"]["night"]),
-                    "summary": day["summary"],
-                    "sunrise": datetime.datetime.fromtimestamp(day["sunrise"]),
-                    "sunset": datetime.datetime.fromtimestamp(day["sunset"]),
-                    "dew_point": day["dew_point"],
-                    "humidity": day["humidity"],
-                    "precipitation_chance": round(day["pop"] * 100),
-                }
+        
+        if not coordinates:
+            context["error_message"] = (
+                "The ZIP code you entered is valid, but the server was unable to find coordinates for it. "
+                "This is a Google Maps Platform API error and not a problem with my code."
             )
+            return render(request, "projects/weather.html", context)
 
-        # Prepare context with weather and location data for rendering.
-        context = {
-            "form": form,
-            "daily_forecast": daily_forecast,
-            "city_name": city_name,
-            "state_name": state_name,
-            "current_weather_report": current_weather_report,
-        }
-        # Render the page with weather results.
-        return render(request, "projects/weather.html", context)
+        # 2. Get Location Names
+        city_name, state_name = get_city_and_state(zip_code)
+        latitude, longitude = coordinates
+        
+        # 3. Fetch Weather Data safely
+        API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
+        API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
 
-    # If the form is not valid or it's a GET request, render the form again.
-    else:
-        context = {
-            "form": form,
-        }
-        return render(request, "projects/weather.html", context)
+        try:
+            response = requests.get(API_URL, timeout=5)
+            response.raise_for_status() # Raises error for 404/500 codes
+            
+            # Offload parsing logic to utils
+            weather_data = parse_weather_data(response.json())
+            
+            # Merge results into context
+            context.update({
+                "city_name": city_name,
+                "state_name": state_name,
+                **weather_data # Unpacks 'current_weather_report' and 'daily_forecast'
+            })
 
+        except requests.RequestException:
+            context["error_message"] = "Weather service is currently unavailable. Please try again later."
+        except Exception as e:
+            # Catch parsing errors or other issues
+            print(f"Weather App Error: {e}")
+            context["error_message"] = "An unexpected error occurred while processing weather data."
+
+    # Render (Same template for GET and POST)
+    return render(request, "projects/weather.html", context)
 
 # This is the code for the page containing information on all of my projects.
 # Force memory trim after work.
