@@ -1,48 +1,18 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
-    <!-- Block to define specific meta tags, links, and titles for the head section of the page. -->
-    {% block scripts %}
-    <!-- This is schema to help with SEO. -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "QR Code Generator",
-        "description": "A web-based QR Code Generator that allows users to create QR codes from text inputs and download them as PNG files.",
-        "url": "https://www.bencritt.net/projects/qr-code-generator/",
-        "applicationCategory": "Utility Software",
-        "operatingSystem": "Web-based",
-        "image": "https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp",
-        "creator": {
-          "@type": "Person",
-          "name": "Ben Crittenden",
-          "url": "https://www.bencritt.net"
-        },
-        "featureList": [
-          "Generate QR codes from any text input.",
-          "Download QR codes as high-quality PNG files.",
-          "User-friendly interface for easy operation.",
-          "Instantly save QR codes to your default downloads folder.",
-          "Accessible from any device with internet connectivity."
-        ],
-        "softwareVersion": "1.0",
-        "applicationSubCategory": "Utility Software"
-      }
-           
-    </script> 
-    {% endblock scripts %}
-    {% block meta_tags %}
-    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+
+{% block scripts %}
+    {% include "includes/schemas/qr_code_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
     <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma"         content="no-cache">
     <meta http-equiv="Expires"        content="0">
     
-    <!-- Meta tags to provide information about the page to search engines and social media platforms. -->
     <meta name="description"          content="Create and download custom QR codes easily with our online QR Code Generator. Enter your text, generate a QR code, and download it as a PNG file directly to your computer. Quick, efficient, and user-friendly.">
     <meta name="keywords"             content="QR Code Generator, create QR code, online QR code tool, QR code PNG download, generate QR code">
     
-    <!-- Open Graph -->
     <meta property="og:url"           content="https://www.bencritt.net/projects/qr-code-generator/">
     <meta property="og:type"          content="website">
     <meta property="og:title"         content="QR Code Generator">
@@ -51,14 +21,7 @@
     <meta property="og:image:type"    content="image/webp">
     <meta property="og:image:alt"     content="QR Code Generator Screenshot">
     <meta property="og:site_name"     content="Ben Crittenden">
-    
-    <!--
-    Once I have a specific image meant for this, I can use these optimized dimensions.
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    -->
 
-    <!-- Twitter -->
     <meta name="twitter:card"         content="summary_large_image">
     <meta name="twitter:domain"       content="bencritt.net">
     <meta name="twitter:url"          content="https://www.bencritt.net/projects/qr-code-generator/">
@@ -67,52 +30,47 @@
     <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta name="twitter:image:alt"    content="QR Code Generator preview image">
     <meta name="twitter:creator"      content="@bencritt89">
-    {% endblock meta_tags %}
-    {% block link_tags %}
-    <!-- Canonical link to help prevent duplicate content issues. -->
+{% endblock meta_tags %}
+
+{% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/qr-code-generator/">
-    {% endblock link_tags %}
-    {% block title %}QR Code Generator | Create and Download Custom QR Codes Online{% endblock title %}
-    <!-- This begins the contents that are unique to the body of this page. -->
-    {% block content %}
-      <!-- Page heading and instructions. -->
-      <center><h1>QR Code Generator</h1><br>
-          <!-- Form container. -->
-          <div class = "container" style = "width: 100%; max-width: 750px;">
+{% endblock link_tags %}
+
+{% block title %}QR Code Generator | Create and Download Custom QR Codes Online{% endblock title %}
+
+{% block content %}
+    <center>
+        <h1>QR Code Generator</h1>
+        <br>
+        <div class="container u-container-narrow">
             <p>Enter your URL or other text below.</p>
-              <!-- POST method form to submit data to the server. -->
-              <form method = "POST">
-                  <!-- Protects against Cross-Site Request Forgery (CSRF) by attaching a unique security token to the form. -->
-                  {% csrf_token %} 
-                  <!-- Dynamically generate form fields. -->
-                  {% for field in form %}
-                  <div class = "mb-3">
-                      <!-- Display each field with label, input, and error messages. -->
-                      {{field.label_tag}}
-                  </div>
-                  {{field}}
-                  {{field.errors}}
-                  {% endfor %}
-                  <br>
-                  <br>
-                  <!-- Submit button for the form. -->
-                  <input type="submit" id="qr-btn" class="btn btn-primary" value="Generate QR Code" aria-label="Generate QR Code">
-              </form>
-          </div>
-          <br>
-          <!-- Additional information about the QR code generation result. -->
-          <p>Your QR code will be downloaded and placed into your default downloads folder.</p>
-          <br>
-          <!-- Link to the source code repository with a GitHub icon. -->
-          <a href = "https://github.com/BenCritt/profile_workspace_heroku" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app."><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-          </svg></a>
-          <br>
-          <div class = "container" style = "width: 100%; max-width: 750px;">
+            <form method="POST">
+                {% csrf_token %} 
+                {% for field in form %}
+                <div class="mb-3">
+                    {{field.label_tag}}
+                </div>
+                {{field}}
+                {{field.errors}}
+                {% endfor %}
+                <br>
+                <br>
+                <input type="submit" id="qr-btn" class="btn btn-primary" value="Generate QR Code" aria-label="Generate QR Code">
+            </form>
+        </div>
+        <br>
+        <p>Your QR code will be downloaded and placed into your default downloads folder.</p>
+        <br>
+        <a href="https://github.com/BenCritt/profile_workspace_heroku" class="repo-link" target="_blank" rel="noopener noreferrer" data-bs-toggle="tooltip" title="View the source code for this app.">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+        </a>
+        <br>
+        <div class="container u-container-narrow">
             <p class="mt-3 text-muted small">
-              This tool was created by <a href="/" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
+                This tool was created by <a href="{% url 'projects:home' %}" class="content-link" title="Ben Crittenden – IT Professional">Ben Crittenden</a>, an IT professional with experience in web development, systems administration, and project management.
             </p>
-          </div>
-          </center>
-        </center>
-    {% endblock content %}
+        </div>
+    </center>
+{% endblock content %}
