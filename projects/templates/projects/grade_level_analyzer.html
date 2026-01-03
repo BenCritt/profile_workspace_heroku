@@ -41,19 +41,32 @@
     <center>
         <h1>Grade Level Text Analyzer</h1>
         <br>
-        
         <div class="container u-container-narrow">
             <form action="{% url 'projects:grade_level_analyzer' %}" method="post">
                 {% csrf_token %} 
                 <div class="mb-3">
                     <label for="text" class="form-label"><b>Enter Text to Analyze:</b></label>
-                    <textarea class="form-control" id="text" name="text" rows="10" required placeholder="Paste your text here. Your sample must be between 1,200 and 10,000 characters.">{{ text|default:'' }}</textarea>
+                    
+                    {% if form.text.errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.text.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <textarea 
+                        class="form-control" 
+                        id="text" 
+                        name="text" 
+                        rows="10" 
+                        required 
+                        placeholder="Paste your text here (minimum 1200 characters required)..."
+                    >{{ form.text.value|default:'' }}</textarea>
                 </div>
                 <input type="submit" id="txt-analyze-btn" class="btn btn-primary" value="Analyze Sample Text" aria-label="Analyze Sample Text">
             </form>
         </div>
         <br>
-
         {% if results %}
         <div class="container u-container-narrow">
             <h2>Analysis Results</h2>
