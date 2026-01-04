@@ -827,8 +827,98 @@ def weather(request):
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def all_projects(request):
-    return render(request, "projects/all_projects.html")
-
+    projects_data = [
+        {
+            "title": "QR Code Generator",
+            "url_name": "projects:qr_code_generator",
+            "image": "qr-code-generator.webp",
+            "description": "Easily generate QR codes with the user-friendly QR Code Generator. Whether you need a QR code for a website link, contact information, or any text, this app provides a fast and efficient solution. Simply enter your desired data, and with one click, you'll have a high-quality QR code ready to download and use. Perfect for teachers, businesses, marketers, event organizers, and individuals."
+        },
+        {
+            "title": "Monte Carlo Simulator",
+            "url_name": "projects:monte_carlo_simulator",
+            "image": "monte-carlo-simulator.webp",
+            "description": "Run quick what-if simulations. Set your ranges (single or dual) and an optional target, then export an easy-to-read probability chart to PDF for stakeholders."
+        },
+        {
+            "title": "Weather Forecast App",
+            "url_name": "projects:weather",
+            "image": "weather.webp",
+            "description": "Stay prepared with the Weather Forecast App, which provides precise and up-to-date weather information tailored to your location. By simply entering your ZIP code, you can receive detailed weather forecasts, including current conditions, daily highs and lows, humidity levels, wind speeds, and more."
+        },
+        {
+            "title": "Grade Level Text Analyzer",
+            "url_name": "projects:grade_level_analyzer",
+            "image": "grade-level-text-analyzer.webp",
+            "description": "Improve the readability of your content with the Grade Level Text Analyzer. This intuitive tool evaluates your text using the Flesch-Kincaid Grade Level, Gunning Fog Index, and Coleman-Liau Index, providing insights into how easily your writing can be understood by different audiences."
+        },
+        {
+            "title": "DNS Lookup Tool",
+            "url_name": "projects:dns_tool",
+            "image": "dns-lookup.webp",
+            "description": "Perform comprehensive DNS lookups with the DNS Lookup Tool, designed to provide quick access to vital DNS records for any domain. This tool is ideal for webmasters, network administrators, and SEO professionals who need detailed DNS information for troubleshooting, optimization, or security purposes."
+        },
+        {
+            "title": "IP Address Lookup Tool",
+            "url_name": "projects:ip_tool",
+            "image": "ip-tool.webp",
+            "description": "Uncover vital details about any IP address with the IP Address Lookup Tool, designed for IT professionals seeking in-depth information, including PTR (reverse DNS) records, geolocation data, ISP details, and organization information. This useful app also conducts DNS-based blacklist checks."
+        },
+        {
+            "title": "SSL Verification Tool",
+            "url_name": "projects:ssl_check",
+            "image": "ssl-check.webp",
+            "description": "Ensure the security and validity of your website's SSL certificate with the SSL Verification Tool. This app provides detailed information about SSL certificates, including the certificate’s issuer, expiration dates, and validity period. Whether you're a website owner, developer, or security professional, this tool helps you maintain a secure online presence."
+        },
+        {
+            "title": "Freight Carrier Safety Reporter",
+            "url_name": "projects:freight_safety",
+            "image": "freight-safety.webp",
+            "description": "Gain critical insights into freight carrier safety and compliance with the Freight Carrier Safety Reporter. Designed for freight brokers, safety managers, and logistics professionals, this app provides essential details about motor carriers using their USDOT numbers. The tool leverages FMCSA’s QCMobile API to retrieve vital safety data."
+        },
+        {
+            "title": "SEO Head Checker",
+            "url_name": "projects:seo_head_checker",
+            "image": "seo-head-checker.webp",
+            "description": "Uncover opportunities to enhance your website's search engine performance with the SEO Head Checker. This tool analyzes the head section of webpages, identifying the presence or absence of essential SEO elements such as title tags, meta descriptions, canonical tags, Open Graph tags, Twitter Card tags, and more."
+        },
+        {
+            "title": "ISS Tracker",
+            "url_name": "projects:iss_tracker",
+            "image": "iss-tracker.webp",
+            "description": "Monitor the International Space Station (ISS) in real-time with the ISS Tracker. This web-based app provides dynamic tracking of the ISS, including its current latitude, longitude, altitude, velocity, and regional position. Users can also project upcoming pass times over their location with precise timing and geolocation."
+        },
+        {
+            "title": "XML Splitter",
+            "url_name": "projects:xml_splitter",
+            "image": "xml-splitter.webp",
+            "description": "Convert a single, nested XML export into a clean ZIP of one-file-per-record. Many e-commerce platforms bundle orders, products, and customers into one large XML, while ERPs prefer individual XML files. Upload your source XML and the app splits it into well-formed, per-entry XML documents."
+        },
+        {
+            "title": "Ham Radio Call Sign Lookup",
+            "url_name": "projects:ham_radio_call_sign_lookup",
+            "image": "ham-radio-call-sign-lookup.webp",
+            "description": "Look up any U.S. amateur (ham) radio call sign to verify license status and view key details such as licensee name, class, and expiration. Designed for operators, clubs, and event coordinators, this tool provides quick identity checks before on-air contacts or during registration and logging."
+        },
+        {
+            "title": "Font Inspector",
+            "url_name": "projects:font_inspector",
+            "image": "font-inspector.webp",
+            "description": "Identify the fonts used on any website and where they’re loaded from. The Font Inspector scans page HTML and linked stylesheets to detect local and web-hosted fonts (e.g. Google Fonts, Adobe Fonts, Font Awesome), and offers licensing guidance. Export results to CSV for design audits."
+        },
+        {
+            "title": "Cookie Audit",
+            "url_name": "projects:cookie_audit",
+            "image": "cookie-audit.webp",
+            "description": "Scan any public webpage to identify cookies in use and review key attributes such as domain, expiration, HttpOnly, Secure, and SameSite flags. The Cookie Audit tool distinguishes between first-party and third-party cookies, identifies how cookies are set, and displays results in a clear, audit-ready table."
+        }
+    ]
+    
+    context = {
+        'projects': projects_data
+    }
+    
+    return render(request, 'projects/all_projects.html', context)
 
 # DNS Lookup Tool
 # Force memory trim after work.

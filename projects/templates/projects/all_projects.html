@@ -1,15 +1,11 @@
-<!-- This loads the standard navbar, footer, styles, and scripts shared by every webpage on this site. -->
 {% extends "projects/base.html" %}
 {% load static %}
         {% block scripts %}
-            <!-- This is schema to help with SEO. -->
             {% include "includes/schemas/all_projects_schema.html" %}
         {% endblock scripts %}
         {% block meta_tags %}
-            <!-- Meta tags providing essential information about the page to search engines. -->
             <meta name="description" content="Explore Ben Crittenden’s web tools for IT, SEO, education, freight, ham radio, and ISS tracking.  Includes QR Code Generator, SEO Head Checker, Font Inspector, XML Splitter, and more.">
 
-            <!-- Open Graph -->
             <meta property="og:url"         content="https://www.bencritt.net/projects/">
             <meta property="og:type"        content="website">
             <meta property="og:title"       content="Ben Crittenden's Projects">
@@ -19,13 +15,6 @@
             <meta property="og:image:alt"   content="Ben Crittenden's Projects Preview Image">
             <meta property="og:site_name"   content="Ben Crittenden">
 
-            <!--
-            Once I have a specific image meant for this, I can use these optimized dimensions.
-            <meta property="og:image:width" content="1200">
-            <meta property="og:image:height" content="630">
-            -->
-
-            <!-- Twitter -->
             <meta name="twitter:card"        content="summary_large_image">
             <meta name="twitter:domain"      content="bencritt.net">
             <meta name="twitter:url"         content="https://www.bencritt.net/projects/">
@@ -45,322 +34,50 @@
         {% endblock page_stylesheets %}
 
         {% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
-        <!-- This begins the contents that are unique to this page. -->
+        
         {% block content %}
-            <h1 class="text-center">Ben Crittenden's Projects</h1>
-            <br>
-            <div class="container u-container-narrow">
-                <section class="mb-4 text-center">
-                    <h2 class="h4">About Ben Crittenden</h2>
-                    <p class="lead fw-normal text-muted mb-0">
-                        Ben Crittenden is an IT professional who builds Python-based web tools for IT professionals,
-                        SEO specialists, educators, freight brokers, and ham radio operators. Learn more on the
-                        <a href="{% url 'projects:home' %}" class="content-link">homepage</a>.
-                    </p>
-                </section>
+            <h1 class="text-center mb-4">Ben Crittenden's Projects</h1>
+
+            <div class="container u-container-narrow mb-5">
+            <section class="text-center">
+                <h2 class="h4">About Ben Crittenden</h2>
+                <p class="lead fw-normal text-muted mb-0">
+                Ben Crittenden is an IT professional who builds Python-based web tools for IT professionals,
+                SEO specialists, educators, freight brokers, and ham radio operators. Learn more on the
+                <a href="{% url 'projects:home' %}" class="content-link">homepage</a>.
+                </p>
+            </section>
             </div>
-            <!-- Each container represents a project with its description and an image. -->
+
+            {% for project in projects %}
             <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:qr_code_generator' %}" class="project-title-link">
-                                <h2 class="fw-bolder">QR Code Generator</h2>
-                            </a>
-                            <a href="{% url 'projects:qr_code_generator' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/qr-code-generator.webp' %}" alt="QR Code Generator" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Easily generate QR codes with the user-friendly QR Code Generator. Whether you need a QR code for a website link, contact information, or any text, this app provides a fast and efficient solution. Simply enter your desired data, and with one click, you'll have a high-quality QR code ready to download and use. Perfect for teachers, businesses, marketers, event organizers, and individuals, the QR Code Generator supports a wide range of applications, enhancing your promotional materials, digital campaigns, or personal projects with a QR code.</p>
-                    </div>
+            <div class="row gx-5 align-items-center">
+
+            <div class="col-lg-6 {% cycle '' 'order-lg-last' %}">
+                <div class="text-center">
+                    <a href="{% url project.url_name %}" class="project-title-link">
+                    <h2 class="fw-bolder">{{ project.title }}</h2>
+                    </a>
+                    <a href="{% url project.url_name %}">
+                    
+                    {% with 'img/all-projects/'|add:project.image as image_path %}
+                        <img class="img-fluid rounded mb-5 mb-lg-0"
+                             src="{% static image_path %}"
+                             alt="{{ project.title }}" />
+                    {% endwith %}
+                    
+                    </a>
                 </div>
-                <br>
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:monte_carlo_simulator' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Monte Carlo Simulator</h2>
-                            </a>
-                            <a href="{% url 'projects:monte_carlo_simulator' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/monte-carlo-simulator.webp' %}" alt="Monte Carlo Simulator" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <p class="lead fw-normal text-muted mb-0">Run quick what-if simulations. Set your ranges (single or dual) and an optional target, then export an easy-to-read probability chart to PDF for stakeholders.</p>
-                    </div>
                 </div>
+
+                <div class="col-lg-6">
+                <p class="lead fw-normal text-muted mb-0">
+                    {{ project.description }}
+                </p>
+                </div>
+
             </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:weather' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Weather Forecast App</h2>
-                            </a>
-                            <a href="{% url 'projects:weather' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/weather.webp' %}" alt="Weather Forecast App" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Stay prepared with the Weather Forecast App, which provides precise and up-to-date weather information tailored to your location. By simply entering your ZIP code, you can receive detailed weather forecasts, including current conditions, daily highs and lows, humidity levels, wind speeds, and more. Powered by reliable data from OpenWeatherMap and Google Maps, this app offers a comprehensive overview of the weather from sunrise to sunset, ensuring you have all the information you need to plan your day or week ahead.</p>
-                    </div>
-                </div>
             </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:grade_level_analyzer' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Grade Level Text Analyzer</h2>
-                            </a>
-                            <a href="{% url 'projects:grade_level_analyzer' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/grade-level-text-analyzer.webp' %}" alt="Grade Level Text Analyzer" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Improve the readability of your content with the Grade Level Text Analyzer. This intuitive tool evaluates your text using the Flesch-Kincaid Grade Level, Gunning Fog Index, and Coleman-Liau Index, providing insights into how easily your writing can be understood by different audiences. Whether you're a writer, educator, or content creator, the Grade Level Text Analyzer helps ensure your text is appropriately tailored for your intended readers. The user-friendly interface allows you to quickly analyze your text and make adjustments to improve clarity and comprehension.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:dns_tool' %}" class="project-title-link">
-                                <h2 class="fw-bolder">DNS Lookup Tool</h2>
-                            </a>
-                            <a href="{% url 'projects:dns_tool' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Perform comprehensive DNS lookups with the DNS Lookup Tool, designed to provide quick access to vital DNS records for any domain. This tool is ideal for webmasters, network administrators, and SEO professionals who need detailed DNS information for troubleshooting, optimization, or security purposes. The DNS Lookup Tool supports a wide range of DNS record types, including A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records. It ensures accurate retrieval of DNS data, helping you verify domain configurations, identify potential issues, and optimize your website’s performance.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:ip_tool' %}" class="project-title-link">
-                                <h2 class="fw-bolder">IP Address Lookup Tool</h2>
-                            </a>
-                            <a href="{% url 'projects:ip_tool' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Uncover vital details about any IP address with the IP Address Lookup Tool, designed for IT professionals seeking in-depth information, including PTR (reverse DNS) records, geolocation data, ISP details, and organization information. This useful app also conducts DNS-based blacklist checks to ensure that your IP address is not listed on major spam blacklists like Spamhaus and Spamcop. It delivers accurate and up-to-date results, making it an essential resource for managing your online presence, troubleshooting network issues, or conducting security audits.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:ssl_check' %}" class="project-title-link">
-                                <h2 class="fw-bolder">SSL Verification Tool</h2>
-                            </a>
-                            <a href="{% url 'projects:ssl_check' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Ensure the security and validity of your website's SSL certificate with the SSL Verification Tool. This app provides detailed information about SSL certificates, including the certificate’s issuer, expiration dates, and validity period. Whether you're a website owner, developer, or security professional, the SSL Verification Tool helps you maintain a secure online presence by verifying your site's SSL configuration. Accessible from any device with an internet connection, it offers a user-friendly interface to easily check and verify the SSL status of any domain.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:freight_safety' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Freight Carrier Safety Reporter</h2>
-                            </a>
-                            <a href="{% url 'projects:freight_safety' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/freight-safety.webp' %}" alt="Freight Carrier Safety Reporter" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Gain critical insights into freight carrier safety and compliance with the Freight Carrier Safety Reporter. Designed for freight brokers, safety managers, and logistics professionals, this app provides essential details about motor carriers using their USDOT numbers. The tool leverages FMCSA’s QCMobile API to retrieve vital safety data, including crash history, out-of-service rates, safety ratings, and compliance records. With its clean, user-friendly interface, the Freight Carrier Safety Reporter empowers users to make informed decisions when evaluating carriers, ensuring safer and more reliable logistics operations.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:seo_head_checker' %}" class="project-title-link">
-                                <h2 class="fw-bolder">SEO Head Checker</h2>
-                            </a>
-                            <a href="{% url 'projects:seo_head_checker' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Uncover opportunities to enhance your website's search engine performance with the SEO Head Checker. This tool analyzes the head section of webpages, identifying the presence or absence of essential SEO elements such as title tags, meta descriptions, canonical tags, Open Graph tags, Twitter Card tags, and more. Meant for SEO professionals, web developers, and content creators, the SEO Head Checker generates reports in CSV format to help you fine-tune your site's search engine optimization. With its easy-to-use interface, you can scan sitemaps for up to 500 pages, track progress in real time, and download results. Optimize your website today and achieve better visibility in search results.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:iss_tracker' %}" class="project-title-link">
-                                <h2 class="fw-bolder">ISS Tracker</h2>
-                            </a>
-                            <a href="{% url 'projects:iss_tracker' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/iss-tracker.webp' %}" alt="ISS Tracker" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">
-                            Monitor the International Space Station (ISS) in real-time with the ISS Tracker. This web-based app provides dynamic tracking of the ISS, including its current latitude, longitude, altitude, velocity, and regional position. Users can also project upcoming pass times over their location with precise timing and geolocation. Accessible from any internet-connected device, the ISS Tracker delivers data updates every 60 seconds for an engaging and accurate tracking experience.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:xml_splitter' %}" class="project-title-link">
-                                <h2 class="fw-bolder">XML Splitter</h2>
-                            </a>
-                            <a href="{% url 'projects:xml_splitter' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/xml-splitter.webp' %}" alt="XML Splitter" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Convert a single, nested XML export into a clean ZIP of one-file-per-record. Many e-commerce platforms bundle orders, products, and customers into one large XML, while ERPs prefer individual XML files. Upload your source XML and the app splits it into well-formed, per-entry XML documents, preserves namespaces and declarations, and returns a ready-to-ingest ZIP archive. Perfect for smoothing CMS → ERP handoffs and large batch imports.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Ham Radio Call Sign Lookup</h2>
-                            </a>
-                            <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">
-                            Look up any U.S. amateur (ham) radio call sign to verify license status and view key details such as licensee name, class, and expiration. Designed for operators, clubs, and event coordinators, this tool provides quick identity checks before on-air contacts or during registration and logging.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6">
-                        <!-- Project link and image. -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:font_inspector' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Font Inspector</h2>
-                            </a>
-                            <a href="{% url 'projects:font_inspector' %}">
-                                <img class="img-fluid rounded mb-5 mb-lg-0" src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <!-- Project description. -->
-                        <p class="lead fw-normal text-muted mb-0">Identify the fonts used on any website and where they’re loaded from. The Font Inspector scans page HTML and linked stylesheets to detect local and web-hosted fonts (e.g. Google Fonts, Adobe Fonts, Font Awesome), and offers licensing guidance. Export results to CSV for design audits, hand-offs, and procurement reviews.</p>
-                    </div>
-                </div>
-            </div>
-            <br>
-            <div class="container px-5 my-5">
-                <div class="row gx-5 align-items-center">
-                    <div class="col-lg-6 order-lg-last">
-                        <!-- Project link and image -->
-                        <div class="text-center">
-                            <a href="{% url 'projects:cookie_audit' %}" class="project-title-link">
-                                <h2 class="fw-bolder">Cookie Audit</h2>
-                            </a>
-                            <a href="{% url 'projects:cookie_audit' %}">
-                                <img
-                                    class="img-fluid rounded mb-5 mb-lg-0"
-                                    src="{% static 'img/all-projects/cookie-audit.webp' %}"
-                                    alt="Cookie Audit tool showing detected cookies and attributes"
-                                />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <br>
-                        <p class="lead fw-normal text-muted mb-0">
-                            Scan any public webpage to identify cookies in use and review key attributes such as domain,
-                            expiration, HttpOnly, Secure, and SameSite flags. The Cookie Audit tool distinguishes between
-                            first-party and third-party cookies, identifies how cookies are set, and displays results
-                            in a clear, audit-ready table. Ideal for developers, SEO professionals, privacy reviews,
-                            and basic compliance checks.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
+
         {% endblock content %}
