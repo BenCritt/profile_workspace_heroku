@@ -1,47 +1,77 @@
+/* 1. Override Base Padding */
+main.pt-5, 
+main.pb-5 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* 2. Define Variables for Offsets (Optional but clean) */
+:root {
+    /* Approx height of your fixed header (100px) and footer (~80-100px) */
+    --navbar-offset: 100px;
+    --footer-offset: 150px; 
+}
+
+/* 3. The Main Container 
+   We set the minimum height to be the Viewport (100dvh) MINUS the header and footer.
+   This creates a "centering box" that exists only in the visible white space.
+   Content centers perfectly inside this box, appearing "higher" up than before.
+*/
+.page-404 {
+    min-height: calc(100dvh - var(--navbar-offset) - var(--footer-offset));
+    width: 100%;
+
+    /* Flexbox Centering */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers vertically in our calculated box */
+    align-items: center;     /* Centers horizontally */
+    
+    padding: 1rem;
+}
+
+/* Button sizing */
 .btn-equal {
-    height: 80px !important;               /* Fixed height for consistent sizing */
-    width: 160px !important;               /* Fixed width for consistent sizing */
-    display: flex !important;              /* Force flex display */
-    align-items: center !important;        /* Force vertical centering */
-    justify-content: center !important;    /* Force horizontal centering */
-    text-align: center !important;         /* Center text for multiline buttons */
-    padding-top: 20px !important;          /* Top padding */
-    padding-bottom: 20px !important;       /* Bottom padding */
-    box-sizing: border-box !important;     /* Include padding in the total height */
-    line-height: 1 !important;             /* Normalize line-height */
+    height: 80px !important;
+    width: 160px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+    box-sizing: border-box !important;
+    line-height: 1 !important;
 }
 
 /* Responsive image styling */
 .responsive-img {
     width: auto !important;
-    max-width: 100% !important;           /* Ensure image doesn't overflow */
+    max-width: 100% !important;
     height: auto !important;
     padding-top: 10px !important;
     padding-bottom: 10px !important;
 }
 
-/* On mobile devices, adjust the main container height and padding */
+/* On mobile devices, reset the height calculation so it flows naturally */
 @media (max-width: 500px) {
-    main.container,
-    main.container-fluid {
-        height: auto !important;
-        width: 100% !important;             /* Ensure full width on small screens */
-        padding-top: 20px !important;
-        padding-bottom: 20px !important;
-        padding-left: 5px !important;       /* Reduced padding for small screens */
-        padding-right: 5px !important;      /* Reduced padding for small screens */
+    .page-404 {
+        min-height: auto; /* Let content dictate height on small screens */
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 
-    .container {
-        max-width: 100% !important;         /* Ensure container doesn't exceed screen width */
+    main.container,
+    main.container-fluid {
+        padding: 0 !important;
     }
 }
 
 /* Override fixed button width on very small screens */
 @media (max-width: 576px) {
     .btn-equal {
-        width: 100% !important;             /* Full width buttons on small screens */
-        padding-left: 10px !important;      /* Adjust padding for better fit */
+        width: 100% !important;
+        padding-left: 10px !important;
         padding-right: 10px !important;
     }
 }
