@@ -84,12 +84,31 @@ main.in-iframe {
     }
 }
 
+/* Replace your existing footer block with this */
 footer {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.9);
     margin: 0 auto;
     padding: 1rem 0;
-    position: fixed;
-    bottom: 0;
     border-top: 1px solid #ccc;
+    position: relative; /* Default for mobile: flow with content */
+}
+
+/* Re-enable fixed position only for larger screens */
+@media (min-width: 768px) {
+    footer {
+        position: fixed;
+        bottom: 0;
+    }
+}
+
+/* Adjust main padding so you don't have a giant gap on mobile */
+main {
+    padding-bottom: 2rem; /* Small buffer on mobile */
+}
+
+@media (min-width: 768px) {
+    main {
+        padding-bottom: 150px; /* Original buffer for fixed footer on desktop */
+    }
 }
