@@ -1,31 +1,8 @@
 {% extends "projects/base.html" %}
 {% load static %}
 {% block scripts %}
-<!-- Schema for SEO -->
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "XML Splitter",
-    "description": "The XML Splitter lets users upload a multi‑object XML file (e.g. Orders, Products, Customers) and instantly download a ZIP archive containing one well‑formed XML file per object—each named after its ID.",
-    "url": "https://www.bencritt.net/projects/xml-splitter/",
-    "applicationCategory": "Utility",
-    "operatingSystem": "Web-based",
-    "image": "https://www.bencritt.net/static/img/all-projects/xml-splitter.webp",
-    "creator": {
-      "@type": "Person",
-      "name": "Ben Crittenden",
-      "url": "https://www.bencritt.net"
-    },
-    "featureList": [
-      "Uploads a single XML file containing multiple objects nested under one root tag.",
-      "Splits each object into its own standalone XML file named with the object's first ID value.",
-      "Compresses all generated XML files into a single ZIP archive for download.",
-      "Runs entirely in the browser—no data is permanently stored on the server."
-    ]
-  }
-  </script>
-  
+  <!-- Schema for SEO -->
+  {% include "includes/schemas/xml_splitter_schema.html" %}
 {% endblock scripts %}    
 {% block styles %} 
 {% endblock styles %}

@@ -3,30 +3,7 @@
 {% load static %}
     {% block scripts %}
     <!-- Schema for SEO -->
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "SEO Head Checker",
-          "description": "The SEO Head Checker allows users to analyze the <head> section of webpages for SEO elements, ensuring proper meta tags, canonical tags, Open Graph tags, and more to optimize their website's performance in search engines.",
-          "url": "https://www.bencritt.net/projects/seo-head-checker/",
-          "applicationCategory": "SEO Utility",
-          "operatingSystem": "Web-based",
-          "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
-          "creator": {
-            "@type": "Person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net"
-          },
-          "featureList": [
-            "Analyzes the <head> section of webpages for critical SEO elements.",
-            "Checks for meta tags, canonical tags, Open Graph tags, Twitter Card tags, and more.",
-            "Provides detailed reports on present and missing SEO elements.",
-            "Web-based application accessible from any device with an internet connection.",
-            "Helps optimize websites for better search engine performance."
-          ]
-        }
-        </script>
+        {% include "includes/schemas/seo_head_checker_schema.html" %}
     {% endblock scripts %}    
     {% block styles %}
     {% endblock styles %}

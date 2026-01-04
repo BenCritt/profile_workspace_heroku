@@ -2,180 +2,156 @@
 {% load static %}
 
 {% block scripts %}
-<!-- Schema for SEO -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Font Inspector",
-  "description": "Enter a website URL to detect the font families it uses, whether a license is required for each, and where each font is sourced from (Google Fonts, Adobe Fonts, or self-hosted). Download results as CSV.",
-  "url": "https://www.bencritt.net/projects/font-inspector/",
-  "applicationCategory": "Utility",
-  "operatingSystem": "Web-based",
-  "image": "https://www.bencritt.net/static/img/all-projects/font-inspector.webp",
-  "creator": {
-    "@type": "Person",
-    "name": "Ben Crittenden",
-    "url": "https://www.bencritt.net"
-  },
-  "featureList": [
-    "Scans a public webpage to detect font families in use.",
-    "Indicates whether each family requires a license.",
-    "Identifies the font source (Google Fonts, Adobe Fonts, or self-hosted).",
-    "Lets users download the detected fonts as a CSV file.",
-    "Processes requests at runtime—no data is permanently stored on the server."
-  ]
-}
-</script>
+  <!-- Schema for SEO -->
+  {% include "includes/schemas/font_inspector_schema.html" %}
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('font-inspector-form') || document.querySelector('form');
+    if (!form) return;
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('font-inspector-form') || document.querySelector('form');
-  if (!form) return;
+    const progWrap   = document.getElementById('fi-progress');
+    const bar        = document.getElementById('fi-bar');
+    const statusText = document.getElementById('fi-status-text');
+    const queuePosEl = document.getElementById('fi-queue-pos');
+    const urlInput   = form.querySelector('input[name="url"]');
+    const tableWrap  = document.getElementById('fi-results');
+    const dlBtn      = document.getElementById('fi-dl');
 
-  const progWrap   = document.getElementById('fi-progress');
-  const bar        = document.getElementById('fi-bar');
-  const statusText = document.getElementById('fi-status-text');
-  const queuePosEl = document.getElementById('fi-queue-pos');
-  const urlInput   = form.querySelector('input[name="url"]');
-  const tableWrap  = document.getElementById('fi-results');
-  const dlBtn      = document.getElementById('fi-dl');
+    const startUrl  = "{% url 'projects:start_font_inspector' %}";
+    const statusTpl = "{% url 'projects:fi_task_status' 'TASKID' %}";
+    const rowsTpl   = "{% url 'projects:fi_rows' 'TASKID' %}";
+    const dlTpl     = "{% url 'projects:fi_download' 'TASKID' %}";
 
-  const startUrl  = "{% url 'projects:start_font_inspector' %}";
-  const statusTpl = "{% url 'projects:fi_task_status' 'TASKID' %}";
-  const rowsTpl   = "{% url 'projects:fi_rows' 'TASKID' %}";
-  const dlTpl     = "{% url 'projects:fi_download' 'TASKID' %}";
-
-  function csrfToken() {
-    const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-    if (m) return decodeURIComponent(m[1]);
-    const t = form.querySelector('input[name="csrfmiddlewaretoken"]');
-    return t ? t.value : '';
-  }
-
-  function setProgress(pct, msg, qpos) {
-    const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
-    progWrap.style.display = 'block';
-    bar.style.width = clamped + '%';
-    bar.textContent = clamped + '%';
-    const prog = progWrap.querySelector('[role="progressbar"]');
-    if (prog) prog.setAttribute('aria-valuenow', String(clamped));
-    statusText.textContent = msg || '';
-    queuePosEl.textContent = qpos && qpos > 0 ? `Place in queue: ${qpos}` : '';
-  }
-
-  function disableButtons(disabled) {
-    const btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button[type="button"]');
-    btns.forEach(b => b.disabled = !!disabled);
-    if (disabled) urlInput && urlInput.setAttribute('readonly', '');
-    else urlInput && urlInput.removeAttribute('readonly');
-  }
-
-  function renderTable(rows) {
-    if (!rows || !rows.length) {
-      tableWrap.innerHTML = '';
-      return;
+    function csrfToken() {
+      const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+      if (m) return decodeURIComponent(m[1]);
+      const t = form.querySelector('input[name="csrfmiddlewaretoken"]');
+      return t ? t.value : '';
     }
 
-    const head = `
-      <thead><tr>
-        <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
-      </tr></thead>`;
+    function setProgress(pct, msg, qpos) {
+      const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
+      progWrap.style.display = 'block';
+      bar.style.width = clamped + '%';
+      bar.textContent = clamped + '%';
+      const prog = progWrap.querySelector('[role="progressbar"]');
+      if (prog) prog.setAttribute('aria-valuenow', String(clamped));
+      statusText.textContent = msg || '';
+      queuePosEl.textContent = qpos && qpos > 0 ? `Place in queue: ${qpos}` : '';
+    }
 
-    // IMPORTANT: data-label attributes support “cards” layout in iframes.
-    const body = rows.map(r => `
-      <tr>
-        <td data-label="Website">${r.website}</td>
-        <td data-label="Family">${r.family}</td>
-        <td data-label="License Required">${r.license_required}</td>
-        <td data-label="Font Source">${r.font_source}</td>
-      </tr>`).join('');
+    function disableButtons(disabled) {
+      const btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button[type="button"]');
+      btns.forEach(b => b.disabled = !!disabled);
+      if (disabled) urlInput && urlInput.setAttribute('readonly', '');
+      else urlInput && urlInput.removeAttribute('readonly');
+    }
 
-    tableWrap.innerHTML = `
-      <div class="table-responsive">
-        <table class="table table-dark table-striped align-middle">
-          ${head}<tbody>${body}</tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  let pollTimer = null;
-
-  async function poll(taskId) {
-    try {
-      const res = await fetch(statusTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
-      const j = await res.json();
-      setProgress(j.progress ?? 0, j.message || '', j.queue_position || 0);
-
-      if (j.status === 'QUEUED' || j.status === 'RUNNING') return;
-
-      if (j.status === 'DONE') {
-        try {
-          const rr = await fetch(rowsTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
-          const rj = await rr.json();
-          renderTable(rj.rows || []);
-        } catch {}
-        disableButtons(false);
-        if (dlBtn) {
-          dlBtn.dataset.taskId = taskId;
-          dlBtn.style.display = 'inline-block';
-          dlBtn.disabled = false;
-        }
-      } else if (j.status === 'ERROR') {
-        disableButtons(false);
-        statusText.textContent = j.message || 'Error.';
+    function renderTable(rows) {
+      if (!rows || !rows.length) {
+        tableWrap.innerHTML = '';
+        return;
       }
 
-      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    } catch (e) {
-      // transient errors; keep polling
+      const head = `
+        <thead><tr>
+          <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
+        </tr></thead>`;
+
+      // IMPORTANT: data-label attributes support “cards” layout in iframes.
+      const body = rows.map(r => `
+        <tr>
+          <td data-label="Website">${r.website}</td>
+          <td data-label="Family">${r.family}</td>
+          <td data-label="License Required">${r.license_required}</td>
+          <td data-label="Font Source">${r.font_source}</td>
+        </tr>`).join('');
+
+      tableWrap.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            ${head}<tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
     }
-  }
 
-  if (dlBtn) {
-    dlBtn.addEventListener('click', function () {
-      const taskId = dlBtn.dataset.taskId;
-      if (!taskId) return;
-      progWrap.style.display = 'none';
-      dlBtn.style.display = 'none';
-      window.location.href = dlTpl.replace('TASKID', taskId);
-    });
-  }
+    let pollTimer = null;
 
-  form.addEventListener('submit', async function (ev) {
-    ev.preventDefault();
+    async function poll(taskId) {
+      try {
+        const res = await fetch(statusTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
+        const j = await res.json();
+        setProgress(j.progress ?? 0, j.message || '', j.queue_position || 0);
 
-    const url = (urlInput.value || '').trim();
-    if (!url) return;
+        if (j.status === 'QUEUED' || j.status === 'RUNNING') return;
 
-    window.gtag && gtag('event', 'font_scan_start');
+        if (j.status === 'DONE') {
+          try {
+            const rr = await fetch(rowsTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
+            const rj = await rr.json();
+            renderTable(rj.rows || []);
+          } catch {}
+          disableButtons(false);
+          if (dlBtn) {
+            dlBtn.dataset.taskId = taskId;
+            dlBtn.style.display = 'inline-block';
+            dlBtn.disabled = false;
+          }
+        } else if (j.status === 'ERROR') {
+          disableButtons(false);
+          statusText.textContent = j.message || 'Error.';
+        }
 
-    renderTable([]);
-    setProgress(2, 'Starting…', 0);
-    disableButtons(true);
-    if (dlBtn) { dlBtn.disabled = true; dlBtn.style.display = 'none'; dlBtn.dataset.taskId = ''; }
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      } catch (e) {
+        // transient errors; keep polling
+      }
+    }
 
-    try {
-      const resp = await fetch(startUrl, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ url }),
-        credentials: 'same-origin',
+    if (dlBtn) {
+      dlBtn.addEventListener('click', function () {
+        const taskId = dlBtn.dataset.taskId;
+        if (!taskId) return;
+        progWrap.style.display = 'none';
+        dlBtn.style.display = 'none';
+        window.location.href = dlTpl.replace('TASKID', taskId);
       });
-      if (!resp.ok) throw new Error('Start failed');
-      const j = await resp.json();
-      setProgress(3, j.status === 'QUEUED' ? 'Queued…' : 'Running…', j.queue_position || 0);
-
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(() => poll(j.task_id), 650);
-    } catch (e) {
-      disableButtons(false);
-      statusText.textContent = 'Error starting task.';
     }
-  }, { passive: false });
-});
-</script>
+
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+
+      const url = (urlInput.value || '').trim();
+      if (!url) return;
+
+      window.gtag && gtag('event', 'font_scan_start');
+
+      renderTable([]);
+      setProgress(2, 'Starting…', 0);
+      disableButtons(true);
+      if (dlBtn) { dlBtn.disabled = true; dlBtn.style.display = 'none'; dlBtn.dataset.taskId = ''; }
+
+      try {
+        const resp = await fetch(startUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ url }),
+          credentials: 'same-origin',
+        });
+        if (!resp.ok) throw new Error('Start failed');
+        const j = await resp.json();
+        setProgress(3, j.status === 'QUEUED' ? 'Queued…' : 'Running…', j.queue_position || 0);
+
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(() => poll(j.task_id), 650);
+      } catch (e) {
+        disableButtons(false);
+        statusText.textContent = 'Error starting task.';
+      }
+    }, { passive: false });
+  });
+  </script>
 {% endblock scripts %}
 
 {% block styles %}

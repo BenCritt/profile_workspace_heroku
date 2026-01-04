@@ -1,30 +1,7 @@
 {% extends "projects/base.html" %}
 {% load static %}
     {% block scripts %}
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "ISS Tracker",
-          "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
-          "url": "https://www.bencritt.net/projects/iss-tracker/",
-          "applicationCategory": "Astronomy Utility",
-          "operatingSystem": "Web-based",
-          "image": "https://www.bencritt.net/static/img/all-projects/iss-tracker.webp",
-          "creator": {
-            "@type": "Person",
-            "name": "Ben Crittenden",
-            "url": "https://www.bencritt.net"
-          },
-          "featureList": [
-            "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
-            "Tracks upcoming ISS pass times with precise local time and positional information.",
-            "Region detection for both land and ocean coverage using geolocation services.",
-            "Web-based application accessible from any internet-connected device.",
-            "Provides regular data updates every 60 seconds for dynamic tracking."
-          ]
-        }
-        </script> 
+        {% include "includes/schemas/iss_tracker_schema.html" %}
     {% endblock scripts %}
     {% block meta_tags %}
     <!-- Meta to prevent caching, which will prevent CSRF token errors. -->

@@ -1,54 +1,8 @@
 {% extends "projects/base.html" %}
 {% load static %}
 {% block scripts %}
-<!-- Schema for SEO -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
-      "name": "Cookie Audit",
-      "description": "Scan a public webpage to detect cookies in use and view key attributes such as domain, expiration, HttpOnly, Secure, and SameSite.",
-      "url": "https://www.bencritt.net/projects/cookie-audit/",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Web",
-      "browserRequirements": "Requires JavaScript enabled",
-      "image": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp",
-      "creator": {
-        "@type": "Person",
-        "name": "Ben Crittenden",
-        "url": "https://www.bencritt.net/"
-      },
-      "featureList": [
-        "Scans a public webpage to detect cookies in use.",
-        "Indicates whether each cookie is first-party or third-party.",
-        "Identifies the cookie source (Set-Cookie header, document.cookie).",
-        "Shows cookie attributes: name, domain, expiration, HttpOnly, Secure, SameSite.",
-        "Displays detected cookies in a table."
-      ]
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://www.bencritt.net/projects/cookie-audit/#webpage",
-      "url": "https://www.bencritt.net/projects/cookie-audit/",
-      "name": "Cookie Audit | Detect Cookies and Basic Cookie Information",
-      "description": "Scan a URL to list cookies found on the page and view key cookie flags and attributes.",
-      "isPartOf": {
-        "@id": "https://www.bencritt.net/#website"
-      },
-      "primaryImageOfPage": {
-        "@type": "ImageObject",
-        "url": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp"
-      },
-      "about": {
-        "@id": "https://www.bencritt.net/projects/cookie-audit/#app"
-      }
-    }
-  ]
-}
-</script>
+  <!-- Schema for SEO -->
+  {% include "includes/schemas/cookie_audit_schema.html" %}
 {% endblock scripts %}
 {% block meta_tags %}
 <!-- Prevent browser caching to avoid stale CSRF tokens -->
