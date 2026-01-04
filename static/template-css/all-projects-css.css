@@ -1,35 +1,31 @@
-.container h2 {
-    text-align: center;
-}
+/* FORCE LINK STYLING
+   We use the Bootstrap variable --bs-heading-color to ensure these links 
+   always look like headers, regardless of the current theme (light/dark).
+*/
 
-.container .col-lg-6 h2 {
-    margin: 0 auto;
-}
-
-.container .col-lg-6.order-lg-last {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.container img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-}
-
-/* Keep project title links looking like plain headings (no blue, no underline) */
 a.project-title-link,
 a.project-title-link:visited,
-a.project-title-link:hover,
 a.project-title-link:focus,
 a.project-title-link:active {
-    color: inherit !important;
+    color: var(--bs-heading-color) !important; /* Adapts to theme automatically */
     text-decoration: none !important;
 }
 
-/* Ensure children (your <h2>) never re-pick up underline/color */
+/* Optional: Add a subtle transition if you decide to add a hover color later */
+a.project-title-link {
+    transition: color 0.15s ease-in-out;
+}
+
+/* If you want the title to change color on hover (e.g. to blue), 
+   uncomment the lines below. Otherwise, it stays the heading color.
+*/
+/*
+a.project-title-link:hover {
+    color: var(--bs-primary) !important;
+}
+*/
+
+/* Ensure children (like the <h2> itself) inherit this color */
 a.project-title-link > * {
     color: inherit !important;
     text-decoration: none !important;

@@ -1,35 +1,54 @@
 .icon-container {
     display: flex;
-    justify-content: center; /* Center the icons horizontally */
-    gap: 20px; /* Add space between the icons */
+    justify-content: center;
+    gap: 20px;
 }
 
 .icon-container a {
     display: inline-block;
+    color: var(--bs-link-color); 
+    transition: color 0.15s ease-in-out;
 }
 
+.icon-container a:hover {
+    color: var(--bs-link-hover-color);
+}
+
+/* THE CONTAINER: Now transparent */
 .content-container {
-    background-color: #121212; /* Dark background */
-    color: #e0e0e0; /* Light text color */
-    padding: 40px 20px;
+    /* REMOVED: Background color is gone so the sections can stand alone */
+    background-color: transparent; 
+    
+    /* Keep structure */
     max-width: 750px;
     margin: 0 auto;
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); /* Soft shadow for depth */
+    
+    /* Removed padding/border from the outer wrapper */
+    padding: 0;
+    border: none;
+    box-shadow: none;
 }
 
+/* THE SECTIONS: These become the "Dark Cards" */
 .content-container section {
+    /* RESTORED: The dark background is applied to each section individually */
+    background-color: #121212; 
+    
+    /* Add the border and shadow to each card */
+    border: 1px solid var(--bs-border-color);
+    box-shadow: var(--bs-box-shadow-lg);
+    border-radius: var(--bs-border-radius-lg);
+    
+    /* Spacing between the cards */
     margin-bottom: 40px;
-    padding: 20px;
-    background-color: #1c1c1c; /* Slightly lighter section background */
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Section shadow */
+    padding: 40px 30px; /* Adjust padding inside the card */
 }
 
 .content-container h2 {
-    color: #ffffff; /* Bright white headings */
-    font-family: 'Arial', sans-serif;
-    border-bottom: 2px solid #1e90ff; /* Blue underline for headings */
+    /* Bright white text for headers */
+    color: var(--bs-emphasis-color); 
+    font-family: var(--bs-body-font-family); 
+    border-bottom: 2px solid var(--bs-primary); 
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
@@ -37,16 +56,19 @@
 .content-container p {
     font-size: 1.1em;
     line-height: 1.8;
-    color: #d3d3d3; /* Softer light color for body text */
+    
+    /* Bright text for paragraphs to ensure high contrast against the #121212 background */
+    color: var(--bs-emphasis-color); 
 }
 
 .content-container strong {
-    color: #ffffff; /* Emphasized text in strong white */
+    color: var(--bs-emphasis-color); 
 }
 
 @media (max-width: 768px) {
-    .content-container {
+    .content-container section {
         padding: 20px;
+        margin-bottom: 20px;
     }
 
     .content-container h2 {
