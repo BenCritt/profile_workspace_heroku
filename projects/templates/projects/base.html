@@ -35,7 +35,7 @@
     <!-- If installing PWA, this includes all assets for offline functionality. -->
     <script src="{% static 'template-js/service-worker-register.js' %}" defer></script>
   </head>
-  <body>
+  <body class="d-flex flex-column min-vh-100">
     {% include "includes/analytics_body.html" %}
 
     <!-- Bootstrap Bundle JS. -->
@@ -49,7 +49,7 @@
     </header>
 
     <!-- In between these blocks is where each different page <main> <body> content is loaded. -->
-    <main>
+    <main class="flex-shrink-0">
     {% block content %} 
     {% endblock content %}
     </main>
