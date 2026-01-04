@@ -1,0 +1,17 @@
+  /* Keep accordion text white (dark-theme friendly) even when expanded */
+  #privacyCookiesFaq .accordion-button,
+  #privacyCookiesFaq .accordion-button:not(.collapsed),
+  #privacyCookiesFaq .accordion-body {
+    color: var(--bs-body-color) !important;
+  }
+  
+  /* Table styling for dark/light mode compatibility */
+  .cookie-table th {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  /* OPTIONAL: If it is STILL too low, uncomment this block to pull it up further
+  main {
+      padding-top: 1rem !important; 
+  }
+  */

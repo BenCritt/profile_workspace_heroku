@@ -1,65 +1,71 @@
 {% extends "projects/base.html" %}
 {% load static %}
-  {% block styles %}
-  {% endblock styles %}
-  {% block scripts %}{% endblock scripts %}
-  {% block meta_tags %}
-    <!-- Meta to prevent caching, which will prevent CSRF token errors. -->
+
+{% block styles %}
+{% endblock styles %}
+
+{% block scripts %}{% endblock scripts %}
+
+{% block meta_tags %}
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-  {% endblock meta_tags %}
-  {% block link_tags %}
-  <!-- Other CSS styling and layout. -->
-  <link href="{% static 'template-css/404-css.css' %}" rel="stylesheet">
-  {% endblock link_tags %}
-  {% block title %}404 | Page Not Found{% endblock title %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link href="{% static 'template-css/404-css.css' %}" rel="stylesheet">
+{% endblock link_tags %}
+
+{% block title %}404 | Page Not Found{% endblock title %}
+
 {% block content %}
-<main class="container-fluid d-flex flex-column justify-content-center align-items-center vh-100 text-center px-3" role="main" aria-label="404: Page Not Found">
-  <center>
-  <div class="container" style="width: 100%;">
-    <!-- Optional illustration without inline styling; using a responsive class instead -->
+<div class="container-fluid page-404 text-center px-3" aria-label="404: Page Not Found">
+  
+  <div class="container w-100">
     <img src="{% static 'img/404.webp' %}"
          alt="Spaceballs reference. Combing the desert scene." 
          class="img-fluid mb-4 responsive-img">
+         
     <h1 class="display-4">404</h1>
     <p class="lead">The website has been combed, and your URL cannot be found.</p>
-    <!-- Quick Navigation Links -->
-    <div class="row w-100 nav-row">
-      <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
-      <!-- Grid columns (col-6 on extra small, col-md-4 on medium and up) -->
+    
+    <div class="row justify-content-center nav-row mx-auto">
+      
+      <div class="col-12 mb-3">
+        <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
+      </div>
+      
       <div class="col-6 col-md-4 mb-2">
-        <a href="/projects/" class="btn btn-outline-light btn-equal d-block">
+        <a href="{% url 'projects:all_projects' %}" class="btn btn-outline-light btn-equal d-block">
           View all of my projects.
         </a>
       </div>
       <div class="col-6 col-md-4 mb-2">
-        <a href="/projects/it-tools/" class="btn btn-outline-light btn-equal d-block">
+        <a href="{% url 'projects:it_tools' %}" class="btn btn-outline-light btn-equal d-block">
           Look up SSL, DNS, and IP info.
         </a>
       </div>
       <div class="col-6 col-md-4 mb-2">
-        <a href="/projects/seo-head-checker/" class="btn btn-outline-light btn-equal d-block">
+        <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-outline-light btn-equal d-block">
           Check a website's SEO.
         </a>
       </div>
       <div class="col-6 col-md-4 mb-2">
-        <a href="/projects/weather/" class="btn btn-outline-light btn-equal d-block">
+        <a href="{% url 'projects:weather' %}" class="btn btn-outline-light btn-equal d-block">
           Check the weather forecast.
         </a>
       </div>
       <div class="col-6 col-md-4 mb-2">
-        <a href="/projects/qr-code-generator" class="btn btn-outline-light btn-equal d-block">
+        <a href="{% url 'projects:qr_code_generator' %}" class="btn btn-outline-light btn-equal d-block">
           Generate a QR code.
         </a>
       </div>
       <div class="col-6 col-md-4 mb-2">
-        <a href="/" class="btn btn-primary btn-equal d-block">
+        <a href="{% url 'projects:home' %}" class="btn btn-primary btn-equal d-block">
           Return to the homepage.
         </a>
       </div>
     </div>
   </div>
-</center>
-</main>
+</div>
 {% endblock content %}

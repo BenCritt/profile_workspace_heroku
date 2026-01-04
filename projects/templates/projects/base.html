@@ -2,17 +2,13 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
-    <!-- This code is for Google Analytics tools. -->
     {% include "includes/analytics_head.html" %}
-    <!-- Iframe Handler-->
     <script src="{% static 'template-js/iframe-handler.js' %}" defer></script>
 
-    <!-- Basic meta tags for character set, viewport, and authorship -->
     <meta charset="UTF-8">
     <meta name="viewport"             content="width=device-width, initial-scale=1.0">
     <meta name="author"               content="Ben Crittenden">
 
-    <!-- Block for injecting additional head content in child templates. -->
     {% block extra_head %}
     {% block meta_tags %}
     {% endblock meta_tags %}
@@ -24,36 +20,27 @@
     {% block scripts %}
     {% endblock scripts %}
     {% endblock extra_head %}
-    <!-- Bootstrap CSS for styling and layout. -->
     <link href="{% static 'vendors/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <!-- Other CSS styling and layout. -->
     <link href="{% static 'template-css/base-css.css' %}" rel="stylesheet">
     {% block page_stylesheets %}{% endblock page_stylesheets %}
-    <!-- Favicon code. -->
     {% include "includes/favicons.html" %}
     
-    <!-- If installing PWA, this includes all assets for offline functionality. -->
     <script src="{% static 'template-js/service-worker-register.js' %}" defer></script>
   </head>
   <body class="d-flex flex-column min-vh-100">
     {% include "includes/analytics_body.html" %}
 
-    <!-- Bootstrap Bundle JS. -->
     <script src="{% static 'vendors/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
 
-     <!-- This code makes the data toggles look better. -->
-    <script src="{% static 'template-js/bootstrap-tooltip.js' %}" defer></script>
-    <!-- Header with navigation bar fixed at the top. -->
+     <script src="{% static 'template-js/bootstrap-tooltip.js' %}" defer></script>
     <header>
       {% include "includes/navbar.html" %}
     </header>
 
-    <!-- In between these blocks is where each different page <main> <body> content is loaded. -->
-    <main class="flex-shrink-0">
-    {% block content %} 
-    {% endblock content %}
+    <main class="flex-grow-1 flex-shrink-0 pt-5 pb-5 d-flex flex-column">
+      {% block content %} 
+      {% endblock content %}
     </main>
-    <!-- Footer with site-wide information and links. -->
     {% include "includes/footer.html" %}
   </body>
 </html>
