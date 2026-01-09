@@ -42,100 +42,112 @@
 {% block title %}Weather Forecast App | Accurate Weather by ZIP Code{% endblock title %}
 
 {% block content %}
-    <main>
-      <center>
-        <h1>Weather Forecast App</h1>
-          <br>
-          {% if error_message %}
-          <div class="alert alert-danger u-container-narrow">
-              {{ error_message }}
-          </div>
-          {% endif %}
+    <div class="container-fluid d-flex flex-column align-items-center">
+        
+        <h1 class="mb-4">Weather Forecast App</h1>
+        
+        {% if error_message %}
+            <div class="alert alert-danger u-container-narrow w-100" role="alert">
+                {{ error_message }}
+            </div>
+        {% endif %}
           
-          <div class="container u-container-narrow">
-              <form action="{% url 'projects:weather' %}" method="post">
-                  {% csrf_token %} 
-                  {{ form.as_p }} 
-                  <input type="submit" id="weather-btn" class="btn btn-primary" value="Get Weather Forecast" aria-label="Get Weather Forecast">
-              </form>
-          </div>
-          <br>
+        <div class="container u-container-narrow mb-5">
+            <form action="{% url 'projects:weather' %}" method="post" class="d-flex flex-column gap-3">
+                {% csrf_token %} 
+                
+                {{ form.as_p }}
+                
+                <input type="submit" id="weather-btn" class="btn btn-primary w-100" value="Get Weather Forecast" aria-label="Get Weather Forecast">
+            </form>
+        </div>
           
-          {% if city_name and state_name %}
-              <h2>Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
-              <br>
-              
-              <div class="container u-container-narrow">
+        {% if city_name and state_name %}
+            <h2 class="mb-4">Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
+            
+            <div class="container u-container-narrow w-100">
                 
                 {% if current_weather_report %}
-                <div class="card">
-                  <div class="card-header">
-                    Current Weather Overview
-                  </div>
-                  <div class="card-body">
-                    {% for current in current_weather_report %}
-                    <div class="d-flex align-items-center mb-3">
-                      <img src="{{ current.icon_url_current }}" alt="Weather Icon" class="weather-icon">
-                      <div>
-                        <p><strong>Description:</strong> {{ current.current_description }}</p>
-                        <p><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
-                        <p><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
-                      </div>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        Current Weather Overview
                     </div>
-                    <hr>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <p><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
-                        <p><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
-                        <p><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
-                      </div>
-                      <div class="col-md-6">
-                        <p><strong>UV Index:</strong> {{ current.current_uv }}</p>
-                        <p><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
-                        <p><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
-                      </div>
+                    <div class="card-body">
+                        {% for current in current_weather_report %}
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ current.icon_url_current }}" alt="{{ current.current_description }}" class="weather-icon me-3" style="width: 50px;">
+                            <div>
+                                <p class="mb-1"><strong>Description:</strong> {{ current.current_description|capfirst }}</p>
+                                <p class="mb-1"><strong>Temperature:</strong> {{ current.current_temperature }}°F</p>
+                                <p class="mb-0"><strong>Humidity:</strong> {{ current.current_humidity }}%</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Wind Speed:</strong> {{ current.current_wind_speed }} mph</p>
+                                <p><strong>Wind Gusts:</strong> {{ current.current_wind_gust }} mph</p>
+                                <p><strong>Wind Direction:</strong> {{ current.current_wind_direction }}°</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>UV Index:</strong> {{ current.current_uv }}</p>
+                                <p><strong>Dew Point:</strong> {{ current.current_dew }}°F</p>
+                                <p><strong>Cloud Coverage:</strong> {{ current.current_cloud }}%</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                  </div>
                 </div>
-                <br>
                 {% endif %}
 
                 {% if daily_forecast %}
-                <h2>Daily Forecast</h2>
-                <br>
-                <div class="accordion" id="dailyForecastAccordion">
-                  {% for day in daily_forecast %}
-                  <div class="accordion-item">
-                    <h3 class="accordion-header" id="heading{{ forloop.counter }}">
-                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-                        {{ day.day_of_week }}, {{ day.date|date:"F d" }}
-                      </button>
-                    </h3>
-                    <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#dailyForecastAccordion">
-                      <div class="accordion-body">
-                        <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
-                        <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
-                        <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
-                        <p><strong>Precipitation Chance:</strong> {{ day.precipitation_chance }}%</p>
-                        <p><strong>Humidity:</strong> {{day.humidity}}%</p>
-                        <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
-                        <p><strong>Morning Temp:</strong> {{ day.morn_temp }}°F <span class="text-muted">(Feels like: {{ day.morn_temp_feel }}°F)</p>
-                        <p><strong>Day Temp:</strong> {{ day.day_temp }}°F <span class="text-muted">(Feels like: {{ day.day_temp_feel }}°F)</p>
-                        <p><strong>Evening Temp:</strong> {{ day.eve_temp }}°F <span class="text-muted">(Feels like: {{ day.eve_temp_feel }}°F)</p>
-                        <p><strong>Night Temp:</strong> {{ day.night_temp }}°F <span class="text-muted">(Feels like: {{ day.night_temp_feel }}°F)</p>
-                      </div>
+                <h2 class="mb-3">Daily Forecast</h2>
+                <div class="accordion mb-5" id="dailyForecastAccordion">
+                    {% for day in daily_forecast %}
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="heading{{ forloop.counter }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ forloop.counter }}" 
+                                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                    aria-controls="collapse{{ forloop.counter }}">
+                                {{ day.day_of_week }}, {{ day.date|date:"F d" }}
+                            </button>
+                        </h3>
+                        <div id="collapse{{ forloop.counter }}" 
+                             class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                             aria-labelledby="heading{{ forloop.counter }}" 
+                             data-bs-parent="#dailyForecastAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Forecast Summary:</strong> {{ day.summary }}.</p>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>High Temp:</strong> {{ day.high_temp }}°F</p>
+                                        <p><strong>Low Temp:</strong> {{ day.low_temp }}°F</p>
+                                        <p><strong>Precipitation:</strong> {{ day.precipitation_chance }}%</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Humidity:</strong> {{day.humidity}}%</p>
+                                        <p><strong>Dew Point:</strong> {{day.dew_point}}°F</p>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <p class="mb-1"><strong>Morning:</strong> {{ day.morn_temp }}°F <span class="text-muted small">(Feels like: {{ day.morn_temp_feel }}°F)</span></p>
+                                <p class="mb-1"><strong>Day:</strong> {{ day.day_temp }}°F <span class="text-muted small">(Feels like: {{ day.day_temp_feel }}°F)</span></p>
+                                <p class="mb-1"><strong>Evening:</strong> {{ day.eve_temp }}°F <span class="text-muted small">(Feels like: {{ day.eve_temp_feel }}°F)</span></p>
+                                <p class="mb-0"><strong>Night:</strong> {{ day.night_temp }}°F <span class="text-muted small">(Feels like: {{ day.night_temp_feel }}°F)</span></p>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  {% endfor %}
+                    {% endfor %}
                 </div>
                 {% endif %}
-              </div>
-          {% endif %}
-          
-          <br><br>
-          
-{% include 'includes/attribution.html' %}
-      </center>
-    </main>
+            </div>
+        {% endif %}
+        
+        <div class="mt-4">
+            {% include 'includes/attribution.html' %}
+        </div>
+    </div>
 {% endblock content %}

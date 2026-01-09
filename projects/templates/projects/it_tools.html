@@ -1,99 +1,136 @@
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-      <!-- Schema for SEO -->
-      {% include "includes/schemas/it_tools_schema.html" %}
-    {% endblock scripts %}
-    {% block meta_tags %}
-        <!-- Meta tags for SEO -->
-        <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-        <meta name="keywords" content="SSL Verification, IP Address Lookup, DNS Lookup, Network Tools, IT Tools">
-        <!-- Facebook Meta Tags -->
-        <meta property="og:url" content="https://www.bencritt.net/projects/it-tools/">
-        <meta property="og:type" content="website">
-        <meta property="og:title" content="IT Professional Toolkit">
-        <meta property="og:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-        <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
-        <!-- Twitter Meta Tags -->
-        <meta name="twitter:card" content="summary_large_image">
-        <meta property="twitter:domain" content="bencritt.net">
-        <meta property="twitter:url" content="https://www.bencritt.net/projects/it-tools/">
-        <meta name="twitter:title" content="IT Professional Toolkit">
-        <meta name="twitter:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-        <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
-        <meta name="twitter:creator" content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-        <!-- Canonical link to help avoid duplicate content issues. -->
-        <link rel="canonical" href="https://www.bencritt.net/projects/it-tools/">
-        <!-- Other CSS styling and layout. -->
-        <link href="{% static 'template-css/it-tools-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
-    {% block styles %} 
-    {% endblock styles %}
-    {% block content %}
-    <main>
-        <center>
-            <h1>IT Professional Toolkit</h1>
-            <br>
-            <!-- Non-iframe Cards -->
-            <div class="card-container non-iframe-cards" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
 
-              <!-- SSL Verification Tool Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>SSL Verification Tool</h2>
-                  <img src="{% static '/img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.</p>
-                  <a href="{% url 'projects:ssl_check' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use SSL Tool</a>
-              </div>
+{% block scripts %}
+  {% include "includes/schemas/it_tools_schema.html" %}
+{% endblock scripts %}
 
-              <!-- IP Address Lookup Tool Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>IP Address Lookup Tool</h2>
-                  <img src="{% static '/img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">
-                  <p>Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.</p>
-                  <a href="{% url 'projects:ip_tool' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use IP Address Lookup Tool</a>
-              </div>
+{% block meta_tags %}
+    <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+    
+    <meta property="og:url" content="https://www.bencritt.net/projects/it-tools/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="IT Professional Toolkit">
+    <meta property="og:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/it-tools/">
+    <meta name="twitter:title" content="IT Professional Toolkit">
+    <meta name="twitter:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
 
-              <!-- DNS Lookup Tool Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>DNS Lookup Tool</h2>
-                  <img src="{% static '/img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Use the DNS Lookup Tool to perform DNS lookups and retrieve various DNS records, such as A, MX, NS, CNAME, TXT, SOA, SRV, and CAA Records. It's essential for domain management and network troubleshooting.</p>
-                  <a href="{% url 'projects:dns_tool' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use DNS Lookup Tool</a>
-              </div>
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/it-tools/">
+{% endblock link_tags %}
 
-            </div>  
-            <br>
-            <!-- Iframe cards for displaying apps inline -->          
-            <div class="card-container iframe-cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
+{% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
 
-              <!-- SSL Verification Tool Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe src="{% url 'projects:ssl_check' %}" style="width: 100%; height: auto; min-height: 553px; border: none;" scrolling="no"></iframe>
-                      <a href="{% url 'projects:ssl_check' %}" class="btn btn-secondary" style="margin-top: 10px;">Open Full SSL Page</a>
-                  </div>
-              </div>
-          
-              <!-- IP Address Lookup Tool Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe src="{% url 'projects:ip_tool' %}" style="width: 100%; height: auto; min-height: 553px; border: none;" scrolling="no"></iframe>
-                      <a href="{% url 'projects:ip_tool' %}" class="btn btn-secondary" style="margin-top: 10px;">Open Full IP Page</a>
-                  </div>
-              </div>
-          
-              <!-- DNS Lookup Tool Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe src="{% url 'projects:dns_tool' %}" style="width: 100%; height: auto; min-height: 553px; border: none;" scrolling="no"></iframe>
-                      <a href="{% url 'projects:dns_tool' %}" class="btn btn-secondary" style="margin-top: 10px;">Open Full DNS Page</a>
-                  </div>
-              </div>
-          </div>
-            <br>
-        </center>
-    </main>
-    {% endblock content %}
+{% block styles %}
+<style>
+    /* Preserving your specific card widths from the original CSS 
+      but keeping it local to avoid an extra network request.
+    */
+    .tool-card {
+        width: 300px; /* specific width for non-iframe cards */
+        max-width: 100%;
+    }
+    
+    .iframe-card-wrapper {
+        width: 100%;
+        max-width: 450px;
+    }
+
+    /* Mobile override: ensure cards are full width on small screens */
+    @media (max-width: 600px) {
+        .tool-card {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center">
+        <h1 class="mb-4">IT Professional Toolkit</h1>
+        
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 card-title">SSL Verification Tool</h2>
+                    <img src="{% static '/img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" class="img-fluid rounded my-3">                
+                    <p class="card-text">Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.</p>
+                    <a href="{% url 'projects:ssl_check' %}" class="btn btn-primary mt-2">Use SSL Tool</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 card-title">IP Address Lookup Tool</h2>
+                    <img src="{% static '/img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" class="img-fluid rounded my-3">
+                    <p class="card-text">Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.</p>
+                    <a href="{% url 'projects:ip_tool' %}" class="btn btn-primary mt-2">Use IP Address Lookup Tool</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 card-title">DNS Lookup Tool</h2>
+                    <img src="{% static '/img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" class="img-fluid rounded my-3">                
+                    <p class="card-text">Use the DNS Lookup Tool to perform DNS lookups and retrieve various DNS records, such as A, MX, NS, CNAME, TXT, SOA, SRV, and CAA Records. It's essential for domain management and network troubleshooting.</p>
+                    <a href="{% url 'projects:dns_tool' %}" class="btn btn-primary mt-2">Use DNS Lookup Tool</a>
+                </div>
+            </div>
+
+        </div>  
+        
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:ssl_check' %}" 
+                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
+                        scrolling="no"
+                        title="SSL Verification Tool"
+                        loading="lazy">
+                    </iframe>
+                    <a href="{% url 'projects:ssl_check' %}" class="btn btn-secondary mt-3">Open Full SSL Page</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:ip_tool' %}" 
+                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
+                        scrolling="no"
+                        title="IP Address Lookup Tool"
+                        loading="lazy">
+                    </iframe>
+                    <a href="{% url 'projects:ip_tool' %}" class="btn btn-secondary mt-3">Open Full IP Page</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:dns_tool' %}" 
+                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
+                        scrolling="no"
+                        title="DNS Lookup Tool"
+                        loading="lazy">
+                    </iframe>
+                    <a href="{% url 'projects:dns_tool' %}" class="btn btn-secondary mt-3">Open Full DNS Page</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}

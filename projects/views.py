@@ -36,7 +36,6 @@ def cookie_audit_view(request):
     ctx = {"form": form}
     return render(request, "projects/cookie_audit.html", ctx)
 
-# NEW Beginning
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_POST
@@ -77,7 +76,6 @@ def cookie_audit_start(request):
             "download_url": reverse("projects:cookie_audit_download", args=[task_id]),
         }
     )
-# NEW END
 
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -124,7 +122,6 @@ def cookie_audit_status(request, task_id):
             status=500,
         )
 
-# NEW BEGIN
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_GET
@@ -218,45 +215,14 @@ def cookie_audit_download(request, task_id):
         download_filename=filename,
         content_type="text/csv",
     )
-# NEW END
+
 # Font Inspector
-# Force memory trim after work.
-@trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def font_inspector(request):
-    from django.http import FileResponse
-    from .font_utils import make_report, report_to_csv
     from .forms import FontInspectorForm
-    from .utils import normalize_url
-    import re
-    form = FontInspectorForm(request.POST or None)
-    rows = None
-
-    if request.method == "POST" and form.is_valid():
-        url = form.cleaned_data["url"]
-        try:
-            url = normalize_url(url)
-        except Exception:
-            if not re.match(r"^https?://", url, flags=re.I):
-                rows = make_report(url)
-            url = "https://" + url
-            if not rows:
-                form.add_error("url", "No fonts detected on that page.")
-        except Exception as exc:
-            form.add_error("url", str(exc))
-
-        # optional CSV download
-        if "download" in request.POST and rows:
-            return FileResponse(
-                report_to_csv(rows),
-                as_attachment=True,
-                filename="font_report.csv",
-                content_type="text/csv",
-            )
-
-    return render(request, "projects/font_inspector.html",
-                  {"form": form, "rows": rows})
+    form = FontInspectorForm()
+    return render(request, "projects/font_inspector.html", {"form": form})
 
 # Ham Radio Call Sign Lookup
 # Force memory trim after work.
@@ -640,51 +606,51 @@ def view_404(request, exception):
 def home(request):
     return render(request, "projects/home.html")
 
-# QR Code Generator.
+# QR Code Generator
 # Force memory trim after work.
 @trim_memory_after
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
     import qrcode
+    import io
     from .forms import QRForm
-    # Check if the request method is POST.
+    """
+    Generates a QR code from user input and serves it directly as a download
+    without saving files to the server's filesystem.
+    """
     if request.method == "POST":
-        # Initialize the form with data from the request.
         form = QRForm(request.POST)
-        # Validate the form.
         if form.is_valid():
-            # Extract the data to be encoded in the QR code.
+            # 1. Get data
             data = form.cleaned_data["qr_text"]
-            # Initialize a QR Code generator.
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            # Add the data to the QR Code.
+            
+            # 2. Generate QR Object
+            qr = qrcode.QRCode(
+                version=1, 
+                box_size=10, 
+                border=5
+            )
             qr.add_data(data)
-            # Optimize the QR code layout.
             qr.make(fit=True)
-            # Create an image from the QR Code instance.
+            
+            # 3. Create Image in Memory (No Disk I/O)
             img = qr.make_image(fill_color="black", back_color="white")
-            # Determine the directory to save the QR code image.
-            home_dir = os.path.expanduser("~")
-            save_dir = os.path.join(home_dir, "Downloads")
-            # Create the directory if it doesn't exist.
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-            # Define the filename and full path for the QR code image.
-            filename = "qrcode.png"
-            full_path = os.path.join(save_dir, filename)
-            # Save the QR code image to the specified path.
-            img.save(full_path)
-
-            # Serve the QR code image as a downloadable file in the response.
-            with open(full_path, "rb") as f:
-                response = HttpResponse(f.read(), content_type="image/png")
-                response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
-                return response
-    # Handle non-POST requests by initializing an empty form.
+            
+            # Use BytesIO to hold the image data in RAM
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            
+            # Rewind the buffer to the beginning so it can be read
+            buffer.seek(0)
+            
+            # 4. Return the response directly from memory
+            response = HttpResponse(buffer, content_type="image/png")
+            response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
+            return response
     else:
         form = QRForm()
-    # Render the QR code generator page with the form.
+
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
 # Monte Carlo Simulator

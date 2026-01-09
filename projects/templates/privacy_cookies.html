@@ -2,8 +2,7 @@
 {% load static %}
 
 {% block page_stylesheets %}
-  <link href="{% static 'template-css/privacy-cookies-css.css' %}" rel="stylesheet">
-{% endblock page_stylesheets %}
+  {% endblock page_stylesheets %}
 
 {% block scripts %}
     {% include "includes/schemas/privacy_cookies_schema.html" %}
@@ -25,20 +24,20 @@
 {% endblock link_tags %}
 
 {% block content %}
-<div class="container px-5 mb-5">
+<div class="container py-5 mb-5">
   
   <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-10 col-xl-8">
       
-      <div class="text-center mb-4">
-        <h1>Privacy & Cookies</h1>
+      <div class="text-center mb-5">
+        <h1 class="mb-3">Privacy & Cookies</h1>
         <p class="lead fw-normal text-muted mb-0">
           Transparency about how bencritt.net manages data and cookies.
         </p>
-        <p class="text-muted mb-0"><small>Last updated: December 27, 2025</small></p>
+        <p class="text-muted small mt-2"><small>Last updated: December 27, 2025</small></p>
       </div>
 
-      <div class="accordion" id="privacyCookiesFaq">
+      <div class="accordion shadow-sm" id="privacyCookiesFaq">
 
         <div class="accordion-item">
           <h2 class="accordion-header" id="faqHeadingOne">
@@ -50,7 +49,7 @@
             <div class="accordion-body">
               <p>Cookies are small text files placed on your device to store data that can be recalled by a web server in the domain that placed the cookie. This data often consists of a string of numbers and letters that uniquely identifies your computer, but it can contain other information as well.</p>
               <p>For a detailed technical definition, please visit:
-                <a class="content-link" href="https://www.cloudflare.com/learning/privacy/what-are-cookies/" target="_blank" rel="noopener noreferrer">
+                <a class="text-decoration-none" href="https://www.cloudflare.com/learning/privacy/what-are-cookies/" target="_blank" rel="noopener noreferrer">
                   What are Cookies? - Cloudflare Learning Center
                 </a>
               </p>
@@ -69,30 +68,30 @@
               <p>This website uses a minimal set of First-Party cookies required for security and basic analytics. Below is a list of cookies currently in use:</p>
               
               <div class="table-responsive">
-                <table class="table table-bordered table-striped cookie-table">
-                  <thead>
+                <table class="table table-bordered table-striped align-middle mb-0">
+                  <thead class="table-light">
                     <tr>
-                      <th scope="col">Name</th>
+                      <th scope="col" style="min-width: 120px;">Name</th>
                       <th scope="col">Type</th>
                       <th scope="col">Purpose</th>
-                      <th scope="col">Duration</th>
+                      <th scope="col" style="min-width: 100px;">Duration</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><code>csrftoken</code></td>
+                      <th scope="row" class="font-monospace fw-normal">csrftoken</th>
                       <td><span class="badge bg-primary">Necessary</span></td>
                       <td><strong>Security:</strong> Protects against Cross-Site Request Forgery (CSRF) attacks. Required for submitting forms.</td>
                       <td>1 Year</td>
                     </tr>
                     <tr>
-                      <td><code>_ga</code></td>
+                      <th scope="row" class="font-monospace fw-normal">_ga</th>
                       <td><span class="badge bg-secondary">Analytics</span></td>
                       <td><strong>Measurement:</strong> Used by Google Analytics to distinguish unique users.</td>
                       <td>2 Years</td>
                     </tr>
                     <tr>
-                      <td><code>_ga_*</code><br><small>(e.g., _ga_64B7LMZXKN)</small></td>
+                      <th scope="row" class="font-monospace fw-normal text-break">_ga_*<br><small class="text-muted">(e.g., _ga_64B7LMZXKN)</small></th>
                       <td><span class="badge bg-secondary">Analytics</span></td>
                       <td><strong>Session State:</strong> Used by Google Analytics to persist session state.</td>
                       <td>2 Years</td>
@@ -100,9 +99,9 @@
                   </tbody>
                 </table>
               </div>
-              <p class="small text-muted mt-2">
+              <p class="small text-muted mt-3">
                 You can also verify these cookies using your browser's developer tools or the 
-                <a class="content-link" href="{% url 'projects:cookie_audit' %}" rel="noopener noreferrer">Cookie Audit app</a>.
+                <a class="text-decoration-none" href="{% url 'projects:cookie_audit' %}" rel="noopener noreferrer">Cookie Audit app</a>.
               </p>
             </div>
           </div>
@@ -154,6 +153,9 @@
         </div>
 
       </div>
+      
+      {% include 'includes/attribution.html' %}
+      
     </div>
   </div>
 </div>

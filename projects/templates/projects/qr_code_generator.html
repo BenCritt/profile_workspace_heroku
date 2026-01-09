@@ -39,28 +39,50 @@
 {% block title %}QR Code Generator | Create and Download Custom QR Codes Online{% endblock title %}
 
 {% block content %}
-    <center>
-        <h1>QR Code Generator</h1>
-        <br>
-        <div class="container u-container-narrow">
-            <p>Enter your URL or other text below.</p>
-            <form method="POST">
-                {% csrf_token %} 
-                {% for field in form %}
-                <div class="mb-3">
-                    {{field.label_tag}}
+<div class="container py-5 d-flex flex-column align-items-center">
+    
+    <h1 class="mb-4">QR Code Generator</h1>
+    
+    <div class="w-100" style="max-width: 500px;">
+        <p class="text-center mb-4">Enter your URL or other text below.</p>
+        
+        <form method="POST" class="d-flex flex-column gap-3">
+            {% csrf_token %} 
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
                 </div>
-                {{field}}
-                {{field.errors}}
-                {% endfor %}
-                <br>
-                <br>
-                <input type="submit" id="qr-btn" class="btn btn-primary" value="Generate QR Code" aria-label="Generate QR Code">
-            </form>
-        </div>
-        <br>
-        <p>Your QR code will be downloaded and placed into your default downloads folder.</p>
-        <br>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                <div class="mt-1">
+                    {{ field }}
+                </div>
+                
+                {% if field.help_text %}
+                    <div class="form-text text-muted">{{ field.help_text }}</div>
+                {% endif %}
+
+                {% if field.errors %}
+                    <div class="text-danger small mt-1" role="alert">
+                        {{ field.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <input type="submit" id="qr-btn" class="btn btn-primary w-100 mt-2" value="Generate QR Code" aria-label="Generate QR Code">
+        </form>
+    </div>
+    
+    <p class="mt-4 text-center text-muted">Your QR code will be downloaded and placed into your default downloads folder.</p>
+    
+    <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
-    </center>
+    </div>
+
+</div>
 {% endblock content %}

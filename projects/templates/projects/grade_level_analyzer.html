@@ -11,7 +11,6 @@
     <meta http-equiv="Expires"        content="0">
 
     <meta name="description"          content="The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.">
-    <meta name="keywords"             content="readability, grade level, text analyzer, Flesch-Kincaid, Gunning Fog, Coleman-Liau">
     
     <meta property="og:url"           content="https://www.bencritt.net/projects/grade-level-analyzer/">
     <meta property="og:type"          content="website">
@@ -31,95 +30,91 @@
 
 {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/grade-level-analyzer/">
-    <link href="{% static 'template-css/grade-level-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 
 {% block title %}Grade Level Text Analyzer | Readability Score Calculator{% endblock title %}
 
 {% block content %}
-<main>
-    <center>
-        <h1>Grade Level Text Analyzer</h1>
-        <br>
-        <div class="container u-container-narrow">
-            <form action="{% url 'projects:grade_level_analyzer' %}" method="post">
-                {% csrf_token %} 
-                <div class="mb-3">
-                    <label for="text" class="form-label"><b>Enter Text to Analyze:</b></label>
-                    
-                    {% if form.text.errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.text.errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <textarea 
-                        class="form-control" 
-                        id="text" 
-                        name="text" 
-                        rows="10" 
-                        required 
-                        placeholder="Paste your text here. Your sample must be between 1,200 and 10,000 characters."
-                    >{{ form.text.value|default:'' }}</textarea>
-                </div>
-                <input type="submit" id="txt-analyze-btn" class="btn btn-primary" value="Analyze Sample Text" aria-label="Analyze Sample Text">
-            </form>
-        </div>
-        <br>
-        {% if results %}
-        <div class="container u-container-narrow">
-            <h2>Analysis Results</h2>
-            <br>
-            <div class="table-container">
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Metric / Index</th>
-                            <th>Score / Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Flesch-Kincaid Grade Level</strong></td>
-                            <td>{{ results.flesch_kincaid_grade }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Gunning Fog Index</strong></td>
-                            <td>{{ results.gunning_fog_index }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Coleman-Liau Index</strong></td>
-                            <td>{{ results.coleman_liau_index }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Weighted Average</strong></td>
-                            <td><strong>{{ results.average_score }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Uniform Average</strong></td>
-                            <td><strong>{{ results.uniform_average_score }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Word Count</td>
-                            <td>{{ results.word_count }}</td>
-                        </tr>
-                        <tr>
-                            <td>Sentence Count</td>
-                            <td>{{ results.sentence_count }}</td>
-                        </tr>
-                        <tr>
-                            <td>Syllable Count</td>
-                            <td>{{ results.syllable_count }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+<div class="container py-5 d-flex flex-column align-items-center">
+    
+    <h1 class="mb-4">Grade Level Text Analyzer</h1>
+    
+    <div class="w-100" style="max-width: 800px;">
+        <form action="{% url 'projects:grade_level_analyzer' %}" method="post" class="d-flex flex-column gap-3">
+            {% csrf_token %} 
+            
+            <div class="mb-3">
+                <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">Enter Text to Analyze:</label>
+                
+                {% if form.text.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.text.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {{ form.text }}
             </div>
-        </div>
-        <br>
-        {% endif %}
 
-{% include 'includes/attribution.html' %}
-    </center>
-</main>
+            <input type="submit" id="txt-analyze-btn" class="btn btn-primary w-100" value="Analyze Sample Text" aria-label="Analyze Sample Text">
+        </form>
+    </div>
+
+    {% if results %}
+    <div class="w-100 mt-5" style="max-width: 800px;">
+        <h2 class="h4 mb-3">Analysis Results</h2>
+        
+        <div class="table-responsive shadow-sm">
+            <table class="table table-bordered table-striped mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="w-50 text-center">Metric / Index</th>
+                        <th scope="col" class="text-center">Score / Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Flesch-Kincaid Grade Level</th>
+                        <td class="text-center">{{ results.flesch_kincaid_grade }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gunning Fog Index</th>
+                        <td class="text-center">{{ results.gunning_fog_index }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Coleman-Liau Index</th>
+                        <td class="text-center">{{ results.coleman_liau_index }}</td>
+                    </tr>
+                    <tr class="table-primary">
+                        <th scope="row">Weighted Average</th>
+                        <td class="fw-bold text-center">{{ results.average_score }}</td>
+                    </tr>
+                    <tr class="table-info">
+                        <th scope="row">Uniform Average</th>
+                        <td class="fw-bold text-center">{{ results.uniform_average_score }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Word Count</th>
+                        <td class="text-center">{{ results.word_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Sentence Count</th>
+                        <td class="text-center">{{ results.sentence_count }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Syllable Count</th>
+                        <td class="text-center">{{ results.syllable_count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
 {% endblock content %}

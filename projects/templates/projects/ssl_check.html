@@ -11,7 +11,6 @@
     <meta http-equiv="Expires"        content="0">
 
     <meta name="description"          content="The SSL Verification Tool allows you to check SSL certificates for any website. Retrieve issuer details, validity dates, and ensure secure connections.">
-    <meta name="keywords"             content="SSL verification, SSL check, certificate details, website security, network tools">
 
     <meta property="og:url"           content="https://www.bencritt.net/projects/ssl-check/">
     <meta property="og:type"          content="website">
@@ -33,65 +32,66 @@
 
 {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/ssl-check/">
-    <link href="{% static 'template-css/ssl-check-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 
 {% block title %}SSL Verification Tool | Check Website Security Certificates{% endblock title %}
 
 {% block content %}
-<main>
-    <div class="text-center"> <h1>SSL Verification Tool</h1>
-        <br>
+<div class="py-4">
+    <div class="text-center container"> 
+        <h1 class="mb-4">SSL Verification Tool</h1>
         
         <div class="container u-container-narrow">
             {% if error_message %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger" role="alert">
                     {{ error_message }}
                 </div>
             {% endif %}
 
-            <form method="post">
+            <form method="post" class="d-flex flex-column gap-3">
                 {% csrf_token %}
                 
                 {% if form.errors %}
-                    <div class="alert alert-danger">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                {{ error }}
+                    <div class="alert alert-danger text-start">
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
                             {% endfor %}
-                        {% endfor %}
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 {% endif %}
 
-                {{ form.as_p }}
+                <div class="text-start">
+                    {{ form.as_p }}
+                </div>
                 
-                <input type="submit" id="ssl-btn" class="btn btn-primary" value="Verify SSL Certificate" aria-label="Verify SSL Certificate">
-                <br>
-                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
+                <input type="submit" id="ssl-btn" class="btn btn-primary w-100" value="Verify SSL Certificate" aria-label="Verify SSL Certificate">
+                
+                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary mt-2">Go to All IT Tools</a>
             </form>
         </div>
-        <br>
 
         {% if result %}
-            <br>
-            <div class="container u-container-narrow">
-                <h5>SSL Certificate Information for {{ url }}</h5>
-                <br>
-                <div class="table-container">
-                    <table class="table table-bordered table-striped">
-                        <thead>
+            <div class="container u-container-narrow mt-5">
+                <h2 class="h5 mb-3">SSL Certificate Information for <span class="text-primary">{{ url }}</span></h2>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <th style="width: 30%;">Field</th>
-                                <th>Value</th>
+                                <th scope="col" class="w-25">Field</th>
+                                <th scope="col">Value</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for key, value in result.items %}
                             <tr>
-                                <td><strong>{{ key }}</strong></td>
+                                <th scope="row" class="text-start fw-bold">{{ key }}</th>
                                 <td class="text-start text-break">{{ value }}</td>
                             </tr>
                             {% endfor %}
@@ -101,9 +101,9 @@
             </div>
         {% endif %}
         
-        <br><br>
-        
-{% include 'includes/attribution.html' %}
+        <div class="mt-5">
+            {% include 'includes/attribution.html' %}
+        </div>
     </div>
-</main>
+</div>
 {% endblock content %}

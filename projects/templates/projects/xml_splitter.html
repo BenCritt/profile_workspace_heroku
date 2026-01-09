@@ -49,34 +49,47 @@ Once I have a specific image meant for this, I can use these optimized dimension
 <link rel="canonical" href="https://www.bencritt.net/projects/xml-splitter/">
 {% endblock link_tags %}
 {% block title %}XML Splitter | Split and Compress XML Files{% endblock title %}
+
 {% block content %}
-<main>
-    <center>
-        <div style="width: 100%; max-width: 500px;">
-            <h1>XML Splitter</h1>
-                <br>
-                <p>The XML Splitter takes an XML file containing multiple objects nested under one root (e.g.&nbsp;<code>&lt;Order&gt;</code>, <code>&lt;Product&gt;</code>,&nbsp;<code>&lt;Customer&gt;</code>, etc.) and splits them into individual XML files, with each object becoming its own XML file.  These files are put into a ZIP folder and served to your default Downloads folder.</p>
-                <form method="post" enctype="multipart/form-data" class="space-y-4">
-                    {% csrf_token %}
-                    <div>
-                      {{ form.file.label_tag }}
-                      <br><br>
-                      {{ form.file }}
-                      {% if form.file.errors %}
-                        <br><br>
-                        <p class="text-red-600 mt-1">{{ form.file.errors.0 }}</p>
-                      {% endif %}
+<div class="d-flex flex-column align-items-center w-100 px-4">
+    <div class="w-100 text-center" style="max-width: 500px;">
+        <h1 class="mb-4">XML Splitter</h1>
+        
+        <p class="mb-5">
+            The XML Splitter takes an XML file containing multiple objects nested under one root (e.g.&nbsp;<code>&lt;Order&gt;</code>, <code>&lt;Product&gt;</code>,&nbsp;<code>&lt;Customer&gt;</code>, etc.) and splits them into individual XML files, with each object becoming its own XML file. These files are put into a ZIP folder and served to your default Downloads folder.
+        </p>
+
+        <form method="post" enctype="multipart/form-data" class="d-grid gap-4">
+            {% csrf_token %}
+            
+            <div class="d-flex flex-column align-items-center">
+                <div class="mb-2">
+                    {{ form.file.label_tag }}
+                </div>
+                
+                <div class="w-100">
+                    {{ form.file }}
+                </div>
+
+                {% if form.file.errors %}
+                    <div class="mt-2 text-danger" role="alert">
+                        {{ form.file.errors.0 }}
                     </div>
-                    <br>              
-                    <button type="submit" class="btn btn-primary w-full">
-                      Split XML File &amp; Download ZIP Folder
-                    </button>
-                    <br><br>
-                    <p>Disclaimer: No data from the XML files uploaded to this website is caputred. The XML file briefly exists in memory while processing.  Once the ZIP folder is served to the user's default downloads folder, the file no longer exists on the server.</p>
-                </form>
-        </div>
-        <br>
-{% include 'includes/attribution.html' %}
-    </center>
-</main>
+                {% endif %}
+            </div>
+          
+            <button type="submit" class="btn btn-primary w-100">
+                Split XML File &amp; Download ZIP Folder
+            </button>
+
+            <p class="small text-muted mt-3">
+                Disclaimer: No data from the XML files uploaded to this website is captured. The XML file briefly exists in memory while processing. Once the ZIP folder is served to the user's default downloads folder, the file no longer exists on the server.
+            </p>
+        </form>
+    </div>
+    
+    <div class="mt-5">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
 {% endblock %}

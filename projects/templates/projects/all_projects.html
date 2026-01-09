@@ -1,83 +1,99 @@
 {% extends "projects/base.html" %}
 {% load static %}
-        {% block scripts %}
-            {% include "includes/schemas/all_projects_schema.html" %}
-        {% endblock scripts %}
-        {% block meta_tags %}
-            <meta name="description" content="Explore Ben Crittenden’s web tools for IT, SEO, education, freight, ham radio, and ISS tracking.  Includes QR Code Generator, SEO Head Checker, Font Inspector, XML Splitter, and more.">
 
-            <meta property="og:url"         content="https://www.bencritt.net/projects/">
-            <meta property="og:type"        content="website">
-            <meta property="og:title"       content="Ben Crittenden's Projects">
-            <meta property="og:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
-            <meta property="og:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
-            <meta property="og:image:type"  content="image/webp">
-            <meta property="og:image:alt"   content="Ben Crittenden's Projects Preview Image">
-            <meta property="og:site_name"   content="Ben Crittenden">
+{% block scripts %}
+    {% include "includes/schemas/all_projects_schema.html" %}
+{% endblock scripts %}
 
-            <meta name="twitter:card"        content="summary_large_image">
-            <meta name="twitter:domain"      content="bencritt.net">
-            <meta name="twitter:url"         content="https://www.bencritt.net/projects/">
-            <meta name="twitter:title"       content="Ben Crittenden's Projects">
-            <meta name="twitter:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
-            <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
-            <meta name="twitter:creator"     content="@bencritt89"/>
-        {% endblock meta_tags %}
+{% block meta_tags %}
+    <meta name="description" content="Explore Ben Crittenden’s web tools for IT, SEO, education, freight, ham radio, and ISS tracking. Includes QR Code Generator, SEO Head Checker, Font Inspector, XML Splitter, and more.">
 
-        {% block link_tags %}
-        {{ block.super }}
-        <link rel="canonical" href="https://www.bencritt.net/projects/">
-        {% endblock link_tags %}
+    <meta property="og:url"         content="https://www.bencritt.net/projects/">
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="Ben Crittenden's Projects">
+    <meta property="og:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
+    <meta property="og:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
+    <meta property="og:image:type"  content="image/webp">
+    <meta property="og:image:alt"   content="Ben Crittenden's Projects Preview Image">
+    <meta property="og:site_name"   content="Ben Crittenden">
 
-        {% block page_stylesheets %}
-        <link href="{% static 'template-css/all-projects-css.css' %}" rel="stylesheet">
-        {% endblock page_stylesheets %}
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:domain"      content="bencritt.net">
+    <meta name="twitter:url"         content="https://www.bencritt.net/projects/">
+    <meta name="twitter:title"       content="Ben Crittenden's Projects">
+    <meta name="twitter:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
+    <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
+    <meta name="twitter:creator"     content="@bencritt89"/>
+{% endblock meta_tags %}
 
-        {% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
-        
-        {% block content %}
-            <h1 class="text-center mb-4">Ben Crittenden's Projects</h1>
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/">
+{% endblock link_tags %}
 
-            <div class="container u-container-narrow mb-5">
-            <section class="text-center">
-                <h2 class="h4">About Ben Crittenden</h2>
-                <p class="lead fw-normal text-muted mb-0">
-                Ben Crittenden is an IT professional who builds Python-based web tools for IT professionals,
-                SEO specialists, educators, freight brokers, and ham radio operators. Learn more on the
-                <a href="{% url 'projects:home' %}" class="content-link">homepage</a>.
-                </p>
-            </section>
+{% block page_stylesheets %}
+{% endblock page_stylesheets %}
+
+{% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
+
+{% block content %}
+<div class="py-5">
+    
+    <div class="container">
+        <h1 class="text-center mb-5">Ben Crittenden's Projects</h1>
+
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <section>
+                    <h2 class="h4 mb-3">About Ben Crittenden</h2>
+                    <p class="lead fw-normal text-muted mb-0">
+                        Ben Crittenden is an IT professional who builds Python-based web tools for IT professionals,
+                        SEO specialists, educators, freight brokers, and ham radio operators. Learn more on the
+                        <a href="{% url 'projects:home' %}" class="link-primary text-decoration-none">homepage</a>.
+                    </p>
+                </section>
             </div>
+        </div>
+    </div>
 
-            {% for project in projects %}
-            <div class="container px-5 my-5">
-            <div class="row gx-5 align-items-center">
-
+    <div class="container">
+        {% for project in projects %}
+        <article class="row gx-5 align-items-center my-5 pb-5 border-bottom border-secondary">
+            
             <div class="col-lg-6 {% cycle '' 'order-lg-last' %}">
-                <div class="text-center">
-                    <a href="{% url project.url_name %}" class="project-title-link">
-                    <h2 class="fw-bolder">{{ project.title }}</h2>
-                    </a>
-                    <a href="{% url project.url_name %}">
-                    
-                    {% with 'img/all-projects/'|add:project.image as image_path %}
-                        <img class="img-fluid rounded mb-5 mb-lg-0"
-                             src="{% static image_path %}"
-                             alt="{{ project.title }}" />
-                    {% endwith %}
-                    
+                <div class="text-center mb-4 mb-lg-0">
+                    <a href="{% url project.url_name %}" aria-label="View tool: {{ project.title }}">
+                        {% with 'img/all-projects/'|add:project.image as image_path %}
+                            <img class="img-fluid rounded shadow-sm border border-secondary"
+                                 src="{% static image_path %}"
+                                 alt="{{ project.title }} Preview" 
+                                 loading="lazy" />
+                        {% endwith %}
                     </a>
                 </div>
-                </div>
-
-                <div class="col-lg-6">
-                <p class="lead fw-normal text-muted mb-0">
-                    {{ project.description }}
-                </p>
-                </div>
-
             </div>
-            </div>
-            {% endfor %}
 
-        {% endblock content %}
+            <div class="col-lg-6">
+                <div class="text-center text-lg-start">
+                    <a href="{% url project.url_name %}" class="text-decoration-none link-body-emphasis">
+                        <h2 class="fw-bold mb-3">{{ project.title }}</h2>
+                    </a>
+                    <p class="lead fw-normal text-muted mb-4">
+                        {{ project.description }}
+                    </p>
+                    <a href="{% url project.url_name %}" class="btn btn-outline-primary rounded-pill px-4">
+                        Open Tool
+                    </a>
+                </div>
+            </div>
+
+        </article>
+        {% endfor %}
+        
+        <style>
+            article:last-of-type { border-bottom: none !important; }
+        </style>
+    </div>
+
+</div>
+{% endblock content %}

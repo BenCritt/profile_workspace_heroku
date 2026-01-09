@@ -7,20 +7,19 @@
       const one = document.getElementById('one-range-fields');
       const two = document.getElementById('two-range-fields');
 
-      // radio buttons that control the range mode
+      // Radio buttons that control the range mode
       const radios = document.querySelectorAll('input[name="data-range"]');
 
       function toggleFields(value) {
         const showTwo = value === 'two';
-        two.classList.toggle('d-none', !showTwo);   // hide or show
-        // 'one' fields are always visible, so no need to toggle them
+        two.classList.toggle('d-none', !showTwo);   // toggle visibility class
       }
 
-      // run once on load (in case the form remembers its state)
+      // Run once on load to restore state (e.g., after validation error)
       const selected = document.querySelector('input[name="data-range"]:checked');
       if (selected) toggleFields(selected.value);
 
-      // listen for changes
+      // Listen for changes
       radios.forEach(radio =>
         radio.addEventListener('change', e => toggleFields(e.target.value))
       );
@@ -36,7 +35,6 @@
     <meta http-equiv="Expires"        content="0">
     
     <meta name="description"          content="The Monte Carlo Simulator allows you to take one or two number ranges, randomly generate values within those ranges, select target values, and graph them out onto a PDF file that is downloaded to your computer and placed in your default downloads folder.">
-    <meta name="keywords"             content="Monte Carlo simulation, data range simulation, statistical modeling, PDF graph download, web-based simulation tool, probability analysis">
     
     <meta property="og:url"           content="https://www.bencritt.net/projects/monte-carlo-simulator/">
     <meta property="og:type"          content="website">
@@ -63,57 +61,113 @@
 {% block title %}Monte Carlo Simulator | Data Range Simulations and PDF Graphs{% endblock title %}
 
 {% block content %}
-    <center>
-        <h1>Monte Carlo Simulator</h1>
-        <br>
-        <div class="container u-container-narrow">
-            <form method="post" action="{% url 'projects:monte_carlo_simulator' %}">
-                {% csrf_token %} 
-                
-                {% for error in form.sim_quantity.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-                <br>
-                {% for error in form.second_sim_quantity.errors %}
-                    {{ error|escape }}
-                {% endfor %}
-                <br>
-                
-                <label for="one-range">One Range</label>
-                <input type="radio" name="data-range" id="one-range" value="one" checked>
-                <br><br>
-                <label for="two-ranges">Two Ranges</label>
-                <input type="radio" name="data-range" id="two-ranges" value="two">
-                <br><br>
-                
-                <div id="one-range-fields">
-                    {{ form.sim_quantity.label_tag }} <br>
-                    {{ form.sim_quantity }} <br>
-                    {{ form.min_val.label_tag }} <br>
-                    {{ form.min_val }} <br>
-                    {{ form.max_val.label_tag }} <br>
-                    {{ form.max_val }} <br>
-                    {{ form.target_val.label_tag }} <br>
-                    {{ form.target_val }} <br>
+<div class="container py-5 d-flex flex-column align-items-center">
+    
+    <h1 class="mb-4">Monte Carlo Simulator</h1>
+    
+    <div class="w-100" style="max-width: 500px;">
+        <form method="post" action="{% url 'projects:monte_carlo_simulator' %}" class="d-flex flex-column gap-3">
+            {% csrf_token %} 
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
                 </div>
-                
-                <div id="two-range-fields" class="d-none">
-                    {{ form.second_sim_quantity.label_tag }} <br>
-                    {{ form.second_sim_quantity }} <br>
-                    {{ form.second_min_val.label_tag }} <br>
-                    {{ form.second_min_val }} <br>
-                    {{ form.second_max_val.label_tag }} <br>
-                    {{ form.second_max_val }} <br>
-                    {{ form.second_target_val.label_tag }} <br>
-                    {{ form.second_target_val }} <br>
+            {% endif %}
+
+            <div class="card p-3 mb-3 bg-body-secondary border-0">
+                <label class="form-label fw-bold mb-2">Select Range Mode:</label>
+                <div class="d-flex gap-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="data-range" id="one-range" value="one" checked>
+                        <label class="form-check-label" for="one-range">One Range</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="data-range" id="two-ranges" value="two">
+                        <label class="form-check-label" for="two-ranges">Two Ranges</label>
+                    </div>
                 </div>
-                <br>
-                <input type="submit" id="monte-carlo-btn" class="btn btn-primary" value="Run Simulation" aria-label="Run Simulation">
-            </form>
-        </div>
-        <br>
-        <p>Your graph will be downloaded and placed into your default downloads folder.</p>
-        <br>
-{% include 'includes/attribution.html' %}
-    </center>
+            </div>
+
+            <div id="one-range-fields" class="d-flex flex-column gap-3">
+                <div>
+                    {{ form.sim_quantity.label_tag }}
+                    {{ form.sim_quantity }}
+                    {% if form.sim_quantity.errors %}
+                        <div class="text-danger small mt-1">{{ form.sim_quantity.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.min_val.label_tag }}
+                    {{ form.min_val }}
+                    {% if form.min_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.min_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.max_val.label_tag }}
+                    {{ form.max_val }}
+                    {% if form.max_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.max_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.target_val.label_tag }}
+                    {{ form.target_val }}
+                    {% if form.target_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.target_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div id="two-range-fields" class="d-none d-flex flex-column gap-3 border-top pt-3 mt-2">
+                <h5 class="text-muted fs-6">Second Range Settings</h5>
+                
+                <div>
+                    {{ form.second_sim_quantity.label_tag }}
+                    {{ form.second_sim_quantity }}
+                    {% if form.second_sim_quantity.errors %}
+                        <div class="text-danger small mt-1">{{ form.second_sim_quantity.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.second_min_val.label_tag }}
+                    {{ form.second_min_val }}
+                    {% if form.second_min_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.second_min_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.second_max_val.label_tag }}
+                    {{ form.second_max_val }}
+                    {% if form.second_max_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.second_max_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {{ form.second_target_val.label_tag }}
+                    {{ form.second_target_val }}
+                    {% if form.second_target_val.errors %}
+                        <div class="text-danger small mt-1">{{ form.second_target_val.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <input type="submit" id="monte-carlo-btn" class="btn btn-primary w-100 mt-4" value="Run Simulation" aria-label="Run Simulation">
+        </form>
+    </div>
+    
+    <p class="mt-4 text-center text-muted">Your graph will be downloaded and placed into your default downloads folder.</p>
+    
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
 {% endblock content %}

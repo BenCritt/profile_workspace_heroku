@@ -8,8 +8,6 @@ from django.core.exceptions import ValidationError
 from pyzipcode import ZipCodeDatabase
 
 # Provides built-in validation for form fields:
-# - MinValueValidator and MaxValueValidator: Used in MonteCarloForm to ensure numerical fields stay within specified ranges.
-# - MinLengthValidator and MaxLengthValidator: Used in TextForm to ensure text fields meet character length requirements.
 from django.core.validators import (
     MinValueValidator,
     MaxValueValidator,
@@ -21,17 +19,16 @@ from django.core.validators import (
 # Used in IPForm to validate whether the input is a valid IPv4 or IPv6 address.
 import ipaddress
 
-# Used in various form cleaning methods, such as SitemapForm and SSLCheckForm, to parse and validate URLs.
+# Used in various form cleaning methods to parse and validate URLs.
 from urllib.parse import urlparse
 
-# Imports a custom utility function to normalize URLs, adding schemes like "https://" if missing.
-# Utilized in the clean methods of forms like SitemapForm and SSLCheckForm.
+# Imports a custom utility function to normalize URLs.
 from .utils import normalize_url
 
 # Used by the Ham Radio Call Sign Lookup app.
 import re
 
-# Cookie Audit
+# --- Cookie Audit ---
 class CookieAuditForm(forms.Form):
     url = forms.CharField(
         label="Enter Website URL",
@@ -43,34 +40,27 @@ class CookieAuditForm(forms.Form):
                 "autofocus": "autofocus",
             }
         ),
-        # help_text="Example: bencritt.net, www.bencritt.net, etc.",
     )
 
     def clean_url(self):
         raw = (self.cleaned_data.get("url") or "").strip()
-
-        # Add https:// if the user didn’t include a scheme
         if raw and not urlparse(raw).scheme:
             raw = f"https://{raw}"
-
         validator = URLValidator(schemes=["http", "https"])
         try:
             validator(raw)
         except ValidationError:
             raise forms.ValidationError("Please enter a valid website URL (http/https).")
-
         return raw
 
 
-# Font Inspector
-from django.core.validators import URLValidator
-
+# --- Font Inspector ---
 class FontInspectorForm(forms.Form):
     url = forms.CharField(
         label="Page URL",
-        widget=forms.TextInput(            # ← TextInput renders <input type="text">
+        widget=forms.TextInput(
             attrs={
-                "placeholder": "nintendo.com",
+                "placeholder": "bencritt.net",
                 "class": "form-control",
             }
         ),
@@ -78,29 +68,29 @@ class FontInspectorForm(forms.Form):
 
     def clean_url(self):
         raw = self.cleaned_data["url"].strip()
-
-        # Prepend https:// if no scheme is given
         if not urlparse(raw).scheme:
             raw = f"https://{raw}"
-
-        # Validate the fully‑qualified URL
         validator = URLValidator(schemes=["http", "https"])
         try:
             validator(raw)
         except ValidationError as e:
             raise forms.ValidationError(e.message)
-
         return raw
 
+
+# --- Ham Radio Call Sign Lookup ---
 CALLSIGN_RE = re.compile(r"^[A-Za-z0-9]{3,8}$")
 
-# Ham Radio Call Sign Lookup
 class CallsignLookupForm(forms.Form):
     callsign = forms.CharField(
         label="Call Sign: ",
         max_length=8,
-        # help_text="Enter a valid amateur radio call sign (e.g., W1AW)",
-        widget=forms.TextInput(attrs={"placeholder": "W9YT"}),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "W9YT",
+                "class": "form-control"
+            }
+        ),
     )
 
     def clean_callsign(self):
@@ -109,11 +99,13 @@ class CallsignLookupForm(forms.Form):
             raise forms.ValidationError(f"“{cs}” is not a valid call-sign.")
         return cs
 
-# XML Splitter
+
+# --- XML Splitter ---
 class XMLUploadForm(forms.Form):
     file = forms.FileField(
         label="Upload your XML file here (25 MB limit)",
         widget=forms.ClearableFileInput(attrs={
+            "class": "form-control",
             "accept": ".xml",
             "onchange": (
                 "if(this.files.length && this.files[0].size > 26214400){"
@@ -125,239 +117,217 @@ class XMLUploadForm(forms.Form):
 
     def clean_file(self):
         f = self.cleaned_data["file"]
-
-        # Extension / MIME checks first
         if not f.name.lower().endswith(".xml"):
             raise forms.ValidationError(
                 "This tool only accepts XML files. Please upload a file with the .xml extension."
             )
-
         allowed_types = {"text/xml", "application/xml", "application/octet-stream"}
         if getattr(f, "content_type", None) not in allowed_types:
             raise forms.ValidationError("That file doesn’t look like XML.")
-
-        # Size check
         MAX_XML_SIZE = 25 * 1024 * 1024   # 25 MB
         if f.size > MAX_XML_SIZE:
             raise forms.ValidationError(
                 f"File is {f.size/1_048_576:.1f} MB; the limit is {MAX_XML_SIZE/1_048_576:.0f} MB."
             )
-
         return f
 
 
-# SEO Head Checker
+# --- SEO Head Checker ---
 class SitemapForm(forms.Form):
-    """
-    A Django form for collecting sitemap URLs and file type preferences for the SEO Head Checker tool.
-
-    Fields:
-        sitemap_url (str): The URL of the sitemap to process. Must be a valid URL.
-        file_type (str): The preferred output file format, either Excel or CSV.
-    """
-
     sitemap_url = forms.CharField(
-        # Label displayed on the form with SEO-friendly lanaguage.
         label="Enter Sitemap URL",
-        # Make this field mandatory.
         required=True,
-        # Provide a placeholder so the expected input is made clear to the user.
         widget=forms.TextInput(
             attrs={
                 "name": "sitemap_url",
                 "id": "sitemap_url",
+                "class": "form-control",
                 "placeholder": "bencritt.net/sitemap.xml",
             }
         ),
     )
 
     def clean_sitemap_url(self):
-        """
-        Cleans and validates the 'sitemap_url' field submitted in the form.
-
-        - Strips leading and trailing whitespace from the input URL.
-        - Normalizes the URL (e.g., ensures it starts with 'http://' or 'https://').
-        - Raises a validation error if the URL is invalid or cannot be normalized.
-
-        Returns:
-            str: The normalized URL if valid.
-
-        Raises:
-            forms.ValidationError: If the URL is invalid.
-        """
-        # Get the user-submitted URL and strip any whitespace
         url = self.cleaned_data["sitemap_url"].strip()
         try:
-            # Normalize the URL (ensures it starts with http:// or https://)
             return normalize_url(url)
         except Exception:
-            # Raise a validation error if the URL is invalid
             raise forms.ValidationError("Please enter a valid sitemap URL.")
 
 
-# Freight Carrier Safety Reporter
+# --- Freight Carrier Safety Reporter ---
 class CarrierSearchForm(forms.Form):
-    search_value = forms.CharField(label="Enter USDOT Number", max_length=50)
+    search_value = forms.CharField(
+        label="Enter USDOT Number", 
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "e.g. 1234567"
+            }
+        )
+    )
 
-    # Handle an invalid submission.
     def clean_search_value(self):
         data = self.cleaned_data["search_value"]
-
-        # Ensure the USDOT number is numeric
         if not data.isdigit():
             raise forms.ValidationError("Please enter a valid USDOT number.")
-
         return data
 
 
-# This is the form for the Grade Level Text Analyzer.
+# --- Grade Level Text Analyzer ---
 class TextForm(forms.Form):
-    # Create a CharField to hold the text input, using a textarea widget for multiline input.
     text = forms.CharField(
-        # Configure the textarea widget with Bootstrap class for styling and set its size.
+        label="Enter text to analyze",
         widget=forms.Textarea(
-            attrs={"class": "form-control", "rows": 5, "style": "max-width: 500px;"}
+            attrs={
+                "class": "form-control", 
+                "rows": 10,  # Updated to 10 as requested
+                "style": "max-width: 800px;" # Matches the container width in your template
+            }
         ),
-        label="Enter text to analyze",  # Set the label for the text input field.
-        # Add validators to ensure the text length is within the specified range.
         validators=[
-            # Minimum length validator: Text must be at least 1200 characters.
-            MinLengthValidator(
-                1200, message="The sample you've provided is too short."
-            ),
-            # Maximum length validator: Text must not exceed 10000 characters.
-            MaxLengthValidator(
-                10000, message="The sample you've provided is too long."
-            ),
+            MinLengthValidator(1200, message="The sample you've provided is too short."),
+            MaxLengthValidator(10000, message="The sample you've provided is too long."),
         ],
     )
 
 
-# This is the form for the QR Code Generator.
+# --- QR Code Generator ---
 class QRForm(forms.Form):
-    # Create a CharField to hold the text input for the QR code.
     qr_text = forms.CharField(
-        label="",
-        max_length=8000,  # Set the maximum length of the text input to 8000 characters.
-        # Configure the TextInput widget with a custom class for styling and set the size attribute.
-        widget=forms.TextInput(attrs={"class": "myform", "size": 30}),
+        label="Enter Text or URL",
+        max_length=8000,
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "https://www.example.com",
+            "aria-label": "Text content for QR code generation"
+        }),
+        help_text="Enter the URL or text you want the QR code to point to."
     )
 
 
-# This is the form for the Monte Carlo Simulator.
+# --- Monte Carlo Simulator ---
 class MonteCarloForm(forms.Form):
-    # Integer field for the number of simulations to run.
     sim_quantity = forms.IntegerField(
-        label="Number of Simulations ",
-        # Validators to ensure the number of simulations is within an acceptable range.
+        label="Number of Simulations",
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
         validators=[
-            MinValueValidator(
-                1, message="The number of simulations must be at least 1."
-            ),
-            MaxValueValidator(
-                1000000,
-                message="The number of simulations cannot exceed 1,000,000.  This limit ensures server resources aren't overused.",
-            ),
+            MinValueValidator(1, message="The number of simulations must be at least 1."),
+            MaxValueValidator(1000000, message="The number of simulations cannot exceed 1,000,000."),
         ],
     )
-    # Floating point fields for the minimum and maximum values for the simulation.
-    min_val = forms.FloatField(label="Minimum Value")
-    max_val = forms.FloatField(label="Maximum Value")
-    # Floating point field for the target value in the simulation.
-    target_val = forms.FloatField(label="Target Value")
-    # Optional integer field for the number of simulations for a second data range.
+    min_val = forms.FloatField(
+        label="Minimum Value",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    max_val = forms.FloatField(
+        label="Maximum Value",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    target_val = forms.FloatField(
+        label="Target Value",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    
+    # Second Range (Optional)
     second_sim_quantity = forms.IntegerField(
         required=False,
         label="Second Number of Simulations",
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
         validators=[
-            MinValueValidator(
-                1,
-                message="The value for second number of simulations, if you wish to include a second data range, must be at least 1.  If you only want one data range in your graph, please leave the secondary fields blank.",
-            ),
-            MaxValueValidator(
-                1000000,
-                message="The number of second simulations cannot exceed 1,000,000.  This limit ensures server resources aren't overused.",
-            ),
+            MinValueValidator(1, message="Must be at least 1 if used."),
+            MaxValueValidator(1000000, message="Cannot exceed 1,000,000."),
         ],
     )
-    # Optional floating point fields for the minimum and maximum values for the second data range.
-    second_min_val = forms.FloatField(label="Second Minimum Value", required=False)
-    second_max_val = forms.FloatField(label="Second Maximum Value", required=False)
-    # Optional floating point field for the target value for the second data range.
-    second_target_val = forms.FloatField(label="Second Target Value", required=False)
+    second_min_val = forms.FloatField(
+        label="Second Minimum Value", 
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    second_max_val = forms.FloatField(
+        label="Second Maximum Value", 
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    second_target_val = forms.FloatField(
+        label="Second Target Value", 
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
 
 
-# This is used to make sure the user enters a valid ZIP code.
+# --- Weather Forecast ---
 zdb = ZipCodeDatabase()
 
-
-# This is the form for the Weather Forecast app.
 class WeatherForm(forms.Form):
-    # Define a CharField for the ZIP code with a maximum length of 5 characters.
-    zip_code = forms.CharField(label="ZIP Code:", max_length=5)
+    zip_code = forms.CharField(
+        label="ZIP Code:", 
+        max_length=5,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "53545"
+            }
+        )
+    )
 
-    # Define a custom clean method for the zip_code field.
     def clean_zip_code(self):
-        # Retrieve the zip_code from the cleaned_data dictionary.
         zip_code = self.cleaned_data["zip_code"]
         try:
-            # Attempt to access the zip_code in a ZIP code database (zdb).
-            # This line will raise an exception if the zip code is not found in the database.
             zdb[zip_code]
         except (KeyError, IndexError):
-            raise ValidationError(
-                "You've made an invalid submission. Please enter a valid ZIP code."
-            )
-        # If no exception is raised, return the validated zip_code.
+            raise ValidationError("You've made an invalid submission. Please enter a valid ZIP code.")
         return zip_code
 
 
-# This is the form for the DNS Tool app.
+# --- DNS Tool ---
 class DomainForm(forms.Form):
-    # Define a form field for the domain input
     domain = forms.CharField(
-        # Label that will be displayed with the input field
         label="Enter Domain Name",
-        # Maximum length of the input string
         max_length=253,
         widget=forms.TextInput(
-            # Placeholder text to provide an example of the expected input
-            attrs={"placeholder": "bencritt.net"}
+            attrs={
+                "class": "form-control",
+                "placeholder": "bencritt.net"
+            }
         ),
     )
 
 
-# This is the form for the IP Tool app.
+# --- IP Tool ---
 class IPForm(forms.Form):
-    # Define a form field for the IP address input
     ip_address = forms.CharField(
-        # Label that will be displayed with the input field
         label="Enter IP Address",
-        # Maximum length of the input string, suitable for IPv6 addresses
         max_length=45,
-        # help_text="Enter a valid IPv4 or IPv6 address.",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "8.8.8.8"
+            }
+        )
     )
 
-    # Method to clean and validate the IP address input
     def clean_ip_address(self):
-        # Retrieve the cleaned data for the IP address field
         ip = self.cleaned_data["ip_address"]
         try:
-            # Validate the IP address using the ipaddress module
             ipaddress.ip_address(ip)
         except ValueError:
-            # If validation fails, raise a ValidationError
             raise forms.ValidationError("Enter a valid IP address.")
-        # Return the validated IP address
         return ip
 
 
-# This is the form for the SSL Certificate Checker app.
+# --- SSL Certificate Checker ---
 class SSLCheckForm(forms.Form):
     url = forms.CharField(
         label="Enter Website URL",
         max_length=200,
-        widget=forms.TextInput(attrs={"placeholder": "bencritt.net"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "bencritt.net"
+            }
+        ),
         error_messages={
             "required": "Please enter a URL.",
             "invalid": "Please enter a valid URL.",
@@ -366,11 +336,7 @@ class SSLCheckForm(forms.Form):
 
     def clean_url(self):
         url = self.cleaned_data.get("url")
-
-        # Check if URL has a scheme (http or https)
         parsed_url = urlparse(url)
         if not parsed_url.scheme:
-            # If no scheme is provided, prepend 'https://'
             url = "https://" + url
-
         return url

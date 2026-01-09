@@ -2,274 +2,307 @@
 {% load static %}
 
 {% block scripts %}
-<!-- Schema for SEO -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Font Inspector",
-  "description": "Enter a website URL to detect the font families it uses, whether a license is required for each, and where each font is sourced from (Google Fonts, Adobe Fonts, or self-hosted). Download results as CSV.",
-  "url": "https://www.bencritt.net/projects/font-inspector/",
-  "applicationCategory": "Utility",
-  "operatingSystem": "Web-based",
-  "image": "https://www.bencritt.net/static/img/all-projects/font-inspector.webp",
-  "creator": {
-    "@type": "Person",
-    "name": "Ben Crittenden",
-    "url": "https://www.bencritt.net"
-  },
-  "featureList": [
-    "Scans a public webpage to detect font families in use.",
-    "Indicates whether each family requires a license.",
-    "Identifies the font source (Google Fonts, Adobe Fonts, or self-hosted).",
-    "Lets users download the detected fonts as a CSV file.",
-    "Processes requests at runtime—no data is permanently stored on the server."
-  ]
-}
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('font-inspector-form') || document.querySelector('form');
-  if (!form) return;
+  {% include "includes/schemas/font_inspector_schema.html" %}
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('font-inspector-form') || document.querySelector('form');
+    if (!form) return;
 
-  const progWrap   = document.getElementById('fi-progress');
-  const bar        = document.getElementById('fi-bar');
-  const statusText = document.getElementById('fi-status-text');
-  const queuePosEl = document.getElementById('fi-queue-pos');
-  const urlInput   = form.querySelector('input[name="url"]');
-  const tableWrap  = document.getElementById('fi-results');
-  const dlBtn      = document.getElementById('fi-dl');
+    const progWrap   = document.getElementById('fi-progress');
+    const bar        = document.getElementById('fi-bar');
+    const statusText = document.getElementById('fi-status-text');
+    const queuePosEl = document.getElementById('fi-queue-pos');
+    const urlInput   = form.querySelector('input[name="url"]');
+    const tableWrap  = document.getElementById('fi-results');
+    const dlBtn      = document.getElementById('fi-dl');
 
-  const startUrl  = "{% url 'projects:start_font_inspector' %}";
-  const statusTpl = "{% url 'projects:fi_task_status' 'TASKID' %}";
-  const rowsTpl   = "{% url 'projects:fi_rows' 'TASKID' %}";
-  const dlTpl     = "{% url 'projects:fi_download' 'TASKID' %}";
+    const startUrl  = "{% url 'projects:start_font_inspector' %}";
+    const statusTpl = "{% url 'projects:fi_task_status' 'TASKID' %}";
+    const rowsTpl   = "{% url 'projects:fi_rows' 'TASKID' %}";
+    const dlTpl     = "{% url 'projects:fi_download' 'TASKID' %}";
 
-  function csrfToken() {
-    const m = document.cookie.match(/(?:^|;\\s*)csrftoken=([^;]+)/);
-    if (m) return decodeURIComponent(m[1]);
-    const t = form.querySelector('input[name=\"csrfmiddlewaretoken\"]');
-    return t ? t.value : '';
-  }
-
-  function setProgress(pct, msg, qpos) {
-    const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
-    progWrap.style.display = 'block';
-    bar.style.width = clamped + '%';
-    bar.textContent = clamped + '%';
-    const prog = progWrap.querySelector('[role=\"progressbar\"]');
-    if (prog) prog.setAttribute('aria-valuenow', String(clamped));
-    statusText.textContent = msg || '';
-    queuePosEl.textContent = qpos && qpos > 0 ? `Place in queue: ${qpos}` : '';
-  }
-
-  function disableButtons(disabled) {
-    const btns = form.querySelectorAll('button[type=\"submit\"], input[type=\"submit\"], button[type=\"button\"]');
-    btns.forEach(b => b.disabled = !!disabled);
-    if (disabled) urlInput && urlInput.setAttribute('readonly', '');
-    else urlInput && urlInput.removeAttribute('readonly');
-  }
-
-  function renderTable(rows) {
-    if (!rows || !rows.length) {
-      tableWrap.innerHTML = '';
-      return;
+    function csrfToken() {
+      const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+      if (m) return decodeURIComponent(m[1]);
+      const t = form.querySelector('input[name="csrfmiddlewaretoken"]');
+      return t ? t.value : '';
     }
-    const head = `
-      <thead><tr>
-        <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
-      </tr></thead>`;
-    const body = rows.map(r => `
-      <tr>
-        <td>${r.website}</td>
-        <td>${r.family}</td>
-        <td>${r.license_required}</td>
-        <td>${r.font_source}</td>
-      </tr>`).join('');
-    tableWrap.innerHTML = `
-      <div class="table-responsive">
-        <table class="table table-dark table-striped align-middle">
-          ${head}<tbody>${body}</tbody>
-        </table>
-      </div>
-    `;
-  }
 
-  let pollTimer = null;
+    function setProgress(pct, msg, qpos) {
+      const clamped = Math.max(0, Math.min(100, Math.floor(pct)));
+      
+      progWrap.classList.remove('d-none');
+      
+      bar.style.width = clamped + '%';
+      bar.textContent = clamped + '%';
+      bar.setAttribute('aria-valuenow', String(clamped));
+      
+      if (msg) statusText.textContent = msg;
+      queuePosEl.textContent = qpos && qpos > 0 ? `Place in queue: ${qpos}` : '';
+    }
 
-  async function poll(taskId) {
-    try {
-      const res = await fetch(statusTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
-      const j = await res.json();
-      setProgress(j.progress ?? 0, j.message || '', j.queue_position || 0);
+    function showDownloadButton(taskId) {
+        if (!dlBtn) return;
+        dlBtn.dataset.taskId = taskId;
+        dlBtn.disabled = false;
+        dlBtn.classList.remove('d-none');
+    }
 
-      if (j.status === 'QUEUED' || j.status === 'RUNNING') {
-        // keep polling
+    function resetUI() {
+        progWrap.classList.add('d-none');
+        if (dlBtn) {
+            dlBtn.classList.add('d-none');
+            dlBtn.disabled = true;
+        }
+        disableButtons(false);
+    }
+
+    function disableButtons(disabled) {
+      const btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button[type="button"]');
+      btns.forEach(b => {
+          // Don't disable the download button if we are just unlocking the form
+          if (b.id !== 'fi-dl') b.disabled = !!disabled;
+      });
+      if (disabled) urlInput && urlInput.setAttribute('readonly', '');
+      else urlInput && urlInput.removeAttribute('readonly');
+    }
+
+    function renderTable(rows) {
+      if (!rows || !rows.length) {
+        tableWrap.innerHTML = '<div class="alert alert-info mt-3 text-center">No fonts detected on that page.</div>';
         return;
       }
 
-      if (j.status === 'DONE') {
-        // fetch rows to render the table (so it will remain after download)
-        try {
-          const rr = await fetch(rowsTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
-          const rj = await rr.json();
-          renderTable(rj.rows || []);
-        } catch {}
-        disableButtons(false);
-        if (dlBtn) {
-          dlBtn.dataset.taskId = taskId;
-          dlBtn.style.display = 'inline-block';
-          dlBtn.disabled = false;
+      const head = `
+        <thead><tr>
+          <th>Website</th><th>Family</th><th>License Required</th><th>Font Source</th>
+        </tr></thead>`;
+
+      const body = rows.map(r => {
+        let badgeClass = 'bg-secondary';
+        if (r.license_required === 'Yes') badgeClass = 'bg-danger';
+        if (r.license_required === 'No') badgeClass = 'bg-success';
+        if (r.license_required === 'Unknown') badgeClass = 'bg-warning text-dark';
+
+        return `
+        <tr>
+          <td data-label="Website" class="text-muted small">${r.website}</td>
+          <td data-label="Family"><strong>${r.family}</strong></td>
+          <td data-label="License Required"><span class="badge ${badgeClass}">${r.license_required}</span></td>
+          <td data-label="Font Source">${r.font_source}</td>
+        </tr>`;
+      }).join('');
+
+      tableWrap.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            ${head}<tbody>${body}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    let pollTimer = null;
+
+    async function poll(taskId) {
+      try {
+        const res = await fetch(statusTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
+        if (!res.ok) throw new Error("Status check failed");
+        
+        const j = await res.json();
+        
+        setProgress(j.progress ?? 0, j.message || '', j.queue_position || 0);
+
+        if (j.status === 'QUEUED' || j.status === 'RUNNING') return;
+
+        if (j.status === 'DONE') {
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+          
+          try {
+            const rr = await fetch(rowsTpl.replace('TASKID', taskId), { credentials: 'same-origin' });
+            const rj = await rr.json();
+            renderTable(rj.rows || []);
+          } catch (err) {
+            console.error(err);
+            tableWrap.innerHTML = '<div class="alert alert-danger">Error loading results.</div>';
+          }
+          
+          disableButtons(false);
+          setProgress(100, "Complete!", 0);
+          showDownloadButton(taskId);
+
+        } else if (j.status === 'ERROR') {
+          if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+          disableButtons(false);
+          statusText.textContent = j.message || 'Error.';
+          alert(j.message || "An error occurred.");
         }
-      } else if (j.status === 'ERROR') {
-        disableButtons(false);
-        statusText.textContent = j.message || 'Error.';
+
+      } catch (e) {
+        console.warn("Poll error:", e);
       }
-
-      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-
-    } catch (e) {
-      // transient network errors; keep polling
     }
-  }
 
-  if (dlBtn) {
-    dlBtn.addEventListener('click', function () {
-      const taskId = dlBtn.dataset.taskId;
-      if (!taskId) return;
-      // Hide progress bar but keep table visible
-      progWrap.style.display = 'none';
-      // Also hide the Download button once the download starts
-      dlBtn.style.display = 'none';
-      window.location.href = dlTpl.replace('TASKID', taskId);
-    });
-  }
-
-  form.addEventListener('submit', async function (ev) {
-    ev.preventDefault();
-
-    const url = (urlInput.value || '').trim();
-    if (!url) return;
-
-    // GA4 (no-op if gtag is missing)
-    window.gtag && gtag('event', 'font_scan_start');
-
-    // Reset UI
-    renderTable([]);
-    setProgress(2, 'Starting…', 0);
-    disableButtons(true);
-    if (dlBtn) { dlBtn.disabled = true; dlBtn.style.display = 'none'; dlBtn.dataset.taskId = ''; }
-
-    try {
-      const resp = await fetch(startUrl, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ url }),
-        credentials: 'same-origin',
+    if (dlBtn) {
+      dlBtn.addEventListener('click', function () {
+        const taskId = dlBtn.dataset.taskId;
+        if (!taskId) return;
+        
+        // --- FIX: Hide button immediately upon click ---
+        dlBtn.classList.add('d-none');
+        
+        // Trigger the download
+        window.location.href = dlTpl.replace('TASKID', taskId);
       });
-      if (!resp.ok) throw new Error('Start failed');
-      const j = await resp.json();
-      setProgress(3, j.status === 'QUEUED' ? 'Queued…' : 'Running…', j.queue_position || 0);
-
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(() => poll(j.task_id), 650);
-
-    } catch (e) {
-      disableButtons(false);
-      statusText.textContent = 'Error starting task.';
     }
-  }, { passive: false });
-});
-</script>
+
+    form.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+
+      const url = (urlInput.value || '').trim();
+      if (!url) return;
+
+      if (window.gtag) gtag('event', 'font_scan_start');
+
+      tableWrap.innerHTML = '';
+      resetUI(); 
+      
+      setProgress(1, 'Starting…', 0);
+      disableButtons(true);
+
+      try {
+        const resp = await fetch(startUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ url }),
+          credentials: 'same-origin',
+        });
+        
+        if (!resp.ok) throw new Error('Start failed');
+        
+        const j = await resp.json();
+        setProgress(5, j.status === 'QUEUED' ? 'Queued…' : 'Running…', j.queue_position || 0);
+
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(() => poll(j.task_id), 1000);
+      } catch (e) {
+        console.error(e);
+        disableButtons(false);
+        statusText.textContent = 'Error starting task.';
+        alert("Could not start the scan. Please check your connection.");
+      }
+    }, { passive: false });
+  });
+  </script>
 {% endblock scripts %}
 
 {% block styles %}
 <style>
-@media (prefers-reduced-motion: reduce) {
-  .progress-bar-animated { animation: none; }
-}
+    @media (prefers-reduced-motion: reduce) {
+      .progress-bar-animated { animation: none; }
+    }
+    
+    html.embedded body { overflow: hidden !important; }
+
+    html.embedded #fi-results-area {
+      max-height: 60vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 6px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    html.embedded #fi-results .table-responsive {
+      overflow: visible; 
+    }
+
+    html.embedded #fi-results thead { display: none; }
+
+    html.embedded #fi-results tr {
+      display: block;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    html.embedded #fi-results td {
+      display: flex;
+      border: 0 !important;
+      padding: 0.25rem 0 !important;
+      gap: 1rem;
+      word-break: break-word;
+    }
+
+    html.embedded #fi-results td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      min-width: 8rem;
+      opacity: 0.8;
+    }
 </style>
 {% endblock styles %}
 
 {% block meta_tags %}
-<!-- Prevent browser caching to avoid stale CSRF tokens -->
 <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma"         content="no-cache">
 <meta http-equiv="Expires"        content="0">
-
-<!-- SEO fundamentals -->
 <meta name="description"          content="Enter a website URL to detect its web fonts, see if a license is required, identify whether fonts come from Google Fonts, Adobe Fonts, or are self-hosted, and download a CSV of results.">
-<meta name="keywords"             content="Font Inspector, detect web fonts, web font checker, Google Fonts, Adobe Fonts, self-hosted fonts, font license, CSS fonts">
-
-<!-- Open Graph -->
-<meta property="og:url"           content="https://www.bencritt.net/projects/font-inspector/">
-<meta property="og:type"          content="website">
 <meta property="og:title"         content="Font Inspector – Detect Web Fonts, Licenses & Sources">
 <meta property="og:description"   content="Scan any page to list its font families, license requirements, and sources. Export as CSV.">
 <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/font-inspector.webp">
-<meta property="og:image:type"    content="image/webp">
-<meta property="og:image:alt"     content="Font Inspector Screenshot">
-<meta property="og:site_name"     content="Ben Crittenden">
-    
-<!--
-Once I have a specific image meant for this, I can use these optimized dimensions.
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
--->
-
-<!-- Twitter -->
 <meta name="twitter:card"         content="summary_large_image">
-<meta name="twitter:domain"       content="bencritt.net">
-<meta name="twitter:url"          content="https://www.bencritt.net/projects/font-inspector/">
-<meta name="twitter:title"        content="Font Inspector – Detect Web Fonts, Licenses & Sources">
-<meta name="twitter:description"  content="Scan any page to list its font families, license requirements, and sources. Export as CSV.">
-<meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/font-inspector.webp">
-<meta name="twitter:creator"      content="@bencritt89">
 {% endblock meta_tags %}
 
-
 {% block link_tags %}
-<!-- Canonical link to help avoid duplicate content issues. -->
 <link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
 {% endblock link_tags %}
+
 {% block title %}Font Inspector | Detect Web Fonts, License Requirements, & Sources{% endblock title %}
+
 {% block content %}
-<center>
-<div class="container py-4" style="width: 100%; max-width: 700px; margin: auto;">
-  <h1>Font Inspector</h1>
-  <br>
-  <p>Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
-  <form id="font-inspector-form" class="mb-4">
-    {% csrf_token %}
-    <div class="input-group">
-      {{ form.url }}
-      <button class="btn btn-primary" type="submit">Scan for Fonts</button>
-      <button id="fi-dl" class="btn btn-secondary" type="button" disabled style="display:none;">Download CSV</button>
+<div class="container py-5 d-flex flex-column align-items-center">
+  
+  <h1 class="mb-4">Font Inspector</h1>
+  
+  <div class="w-100" style="max-width: 700px;">
+    <p class="text-center mb-4">Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
+
+    <form id="font-inspector-form" class="mb-4">
+      {% csrf_token %}
+      <div class="input-group">
+        <label for="{{ form.url.id_for_label }}" class="visually-hidden">Website URL</label>
+        {{ form.url }}
+        <button class="btn btn-primary" type="submit">Scan Fonts</button>
+        <button id="fi-dl" class="btn btn-outline-secondary d-none" type="button" disabled>Download CSV</button>
+      </div>
+    </form>
+
+    <div id="fi-progress" class="mt-3 d-none" aria-live="polite">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
+        <span class="small" id="fi-queue-pos"></span>
+      </div>
+      <div class="progress" style="height:18px;">
+        <div id="fi-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:1%">1%</div>
+      </div>
     </div>
-  </form>
-  <!-- Progress Indicator -->
-  <div id="fi-progress"
-       class="mt-3"
-       style="display:none; max-width:700px;"
-       aria-live="polite" aria-atomic="true">
-    <div class="d-flex justify-content-between mb-1">
-      <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
-      <span class="small" id="fi-queue-pos"></span>
+
+    <div id="fi-results-area" class="mt-5" tabindex="0">
+      <div id="fi-results"></div>
+      <p class="mt-2 text-muted small text-center">CSV files are stored temporarily and auto-deleted after 30 minutes.</p>
     </div>
-    <div class="progress"
-         role="progressbar"
-         aria-label="Font scan progress"
-         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-         style="height:18px;">
-      <div id="fi-bar"
-           class="progress-bar progress-bar-striped progress-bar-animated"
-           style="width:1%">1%</div>
-    </div>
+
   </div>
-  <br>
-  <!-- Results Table -->
-  <div id="fi-results"></div>
-    <p>CSV files are stored temporarily and auto-deleted after 30 minutes.</p>
+
+  <div class="mt-5 text-center">
+    {% include 'includes/attribution.html' %}
   </div>
-</center>
+
+</div>
+<script>
+  if (window.self !== window.top) {
+    document.documentElement.classList.add("embedded");
+  }
+</script>
 {% endblock content %}

@@ -1,15 +1,13 @@
 {% extends "projects/base.html" %}
 {% load static %}
-    {% block scripts %}
-      <!-- Schema for SEO Professional Toolkit -->
-      {% include "includes/schemas/seo_tools_schema.html" %}
-    {% endblock scripts %}
-    {% block meta_tags %}
-    <!-- Meta tags for SEO Professional Toolkit -->
-    <meta name="description" content="SEO Professional Toolkit by Ben Crittenden: run technical audits with SEO Head Checker, inspect typography with Font Inspector, and analyze security attributes with Cookie Audit.">
-    <meta name="keywords" content="SEO toolkit, technical SEO, SEO head checker, meta tags audit, canonical tag checker, robots meta checker, font inspector, cookie audit, SameSite, HttpOnly, Secure cookies">
 
-    <!-- Open Graph / Facebook -->
+{% block scripts %}
+  {% include "includes/schemas/seo_tools_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="SEO Professional Toolkit by Ben Crittenden: run technical audits with SEO Head Checker, inspect typography with Font Inspector, and analyze security attributes with Cookie Audit.">
+
     <meta property="og:url" content="https://www.bencritt.net/projects/seo-tools/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
@@ -17,7 +15,6 @@
     <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
     <meta property="og:image:alt" content="SEO Professional Toolkit by Ben Crittenden">
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="bencritt.net">
     <meta property="twitter:url" content="https://www.bencritt.net/projects/seo-tools/">
@@ -25,90 +22,116 @@
     <meta name="twitter:description" content="Head tag auditing, font inspection, and cookie analysis in one SEO toolkit.">
     <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
     <meta name="twitter:creator" content="@bencritt89"/>
-    {% endblock meta_tags %}
-    {% block link_tags %}
-        <!-- Canonical link to help avoid duplicate content issues. -->
-        <link rel="canonical" href="https://www.bencritt.net/projects/seo-tools/">
-        <!-- Other CSS styling and layout. -->
-        <link href="{% static 'template-css/seo-tools-css.css' %}" rel="stylesheet">
-    {% endblock link_tags %}
-    {% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
-    {% block styles %} 
-    {% endblock styles %}
-    {% block content %}
-    <main>
-        <center>
-            <h1>SEO Professional Toolkit</h1>
-            <br>
-            <!-- Non-iframe Cards -->
-            <div class="card-container non-iframe-cards" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+{% endblock meta_tags %}
 
-              <!-- SEO Head Checker Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>SEO Head Checker</h2>
-                  <img src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it. Your file will be sent to your default downloads folder.</p>
-                  <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use SEO Head Checker</a>
-              </div>
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/seo-tools/">
+{% endblock link_tags %}
 
-              <!-- Font Inspector Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>Font Inspector</h2>
-                  <img src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" style="width: 100%; height: auto; border-radius: 8px;">
-                  <p>Use the Font Inspector to analyze and inspect fonts on any web page. Identify font families, weights, and styles used on a page.</p>
-                  <a href="{% url 'projects:font_inspector' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use Font Inspector</a>
-              </div>
+{% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
 
-              <!-- Cookie Audit Card -->
-              <div class="card non-iframe-cards tool-card">
-                  <h2>Cookie Audit</h2>
-                  <img src="{% static 'img/all-projects/cookie-audit.webp' %}" alt="Cookie Audit Tool" style="width: 100%; height: auto; border-radius: 8px;">                
-                  <p>Use the Cookie Audit tool to analyze and inspect cookies on any web page. Identify cookie names, domains, paths, and security attributes used on a page.</p>
-                  <a href="{% url 'projects:cookie_audit' %}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Use Cookie Audit</a>
-              </div>
+{% block styles %}
+<style>
+    /* Specific styles for the tool iframes */
+    .tool-iframe {
+        width: 100%;
+        height: 75vh;        /* fills most of the viewport */
+        min-height: 700px;   /* prevents tiny iframes on desktop */
+        border: 0;
+        display: block;
+        overflow: auto;      /* default: allow iframe scrolling */
+    }
 
-            </div>  
-            <br>
-            <!-- Iframe cards for displaying apps inline -->          
-            <div class="card-container iframe-cards" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around;">
+    /* Cookie Audit only: prevent double scrollbars */
+    .tool-iframe--no-scroll {
+        overflow: hidden;
+    }
+    
+    /* Ensure cards behave responsibly on mobile without extra media queries */
+    .tool-card {
+        width: 100%;
+        max-width: 450px;
+    }
+</style>
+{% endblock styles %}
 
-              <!-- SEO Head Checker Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe src="{% url 'projects:seo_head_checker' %}" style="width: 100%; height: auto; min-height: 553px; border: none;" scrolling="no"></iframe>
-                      <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-secondary" style="margin-top: 10px;">Open SEO Head Checker Page</a>
-                  </div>
-              </div>
-          
-              <!-- Font Inspector Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center">
+        <h1 class="mb-4">SEO Professional Toolkit</h1>
+        
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">SEO Head Checker</h2>
+                    <img src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker Tool" class="img-fluid rounded my-3">                
+                    <p class="card-text">Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it.</p>
+                    <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary mt-2">Use SEO Head Checker</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Font Inspector</h2>
+                    <img src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" class="img-fluid rounded my-3">
+                    <p class="card-text">Use the Font Inspector to analyze and inspect fonts on any web page. Identify font families, weights, and styles used on a page.</p>
+                    <a href="{% url 'projects:font_inspector' %}" class="btn btn-primary mt-2">Use Font Inspector</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Cookie Audit</h2>
+                    <img src="{% static 'img/all-projects/cookie-audit.webp' %}" alt="Cookie Audit Tool" class="img-fluid rounded my-3">                
+                    <p class="card-text">Use the Cookie Audit tool to analyze and inspect cookies on any web page. Identify cookie names, domains, paths, and security attributes used on a page.</p>
+                    <a href="{% url 'projects:cookie_audit' %}" class="btn btn-primary mt-2">Use Cookie Audit</a>
+                </div>
+            </div>
+
+        </div>  
+        
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:seo_head_checker' %}" 
+                        class="tool-iframe" 
+                        title="SEO Head Checker"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-secondary mt-3">Open SEO Head Checker Page</a>
+                </div>
+            </div>
+        
+            <div class="card tool-card shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
                         src="{% url 'projects:font_inspector' %}"
                         class="tool-iframe"
                         title="Font Inspector"
                         loading="lazy"
                         scrolling="yes">
-                      </iframe>
-                      <a href="{% url 'projects:font_inspector' %}" class="btn btn-secondary" style="margin-top: 10px;">Open Font Inspector Page</a>
-                  </div>
-              </div>
-          
-              <!-- Cookie Audit Card -->
-              <div class="card iframe-cards" style="width: 100%; max-width: 450px; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
-                  <div class="card-body">
-                      <iframe
+                    </iframe>
+                    <a href="{% url 'projects:font_inspector' %}" class="btn btn-secondary mt-3">Open Font Inspector Page</a>
+                </div>
+            </div>
+        
+            <div class="card tool-card shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
                         src="{% url 'projects:cookie_audit' %}"
                         class="tool-iframe tool-iframe--no-scroll"
                         title="Cookie Audit"
                         loading="lazy"
                         scrolling="no">
-                      </iframe>
-                      <a href="{% url 'projects:cookie_audit' %}" class="btn btn-secondary" style="margin-top: 10px;">Open Cookie Audit Page</a>
-                  </div>
-              </div>
-          </div>
-            <br>
-        </center>
-    </main>
-    {% endblock content %}
+                    </iframe>
+                    <a href="{% url 'projects:cookie_audit' %}" class="btn btn-secondary mt-3">Open Cookie Audit Page</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

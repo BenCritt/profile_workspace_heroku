@@ -11,7 +11,6 @@
     <meta http-equiv="Expires"        content="0">
 
     <meta name="description"          content="Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.">
-    <meta name="keywords"             content="IP, Address, Lookup, tool, reverse DNS, geolocation, blacklist">
 
     <meta property="og:url"           content="https://www.bencritt.net/projects/ip-tool/">
     <meta property="og:type"          content="website">
@@ -33,125 +32,126 @@
 
 {% block link_tags %}
     <link rel="canonical" href="https://www.bencritt.net/projects/ip-tool/">
-    <link href="{% static 'template-css/ip-tool-css.css' %}" rel="stylesheet">
 {% endblock link_tags %}
 
 {% block title %}IP Address Lookup Tool | Reverse DNS, Geolocation, and Blacklist Check{% endblock title %}
 
 {% block content %}
-<main>
-    <div class="text-center"> <h1>IP Address Lookup Tool</h1>
-        <br>
+<div class="container py-5 d-flex flex-column align-items-center">
+    
+    <h1 class="mb-4">IP Address Lookup Tool</h1>
         
-        <div class="container u-container-narrow">
-            {% if error_message %}
-                <div class="alert alert-danger">
-                    {{ error_message }}
-                </div>
-            {% endif %}
+    <div class="container u-container-narrow w-100" style="max-width: 600px;">
+        {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+        {% endif %}
 
-            <form method="post">
-                {% csrf_token %}
-                
-                {% if form.errors %}
-                    <div class="alert alert-danger">
+        <form method="post" class="d-flex flex-column gap-3">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <ul class="mb-0 ps-3">
                         {% for field in form %}
                             {% for error in field.errors %}
-                                {{ error }}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
                             {% endfor %}
                         {% endfor %}
                         {% for error in form.non_field_errors %}
-                            {{ error }}
+                            <li>{{ error }}</li>
                         {% endfor %}
-                    </div>
-                {% endif %}
-
-                {{ form.as_p }}
-                
-                <input type="submit" id="ip-lookup-btn" class="btn btn-primary" value="Look Up IP Address Info" aria-label="Look Up IP Address Info">
-                <br>
-                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary" style="margin-top: 20px;">Go to All IT Tools</a>
-            </form>
-        </div>
-        <br>
-
-        {% if results %}
-            <br>
-            <div class="container u-container-narrow">
-                <h5>IP Address Information for {{ form.cleaned_data.ip_address }}</h5>
-                <br>
-                <div class="table-container">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th style="width: 30%;">Information Type</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>PTR Records</td>
-                                <td>
-                                    {% if results.PTR %}
-                                        <ul class="text-start">
-                                            {% for record in results.PTR %}
-                                                <li>{{ record }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% else %}
-                                        No PTR records found
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            
-                            {% if results.Geolocation %}
-                            <tr>
-                                <td>Geolocation</td>
-                                <td>
-                                    <ul class="text-start">
-                                        {% for key, value in results.Geolocation.items %}
-                                            <li><strong>{{ key }}:</strong> {{ value }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                            </tr>
-                            {% endif %}
-                            
-                            {% if results.Blacklist %}
-                            <tr>
-                                <td>Blacklist Status</td>
-                                <td>
-                                    <ul class="text-start">
-                                        {% for status in results.Blacklist %}
-                                            <li>{{ status }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </td>
-                            </tr>
-                            {% endif %}
-                            
-                            {% if results.ISP %}
-                            <tr>
-                                <td>ISP</td>
-                                <td>{{ results.ISP }}</td>
-                            </tr>
-                            {% endif %}
-                            
-                            {% if results.ASN %}
-                            <tr>
-                                <td>ASN</td>
-                                <td>{{ results.ASN }}</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                    </ul>
                 </div>
+            {% endif %}
+
+            <div>
+                {{ form.as_p }}
             </div>
-        {% endif %}
-        
-        <br><br>
-        
-{% include 'includes/attribution.html' %}
+            
+            <input type="submit" id="ip-lookup-btn" class="btn btn-primary w-100" value="Look Up IP Address Info" aria-label="Look Up IP Address Info">
+            
+            <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary mt-2">Go to All IT Tools</a>
+        </form>
     </div>
-</main>
+
+    {% if results %}
+        <div class="container u-container-narrow mt-5 w-100" style="max-width: 800px;">
+            <h2 class="h5 mb-3">IP Address Information for <span class="text-primary">{{ form.cleaned_data.ip_address }}</span></h2>
+            
+            <div class="table-responsive shadow-sm">
+                <table class="table table-bordered table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="w-25 text-center">Information Type</th>
+                            <th scope="col" class="text-center">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">PTR Records</th>
+                            <td>
+                                {% if results.PTR %}
+                                    <ul class="list-unstyled mb-0 text-start">
+                                        {% for record in results.PTR %}
+                                            <li>{{ record }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted">No PTR records found</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        
+                        {% if results.Geolocation %}
+                        <tr>
+                            <th scope="row">Geolocation</th>
+                            <td>
+                                <ul class="list-unstyled mb-0 text-start">
+                                    {% for key, value in results.Geolocation.items %}
+                                        <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if results.Blacklist %}
+                        <tr>
+                            <th scope="row">Blacklist Status</th>
+                            <td>
+                                <ul class="list-unstyled mb-0 text-start">
+                                    {% for status in results.Blacklist %}
+                                        <li>{{ status }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if results.ISP %}
+                        <tr>
+                            <th scope="row">ISP</th>
+                            <td>{{ results.ISP }}</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if results.ASN %}
+                        <tr>
+                            <th scope="row">ASN</th>
+                            <td>{{ results.ASN }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
 {% endblock content %}

@@ -13,59 +13,62 @@
 {% endblock meta_tags %}
 
 {% block link_tags %}
-    <link href="{% static 'template-css/404-css.css' %}" rel="stylesheet">
-{% endblock link_tags %}
+    {% endblock link_tags %}
 
 {% block title %}404 | Page Not Found{% endblock title %}
 
 {% block content %}
-<div class="container-fluid page-404 text-center px-3" aria-label="404: Page Not Found">
+<div class="container-fluid py-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;" aria-label="404: Page Not Found">
   
-  <div class="container w-100">
+  <div class="container w-100" style="max-width: 800px;">
     <img src="{% static 'img/404.webp' %}"
          alt="Spaceballs reference. Combing the desert scene." 
-         class="img-fluid mb-4 responsive-img">
+         class="img-fluid mb-4 rounded shadow-sm"
+         style="max-height: 300px; width: auto;">
          
-    <h1 class="display-4">404</h1>
-    <p class="lead">The website has been combed, and your URL cannot be found.</p>
+    <h1 class="display-4 fw-bold">404</h1>
+    <p class="lead mb-5">The website has been combed, and your URL cannot be found.</p>
     
-    <div class="row justify-content-center nav-row mx-auto">
+    <div class="row justify-content-center g-3">
       
-      <div class="col-12 mb-3">
-        <p>If you typed the URL manually, double-check for any typos. You can otherwise click one of the links below or use the website navigation above.</p>
+      <div class="col-12 mb-2">
+        <p class="text-muted">If you typed the URL manually, double-check for any typos. Otherwise, try one of these tools:</p>
       </div>
       
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:all_projects' %}" class="btn btn-outline-light btn-equal d-block">
-          View all of my projects.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:all_projects' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          View All Projects
         </a>
       </div>
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:it_tools' %}" class="btn btn-outline-light btn-equal d-block">
-          Look up SSL, DNS, and IP info.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:it_tools' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          IT Professional Toolkit
         </a>
       </div>
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-outline-light btn-equal d-block">
-          Check a website's SEO.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:seo_tools' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          SEO Professional Tooldkit
         </a>
       </div>
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:weather' %}" class="btn btn-outline-light btn-equal d-block">
-          Check the weather forecast.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:weather' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          Weather Forecast
         </a>
       </div>
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:qr_code_generator' %}" class="btn btn-outline-light btn-equal d-block">
-          Generate a QR code.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:qr_code_generator' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          QR Code Generator
         </a>
       </div>
-      <div class="col-6 col-md-4 mb-2">
-        <a href="{% url 'projects:home' %}" class="btn btn-primary btn-equal d-block">
-          Return to the homepage.
+      <div class="col-md-6 col-lg-4">
+        <a href="{% url 'projects:home' %}" class="btn btn-primary w-100 h-100 py-2 fw-bold">
+          Return Home
         </a>
       </div>
     </div>
+    
+    {% include 'includes/attribution.html' %}
+    
   </div>
 </div>
 {% endblock content %}
