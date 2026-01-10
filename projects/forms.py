@@ -340,3 +340,211 @@ class SSLCheckForm(forms.Form):
         if not parsed_url.scheme:
             url = "https://" + url
         return url
+    
+    # NEW BEGIN
+
+# --- Glass Volume Calculator ---
+class GlassVolumeForm(forms.Form):
+    SHAPE_CHOICES = [
+        ("cylinder", "Cylinder / Round Mold"),
+        ("rectangle", "Rectangle / Square Dam"),
+    ]
+    UNIT_CHOICES = [
+        ("inches", "Inches"),
+        ("cm", "Centimeters"),
+    ]
+
+    shape = forms.ChoiceField(
+        choices=SHAPE_CHOICES,
+        label="Mold Shape",
+        initial="cylinder",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    units = forms.ChoiceField(
+        choices=UNIT_CHOICES,
+        label="Measurement Units",
+        initial="inches",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    # Dimensions
+    diameter = forms.FloatField(
+        required=False,
+        label="Diameter",
+        help_text="Required for Cylinder shapes.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 6.0"})
+    )
+    length = forms.FloatField(
+        required=False,
+        label="Length",
+        help_text="Required for Rectangle shapes.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 8.0"})
+    )
+    width = forms.FloatField(
+        required=False,
+        label="Width",
+        help_text="Required for Rectangle shapes.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 4.0"})
+    )
+    depth = forms.FloatField(
+        required=True,
+        label="Target Thickness / Depth",
+        help_text="Thickness of the finished piece.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 0.375"})
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        shape = cleaned_data.get("shape")
+        
+        # Conditional validation based on shape selection
+        if shape == "cylinder":
+            if not cleaned_data.get("diameter"):
+                self.add_error("diameter", "Diameter is required for cylinder shapes.")
+        elif shape == "rectangle":
+            if not cleaned_data.get("length"):
+                self.add_error("length", "Length is required for rectangle shapes.")
+            if not cleaned_data.get("width"):
+                self.add_error("width", "Width is required for rectangle shapes.")
+        
+        return cleaned_data
+    
+# --- Kiln Schedule Generator ---
+class KilnScheduleForm(forms.Form):
+    BRAND_CHOICES = [
+        ("bullseye", "Bullseye (COE 90)"),
+        ("system96", "System 96 / Oceanside (COE 96)"),
+    ]
+    PROJECT_CHOICES = [
+        ("full_fuse", "Full Fuse (Smooth surface)"),
+        ("tack_fuse", "Tack Fuse (Textured surface)"),
+        ("slump", "Slump (Shape into mold)"),
+        ("fire_polish", "Fire Polish (Shine edges)"),
+    ]
+    THICKNESS_CHOICES = [
+        ("standard", "Standard (Up to 6mm / 0.25\")"),
+        ("thick", "Thick (Up to 9mm / 0.375\")"),
+        ("extra_thick", "Extra Thick (Up to 12mm / 0.5\")"),
+    ]
+
+    brand = forms.ChoiceField(
+        choices=BRAND_CHOICES,
+        label="Glass Manufacturer",
+        initial="bullseye",
+        help_text="Determines the correct annealing temperature.",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    project_type = forms.ChoiceField(
+        choices=PROJECT_CHOICES,
+        label="Firing Schedule Type",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    thickness = forms.ChoiceField(
+        choices=THICKNESS_CHOICES,
+        label="Total Project Thickness",
+        help_text="Thicker projects require slower heating to prevent thermal shock.",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+# --- Stained Glass Cost Estimator ---
+class StainedGlassCostForm(forms.Form):
+    # Dimensions
+    width = forms.FloatField(
+        label="Width (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 12"})
+    )
+    height = forms.FloatField(
+        label="Height (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 24"})
+    )
+    
+    # Project Details
+    pieces = forms.IntegerField(
+        label="Number of Pieces",
+        help_text="Total number of glass pieces in the pattern.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 50"})
+    )
+    
+    # Costs
+    glass_price = forms.FloatField(
+        label="Avg. Glass Cost ($/sq ft)",
+        initial=15.00,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    labor_rate = forms.FloatField(
+        label="Hourly Labor Rate ($)",
+        initial=25.00,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    estimated_hours = forms.FloatField(
+        label="Estimated Labor Hours",
+        required=False,
+        help_text="Leave blank to auto-calculate based on piece count (avg 15 mins/piece).",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+
+# --- Kiln Controller Utilities ---
+class TempConverterForm(forms.Form):
+    # Field to identify which form is being submitted
+    action = forms.CharField(widget=forms.HiddenInput(), initial="convert")
+    
+    temperature = forms.FloatField(
+        label="Enter Temperature",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1490"})
+    )
+    from_unit = forms.ChoiceField(
+        choices=[("F", "Fahrenheit (°F)"), ("C", "Celsius (°C)")],
+        label="Convert From",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+class RampCalculatorForm(forms.Form):
+    # Field to identify which form is being submitted
+    action = forms.CharField(widget=forms.HiddenInput(), initial="ramp")
+
+    start_temp = forms.FloatField(
+        label="Current Temp",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 70"})
+    )
+    target_temp = forms.FloatField(
+        label="Target Temp",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1225"})
+    )
+    rate = forms.FloatField(
+        label="Rate (°/hour)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 300"})
+    )
+
+    # --- Stained Glass Materials Calculator ---
+class StainedGlassMaterialsForm(forms.Form):
+    METHOD_CHOICES = [
+        ("foil", "Copper Foil Method"),
+        ("lead", "Lead Came Method"),
+    ]
+    
+    method = forms.ChoiceField(
+        label="Construction Method",
+        choices=METHOD_CHOICES,
+        initial="foil",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    width = forms.FloatField(
+        label="Panel Width (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 16"})
+    )
+    height = forms.FloatField(
+        label="Panel Height (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 20"})
+    )
+    pieces = forms.IntegerField(
+        label="Number of Pieces",
+        help_text="Count from your pattern.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 45"})
+    )
+    waste_factor = forms.IntegerField(
+        label="Waste Safety Margin (%)",
+        initial=15,
+        help_text="Extra material to account for trimming and mistakes.",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+
+# NEW END
