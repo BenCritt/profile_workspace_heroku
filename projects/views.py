@@ -1016,3 +1016,362 @@ def seo_tools(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def privacy_cookies(request):
     return render(request, "privacy_cookies.html")
+
+# NEW BEGIN
+
+# Glass Volume Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def glass_volume_calculator(request):
+    from .forms import GlassVolumeForm
+    import math
+
+    # Standard density for soda-lime fusing glass (Bullseye/System 96) is approx 2.5 g/cm³
+    GLASS_DENSITY = 2.5 
+
+    form = GlassVolumeForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        shape = data["shape"]
+        units = data["units"]
+        depth = data["depth"]
+        
+        volume_cm3 = 0.0
+
+        # 1. Normalize inputs to Centimeters for calculation
+        # Conversion factor: 1 inch = 2.54 cm
+        scale = 2.54 if units == "inches" else 1.0
+        
+        depth_cm = depth * scale
+
+        if shape == "cylinder":
+            diameter = data["diameter"] * scale
+            radius = diameter / 2
+            # V = π * r² * h
+            volume_cm3 = math.pi * (radius ** 2) * depth_cm
+            
+        elif shape == "rectangle":
+            length = data["length"] * scale
+            width = data["width"] * scale
+            # V = l * w * h
+            volume_cm3 = length * width * depth_cm
+
+        # 2. Calculate Weight
+        weight_grams = volume_cm3 * GLASS_DENSITY
+        
+        # 3. Format Results
+        context["results"] = {
+            "volume_cc": round(volume_cm3, 2),
+            "weight_g": round(weight_grams, 1),
+            "weight_oz": round(weight_grams / 28.3495, 2), # Grams to Ounces
+            "weight_kg": round(weight_grams / 1000, 3),
+            "glass_needed": round(weight_grams * 1.05, 1) # Including 5% waste buffer
+        }
+
+    return render(request, "projects/glass_volume_calculator.html", context)
+
+# Kiln Schedule Generator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def kiln_schedule_generator(request):
+    from .forms import KilnScheduleForm
+
+    form = KilnScheduleForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        brand = form.cleaned_data["brand"]
+        project = form.cleaned_data["project_type"]
+        thickness = form.cleaned_data["thickness"]
+
+        # 1. Define Base Temperatures (Fahrenheit)
+        # Bullseye anneals ~900F, Sys96 ~950F
+        anneal_temp = 900 if brand == "bullseye" else 950
+        strain_point = 800 if brand == "bullseye" else 850
+        
+        # Process Temps
+        process_temps = {
+            "full_fuse": 1490,
+            "tack_fuse": 1350,
+            "slump": 1225,
+            "fire_polish": 1325,
+        }
+        top_temp = process_temps.get(project, 1490)
+
+        # 2. Define Rates based on Thickness (Safety Logic)
+        # Structure: (Ramp 1 Speed, Bubble Squeeze Hold, Ramp 2 Speed, Anneal Cool Speed, Cool Down Speed)
+        if thickness == "extra_thick":
+            rate_1 = 150  # Very slow initial heat
+            squeeze_hold = 45
+            rate_2 = 250
+            anneal_cool = 50 # Very slow cool through anneal
+            cool_down = 100
+        elif thickness == "thick":
+            rate_1 = 250
+            squeeze_hold = 30
+            rate_2 = 400
+            anneal_cool = 80
+            cool_down = 150
+        else: # Standard (6mm)
+            rate_1 = 400
+            squeeze_hold = 20
+            rate_2 = 600
+            anneal_cool = 150 # Standard cool
+            cool_down = 300
+
+        # 3. Construct the Schedule Segments
+        # Segment format: [Segment Name, Rate (°F/hr), Target Temp (°F), Hold Time (min)]
+        segments = []
+        
+        # Seg 1: Initial Heat (Bubble Squeeze)
+        segments.append({
+            "step": 1, "name": "Initial Heat", 
+            "rate": rate_1, "temp": 1225, "hold": squeeze_hold
+        })
+        
+        # Seg 2: Process Heat (The Fuse/Slump)
+        segments.append({
+            "step": 2, "name": "Process Heat", 
+            "rate": rate_2, "temp": top_temp, "hold": 10 if project == "full_fuse" else 20
+        })
+        
+        # Seg 3: Rapid Cool (Crash to Anneal)
+        segments.append({
+            "step": 3, "name": "Rapid Cool", 
+            "rate": 9999, "temp": anneal_temp, "hold": 60 if thickness == "extra_thick" else 30
+        })
+        
+        # Seg 4: Anneal Soak (Critical for strength)
+        segments.append({
+            "step": 4, "name": "Anneal Cool", 
+            "rate": anneal_cool, "temp": strain_point, "hold": 0
+        })
+        
+        # Seg 5: Cool to Room Temp
+        segments.append({
+            "step": 5, "name": "Final Cool", 
+            "rate": cool_down, "temp": 70, "hold": 0
+        })
+
+        # Calculate Total Estimated Time
+        total_minutes = 0
+        current_temp = 70
+        for seg in segments:
+            # Time = Distance / Rate
+            dist = abs(seg["temp"] - current_temp)
+            if seg["rate"] == 9999: # AFAP (As Fast As Possible)
+                hours = 0.25 # Estimate 15 mins for crash cool
+            else:
+                hours = dist / seg["rate"]
+            
+            total_minutes += (hours * 60) + seg["hold"]
+            current_temp = seg["temp"]
+
+        hours = int(total_minutes // 60)
+        mins = int(total_minutes % 60)
+
+        context["schedule"] = segments
+        context["total_time"] = f"{hours} hours, {mins} minutes"
+        context["project_name"] = f"{form.cleaned_data['brand'].title()} - {form.cleaned_data['project_type'].replace('_', ' ').title()}"
+
+    return render(request, "projects/kiln_schedule_generator.html", context)
+
+# Stained Glass Cost Estimator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def stained_glass_cost_estimator(request):
+    from .forms import StainedGlassCostForm
+    
+    form = StainedGlassCostForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        w = form.cleaned_data["width"]
+        h = form.cleaned_data["height"]
+        pieces = form.cleaned_data["pieces"]
+        glass_price = form.cleaned_data["glass_price"]
+        rate = form.cleaned_data["labor_rate"]
+        user_hours = form.cleaned_data["estimated_hours"]
+
+        # 1. Calculate Area & Glass Cost
+        area_sqft = (w * h) / 144.0
+        # Add 35% waste factor for cuts/breaks
+        glass_cost = area_sqft * glass_price * 1.35
+
+        # 2. Calculate Consumables (Solder, Foil, Flux, Patina)
+        # Rule of thumb: Approx $0.60 - $0.75 per piece in consumables
+        consumables_cost = pieces * 0.65
+
+        # 3. Calculate Labor
+        if user_hours:
+            hours = user_hours
+            labor_method = "User Input"
+        else:
+            # Estimate 15 mins (0.25 hrs) per piece for end-to-end construction
+            hours = pieces * 0.25
+            labor_method = "Auto-Estimated (15m/piece)"
+        
+        labor_cost = hours * rate
+
+        # 4. Totals
+        total_cost = glass_cost + consumables_cost + labor_cost
+        retail_price = total_cost * 2.0  # Standard Keystone markup (100% markup)
+
+        context["results"] = {
+            "area_sqft": round(area_sqft, 2),
+            "glass_cost": round(glass_cost, 2),
+            "consumables_cost": round(consumables_cost, 2),
+            "labor_hours": round(hours, 1),
+            "labor_cost": round(labor_cost, 2),
+            "labor_method": labor_method,
+            "total_base_cost": round(total_cost, 2),
+            "retail_price": round(retail_price, 2)
+        }
+
+    return render(request, "projects/stained_glass_cost_estimator.html", context)
+
+# Kiln Controller Utilities
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def kiln_controller_utils(request):
+    from .forms import TempConverterForm, RampCalculatorForm
+    
+    # Initialize both forms
+    convert_form = TempConverterForm(initial={"action": "convert"})
+    ramp_form = RampCalculatorForm(initial={"action": "ramp"})
+    
+    context = {
+        "convert_form": convert_form,
+        "ramp_form": ramp_form
+    }
+
+    if request.method == "POST":
+        # Determine which form was submitted based on the hidden 'action' field
+        action = request.POST.get("action")
+
+        if action == "convert":
+            convert_form = TempConverterForm(request.POST)
+            if convert_form.is_valid():
+                temp = convert_form.cleaned_data["temperature"]
+                unit = convert_form.cleaned_data["from_unit"]
+                
+                if unit == "F":
+                    # F to C: (32°F − 32) × 5/9 = 0°C
+                    result_val = (temp - 32) * 5/9
+                    result_unit = "°C"
+                    input_unit = "°F"
+                else:
+                    # C to F: (0°C × 9/5) + 32 = 32°F
+                    result_val = (temp * 9/5) + 32
+                    result_unit = "°F"
+                    input_unit = "°C"
+
+                context["convert_result"] = {
+                    "input": f"{temp}{input_unit}",
+                    "output": f"{round(result_val, 1)}{result_unit}"
+                }
+                context["convert_form"] = convert_form
+
+        elif action == "ramp":
+            ramp_form = RampCalculatorForm(request.POST)
+            if ramp_form.is_valid():
+                start = ramp_form.cleaned_data["start_temp"]
+                target = ramp_form.cleaned_data["target_temp"]
+                rate = ramp_form.cleaned_data["rate"]
+
+                if rate > 0:
+                    # Logic: Time = Distance / Speed
+                    diff = abs(target - start)
+                    hours_decimal = diff / rate
+                    
+                    # Convert decimal hours to Hours:Minutes
+                    hours_int = int(hours_decimal)
+                    minutes_int = int((hours_decimal - hours_int) * 60)
+                    
+                    context["ramp_result"] = {
+                        "delta": round(diff, 1),
+                        "duration": f"{hours_int} hr {minutes_int} min",
+                        "total_decimal": round(hours_decimal, 2)
+                    }
+                else:
+                    ramp_form.add_error("rate", "Rate must be greater than 0.")
+                
+                context["ramp_form"] = ramp_form
+
+    return render(request, "projects/kiln_controller_utils.html", context)
+
+# Stained Glass Materials Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def stained_glass_materials(request):
+    from .forms import StainedGlassMaterialsForm
+    import math
+
+    form = StainedGlassMaterialsForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        w = form.cleaned_data["width"]
+        h = form.cleaned_data["height"]
+        pieces = form.cleaned_data["pieces"]
+        method = form.cleaned_data["method"]
+        waste_percent = 1 + (form.cleaned_data["waste_factor"] / 100.0)
+
+        area = w * h
+        perimeter = 2 * (w + h)
+
+        # Geometric estimation of total pattern line length (internal + external)
+        # Based on a tiling approximation: Line_Length approx 2 * sqrt(Area * Pieces)
+        estimated_line_length = 2.0 * math.sqrt(area * pieces)
+
+        results = {}
+
+        if method == "foil":
+            # Foil covers every edge of every piece.
+            # Internal lines have 2 edges (one for each piece), border has 1.
+            # Approximation: Total Perimeter of all pieces = 2 * Line_Length
+            raw_foil_inches = estimated_line_length * 2.0
+            total_foil_inches = raw_foil_inches * waste_percent
+            
+            # Solder (Foil): Beads on both sides (x2 length)
+            # Standard estimate: 1lb solder per ~1500 linear inches of 1/4" bead
+            solder_needed_lbs = (estimated_line_length * 2) / 1500.0
+
+            results = {
+                "material_name": "Copper Foil",
+                "length_feet": round(total_foil_inches / 12, 1),
+                "rolls_needed": math.ceil(total_foil_inches / (36 * 12)), # Standard 36 yard roll
+                "solder_lbs": round(solder_needed_lbs, 2),
+                "flux_oz": round(solder_needed_lbs * 2, 1), # Rough estimate
+            }
+        
+        else: # Lead Came
+            # Came covers the lines exactly once.
+            total_came_inches = estimated_line_length * waste_percent
+            
+            # Solder (Came): Joints only. Approx 0.01 lbs per piece/joint.
+            solder_needed_lbs = pieces * 0.01
+
+            results = {
+                "material_name": "Lead Came",
+                "length_feet": round(total_came_inches / 12, 1),
+                "sticks_needed": math.ceil(total_came_inches / 72), # Standard 6ft (72") stick
+                "solder_lbs": round(solder_needed_lbs, 2),
+                "putty_lbs": round(area / 144.0 * 0.5, 1), # Approx 0.5 lb putty per sq ft
+            }
+
+        context["results"] = results
+        context["method_display"] = dict(form.fields['method'].choices)[method]
+
+    return render(request, "projects/stained_glass_materials.html", context)
+
+# Glass Artist Toolkit Page
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def glass_artist_toolkit(request):
+    return render(request, "projects/glass_artist_toolkit.html")
+
+# NEW END
+

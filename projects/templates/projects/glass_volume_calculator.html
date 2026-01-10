@@ -1,0 +1,126 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Glass Volume & Weight Calculator | Ben Crittenden{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Glass Volume & Weight Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs.
+            </p>
+
+            <div class="card shadow-sm border-secondary mb-5">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.shape.label_tag }}
+                                {{ form.shape }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.units.label_tag }}
+                                {{ form.units }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4" id="group-diameter">
+                                {{ form.diameter.label_tag }}
+                                {{ form.diameter }}
+                                {{ form.diameter.errors }}
+                            </div>
+
+                            <div class="col-md-4" id="group-length">
+                                {{ form.length.label_tag }}
+                                {{ form.length }}
+                                {{ form.length.errors }}
+                            </div>
+                            <div class="col-md-4" id="group-width">
+                                {{ form.width.label_tag }}
+                                {{ form.width }}
+                                {{ form.width.errors }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.depth.label_tag }}
+                            {{ form.depth }}
+                            <div class="form-text text-white-50">Enter the target thickness of your finished piece.</div>
+                            {{ form.depth.errors }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success border-success" role="alert">
+                <h3 class="alert-heading h4">Calculation Results</h3>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="display-6 fw-bold">{{ results.weight_g }}g</div>
+                        <div class="small">Net Weight</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="display-6 fw-bold">{{ results.weight_oz }}oz</div>
+                        <div class="small">Net Weight</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="display-6 fw-bold text-decoration-underline">{{ results.glass_needed }}g</div>
+                        <div class="small fw-bold">Recommended Input<br>(includes 5% waste)</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Select the relevant elements
+        const shapeSelect = document.querySelector('#id_shape');
+        const diameterGroup = document.getElementById('group-diameter');
+        const lengthGroup = document.getElementById('group-length');
+        const widthGroup = document.getElementById('group-width');
+        const diameterInput = document.querySelector('#id_diameter');
+        const lengthInput = document.querySelector('#id_length');
+        const widthInput = document.querySelector('#id_width');
+
+        // 2. Define the toggle function
+        function toggleFields() {
+            if (shapeSelect.value === 'cylinder') {
+                // Show Diameter, Hide Length/Width
+                diameterGroup.style.display = 'block';
+                lengthGroup.style.display = 'none';
+                widthGroup.style.display = 'none';
+                
+                // Optional: Clear values of hidden fields to avoid confusion
+                lengthInput.value = '';
+                widthInput.value = '';
+            } else {
+                // Show Length/Width, Hide Diameter
+                diameterGroup.style.display = 'none';
+                lengthGroup.style.display = 'block';
+                widthGroup.style.display = 'block';
+                
+                // Optional: Clear value of hidden field
+                diameterInput.value = '';
+            }
+        }
+
+        // 3. Attach Event Listener
+        shapeSelect.addEventListener('change', toggleFields);
+
+        // 4. Run on load (to set correct state if page refreshes with data)
+        toggleFields();
+    });
+</script>
+{% endblock content %}

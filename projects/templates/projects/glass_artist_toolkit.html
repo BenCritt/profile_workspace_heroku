@@ -1,0 +1,182 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {# Placeholder for future schema: {% include "includes/schemas/glass_tools_schema.html" %} #}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Glass Artist Toolkit by Ben Crittenden: Free utilities for fused and stained glass artists. Includes kiln firing schedules, glass volume calculators, project cost estimators, and material planning tools.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/glass-artist-toolkit/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Glass Artist Toolkit | Kiln Schedules, Cost Estimators, Volume Calculators">
+    <meta property="og:description" content="A collection of web-based utilities for glass artists: calculate kiln schedules, estimate stained glass costs, and determine glass volume for casting.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/glass-artist-toolkit.webp">
+    <meta property="og:image:alt" content="Glass Artist Toolkit by Ben Crittenden">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/glass-artist-toolkit/">
+    <meta name="twitter:title" content="Glass Artist Toolkit | Kiln Schedules, Cost Estimators, Volume Calculators">
+    <meta name="twitter:description" content="Free calculators for fused glass and stained glass artists.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/glass-artist-toolkit.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/glass-artist-toolkit/">
+{% endblock link_tags %}
+
+{% block title %}Glass Artist Toolkit | Kiln Schedules, Cost Estimators, & Calculators{% endblock title %}
+
+{% block styles %}
+<style>
+    /* Styling matched exactly to it_tools.html */
+    .tool-card {
+        width: 300px;
+        max-width: 100%;
+    }
+    
+    .iframe-card-wrapper {
+        width: 100%;
+        max-width: 450px;
+    }
+
+    /* Mobile override */
+    @media (max-width: 600px) {
+        .tool-card {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center">
+        <h1 class="mb-4">Glass Artist Toolkit</h1>
+        <p class="lead text-muted mb-5">Free utilities for Fused Glass, Stained Glass, and Kiln Casting.</p>
+        
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Kiln Schedule Generator</h2>
+                    <img src="{% static 'img/all-projects/kiln-schedule.webp' %}" alt="Kiln Schedule Generator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Generate safe firing schedules for Bullseye (90) and System 96 glass. Automatically adjusts rates for project thickness to prevent thermal shock.</p>
+                    <a href="{% url 'projects:kiln_schedule_generator' %}" class="btn btn-primary mt-2">Open Generator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Glass Volume Calculator</h2>
+                    <img src="{% static 'img/all-projects/glass-calc.webp' %}" alt="Glass Volume Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text small">Calculate the exact grams of glass needed for pot melts, casting molds, or thick slabs using standard density (2.5g/cm³).</p>
+                    <a href="{% url 'projects:glass_volume_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Stained Glass Cost Estimator</h2>
+                    <img src="{% static 'img/all-projects/stained-glass-calc.webp' %}" alt="Cost Estimator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Price your art confidently. Calculates materials, overhead (solder/foil), and labor based on piece count and square footage.</p>
+                    <a href="{% url 'projects:stained_glass_cost_estimator' %}" class="btn btn-primary mt-2">Open Estimator</a>
+                </div>
+            </div>
+
+             <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Materials Calculator</h2>
+                    <img src="{% static 'img/all-projects/glass-materials.webp' %}" alt="Materials Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Stop guessing inventory. Estimate total linear footage of foil or lead came and solder requirements.</p>
+                    <a href="{% url 'projects:stained_glass_materials' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+             <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Kiln Controller Utils</h2>
+                    <img src="{% static 'img/all-projects/kiln-utils.webp' %}" alt="Kiln Utilities" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Quick math for the kiln studio. Convert temperatures and calculate segment durations based on ramp rates.</p>
+                    <a href="{% url 'projects:kiln_controller_utils' %}" class="btn btn-primary mt-2">Open Utils</a>
+                </div>
+            </div>
+
+        </div>  
+        
+        <h3 class="mt-5 mb-4 text-white-50">Quick Access Tools</h3>
+        
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:kiln_schedule_generator' %}" 
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Kiln Schedule Generator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:kiln_schedule_generator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:kiln_controller_utils' %}"
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Kiln Utilities"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:kiln_controller_utils' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:glass_volume_calculator' %}"
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Glass Volume Calculator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:glass_volume_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:stained_glass_cost_estimator' %}"
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Stained Glass Cost Estimator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:stained_glass_cost_estimator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:stained_glass_materials' %}"
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Stained Glass Materials Calculator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:stained_glass_materials' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

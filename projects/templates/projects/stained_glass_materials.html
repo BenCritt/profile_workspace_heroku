@@ -1,0 +1,95 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Stained Glass Materials Calculator | Ben Crittenden{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Stained Glass Materials Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Estimate how much foil, lead came, and solder you need based on your panel size and piece count.
+            </p>
+
+            <div class="card shadow-sm border-secondary mb-5">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            {{ form.method.label_tag }}
+                            {{ form.method }}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.width.label_tag }}
+                                {{ form.width }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.height.label_tag }}
+                                {{ form.height }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                {{ form.pieces.label_tag }}
+                                {{ form.pieces }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.waste_factor.label_tag }}
+                                {{ form.waste_factor }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Materials</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="card border-info">
+                <div class="card-header bg-info text-dark fw-bold">
+                    Results for {{ method_display }}
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-4">
+                        
+                        <div class="col-md-4">
+                            <h6 class="text-muted text-uppercase small">{{ results.material_name }}</h6>
+                            <div class="display-6 fw-bold my-2">{{ results.length_feet }} <span class="fs-6 text-muted">ft</span></div>
+                            <div class="small text-warning">
+                                {% if results.material_name == "Copper Foil" %}
+                                    Approx <strong>{{ results.rolls_needed }}</strong> standard roll(s)
+                                {% else %}
+                                    Approx <strong>{{ results.sticks_needed }}</strong> 6ft stick(s)
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 border-start border-secondary">
+                            <h6 class="text-muted text-uppercase small">60/40 Solder</h6>
+                            <div class="display-6 fw-bold my-2">{{ results.solder_lbs }} <span class="fs-6 text-muted">lbs</span></div>
+                            <div class="small text-muted">Estimated minimum</div>
+                        </div>
+
+                        <div class="col-md-4 border-start border-secondary">
+                            {% if results.material_name == "Copper Foil" %}
+                                <h6 class="text-muted text-uppercase small">Liquid Flux</h6>
+                                <div class="display-6 fw-bold my-2">~{{ results.flux_oz }} <span class="fs-6 text-muted">oz</span></div>
+                            {% else %}
+                                <h6 class="text-muted text-uppercase small">Cement/Putty</h6>
+                                <div class="display-6 fw-bold my-2">~{{ results.putty_lbs }} <span class="fs-6 text-muted">lbs</span></div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

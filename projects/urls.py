@@ -73,4 +73,32 @@ urlpatterns = [
     path("projects/cookie-audit/results/<uuid:task_id>/", views.cookie_audit_results, name="cookie_audit_results"),
     path("projects/cookie-audit/download/<uuid:task_id>/", views.cookie_audit_download, name="cookie_audit_download",),
     path("privacy-cookies/", views.privacy_cookies, name="privacy_cookies"),
+    # NEW BEGIN
+    path(
+        "projects/glass-volume-calculator/", 
+        views.glass_volume_calculator, 
+        name="glass_volume_calculator"
+    ),
+    path(
+        "projects/kiln-schedule-generator/", 
+        views.kiln_schedule_generator, 
+        name="kiln_schedule_generator"
+    ),
+    path(
+        "projects/stained-glass-estimator/", 
+        views.stained_glass_cost_estimator, 
+        name="stained_glass_cost_estimator"
+    ),
+    path(
+        "projects/kiln-controller-utils/", 
+        views.kiln_controller_utils, 
+        name="kiln_controller_utils"
+    ),
+    path(
+        "projects/stained-glass-materials/", 
+        views.stained_glass_materials, 
+        name="stained_glass_materials"
+    ),
+    path("projects/glass-artist-toolkit/", views.glass_artist_toolkit, name="glass_artist_toolkit"),
+    # NEW END
 ]

@@ -1,0 +1,99 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Kiln Firing Schedule Generator | Ben Crittenden{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Kiln Firing Schedule Generator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Generate safe firing schedules for fused glass projects based on COE (90/96) and thickness.
+            </p>
+
+            <div class="card shadow-sm border-secondary mb-5">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.brand.label_tag }}
+                            {{ form.brand }}
+                            <div class="form-text text-white-50">{{ form.brand.help_text }}</div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.project_type.label_tag }}
+                            {{ form.project_type }}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.thickness.label_tag }}
+                            {{ form.thickness }}
+                            <div class="form-text text-white-50">{{ form.thickness.help_text }}</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Generate Schedule</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if schedule %}
+            <div id="print-area">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h4 mb-0">{{ project_name }}</h3>
+                    <span class="badge bg-info text-dark">{{ total_time }}</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered border-secondary">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Segment</th>
+                                <th>Action</th>
+                                <th>Rate (°F/hr)</th>
+                                <th>Target Temp (°F)</th>
+                                <th>Hold (min)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seg in schedule %}
+                            <tr>
+                                <td class="fw-bold">{{ seg.step }}</td>
+                                <td>{{ seg.name }}</td>
+                                <td>
+                                    {% if seg.rate == 9999 %}
+                                        <span class="text-warning fw-bold">AFAP*</span>
+                                    {% else %}
+                                        {{ seg.rate }}
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ seg.temp }}°F</td>
+                                <td>{{ seg.hold }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">
+                    *AFAP: As Fast As Possible (open lid slightly if needed, but do not shock). 
+                    <br>Always monitor your kiln during the process phase.
+                </p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-outline-light">
+                    🖨️ Print Schedule
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        header, footer, .card, h1, p.lead { display: none !important; }
+        #print-area { display: block !important; }
+        body { padding-top: 0 !important; color: black !important; }
+        .table { color: black !important; border-color: black !important; }
+    }
+</style>
+{% endblock content %}

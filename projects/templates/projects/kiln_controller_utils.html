@@ -1,0 +1,102 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Kiln Controller Utilities | Ben Crittenden{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-10 text-center">
+            <h1 class="mb-3">Kiln Controller Utilities</h1>
+            <p class="lead text-muted">
+                Quick math helpers for programming digital kiln controllers.
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center g-4">
+        
+        <div class="col-md-6 col-lg-5">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-header bg-transparent border-secondary fw-bold text-center">
+                    Temperature Converter
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ convert_form.action }}
+                        
+                        <div class="mb-3">
+                            {{ convert_form.temperature.label_tag }}
+                            {{ convert_form.temperature }}
+                        </div>
+                        <div class="mb-4">
+                            {{ convert_form.from_unit.label_tag }}
+                            {{ convert_form.from_unit }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Convert</button>
+                    </form>
+
+                    {% if convert_result %}
+                    <div class="mt-4 text-center p-3 bg-dark border border-secondary rounded">
+                        <span class="text-muted d-block small mb-1">Result</span>
+                        <span class="fs-4">{{ convert_result.input }} = </span>
+                        <span class="fs-2 fw-bold text-success">{{ convert_result.output }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-5">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-header bg-transparent border-secondary fw-bold text-center">
+                    Segment Time Calculator
+                </div>
+                <div class="card-body">
+                    <p class="card-text small text-muted mb-3">
+                        How long will it take to go from Start to Target at a specific Rate?
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ ramp_form.action }}
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                {{ ramp_form.start_temp.label_tag }}
+                                {{ ramp_form.start_temp }}
+                            </div>
+                            <div class="col-6">
+                                {{ ramp_form.target_temp.label_tag }}
+                                {{ ramp_form.target_temp }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ ramp_form.rate.label_tag }}
+                            {{ ramp_form.rate }}
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-primary w-100">Calculate Duration</button>
+                    </form>
+
+                    {% if ramp_result %}
+                    <div class="mt-4 p-3 bg-dark border border-secondary rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-muted">Temp Change:</span>
+                            <span class="fw-bold">{{ ramp_result.delta }}°</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Segment Time:</span>
+                            <span class="fs-4 fw-bold text-info">{{ ramp_result.duration }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}
