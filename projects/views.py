@@ -907,6 +907,12 @@ def all_projects(request):
             "url_name": "projects:stained_glass_cost_estimator",
             "image": "stained-glass-calc.webp",
             "description": "Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time."
+        },
+        {
+            "title": "Lampwork Glass Calculator",
+            "url_name": "projects:lampwork_materials",
+            "image": "lampwork-glass-calculator.webp",
+            "description": "Calculate the precise weight of glass stock needed for your next project. This calculator supports Borosilicate (COE 33), Soft Glass (COE 104), Satake, and Lead Crystal. Simply input the dimensions of your solid rods or hollow tubing to instantly get the required weight in grams or pounds. Essential for lampworkers, glassblowers, and inventory planning."
         }
     ]
     
@@ -1417,6 +1423,69 @@ def stained_glass_materials(request):
         context["method_display"] = dict(form.fields['method'].choices)[method]
 
     return render(request, "projects/stained_glass_materials.html", context)
+
+# Lampwork Material Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def lampwork_materials(request):
+    from .forms import LampworkMaterialForm
+    import math
+
+    form = LampworkMaterialForm(request.POST or None)
+    context = {"form": form}
+
+    # Density Mapping (g/cm³)
+    DENSITIES = {
+        "boro": 2.23,    # Standard Borosilicate
+        "soft": 2.50,    # Standard Soda Lime (Effetre)
+        "satake": 2.55,  # Satake Glass (Lead)
+        "coe90": 2.50,   # Bullseye (approx standard soda lime)
+        "coe96": 2.50,   # System 96 (approx standard soda lime)
+        "crystal": 3.10, # Generic Full Lead Crystal
+        "quartz": 2.20,  # Fused Silica
+    }
+
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        
+        # 1. Inputs
+        g_type = data["glass_type"]
+        shape = data["form_factor"]
+        dia_mm = data["diameter_mm"]
+        length_in = data["length_inches"]
+        qty = data["quantity"]
+        
+        # 2. Conversions (mm -> cm, inches -> cm)
+        radius_cm = (dia_mm / 2) / 10.0
+        length_cm = length_in * 2.54
+        
+        # 3. Volume Calculation (cm³)
+        if shape == "rod":
+            # V = π * r² * h
+            vol_per_piece = math.pi * (radius_cm ** 2) * length_cm
+        else:
+            # Tubing: V = π * (r_out² - r_in²) * h
+            wall_mm = data["wall_mm"]
+            inner_radius_cm = ((dia_mm - (2 * wall_mm)) / 2) / 10.0
+            vol_per_piece = math.pi * (radius_cm**2 - inner_radius_cm**2) * length_cm
+
+        total_vol = vol_per_piece * qty
+
+        # 4. Weight Calculation
+        density = DENSITIES.get(g_type, 2.50) # Default to 2.5 if unknown
+        total_weight_g = total_vol * density
+        total_weight_lb = total_weight_g / 453.592
+
+        context["results"] = {
+            "weight_g": round(total_weight_g, 1),
+            "weight_lb": round(total_weight_lb, 3),
+            "total_len_in": round(length_in * qty, 1),
+            "glass_name": dict(form.fields['glass_type'].choices)[g_type],
+            "shape_name": dict(form.fields['form_factor'].choices)[shape],
+            "density": density,
+        }
+
+    return render(request, "projects/lampwork_materials.html", context)
 
 # Glass Artist Toolkit Page
 @trim_memory_after

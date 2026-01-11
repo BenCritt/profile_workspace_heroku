@@ -100,5 +100,6 @@ urlpatterns = [
         name="stained_glass_materials"
     ),
     path("projects/glass-artist-toolkit/", views.glass_artist_toolkit, name="glass_artist_toolkit"),
+    path("projects/lampwork-materials/", views.lampwork_materials, name="lampwork_materials"),
     # NEW END
 ]

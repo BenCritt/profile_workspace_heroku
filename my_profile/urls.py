@@ -32,6 +32,7 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("lampwork_materials", "lampwork-materials"),
     ("glass_volume_calculator", "glass-volume-calculator"),
     ("kiln_controller_utils", "kiln-controller-utils"),
     ("kiln_schedule_generator", "kiln-schedule-generator"),

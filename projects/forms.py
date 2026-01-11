@@ -550,4 +550,66 @@ class StainedGlassMaterialsForm(forms.Form):
         widget=forms.NumberInput(attrs={"class": "form-control"})
     )
 
+# --- Lampwork / Boro Calculator ---
+class LampworkMaterialForm(forms.Form):
+    GLASS_TYPES = [
+        ("boro", "Borosilicate (COE 33)"),
+        ("soft", "Soft Glass / Effetre (COE 104)"),
+        ("satake", "Satake (COE 120)"), # Japanese Lead Glass
+        ("coe90", "Bullseye (COE 90)"),
+        ("coe96", "System 96 / Oceanside (COE 96)"),
+        ("crystal", "Full Lead Crystal (Generic)"), # Heavy Crystal
+        ("quartz", "Quartz / Fused Silica"),
+    ]
+    FORM_FACTORS = [
+        ("rod", "Solid Rod"),
+        ("tube", "Tubing"),
+    ]
+
+    glass_type = forms.ChoiceField(
+        label="Glass Type",
+        choices=GLASS_TYPES,
+        initial="boro",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    form_factor = forms.ChoiceField(
+        label="Glass Shape",
+        choices=FORM_FACTORS,
+        initial="rod",
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_form_factor"})
+    )
+    diameter_mm = forms.FloatField(
+        label="Diameter (mm)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 12"})
+    )
+    wall_mm = forms.FloatField(
+        label="Wall Thickness (mm)",
+        required=False,
+        help_text="Required for Tubing.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 2.2"})
+    )
+    length_inches = forms.FloatField(
+        label="Length Needed (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 20"})
+    )
+    quantity = forms.IntegerField(
+        label="Quantity",
+        initial=1,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        form_factor = cleaned_data.get("form_factor")
+        wall = cleaned_data.get("wall_mm")
+        diameter = cleaned_data.get("diameter_mm")
+
+        if form_factor == "tube":
+            if not wall:
+                self.add_error("wall_mm", "Wall thickness is required for tubing.")
+            elif diameter and (wall * 2 >= diameter):
+                self.add_error("wall_mm", "Wall thickness cannot exceed half the diameter.")
+        
+        return cleaned_data
+
 # NEW END

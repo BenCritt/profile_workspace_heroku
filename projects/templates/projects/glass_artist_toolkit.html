@@ -96,6 +96,15 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Lampwork Calculator</h2>
+                    <img src="{% static 'img/all-projects/lampwork-glass-calculator.webp' %}" alt="Lampwork Glass Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter.</p>
+                    <a href="{% url 'projects:lampwork_materials' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
              <div class="card tool-card shadow-sm">
                 <div class="card-body">
                     <h2 class="card-title h4">Kiln Controller Utils</h2>
@@ -171,6 +180,19 @@
                         scrolling="no">
                     </iframe>
                     <a href="{% url 'projects:stained_glass_materials' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:lampwork_materials' %}"
+                        style="width: 100%; height: auto; min-height: 553px; border: none;"
+                        title="Lampwork Calculator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:lampwork_materials' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

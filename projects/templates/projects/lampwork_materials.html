@@ -1,0 +1,134 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/lampwork_materials_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter. Essential for lampworkers.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/lampwork-materials/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Lampwork Glass Calculator | Rod & Tube Weight Estimator">
+    <meta property="og:description" content="Stop guessing stock requirements. Calculate the weight of glass rods and tubing for Boro, Soft Glass, and Crystal projects based on density and dimensions.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/lampwork-glass-calculator.webp">
+    <meta property="og:image:alt" content="Lampwork Glass Calculator">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/lampwork-materials/">
+    <meta name="twitter:title" content="Lampwork Glass Calculator | Rod & Tube Weight Estimator">
+    <meta name="twitter:description" content="Calculate glass rod and tubing weight for Boro (COE 33), Soft Glass (104), and Satake.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/lampwork-glass-calculator.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/lampwork-materials/">
+{% endblock link_tags %}
+
+{% block title %}Lampwork Glass Calculator | Ben Crittenden{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Lampwork Glass Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate exactly how much glass (by weight) you need for your project based on rod/tubing dimensions.
+            </p>
+
+            <div class="card shadow-sm border-secondary mb-5">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                {{ form.glass_type.label_tag }}
+                                {{ form.glass_type }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.form_factor.label_tag }}
+                                {{ form.form_factor }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                {{ form.diameter_mm.label_tag }}
+                                {{ form.diameter_mm }}
+                            </div>
+                            <div class="col-md-4" id="wall-input-group" style="display:none;">
+                                {{ form.wall_mm.label_tag }}
+                                {{ form.wall_mm }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.length_inches.label_tag }}
+                                {{ form.length_inches }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.quantity.label_tag }}
+                            {{ form.quantity }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>
+                        <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary mt-3 w-100">Go to Glass Artist Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                    <span>Results: {{ results.shape_name }} ({{ results.glass_name }})</span>
+                    <span class="badge bg-light text-dark">Density: {{ results.density }} g/cm³</span>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="text-muted text-uppercase small">Total Weight</h6>
+                            <div class="display-4 fw-bold text-primary">{{ results.weight_lb }} <span class="fs-4 text-muted">lbs</span></div>
+                            <div class="small text-muted">({{ results.weight_g }} grams)</div>
+                        </div>
+                        <div class="col-md-6 border-start border-light">
+                            <h6 class="text-muted text-uppercase small">Total Length</h6>
+                            <div class="display-4 fw-bold">{{ results.total_len_in }} <span class="fs-4 text-muted">in</span></div>
+                            <div class="small text-muted">Total linear material needed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+<script>
+    // Toggle Wall Thickness field based on Tube/Rod selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const shapeSelect = document.getElementById('id_form_factor');
+        const wallGroup = document.getElementById('wall-input-group');
+        
+        function toggleWall() {
+            if (shapeSelect.value === 'tube') {
+                wallGroup.style.display = 'block';
+            } else {
+                wallGroup.style.display = 'none';
+            }
+        }
+
+        if(shapeSelect) {
+            shapeSelect.addEventListener('change', toggleWall);
+            toggleWall(); // Run on load to set initial state
+        }
+    });
+</script>
+{% endblock content %}
