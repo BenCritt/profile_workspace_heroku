@@ -32,6 +32,12 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("glass_volume_calculator", "glass-volume-calculator"),
+    ("kiln_controller_utils", "kiln-controller-utils"),
+    ("kiln_schedule_generator", "kiln-schedule-generator"),
+    ("stained_glass_cost_estimator", "stained-glass-cost-estimator"),
+    ("stained_glass_materials", "stained-glass-materials"),
+    ("glass_artist_toolkit", "glass-artist-toolkit"),
     ("seo_tools", "seo-tools"),
     ("cookie_audit", "cookie-audit"),
     ("font_inspector", "font-inspector"),

@@ -62,6 +62,23 @@
                 </ul>
               </li>
 
+              <!-- Glass Artist Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:glass_artist_toolkit' %}" id="glassToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Glass Artist Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="glassToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:kiln_schedule_generator' %}">Kiln Firing Schedule Generator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:kiln_controller_utils' %}">Kiln Controller Utilities</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:glass_volume_calculator' %}">Glass Volume & Weight Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_cost_estimator' %}">Stained Glass Cost Estimator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_materials' %}">Stained Glass Materials Calculator</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:glass_artist_toolkit' %}">View All Glass Artist Tools</a></li>
+                </ul>
+              </li>
+
               <!-- More Tools dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="moreToolsDropdown"

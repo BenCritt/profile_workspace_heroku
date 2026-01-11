@@ -44,6 +44,12 @@ class StaticViewSitemap(Sitemap):
             "projects:font_inspector",
             "projects:cookie_audit",
             "projects:seo_tools",
+            "projects:glass_volume_calculator",
+            "projects:kiln_controller_utils",
+            "projects:kiln_schedule_generator",
+            "projects:stained_glass_cost_estimator",
+            "projects:stained_glass_materials",
+            "projects:glass_artist_toolkit",
         ]
 
     def location(self, item):

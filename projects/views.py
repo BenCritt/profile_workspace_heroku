@@ -877,6 +877,36 @@ def all_projects(request):
             "url_name": "projects:cookie_audit",
             "image": "cookie-audit.webp",
             "description": "Scan any public webpage to identify cookies in use and review key attributes such as domain, expiration, HttpOnly, Secure, and SameSite flags. The Cookie Audit tool distinguishes between first-party and third-party cookies, identifies how cookies are set, and displays results in a clear, audit-ready table."
+        },
+        {
+            "title": "Stained Glass Materials Calculator",
+            "url_name": "projects:stained_glass_materials",
+            "image": "glass-materials.webp",
+            "description": "Estimate exactly how much copper foil, lead came, solder, and flux is needed for a stained glass project based on dimensions and piece count."
+        },
+        {
+            "title": "Glass Volume & Weight Calculator",
+            "url_name": "projects:glass_volume_calculator",
+            "image": "glass-calc.webp",
+            "description": "Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density."
+        },
+        {
+            "title": "Kiln Firing Schedule Generator",
+            "url_name": "projects:kiln_schedule_generator",
+            "image": "kiln-schedule.webp", 
+            "description": "Generate safe firing schedules for fused glass projects (COE 90, 96, 104, 33). Automatically adjusts ramp rates for Borosilicate, Soft Glass, and Standard fusing."
+        },
+        {
+            "title": "Kiln Controller Utilities",
+            "url_name": "projects:kiln_controller_utils",
+            "image": "kiln-utils.webp",
+            "description": "Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations."
+        },
+        {
+            "title": "Stained Glass Cost Estimator",
+            "url_name": "projects:stained_glass_cost_estimator",
+            "image": "stained-glass-calc.webp",
+            "description": "Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time."
         }
     ]
     

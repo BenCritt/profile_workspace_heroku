@@ -7,9 +7,26 @@
 
 {% block meta_tags %}
     <meta name="description" content="Generate safe firing schedules for fused glass projects (COE 90, 96, 104, 33). Automatically adjusts ramp rates for Borosilicate, Soft Glass, and Standard fusing.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
+    <meta property="og:type" content="website">
     <meta property="og:title" content="Kiln Firing Schedule Generator | Multi-COE Support">
-    <meta property="og:description" content="Create custom kiln firing schedules for Bullseye, System 96, Verre, Soft Glass, and Borosilicate.">
-    {% endblock meta_tags %}
+    <meta property="og:description" content="Create custom kiln firing schedules for Bullseye, System 96, Verre, Soft Glass, and Borosilicate with this automated ramp-rate calculator.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
+    <meta property="og:image:alt" content="Kiln Firing Schedule Generator Tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
+    <meta name="twitter:title" content="Kiln Firing Schedule Generator | Multi-COE Support">
+    <meta name="twitter:description" content="Generate safe firing schedules for fused glass projects (COE 90, 96, 104, 33).">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/kiln-schedule-generator/">
+{% endblock link_tags %}
 
 {% block title %}Kiln Firing Schedule Generator | Ben Crittenden{% endblock title %}
 
@@ -127,7 +144,7 @@
             </div>
             
             <div class="text-center mt-4 d-print-none">
-                <button onclick="window.print()" class="btn btn-outline-primary btn-lg">
+                <button onclick="window.print()" class="btn btn-primary btn-lg">
                     🖨️ Print Schedule
                 </button>
             </div>
