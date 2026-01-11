@@ -413,6 +413,9 @@ class KilnScheduleForm(forms.Form):
     BRAND_CHOICES = [
         ("bullseye", "Bullseye (COE 90)"),
         ("system96", "System 96 / Oceanside (COE 96)"),
+        ("verre", "Verre (COE 90)"),
+        ("soft", "Soft Glass / Effetre (COE 104)"),
+        ("boro", "Borosilicate (COE 33)"),
     ]
     PROJECT_CHOICES = [
         ("full_fuse", "Full Fuse (Smooth surface)"),

@@ -1087,17 +1087,38 @@ def kiln_schedule_generator(request):
         thickness = form.cleaned_data["thickness"]
 
         # 1. Define Base Temperatures (Fahrenheit)
-        # Bullseye anneals ~900F, Sys96 ~950F
-        anneal_temp = 900 if brand == "bullseye" else 950
-        strain_point = 800 if brand == "bullseye" else 850
-        
-        # Process Temps
-        process_temps = {
-            "full_fuse": 1490,
-            "tack_fuse": 1350,
-            "slump": 1225,
-            "fire_polish": 1325,
+        # Dictionary maps brand to (Anneal Temp, Strain Point)
+        glass_specs = {
+            "bullseye": {"anneal": 900, "strain": 800},
+            "verre":    {"anneal": 900, "strain": 800},     # Treating Verre as standard COE 90
+            "system96": {"anneal": 950, "strain": 850},
+            "soft":     {"anneal": 960, "strain": 840},     # Typical Effetre/Moretti values
+            "boro":     {"anneal": 1050, "strain": 950},    # Hard glass requires high heat
         }
+        
+        # Get specs with safety default to Bullseye 90
+        specs = glass_specs.get(brand, glass_specs["bullseye"])
+        anneal_temp = specs["anneal"]
+        strain_point = specs["strain"]
+        
+        # Process Temps: Define standard vs Boro (High Temp)
+        if brand == "boro":
+            # Borosilicate needs significantly higher temps
+            process_temps = {
+                "full_fuse": 1650,  # Warning: High for some hobby kilns
+                "tack_fuse": 1500,
+                "slump": 1300,
+                "fire_polish": 1375,
+            }
+        else:
+            # Standard Soft/90/96/104 Temps
+            process_temps = {
+                "full_fuse": 1490,
+                "tack_fuse": 1350,
+                "slump": 1225,
+                "fire_polish": 1325,
+            }
+            
         top_temp = process_temps.get(project, 1490)
 
         # 2. Define Rates based on Thickness (Safety Logic)
