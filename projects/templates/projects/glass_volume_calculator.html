@@ -1,6 +1,33 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
+{% block scripts %}
+    {% include "includes/schemas/glass_volume_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/glass-volume-calculator/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Glass Volume & Weight Calculator | Pot Melt & Casting Tool">
+    <meta property="og:description" content="Determine how much glass you need for your mold. Enter dimensions to get exact gram or ounce requirements for casting and fusing.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/glass-calc.webp">
+    <meta property="og:image:alt" content="Glass Volume Calculator Tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/glass-volume-calculator/">
+    <meta name="twitter:title" content="Glass Volume & Weight Calculator | Pot Melt & Casting Tool">
+    <meta name="twitter:description" content="Calculate glass weight for casting molds and pot melts.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/glass-calc.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/glass-volume-calculator/">
+{% endblock link_tags %}
+
 {% block title %}Glass Volume & Weight Calculator | Ben Crittenden{% endblock title %}
 
 {% block content %}
@@ -54,7 +81,7 @@
                             {{ form.depth.errors }}
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>                        
                     </form>
                 </div>
             </div>
@@ -80,6 +107,9 @@
             </div>
             {% endif %}
         </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
     </div>
 </div>
 

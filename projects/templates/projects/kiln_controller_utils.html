@@ -1,6 +1,33 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
+{% block scripts %}
+    {% include "includes/schemas/kiln_utils_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/kiln-controller-utils/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kiln Controller Utilities | Temperature & Ramp Calculator">
+    <meta property="og:description" content="Essential math tools for the kiln studio. Convert temps and calculate hold times or ramp rates for your digital controller.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/kiln-utils.webp">
+    <meta property="og:image:alt" content="Kiln Controller Utilities">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/kiln-controller-utils/">
+    <meta name="twitter:title" content="Kiln Controller Utilities | Temperature & Ramp Calculator">
+    <meta name="twitter:description" content="Quick math helpers for programming digital kiln controllers.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/kiln-utils.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/kiln-controller-utils/">
+{% endblock link_tags %}
+
 {% block title %}Kiln Controller Utilities | Ben Crittenden{% endblock title %}
 
 {% block content %}
@@ -78,7 +105,7 @@
                             {{ ramp_form.rate }}
                         </div>
 
-                        <button type="submit" class="btn btn-outline-primary w-100">Calculate Duration</button>
+                        <button type="submit" class="btn btn-primary w-100">Calculate Duration</button>
                     </form>
 
                     {% if ramp_result %}
@@ -97,6 +124,9 @@
             </div>
         </div>
 
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
     </div>
 </div>
 {% endblock content %}

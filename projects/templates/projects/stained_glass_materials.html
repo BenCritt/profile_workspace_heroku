@@ -1,6 +1,33 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
+{% block scripts %}
+    {% include "includes/schemas/stained_glass_materials_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Estimate exactly how much copper foil, lead came, solder, and flux is needed for a stained glass project based on dimensions and piece count.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/stained-glass-materials/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Stained Glass Materials Calculator | Foil, Lead & Solder Estimator">
+    <meta property="og:description" content="Plan your stained glass projects accurately. Calculate how many rolls of foil, sticks of lead, and pounds of solder you need before you start.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/glass-materials.webp">
+    <meta property="og:image:alt" content="Stained Glass Materials Calculator">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/stained-glass-materials/">
+    <meta name="twitter:title" content="Stained Glass Materials Calculator | Foil, Lead & Solder Estimator">
+    <meta name="twitter:description" content="Estimate foil, lead, and solder requirements for stained glass projects.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/glass-materials.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/stained-glass-materials/">
+{% endblock link_tags %}
+
 {% block title %}Stained Glass Materials Calculator | Ben Crittenden{% endblock title %}
 
 {% block content %}
@@ -90,6 +117,9 @@
             </div>
             {% endif %}
         </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
     </div>
 </div>
 {% endblock content %}

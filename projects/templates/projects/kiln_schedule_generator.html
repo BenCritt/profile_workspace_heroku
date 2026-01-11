@@ -1,6 +1,33 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
+{% block scripts %}
+    {% include "includes/schemas/kiln_schedule_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    <meta name="description" content="Generate safe firing schedules for fused glass projects based on COE (90/96) and thickness. Automatically adjusts ramp rates to prevent thermal shock.">
+
+    <meta property="og:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kiln Firing Schedule Generator | Fused Glass Tools">
+    <meta property="og:description" content="Create custom kiln firing schedules for fused glass. Select your glass type and thickness to generate a safe heating and annealing profile.">
+    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
+    <meta property="og:image:alt" content="Kiln Schedule Generator Tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="bencritt.net">
+    <meta property="twitter:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
+    <meta name="twitter:title" content="Kiln Firing Schedule Generator | Fused Glass Tools">
+    <meta name="twitter:description" content="Generate safe firing schedules for fused glass projects.">
+    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
+    <meta name="twitter:creator" content="@bencritt89"/>
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    <link rel="canonical" href="https://www.bencritt.net/projects/kiln-schedule-generator/">
+{% endblock link_tags %}
+
 {% block title %}Kiln Firing Schedule Generator | Ben Crittenden{% endblock title %}
 
 {% block content %}
@@ -85,6 +112,9 @@
             </div>
             {% endif %}
         </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
     </div>
 </div>
 
