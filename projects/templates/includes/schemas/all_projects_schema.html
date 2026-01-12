@@ -3,7 +3,7 @@
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "Ben Crittenden's Projects",
-  "description": "A collection of web-based tools by Ben Crittenden, including a Monte Carlo Simulator, QR Code Generator, Weather Forecast App, Grade Level Text Analyzer, DNS Lookup Tool, SSL Verification Tool, IP Address Lookup Tool, Freight Carrier Safety Reporter, SEO Head Checker, ISS Tracker, XML Splitter, Ham Radio Call Sign Lookup, Font Inspector, and Cookie Audit.",
+  "description": "A collection of web-based tools by Ben Crittenden, including a Monte Carlo Simulator, QR Code Generator, Weather Forecast App, Grade Level Text Analyzer, DNS Lookup Tool, SSL Verification Tool, IP Address Lookup Tool, Freight Carrier Safety Reporter, SEO Head Checker, ISS Tracker, XML Splitter, Ham Radio Call Sign Lookup, Font Inspector, Cookie Audit, and the Glass Artist Toolkit.",
   "url": "https://www.bencritt.net/projects/",
   "hasPart": [
     {
@@ -224,6 +224,95 @@
         "Shows cookie attributes including domain, expiration, HttpOnly, Secure, and SameSite.",
         "Indicates cookie source such as Set-Cookie headers or document.cookie.",
         "Displays results in a structured, audit-friendly table."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Stained Glass Materials Calculator",
+      "description": "Estimate exactly how much copper foil, lead came, solder, and flux/putty is needed for a stained glass project based on dimensions and piece count.",
+      "applicationCategory": "Utility Software",
+      "url": "https://www.bencritt.net/projects/stained-glass-materials/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Supports calculations for both Copper Foil and Lead Came methods.",
+        "Estimates total linear footage and number of rolls/sticks needed.",
+        "Calculates required solder weight and chemical (flux/cement) volume.",
+        "Adjusts estimates based on waste factor."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Glass Volume & Weight Calculator",
+      "description": "Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density.",
+      "applicationCategory": "Utility Software",
+      "url": "https://www.bencritt.net/projects/glass-volume-calculator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Calculate glass weight for cylindrical or rectangular molds.",
+        "Switch between Metric (grams/cm) and Imperial (oz/inches) units.",
+        "Automatically calculates a recommended input weight including 5% waste.",
+        "Uses standard glass density (2.5g/cm³) for accurate casting results."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Kiln Firing Schedule Generator",
+      "description": "Generate safe firing schedules for fused glass projects based on COE (90/96) and thickness. Automatically adjusts ramp rates to prevent thermal shock.",
+      "applicationCategory": "Utility Software",
+      "url": "https://www.bencritt.net/projects/kiln-schedule-generator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Generate firing schedules for Bullseye (90) and System 96 glass.",
+        "Automatic rate adjustment based on project thickness.",
+        "Print-friendly schedule output for studio use.",
+        "Includes segments for process temp, annealing, and cooling."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Kiln Controller Utilities",
+      "description": "Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations.",
+      "applicationCategory": "Utility Software",
+      "url": "https://www.bencritt.net/projects/kiln-controller-utils/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Convert temperatures between Fahrenheit and Celsius instantly.",
+        "Calculate the duration of a firing segment based on start temp, target temp, and rate.",
+        "Simplifies programming for Bartlett and other digital kiln controllers."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Stained Glass Cost Estimator",
+      "description": "Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time.",
+      "applicationCategory": "Business Application",
+      "url": "https://www.bencritt.net/projects/stained-glass-cost-estimator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Calculates base glass cost including standard waste percentage.",
+        "Estimates consumable costs for solder and foil based on piece count.",
+        "Computes labor cost based on hourly rate and project duration.",
+        "Provides a recommended retail price based on standard art markup."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Lampwork Glass Calculator",
+      "description": "Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter.",
+      "applicationCategory": "Utility Software",
+      "url": "https://www.bencritt.net/projects/lampwork-materials/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Calculate weight for solid rods and hollow tubing.",
+        "Supports Borosilicate (COE 33), Soft Glass (COE 104), Satake, and Lead Crystal.",
+        "Uses specific density values for accurate weight estimation.",
+        "Metric (mm) inputs with Imperial (lb/oz) outputs."
       ]
     }
   ]
