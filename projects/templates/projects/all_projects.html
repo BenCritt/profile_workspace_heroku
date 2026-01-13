@@ -6,12 +6,13 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Explore Ben Crittenden’s web tools for IT, SEO, education, freight, ham radio, and ISS tracking. Includes QR Code Generator, SEO Head Checker, Font Inspector, XML Splitter, and more.">
+    <meta name="description"        content="Explore Ben Crittenden's Python-based web tools. Features a complete Glass Artist Toolkit, plus tools for IT, SEO, Freight, Ham Radio, and more.">
 
     <meta property="og:url"         content="https://www.bencritt.net/projects/">
     <meta property="og:type"        content="website">
-    <meta property="og:title"       content="Ben Crittenden's Projects">
-    <meta property="og:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
+    <meta property="og:title"       content="Ben Crittenden's Projects | Glass Art, IT & SEO Tools">
+
+    <meta property="og:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight Safety reporters.">
     <meta property="og:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta property="og:image:type"  content="image/webp">
     <meta property="og:image:alt"   content="Ben Crittenden's Projects Preview Image">
@@ -20,8 +21,8 @@
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:domain"      content="bencritt.net">
     <meta name="twitter:url"         content="https://www.bencritt.net/projects/">
-    <meta name="twitter:title"       content="Ben Crittenden's Projects">
-    <meta name="twitter:description" content="Explore Ben Crittenden’s collection of Python-based web tools, from QR Code Generator, Monte Carlo Simulator and Grade Level Text Analyzer to DNS, IP and SSL diagnostics, freight carrier safety reports, SEO Head Checker, ISS Tracker, XML Splitter, ham radio lookup, and Font Inspector.">
+    <meta name="twitter:title"       content="Ben Crittenden's Projects | Glass Art, IT & SEO Tools">
+    <meta name="twitter:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight Safety reporters.">
     <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta name="twitter:creator"     content="@bencritt89"/>
 {% endblock meta_tags %}
@@ -34,7 +35,7 @@
 {% block page_stylesheets %}
 {% endblock page_stylesheets %}
 
-{% block title %}All Projects | Ben Crittenden's IT, SEO, and Other Tools{% endblock title %}
+{% block title %}All Projects | Glass Art, IT, SEO, and More{% endblock title %}
 
 {% block content %}
 <div class="py-5">
@@ -42,17 +43,39 @@
     <div class="container">
         <h1 class="text-center mb-5">Ben Crittenden's Projects</h1>
 
-        <div class="row justify-content-center mb-5">
-            <div class="col-lg-8 text-center">
-                <section>
-                    <h2 class="h4 mb-3">About Ben Crittenden</h2>
-                    <p class="lead fw-normal text-muted mb-0">
-                        Ben Crittenden is an IT professional who builds Python-based web tools for IT professionals,
-                        SEO specialists, educators, freight brokers, and ham radio operators. Learn more on the
-                        <a href="{% url 'projects:home' %}" class="link-primary text-decoration-none">homepage</a>.
-                    </p>
-                </section>
-            </div>
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <section>
+                <h2 class="h4 mb-3">About Ben Crittenden</h2>
+                <p class="lead text-muted mb-4">
+                    Ben Crittenden is an IT professional and project manager who builds Python web tools.
+                    Select a toolkit page, or scroll to view all projects.
+                </p>
+
+                <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+                    <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-outline-primary rounded-pill px-4">
+                        🎨 Glass Artist Toolkit
+                    </a>
+                    {# CHANGED: 'btn-outline-light' is best for Dark Mode "IT" neutrality #}
+                    <a href="{% url 'projects:it_tools' %}" class="btn btn-outline-info rounded-pill px-4">
+                        💻 IT Toolkit
+                    </a>
+                    <a href="{% url 'projects:seo_tools' %}" class="btn btn-outline-success rounded-pill px-4">
+                        🔍 SEO Toolkit
+                    </a>
+                </div>
+
+                <p class="medium text-muted">
+                    Also featuring tools for 
+                    <span class="fw-semibold text-body">Educators</span>, 
+                    <span class="fw-semibold text-body">Freight Brokers</span>, and 
+                    <span class="fw-semibold text-body">Ham Radio Operators</span>.
+                    <br>
+                    <a href="{% url 'projects:home' %}" class="link-light text-decoration-none mt-2 d-inline-block border-bottom border-secondary">
+                        Visit Homepage
+                    </a>
+                </p>
+            </section>
         </div>
     </div>
 

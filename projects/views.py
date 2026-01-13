@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseNotFound, FileRe
 from django.conf import settings
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.urls import reverse
 from .decorators import trim_memory_after
 import os
@@ -1489,6 +1490,7 @@ def lampwork_materials(request):
 
 # Glass Artist Toolkit Page
 @trim_memory_after
+@ensure_csrf_cookie
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def glass_artist_toolkit(request):
     return render(request, "projects/glass_artist_toolkit.html")
