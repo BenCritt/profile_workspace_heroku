@@ -1033,6 +1033,8 @@ def ssl_check(request):
 # This is the view for the IT Professional Toolkit page.
 # Force memory trim after work.
 @trim_memory_after
+# Prevents CSRF token issues in iframes.
+@ensure_csrf_cookie
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def it_tools(request):
@@ -1041,6 +1043,8 @@ def it_tools(request):
 # This is the view for the SEO Professional Toolkit page.
 # Force memory trim after work.
 @trim_memory_after
+# Prevents CSRF token issues in iframes.
+@ensure_csrf_cookie
 # Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def seo_tools(request):
@@ -1490,6 +1494,7 @@ def lampwork_materials(request):
 
 # Glass Artist Toolkit Page
 @trim_memory_after
+# Prevents CSRF token issues in iframes.
 @ensure_csrf_cookie
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def glass_artist_toolkit(request):
