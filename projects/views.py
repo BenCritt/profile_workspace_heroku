@@ -919,7 +919,27 @@ def all_projects(request):
             "url_name": "projects:lampwork_materials",
             "image": "lampwork-glass-calculator.webp",
             "description": "Calculate the precise weight of glass stock needed for your next project. This calculator supports Borosilicate (COE 33), Soft Glass (COE 104), Satake, and Lead Crystal. Simply input the dimensions of your solid rods or hollow tubing to instantly get the required weight in grams or pounds. Essential for lampworkers, glassblowers, and inventory planning."
+        },
+        # NEW 2 BEGIN
+        {
+            "title": "Freight Class Calculator",
+            "url_name": "projects:freight_class_calculator",
+            "image": "freight-class-calculator.webp",
+            "description": "Avoid costly re-bills by accurately estimating the NMFC Freight Class for LTL shipments. Simply input dimensions and weight to calculate density (PCF) and determine the correct class based on the standard density scale."
+        },
+        {
+            "title": "Fuel Surcharge Calculator",
+            "url_name": "projects:fuel_surcharge_calculator",
+            "image": "fuel-surcharge-calculator.webp",
+            "description": "Instantly calculate the Fuel Surcharge (FSC) for truckload shipments. Input your trip miles, current diesel price, and base peg to generate the exact surcharge amount per mile and total trip cost. Essential for freight brokers and owner-operators negotiating rates."
+        },
+        {
+            "title": "Truck Driver Trip Planner",
+            "url_name": "projects:hos_trip_planner",
+            "image": "hos-trip-planner.webp",
+            "description": "Plan realistic truck trips compliant with FMCSA Hours of Service (HOS) rules. Input your miles and start time to generate a step-by-step itinerary that automatically calculates mandatory 30-minute breaks and 10-hour daily resets."
         }
+        # NEW 2 END
     ]
     
     context = {
