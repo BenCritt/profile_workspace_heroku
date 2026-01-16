@@ -60,7 +60,7 @@ class FontInspectorForm(forms.Form):
         label="Page URL",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "bencritt.net",
+                "placeholder": "nintendo.com",
                 "class": "form-control",
             }
         ),
