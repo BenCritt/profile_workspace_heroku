@@ -225,6 +225,12 @@ html.embedded .cookie-table td > * {
 <div class="container py-5 d-flex flex-column align-items-center cookie-audit-main">
 
   <div class="w-100 cookie-audit-layout" style="max-width: 900px;">
+      <div class="alert alert-warning shadow-sm" role="alert">
+        <h2 class="alert-heading h6 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Temporary App Suspension</h2>
+          <p class="mb-0 small">
+            This app is too resource intensive for my current hosting environment. I'm in the process of finding a new hosting provider.
+          </p>
+      </div>
       
       <div class="text-center mb-5 cookie-audit-header">
         <h1 class="mb-3">Cookie Audit</h1>
@@ -238,7 +244,7 @@ html.embedded .cookie-table td > * {
               action="{% url 'projects:cookie_audit_start' %}"
               novalidate>
             {% csrf_token %}
-
+            <!--
             <div class="input-group shadow-sm">
               <label for="{{ form.url.id_for_label }}" class="visually-hidden">Website URL</label>
               {{ form.url }}
@@ -247,6 +253,7 @@ html.embedded .cookie-table td > * {
                 Download CSV
               </button>
             </div>
+            -->
 
             {% if form.url.help_text %}
               <div class="form-text text-start mt-2">{{ form.url.help_text }}</div>
@@ -291,7 +298,7 @@ html.embedded .cookie-table td > * {
   </div>
 
 </div>
-
+<!--
 <script>
 (function () {
   const form = document.getElementById("cookieAuditForm");
@@ -565,10 +572,12 @@ html.embedded .cookie-table td > * {
   });
 })();
 </script>
+-->
 
 <script>
   if (window.self !== window.top) {
     document.documentElement.classList.add("embedded");
   }
 </script>
+
 {% endblock content %}

@@ -5,6 +5,11 @@ Cookie Audit scanner (Playwright) with:
 - per-request task isolation + queueing (no task overriding)
 - progress reporting for polling endpoint
 - Enforces a hard RSS wall (defaults to 300 MB) and returns partial results immediately on breach.
+
+Uses these buildbacks:
+
+https://github.com/Thomas-Boi/heroku-playwright-python-browsers.git 
+https://github.com/playwright-community/heroku-playwright-buildpack.git
 """
 
 from __future__ import annotations

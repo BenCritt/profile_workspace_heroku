@@ -41,6 +41,11 @@ def cookie_audit_view(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @require_POST
 def cookie_audit_start(request):
+    # Maintenance Mode pending hosting migration.
+    return JsonResponse(
+        {"error": "This tool is temporarily suspended."}, 
+        status=503
+    )
     from .forms import CookieAuditForm
     from . import cookie_scan_utils
 
