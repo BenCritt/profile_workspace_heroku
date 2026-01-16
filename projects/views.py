@@ -934,7 +934,7 @@ def all_projects(request):
             "description": "Instantly calculate the Fuel Surcharge (FSC) for truckload shipments. Input your trip miles, current diesel price, and base peg to generate the exact surcharge amount per mile and total trip cost. Essential for freight brokers and owner-operators negotiating rates."
         },
         {
-            "title": "Truck Driver Trip Planner",
+            "title": "HOS Trip Planner",
             "url_name": "projects:hos_trip_planner",
             "image": "hos-trip-planner.webp",
             "description": "Plan realistic truck trips compliant with FMCSA Hours of Service (HOS) rules. Input your miles and start time to generate a step-by-step itinerary that automatically calculates mandatory 30-minute breaks and 10-hour daily resets."
