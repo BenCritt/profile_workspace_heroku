@@ -10,9 +10,9 @@
 
     <meta property="og:url"         content="https://www.bencritt.net/projects/">
     <meta property="og:type"        content="website">
-    <meta property="og:title"       content="Ben Crittenden's Projects | Glass Art, IT & SEO Tools">
+    <meta property="og:title"       content="Ben Crittenden's Projects | Glass Art, IT, SEO, Freight, and More">
 
-    <meta property="og:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight Safety reporters.">
+    <meta property="og:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight tools.">
     <meta property="og:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta property="og:image:type"  content="image/webp">
     <meta property="og:image:alt"   content="Ben Crittenden's Projects Preview Image">
@@ -21,8 +21,8 @@
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:domain"      content="bencritt.net">
     <meta name="twitter:url"         content="https://www.bencritt.net/projects/">
-    <meta name="twitter:title"       content="Ben Crittenden's Projects | Glass Art, IT & SEO Tools">
-    <meta name="twitter:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight Safety reporters.">
+    <meta name="twitter:title"       content="Ben Crittenden's Projects | Glass Art, IT, SEO, Freight, and More">
+    <meta name="twitter:description" content="A collection of specialized web tools. Includes the Glass Artist Toolkit (Kiln Schedules, Material Calculators), alongside IT diagnostics (DNS, IP, SSL), SEO utilities, and Freight tools.">
     <meta name="twitter:image"       content="https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp">
     <meta name="twitter:creator"     content="@bencritt89"/>
 {% endblock meta_tags %}
@@ -35,7 +35,7 @@
 {% block page_stylesheets %}
 {% endblock page_stylesheets %}
 
-{% block title %}All Projects | Glass Art, IT, SEO, and More{% endblock title %}
+{% block title %}All Projects | Glass Art, IT, SEO, Freight, and More{% endblock title %}
 
 {% block content %}
 <div class="py-5">
@@ -56,7 +56,9 @@
                     <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-outline-primary rounded-pill px-4">
                         🎨 Glass Artist Toolkit
                     </a>
-                    {# CHANGED: 'btn-outline-light' is best for Dark Mode "IT" neutrality #}
+                    <a href="{% url 'projects:freight_tools' %}" class="btn btn-outline-warning rounded-pill px-4">
+                        🚚 Freight Toolkit
+                    </a>
                     <a href="{% url 'projects:it_tools' %}" class="btn btn-outline-info rounded-pill px-4">
                         💻 IT Toolkit
                     </a>
@@ -68,7 +70,7 @@
                 <p class="medium text-muted">
                     Also featuring tools for 
                     <span class="fw-semibold text-body">Educators</span>, 
-                    <span class="fw-semibold text-body">Freight Brokers</span>, and 
+                    <span class="fw-semibold text-body">Space Enthusiasts</span>, and 
                     <span class="fw-semibold text-body">Ham Radio Operators</span>.
                     <br>
                     <a href="{% url 'projects:home' %}" class="link-light text-decoration-none mt-2 d-inline-block border-bottom border-secondary">

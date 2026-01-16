@@ -1,0 +1,69 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/fuel_surcharge_schema.html" %}
+{% endblock scripts %}
+
+{% block title %}Fuel Surcharge Calculator | FSC Rate Per Mile Estimator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-fuel-pump me-2"></i>Fuel Surcharge Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate the fair Fuel Surcharge (FSC) for any shipment based on current diesel prices and your contract's base peg.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate FSC</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert {% if results.is_negative %}alert-warning{% else %}alert-success{% endif %} shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Total Fuel Surcharge</h4>
+                <div class="text-center display-4 fw-bold mb-3">
+                    {# Fixed: Changed floatform to floatformat #}
+                    ${{ results.total_fsc|floatformat:2 }}
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <small class="text-uppercase text-muted">Surcharge Per Mile</small><br>
+                        {# Fixed: Added pipe | and changed to floatformat #}
+                        <span class="fs-4 fw-bold">${{ results.fsc_per_mile|floatformat:3 }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Fuel Spread</small><br>
+                        <span class="fs-4 fw-bold {% if results.is_negative %}text-danger{% else %}text-success{% endif %}">
+                            {# Fixed: Changed to floatformat #}
+                            {% if results.price_diff > 0 %}+{% endif %}{{ results.price_diff|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if results.is_negative %}
+                <p class="small text-muted text-center mt-3 mb-0">
+                    <i class="bi bi-exclamation-circle"></i> 
+                    Current fuel price is below the base peg. This result represents a fuel <em>credit</em> or reduction.
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% endblock content %}

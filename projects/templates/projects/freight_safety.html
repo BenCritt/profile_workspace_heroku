@@ -58,6 +58,7 @@
                 {{ form.as_p }}
             </div>
             <input type="submit" id="freight-lookup-btn" class="btn btn-primary w-100" value="Generate Safety Report" aria-label="Generate Safety Report">
+            <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary w-100">Go to Freight Professional Toolkit</a>
         </form>
 
         {% if error %}

@@ -1,0 +1,91 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/freight_class_schema.html" %}
+{% endblock scripts %}
+
+{% block title %}Freight Class Calculator | LTL Density & Class Estimator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-box-seam me-2"></i>Freight Class Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate the density of your shipment to determine its estimated NMFC Freight Class. 
+                Essential for avoiding LTL re-bills and billing adjustments.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Class</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Estimated Freight Class: {{ results.estimated_class }}</h4>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Density</small><br>
+                        <span class="fs-4 fw-bold">{{ results.density }}</span> <small>lbs/ft³</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Total Weight</small><br>
+                        <span class="fs-4 fw-bold">{{ results.total_weight }}</span> <small>lbs</small>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-uppercase text-muted">Total Volume</small><br>
+                        <span>{{ results.total_cubic_feet }} ft³ ({{ results.qty }} Pallets)</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Standard Density-to-Class Guide</h3>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm text-center align-middle" style="font-size: 0.9rem;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Density (lbs per ft³)</th>
+                            <th>Freight Class</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Less than 1</td><td>400</td></tr>
+                        <tr><td>1 but less than 2</td><td>300</td></tr>
+                        <tr><td>2 but less than 4</td><td>250</td></tr>
+                        <tr><td>4 but less than 6</td><td>150</td></tr>
+                        <tr><td>6 but less than 8</td><td>125</td></tr>
+                        <tr><td>8 but less than 10</td><td>100</td></tr>
+                        <tr><td>10 but less than 12</td><td>92.5</td></tr>
+                        <tr><td>12 but less than 15</td><td>85</td></tr>
+                        <tr><td>15 but less than 22.5</td><td>70</td></tr>
+                        <tr><td>22.5 but less than 30</td><td>65</td></tr>
+                        <tr><td>30 but less than 35</td><td>60</td></tr>
+                        <tr><td>35 but less than 50</td><td>55</td></tr>
+                        <tr><td>50 or greater</td><td>50</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2">
+                *Note: This calculator uses standard density-based classification. Some commodities have specific NMFC codes regardless of density.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% endblock content %}

@@ -1502,3 +1502,239 @@ def glass_artist_toolkit(request):
 
 # NEW END
 
+# NEW 2 BEGIN
+
+# Freight Class Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_class_calculator(request):
+    from .forms import FreightClassForm
+
+    form = FreightClassForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        l = form.cleaned_data["length"]
+        w = form.cleaned_data["width"]
+        h = form.cleaned_data["height"]
+        weight_per = form.cleaned_data["weight"]
+        qty = form.cleaned_data["quantity"]
+
+        # 1. Calculate Totals
+        # Volume of one unit in cubic inches
+        vol_cubic_inches = l * w * h
+        # Volume of one unit in cubic feet (1728 cubic inches = 1 cubic foot)
+        vol_cubic_feet = vol_cubic_inches / 1728.0
+        
+        total_cubic_feet = vol_cubic_feet * qty
+        total_weight = weight_per * qty
+        
+        # 2. Calculate Density (PCF: Pounds per Cubic Foot)
+        if total_cubic_feet > 0:
+            density = total_weight / total_cubic_feet
+        else:
+            density = 0
+
+        # 3. Determine Estimated Freight Class (Standard NMFC Density Scale)
+        if density < 1:
+            est_class = 400
+        elif density < 2:
+            est_class = 300
+        elif density < 4:
+            est_class = 250
+        elif density < 6:
+            est_class = 150
+        elif density < 8:
+            est_class = 125
+        elif density < 10:
+            est_class = 100
+        elif density < 12:
+            est_class = 92.5
+        elif density < 15:
+            est_class = 85
+        elif density < 22.5:
+            est_class = 70
+        elif density < 30:
+            est_class = 65
+        elif density < 35:
+            est_class = 60
+        elif density < 50:
+            est_class = 55
+        else:
+            est_class = 50
+
+        context["results"] = {
+            "density": round(density, 2),
+            "estimated_class": est_class,
+            "total_weight": round(total_weight, 2),
+            "total_cubic_feet": round(total_cubic_feet, 2),
+            "qty": qty
+        }
+
+    return render(request, "projects/freight_class_calculator.html", context)
+
+# Fuel Surcharge Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def fuel_surcharge_calculator(request):
+    from .forms import FuelSurchargeForm
+
+    form = FuelSurchargeForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        miles = form.cleaned_data["trip_miles"]
+        current = form.cleaned_data["current_price"]
+        base = form.cleaned_data["base_price"]
+        mpg = form.cleaned_data["mpg"]
+
+        # 1. Calculate the difference
+        # If current price is below base, surcharge is technically zero (or negative/credit).
+        # We calculate the raw diff but handle display logic in the template or here.
+        price_diff = current - base
+        
+        # 2. Calculate Surcharge Per Mile
+        # Formula: (Current - Base) / MPG
+        if mpg > 0:
+            fsc_per_mile = price_diff / mpg
+        else:
+            fsc_per_mile = 0.0
+
+        # 3. Calculate Total Surcharge
+        total_fsc = fsc_per_mile * miles
+
+        context["results"] = {
+            "fsc_per_mile": round(fsc_per_mile, 3),  # Standard 3 decimal places for rate/mile
+            "total_fsc": round(total_fsc, 2),
+            "price_diff": round(price_diff, 2),
+            "is_negative": price_diff < 0
+        }
+
+    return render(request, "projects/fuel_surcharge_calculator.html", context)
+
+# Truck Driver HOS Trip Planner
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def hos_trip_planner(request):
+    from .forms import HOSTripPlannerForm
+    from datetime import datetime, timedelta
+
+    form = HOSTripPlannerForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        # Inputs
+        miles_remaining = form.cleaned_data["total_miles"]
+        speed = form.cleaned_data["avg_speed"]
+        s_date = form.cleaned_data["start_date"]
+        s_time = form.cleaned_data["start_time"]
+
+        # Initialize Simulation Clock
+        current_time = datetime.combine(s_date, s_time)
+        itinerary = []
+        
+        # HOS Counters
+        shift_drive_time = 0.0
+        continuous_drive_time = 0.0
+        
+        # Safety catch for infinite loops
+        iterations = 0
+        max_iterations = 50 
+
+        while miles_remaining > 0 and iterations < max_iterations:
+            iterations += 1
+            
+            # 1. Determine constraints for this leg
+            # How much time is left on the 11-hour shift limit?
+            time_left_in_shift = 11.0 - shift_drive_time
+            # How much time is left before mandatory 30-min break (8 hr limit)?
+            time_left_continuous = 8.0 - continuous_drive_time
+            # How much time to finish the trip?
+            time_to_finish = miles_remaining / speed
+
+            # The actual drive time is the smallest of these constraints
+            leg_duration = min(time_to_finish, time_left_in_shift, time_left_continuous)
+            
+            # Avoid tiny floating point fragments (less than 1 min)
+            if leg_duration < 0.01:
+                leg_duration = 0
+
+            # 2. "Drive" this leg
+            dist_covered = leg_duration * speed
+            start_leg_time = current_time
+            current_time += timedelta(hours=leg_duration)
+            
+            miles_remaining -= dist_covered
+            shift_drive_time += leg_duration
+            continuous_drive_time += leg_duration
+
+            # Add Drive Event
+            if leg_duration > 0:
+                itinerary.append({
+                    "event": "Drive",
+                    "start": start_leg_time,
+                    "end": current_time,
+                    "duration": f"{int(leg_duration)}h {int((leg_duration*60)%60)}m",
+                    "note": f"Covered {round(dist_covered, 1)} miles"
+                })
+
+            # 3. Check Logic for Breaks/Resets
+            
+            # A) Trip Finished?
+            if miles_remaining <= 0.1: # float tolerance
+                itinerary.append({
+                    "event": "Arrived",
+                    "start": current_time,
+                    "end": "",
+                    "duration": "",
+                    "note": "Destination Reached",
+                    "is_highlight": True
+                })
+                break
+
+            # B) 11-Hour Limit Hit? -> 10 Hour Reset
+            if shift_drive_time >= 11.0:
+                start_break = current_time
+                current_time += timedelta(hours=10)
+                itinerary.append({
+                    "event": "10-Hour Reset",
+                    "start": start_break,
+                    "end": current_time,
+                    "duration": "10h 00m",
+                    "note": "Mandatory Daily Reset (11hr limit reached)",
+                    "is_break": True
+                })
+                # Reset clocks
+                shift_drive_time = 0
+                continuous_drive_time = 0
+                continue # Skip checking 30min break if we just took a 10hr reset
+
+            # C) 8-Hour Limit Hit? -> 30 Minute Break
+            if continuous_drive_time >= 8.0:
+                start_break = current_time
+                current_time += timedelta(minutes=30)
+                itinerary.append({
+                    "event": "30-Min Break",
+                    "start": start_break,
+                    "end": current_time,
+                    "duration": "0h 30m",
+                    "note": "Mandatory FMCSA Break (8hr continuous limit)",
+                    "is_break": True
+                })
+                # Reset continuous clock only
+                continuous_drive_time = 0
+
+        context["itinerary"] = itinerary
+        context["arrival_time"] = current_time
+        context["total_trip_miles"] = form.cleaned_data["total_miles"]
+
+    return render(request, "projects/hos_trip_planner.html", context)
+
+# Freight Professional Toolkit Page
+@trim_memory_after
+@ensure_csrf_cookie
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_tools(request):
+    return render(request, "projects/freight_tools.html")
+
+# NEW 2 END

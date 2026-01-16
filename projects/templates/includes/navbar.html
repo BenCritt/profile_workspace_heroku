@@ -31,19 +31,37 @@
               <li class="nav-item"><a class="nav-link" href="{% url 'projects:weather' %}">Weather Forecast</a></li>
               <li class="nav-item"><a class="nav-link" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
 
-              <!-- SEO Professional Toolkit dropdown -->
+              <!-- Glass Artist Toolkit dropdown -->
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="{% url 'projects:seo_tools' %}" id="seoToolsDropdown"
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:glass_artist_toolkit' %}" id="glassToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  SEO Professional Toolkit
+                  Glass Artist Toolkit
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
-                  <li><a class="dropdown-item" href="{% url 'projects:font_inspector' %}">Font Inspector</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:seo_head_checker' %}">SEO Head Checker</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:cookie_audit' %}">Cookie Audit</a></li>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="glassToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:kiln_schedule_generator' %}">Kiln Firing Schedule Generator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:kiln_controller_utils' %}">Kiln Controller Utilities</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:glass_volume_calculator' %}">Glass Volume & Weight Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_cost_estimator' %}">Stained Glass Cost Estimator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_materials' %}">Stained Glass Materials Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:lampwork_materials' %}">Lampwork Glass Calculator</a></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:seo_tools' %}">View All SEO Tools</a></li>
-                  
+                  <li><a class="dropdown-item" href="{% url 'projects:glass_artist_toolkit' %}">View All Glass Artist Tools</a></li>
+                </ul>
+              </li>
+
+              <!-- Freight Professional Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:freight_tools' %}" id="freightToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Freight Professional Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="freightToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:freight_class_calculator' %}">Freight Class Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:fuel_surcharge_calculator' %}">Fuel Surcharge Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:hos_trip_planner' %}">HOS Trip Planner</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:freight_tools' %}">View All Freight Tools</a></li>
                 </ul>
               </li>
 
@@ -62,21 +80,19 @@
                 </ul>
               </li>
 
-              <!-- Glass Artist Toolkit dropdown -->
+              <!-- SEO Professional Toolkit dropdown -->
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="{% url 'projects:glass_artist_toolkit' %}" id="glassToolsDropdown"
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:seo_tools' %}" id="seoToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Glass Artist Toolkit
+                  SEO Professional Toolkit
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="glassToolsDropdown">
-                  <li><a class="dropdown-item" href="{% url 'projects:kiln_schedule_generator' %}">Kiln Firing Schedule Generator</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:kiln_controller_utils' %}">Kiln Controller Utilities</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:glass_volume_calculator' %}">Glass Volume & Weight Calculator</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_cost_estimator' %}">Stained Glass Cost Estimator</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:stained_glass_materials' %}">Stained Glass Materials Calculator</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:lampwork_materials' %}">Lampwork Glass Calculator</a></li>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:font_inspector' %}">Font Inspector</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:seo_head_checker' %}">SEO Head Checker</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:cookie_audit' %}">Cookie Audit</a></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:glass_artist_toolkit' %}">View All Glass Artist Tools</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:seo_tools' %}">View All SEO Tools</a></li>
+                  
                 </ul>
               </li>
 

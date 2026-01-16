@@ -1,0 +1,95 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/hos_trip_planner_schema.html" %}
+{% endblock scripts %}
+
+{% block title %}HOS Trip Planner | Truck Driver ETA Calculator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <h1 class="text-center mb-4"><i class="bi bi-truck me-2"></i>HOS Trip Planner</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate a realistic ETA that accounts for FMCSA Hours of Service rules (11-hour driving limits, 10-hour resets, and 30-minute breaks).
+            </p>
+
+            <div class="card shadow-sm mb-5">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.total_miles.label_tag }}
+                                {{ form.total_miles }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.avg_speed.label_tag }}
+                                {{ form.avg_speed }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.start_date.label_tag }}
+                                {{ form.start_date }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.start_time.label_tag }}
+                                {{ form.start_time }}
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary w-100">Generate Itinerary</button>
+                                <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if itinerary %}
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0">Estimated Arrival: {{ arrival_time|date:"l, F jS @ g:i A" }}</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Event</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leg in itinerary %}
+                            <tr class="{% if leg.is_break %}table-warning{% elif leg.is_highlight %}table-success fw-bold{% endif %}">
+                                <td>
+                                    {% if leg.event == "Drive" %}
+                                        <i class="bi bi-steering-wheel me-2 text-primary"></i>
+                                    {% elif leg.is_break %}
+                                        <i class="bi bi-cup-hot me-2 text-warning"></i>
+                                    {% else %}
+                                        <i class="bi bi-geo-alt-fill me-2 text-success"></i>
+                                    {% endif %}
+                                    {{ leg.event }}
+                                </td>
+                                <td>{{ leg.start|date:"D g:i A" }}</td>
+                                <td>{{ leg.end|date:"D g:i A" }}</td>
+                                <td>{{ leg.duration }}</td>
+                                <td class="small text-muted">{{ leg.note }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% endblock content %}

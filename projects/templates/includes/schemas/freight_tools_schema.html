@@ -1,0 +1,142 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": "https://www.bencritt.net/projects/freight-tools/#webpage",
+      "name": "Freight Professional Toolkit",
+      "description": "Free utilities for Freight Brokers, Logistics Managers, and Drivers. Includes Carrier Safety Reporter, Freight Class Calculator, Fuel Surcharge Calculator, and HOS Trip Planner.",
+      "url": "https://www.bencritt.net/projects/freight-tools/",
+      "inLanguage": "en-US",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.bencritt.net/#website",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "about": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "@id": "https://www.bencritt.net/projects/freight-tools/#primaryimage",
+        "url": "https://www.bencritt.net/static/img/hubs/freight-professional-toolkit.webp",
+        "caption": "Freight Professional Toolkit"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "Freight Logistics Tools",
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "item": { "@id": "https://www.bencritt.net/projects/freight-safety/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" }
+          }
+        ]
+      },
+      "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/freight-safety/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-safety/#app",
+      "name": "Freight Carrier Safety Reporter",
+      "description": "Retrieve USDOT carrier safety ratings, crash statistics, and inspection data directly from the FMCSA.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-safety/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-safety.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Retrieve safety data using USDOT Number",
+        "View crash statistics and inspection history",
+        "Check operating authority and insurance status"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app",
+      "name": "Freight Class Calculator",
+      "description": "Avoid costly re-bills by accurately estimating the NMFC Freight Class for LTL shipments based on density.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-class-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-class-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate shipment density (PCF)",
+        "Estimate NMFC Class based on standard density scale",
+        "Supports pallet quantity calculations"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app",
+      "name": "Fuel Surcharge Calculator",
+      "description": "Calculate fair fuel surcharges based on current diesel prices, base pegs, and trip miles.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/fuel-surcharge-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/fuel-surcharge-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate FSC per mile and total surcharge",
+        "Adjustable Base 'Peg' Price and MPG",
+        "Calculate fuel spread against current prices"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app",
+      "name": "HOS Trip Planner",
+      "description": "Plan realistic ETAs compliant with FMCSA Hours of Service rules (11hr drive / 10hr reset).",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/hos-trip-planner/",
+      "image": "https://www.bencritt.net/static/img/all-projects/hos-trip-planner.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Simulate truck trips compliant with FMCSA rules",
+        "Automatically calculates 10-hour resets and 30-minute breaks",
+        "Generates step-by-step driving itinerary"
+      ]
+    }
+  ]
+}
+</script>

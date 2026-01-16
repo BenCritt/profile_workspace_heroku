@@ -613,3 +613,71 @@ class LampworkMaterialForm(forms.Form):
         return cleaned_data
 
 # NEW END
+# NEW 2 BEGIN
+# --- Freight Class Calculator ---
+class FreightClassForm(forms.Form):
+    length = forms.FloatField(
+        label="Length (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 48"})
+    )
+    width = forms.FloatField(
+        label="Width (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 40"})
+    )
+    height = forms.FloatField(
+        label="Height (inches)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 50"})
+    )
+    weight = forms.FloatField(
+        label="Weight per Pallet (lbs)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1500"})
+    )
+    quantity = forms.IntegerField(
+        label="Quantity (Pallet Count)",
+        initial=1,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+
+# --- Fuel Surcharge Calculator ---
+class FuelSurchargeForm(forms.Form):
+    trip_miles = forms.FloatField(
+        label="Total Trip Miles",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1200"})
+    )
+    current_price = forms.FloatField(
+        label="Current Diesel Price ($/gal)",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 3.85"})
+    )
+    base_price = forms.FloatField(
+        label="Base 'Peg' Price ($/gal)",
+        initial=1.20,
+        help_text="The baseline fuel cost established in your contract (often $1.20).",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    mpg = forms.FloatField(
+        label="Truck MPG",
+        initial=6.0,
+        help_text="Average miles per gallon (Industry standard is usually 6.0 or 6.5).",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+
+# --- HOS Trip Planner ---
+class HOSTripPlannerForm(forms.Form):
+    total_miles = forms.FloatField(
+        label="Total Trip Miles",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1450"})
+    )
+    avg_speed = forms.FloatField(
+        label="Average Speed (mph)",
+        initial=55.0,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 55"})
+    )
+    start_date = forms.DateField(
+        label="Start Date",
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    start_time = forms.TimeField(
+        label="Start Time",
+        widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
+    )
+# NEW 2 END
