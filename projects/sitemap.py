@@ -51,6 +51,10 @@ class StaticViewSitemap(Sitemap):
             "projects:stained_glass_materials",
             "projects:glass_artist_toolkit",
             "projects:lampwork_materials",
+            "projects:freight_tools",
+            "projects:freight_class_calculator",
+            "projects:fuel_surcharge_calculator",
+            "projects:hos_trip_planner",
         ]
 
     def location(self, item):
