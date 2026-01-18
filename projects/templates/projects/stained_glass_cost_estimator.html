@@ -6,27 +6,17 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/stained-glass-cost-estimator/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Stained Glass Cost Estimator | Pricing Calculator for Artists">
-    <meta property="og:description" content="Stop guessing your prices. Use this calculator to account for materials, overhead, and labor to price your stained glass work confidently.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/stained-glass-calc.webp">
-    <meta property="og:image:alt" content="Stained Glass Cost Estimator Tool">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/stained-glass-cost-estimator/">
-    <meta name="twitter:title" content="Stained Glass Cost Estimator | Pricing Calculator for Artists">
-    <meta name="twitter:description" content="Calculate fair prices for stained glass art including materials and labor.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/stained-glass-calc.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/stained_glass_cost_estimator_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/stained-glass-cost-estimator/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/stained_glass_estimator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Stained Glass Cost Estimator | Ben Crittenden{% endblock title %}
 

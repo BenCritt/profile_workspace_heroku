@@ -1,0 +1,4 @@
+/* Container for the QR Code form */
+.qr-form-container {
+    max-width: 500px;
+}

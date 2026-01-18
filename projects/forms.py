@@ -182,8 +182,7 @@ class TextForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "class": "form-control", 
-                "rows": 10,  # Updated to 10 as requested
-                "style": "max-width: 800px;" # Matches the container width in your template
+                "rows": 10,
             }
         ),
         validators=[

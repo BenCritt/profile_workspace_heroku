@@ -1,3 +1,8 @@
+/* Layout container for the Cookie Audit tool */
+.cookie-audit-layout {
+    max-width: 900px;
+}
+
 /* Keep table from expanding; wrap cell contents instead */
 .cookie-table {
   width: 100%;

@@ -5,6 +5,19 @@
     {% include "includes/schemas/fuel_surcharge_schema.html" %}
 {% endblock scripts %}
 
+{% block meta_tags %}
+    {% include "includes/meta_tags/fuel_surcharge_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/fuel-surcharge-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/fuel_surcharge_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}Fuel Surcharge Calculator | FSC Rate Per Mile Estimator{% endblock title %}
 
 {% block content %}

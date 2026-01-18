@@ -1,0 +1,49 @@
+/* Add specific height for the progress bar */
+.font-progress-wrapper {
+    height: 18px;
+}
+    
+@media (prefers-reduced-motion: reduce) {
+      .progress-bar-animated { animation: none; }
+}
+    
+html.embedded body { overflow: hidden !important; }
+
+html.embedded #fi-results-area {
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.embedded #fi-results .table-responsive {
+  overflow: visible; 
+}
+
+html.embedded #fi-results thead { display: none; }
+
+html.embedded #fi-results tr {
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+html.embedded #fi-results td {
+  display: flex;
+  border: 0 !important;
+  padding: 0.25rem 0 !important;
+  gap: 1rem;
+  word-break: break-word;
+}
+
+html.embedded #fi-results td::before {
+  content: attr(data-label);
+  font-weight: 600;
+  min-width: 8rem;
+  opacity: 0.8;
+}
+
+.font-inspector-container { max-width: 700px; }

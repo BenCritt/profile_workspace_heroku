@@ -1,0 +1,4 @@
+/* Container for the form and results to prevent them from getting too wide */
+.analyzer-container {
+    max-width: 800px;
+}

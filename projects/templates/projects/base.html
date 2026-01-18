@@ -21,8 +21,9 @@
     {% endblock scripts %}
     {% endblock extra_head %}
     <link href="{% static 'vendors/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'template-css/base-css.css' %}" rel="stylesheet">
-    {% block page_stylesheets %}{% endblock page_stylesheets %}
+    <link href="{% static 'template_css/base.css' %}" rel="stylesheet">
+    {% block page_stylesheets %}
+    {% endblock page_stylesheets %}
     {% include "includes/favicons.html" %}
     
     <script src="{% static 'template-js/service-worker-register.js' %}" defer></script>

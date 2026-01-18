@@ -1,0 +1,9 @@
+/* Container for the lookup form */
+.ip-form-container {
+    max-width: 600px;
+}
+
+/* Container for the results table */
+.ip-results-container {
+    max-width: 800px;
+}

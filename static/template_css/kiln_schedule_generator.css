@@ -1,0 +1,23 @@
+@media print {
+    /* Excluded from print area */
+    header, footer, nav, .navbar, .footer, .site-footer, .card, h1, p.lead, .d-print-none, .btn, footer.d-flex { display: none !important; }
+        
+    #print-area { display: block !important; width: 100%; }
+        
+    /* Force body and table text to black */
+    body { padding-top: 0 !important; color: black !important; background: white !important; }
+    .table { color: black !important; border: 1px solid #000 !important; }
+        
+    /* Force white text classes to print black (Fixes "Thickness" visibility) */
+    .text-white, .text-light, .text-white-50 { color: black !important; }
+        
+    /* Overrides */
+    .table-dark { background-color: #ddd !important; color: black !important; }
+    .badge { border: 1px solid black; color: black !important; background: transparent !important; }
+    .bg-light { background-color: white !important; border: 1px solid #ccc !important; }
+}
+
+/* Dark text for the safety note to ensure readability */
+.safety-note-text {
+    color: #333;
+}

@@ -1,0 +1,27 @@
+/* Preserving your specific card widths from the original CSS 
+      but keeping it local to avoid an extra network request.
+*/
+.tool-card {
+    width: 300px; /* specific width for non-iframe cards */
+    max-width: 100%;
+}
+    
+.iframe-card-wrapper {
+    width: 100%;
+    max-width: 450px;
+}
+
+/* Mobile override: ensure cards are full width on small screens */
+@media (max-width: 600px) {
+    .tool-card {
+        width: 100%;
+    }
+}
+
+/* Style the iframes inside the cards */
+.iframe-card-wrapper iframe {
+    width: 100%;
+    height: auto;
+    min-height: 553px;
+    border: none;
+}

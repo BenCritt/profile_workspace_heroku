@@ -6,225 +6,24 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<meta name="description" content="Scan any public web page to detect cookies in use and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
-
-<meta property="og:url" content="https://www.bencritt.net/projects/cookie-audit/">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
-<meta property="og:description" content="Scan any page to list its cookies and view key cookie attributes like expiration, HttpOnly, Secure, and SameSite.">
-<meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
-<meta property="og:image:type" content="image/webp">
-<meta property="og:image:alt" content="Cookie Audit tool screenshot showing a cookie results table">
-<meta property="og:site_name" content="Ben Crittenden">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:domain" content="bencritt.net">
-<meta name="twitter:url" content="https://www.bencritt.net/projects/cookie-audit/">
-<meta name="twitter:title" content="Cookie Audit – Detect Cookies and Basic Cookie Information">
-<meta name="twitter:description" content="Scan a URL to detect cookies and view key attributes like domain, expiration, HttpOnly, Secure, and SameSite.">
-<meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/cookie-audit.webp">
-<meta name="twitter:creator" content="@bencritt89">
+  {% include "includes/meta_tags/cookie_audit_meta.html" %}
 {% endblock meta_tags %}
 
-{% block styles %}
-<style>
-/* Keep table from expanding; wrap cell contents instead */
-.cookie-table {
-  width: 100%;
-  table-layout: fixed;
-}
-
-/* Body cells: allow wrapping anywhere so long tokens don't widen table */
-.cookie-table td {
-  white-space: normal !important;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  vertical-align: top;
-}
-
-/* Header cells: default = DO NOT wrap single-word headings */
-.cookie-table th {
-  white-space: nowrap !important;
-  overflow-wrap: normal !important;
-  word-break: normal !important;
-  vertical-align: bottom;
-}
-
-/* Allow specific headings to wrap (HttpOnly / SameSite, and any 2-word headings if you choose) */
-.cookie-table th.th-wrap {
-  white-space: normal !important;
-}
-
-/* Let <code> wrap in body cells */
-.cookie-table td code {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  display: inline-block;
-  max-width: 100%;
-}
-
-/* ✅ Mobile: turn the table into stacked "cards" */
-@media (max-width: 576px) {
-  .cookie-table {
-    table-layout: auto;
-  }
-
-  .cookie-table thead {
-    display: none;
-  }
-
-  .cookie-table,
-  .cookie-table tbody,
-  .cookie-table tr,
-  .cookie-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .cookie-table tr {
-    border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-    background: var(--bs-body-bg, transparent);
-  }
-
-  .cookie-table td {
-    border: 0 !important;
-    padding: 0.35rem 0 !important;
-    display: flex;
-    gap: 0.75rem;
-    align-items: baseline;
-  }
-
-  .cookie-table td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    flex: 0 0 7.5rem;
-    max-width: 7.5rem;
-    opacity: 0.9;
-  }
-
-  .cookie-table td code {
-    max-width: 100%;
-  }
-}
-
-/* =========================================================
-   EMBEDDED (inside iframe): ONE vertical scrollbar only
-   - Disable page scrolling
-   - Make results/cards area the only scroll region
-   ========================================================= */
-
-/* Kill page/body scrolling when embedded */
-html.embedded,
-html.embedded body {
-  height: 100%;
-  overflow: hidden !important; /* important: prevent second scrollbar */
-}
-
-/* Use a header + scrollable results layout */
-html.embedded .cookie-audit-main {
-  height: 100vh;
-}
-
-html.embedded .cookie-audit-layout {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-html.embedded .cookie-audit-header {
-  flex: 0 0 auto;
-}
-
-/* This is the ONE scrollbar you want (scroll through the cards/results) */
-html.embedded .cookie-audit-results {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding-right: 6px; /* prevents scrollbar overlay */
-}
-
-/* Hide footer/GitHub section inside the iframe */
-html.embedded .cookie-audit-footer {
-  display: none !important;
-}
-
-/* Hide base template nav/footer inside the iframe to avoid extra height */
-html.embedded .navbar,
-html.embedded footer,
-html.embedded .footer,
-html.embedded .fixed-bottom {
-  display: none !important;
-  position: static !important;
-}
-
-/* Force the “table → cards” layout when embedded (even on desktop) */
-html.embedded .cookie-table thead {
-  display: none;
-}
-
-html.embedded .cookie-table {
-  table-layout: auto;
-}
-
-html.embedded .cookie-table,
-html.embedded .cookie-table tbody,
-html.embedded .cookie-table tr,
-html.embedded .cookie-table td {
-  display: block;
-  width: 100%;
-}
-
-html.embedded .cookie-table tr {
-  border: 1px solid var(--bs-border-color, rgba(255,255,255,.2));
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
-  background: var(--bs-body-bg, transparent);
-}
-
-html.embedded .cookie-table td {
-  border: 0 !important;
-  padding: 0.35rem 0 !important;
-  display: flex;
-  gap: 0.75rem;
-  align-items: baseline;
-  flex-wrap: wrap;
-}
-
-html.embedded .cookie-table td::before {
-  content: attr(data-label);
-  font-weight: 600;
-  flex: 0 0 7.5rem;
-  max-width: 7.5rem;
-  opacity: 0.9;
-}
-
-html.embedded .cookie-table td > * {
-  min-width: 0;
-}
-</style>
-{% endblock styles %}
-
 {% block link_tags %}
-<link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/cookie-audit/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/cookie_audit.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Cookie Audit | Detect Cookies and Basic Cookie Information{% endblock title %}
 
 {% block content %}
 <div class="container py-5 d-flex flex-column align-items-center cookie-audit-main">
 
-  <div class="w-100 cookie-audit-layout" style="max-width: 900px;">
+  <div class="w-100 cookie-audit-layout">
       <div class="alert alert-warning shadow-sm" role="alert">
         <h2 class="alert-heading h6 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Temporary App Suspension</h2>
           <p class="mb-0 small">

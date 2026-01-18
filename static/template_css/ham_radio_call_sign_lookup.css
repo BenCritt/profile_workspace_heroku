@@ -1,0 +1,12 @@
+/* removes the bullet in Django's <ul class="errorlist"><li>.</li></ul> */
+ul.errorlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: var(--bs-danger); /* explicitly use Bootstrap's danger color */
+}
+
+/* Container for the lookup form to prevent it from getting too wide */
+.lookup-container {
+    max-width: 500px;
+}

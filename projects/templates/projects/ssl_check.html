@@ -6,33 +6,17 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma"         content="no-cache">
-    <meta http-equiv="Expires"        content="0">
-
-    <meta name="description"          content="The SSL Verification Tool allows you to check SSL certificates for any website. Retrieve issuer details, validity dates, and ensure secure connections.">
-
-    <meta property="og:url"           content="https://www.bencritt.net/projects/ssl-check/">
-    <meta property="og:type"          content="website">
-    <meta property="og:title"         content="SSL Verification Tool">
-    <meta property="og:description"   content="Verify SSL certificates for any website. Retrieve information about the certificate's issuer, validity period, and expiration dates.">
-    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
-    <meta property="og:image:type"    content="image/webp">
-    <meta property="og:image:alt"     content="SSL Verification Tool Screenshot">
-    <meta property="og:site_name"     content="Ben Crittenden">
-
-    <meta name="twitter:card"         content="summary_large_image">
-    <meta name="twitter:domain"       content="bencritt.net">
-    <meta name="twitter:url"          content="https://www.bencritt.net/projects/ssl-check/">
-    <meta name="twitter:title"        content="SSL Verification Tool">
-    <meta name="twitter:description"  content="Verify SSL certificates for any website. Retrieve information about the certificate's issuer, validity period, and expiration dates.">
-    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/ssl-check.webp">
-    <meta name="twitter:creator"      content="@bencritt89">
+    {% include "includes/meta_tags/ssl_check_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/ssl-check/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/ssl_check.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}SSL Verification Tool | Check Website Security Certificates{% endblock title %}
 

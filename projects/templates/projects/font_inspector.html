@@ -196,67 +196,18 @@
   </script>
 {% endblock scripts %}
 
-{% block styles %}
-<style>
-    @media (prefers-reduced-motion: reduce) {
-      .progress-bar-animated { animation: none; }
-    }
-    
-    html.embedded body { overflow: hidden !important; }
-
-    html.embedded #fi-results-area {
-      max-height: 60vh;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-right: 6px;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    html.embedded #fi-results .table-responsive {
-      overflow: visible; 
-    }
-
-    html.embedded #fi-results thead { display: none; }
-
-    html.embedded #fi-results tr {
-      display: block;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 0.75rem;
-      padding: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-
-    html.embedded #fi-results td {
-      display: flex;
-      border: 0 !important;
-      padding: 0.25rem 0 !important;
-      gap: 1rem;
-      word-break: break-word;
-    }
-
-    html.embedded #fi-results td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      min-width: 8rem;
-      opacity: 0.8;
-    }
-</style>
-{% endblock styles %}
-
 {% block meta_tags %}
-<meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma"         content="no-cache">
-<meta http-equiv="Expires"        content="0">
-<meta name="description"          content="Enter a website URL to detect its web fonts, see if a license is required, identify whether fonts come from Google Fonts, Adobe Fonts, or are self-hosted, and download a CSV of results.">
-<meta property="og:title"         content="Font Inspector – Detect Web Fonts, Licenses & Sources">
-<meta property="og:description"   content="Scan any page to list its font families, license requirements, and sources. Export as CSV.">
-<meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/font-inspector.webp">
-<meta name="twitter:card"         content="summary_large_image">
+  {% include "includes/meta_tags/font_inspector_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
-<link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/font-inspector/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/font_inspector.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Font Inspector | Detect Web Fonts, License Requirements, & Sources{% endblock title %}
 
@@ -265,7 +216,7 @@
   
   <h1 class="mb-4">Font Inspector</h1>
   
-  <div class="w-100" style="max-width: 700px;">
+  <div class="w-100 font-inspector-container">
     <p class="text-center mb-4">Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
 
     <form id="font-inspector-form" class="mb-4">
@@ -283,7 +234,7 @@
         <span class="small">Status: <span id="fi-status-text">Starting…</span></span>
         <span class="small" id="fi-queue-pos"></span>
       </div>
-      <div class="progress" style="height:18px;">
+      <div class="progress font-progress-wrapper">
         <div id="fi-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:1%">1%</div>
       </div>
     </div>

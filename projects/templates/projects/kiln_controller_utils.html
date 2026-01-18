@@ -6,27 +6,17 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/kiln-controller-utils/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Kiln Controller Utilities | Temperature & Ramp Calculator">
-    <meta property="og:description" content="Essential math tools for the kiln studio. Convert temps and calculate hold times or ramp rates for your digital controller.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/kiln-utils.webp">
-    <meta property="og:image:alt" content="Kiln Controller Utilities">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/kiln-controller-utils/">
-    <meta name="twitter:title" content="Kiln Controller Utilities | Temperature & Ramp Calculator">
-    <meta name="twitter:description" content="Quick math helpers for programming digital kiln controllers.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/kiln-utils.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/kiln_controller_utils_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/kiln-controller-utils/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/kiln_controller_utils.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Kiln Controller Utilities | Ben Crittenden{% endblock title %}
 

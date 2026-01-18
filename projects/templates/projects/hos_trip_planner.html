@@ -5,6 +5,19 @@
     {% include "includes/schemas/hos_trip_planner_schema.html" %}
 {% endblock scripts %}
 
+{% block meta_tags %}
+    {% include "includes/meta_tags/hos_trip_planner_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/hos-trip-planner/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/hos_trip_planner.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}HOS Trip Planner | Truck Driver ETA Calculator{% endblock title %}
 
 {% block content %}

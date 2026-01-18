@@ -2,55 +2,23 @@
 {% load static %}
 
 {% block scripts %}
-  {% include "includes/schemas/glass_tools_schema.html" %}
+    {% include "includes/schemas/glass_tools_schema.html" %}
 {% endblock scripts %}
-
+    
 {% block meta_tags %}
-    <meta name="description" content="Glass Artist Toolkit by Ben Crittenden: Free utilities for fused and stained glass artists. Includes kiln firing schedules, glass volume calculators, project cost estimators, and material planning tools.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/glass-artist-toolkit/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Glass Artist Toolkit | Kiln Schedules, Cost Estimators, Volume Calculators">
-    <meta property="og:description" content="A collection of web-based utilities for glass artists: calculate kiln schedules, estimate stained glass costs, and determine glass volume for casting.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/glass-artist-toolkit.webp">
-    <meta property="og:image:alt" content="Glass Artist Toolkit by Ben Crittenden">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/glass-artist-toolkit/">
-    <meta name="twitter:title" content="Glass Artist Toolkit | Kiln Schedules, Cost Estimators, Volume Calculators">
-    <meta name="twitter:description" content="Free calculators for fused glass and stained glass artists.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/glass-artist-toolkit.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/glass_artist_toolkit_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/glass-artist-toolkit/">
 {% endblock link_tags %}
 
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/glass_artist_toolkit.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}Glass Artist Toolkit | Kiln Schedules, Cost Estimators, & Calculators{% endblock title %}
-
-{% block styles %}
-<style>
-    /* Styling matched exactly to it_tools.html */
-    .tool-card {
-        width: 300px;
-        max-width: 100%;
-    }
-    
-    .iframe-card-wrapper {
-        width: 100%;
-        max-width: 450px;
-    }
-
-    /* Mobile override */
-    @media (max-width: 600px) {
-        .tool-card {
-            width: 100%;
-        }
-    }
-</style>
-{% endblock styles %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -122,7 +90,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:kiln_schedule_generator' %}" 
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Kiln Schedule Generator"
                         loading="lazy"
                         scrolling="no">
@@ -135,7 +102,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:kiln_controller_utils' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Kiln Utilities"
                         loading="lazy"
                         scrolling="no">
@@ -148,7 +114,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:glass_volume_calculator' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Glass Volume Calculator"
                         loading="lazy"
                         scrolling="no">
@@ -161,7 +126,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:stained_glass_cost_estimator' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Stained Glass Cost Estimator"
                         loading="lazy"
                         scrolling="no">
@@ -174,7 +138,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:stained_glass_materials' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Stained Glass Materials Calculator"
                         loading="lazy"
                         scrolling="no">
@@ -187,7 +150,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:lampwork_materials' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Lampwork Calculator"
                         loading="lazy"
                         scrolling="no">

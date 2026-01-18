@@ -6,32 +6,17 @@
 {% endblock scripts %}    
 
 {% block meta_tags %}
-    <meta http-equiv="Cache-Control"  content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma"         content="no-cache">
-    <meta http-equiv="Expires"        content="0">
-
-    <meta name="description"          content="Perform DNS lookups for A, AAAA, MX, NS, CNAME, TXT, and other records. Useful for troubleshooting network issues and verifying domain configurations.">
-    <meta name="keywords"             content="DNS lookup, DNS records, A record, MX record, CNAME record, network tools">
-    
-    <meta property="og:url"           content="https://www.bencritt.net/projects/dns-lookup/">
-    <meta property="og:type"          content="website">
-    <meta property="og:title"         content="DNS Lookup Tool">
-    <meta property="og:description"   content="Perform comprehensive DNS lookups to retrieve A, MX, NS, CNAME, TXT, and other records for any domain.">
-    <meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
-    <meta property="og:site_name"     content="Ben Crittenden">
-
-    <meta name="twitter:card"         content="summary_large_image">
-    <meta name="twitter:domain"       content="bencritt.net">
-    <meta name="twitter:url"          content="https://www.bencritt.net/projects/dns-lookup/">
-    <meta name="twitter:title"        content="DNS Lookup Tool">
-    <meta name="twitter:description"  content="Perform comprehensive DNS lookups to retrieve A, MX, NS, CNAME, TXT, and other records for any domain.">
-    <meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/dns-lookup.webp">
-    <meta name="twitter:creator"      content="@bencritt89">
+    {% include "includes/meta_tags/dns_tool_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/dns-lookup/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/dns_tool.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}DNS Lookup Tool | Check A, MX, NS, CNAME Records{% endblock title %}
 
@@ -40,7 +25,7 @@
     
     <h1 class="mb-4">DNS Lookup Tool</h1>
         
-    <div class="w-100" style="max-width: 600px;">
+    <div class="w-100 dns-form-container">
         {% if error_message %}
             <div class="alert alert-danger" role="alert">
                 {{ error_message }}
@@ -71,7 +56,7 @@
     </div>
 
     {% if results %}
-    <div class="w-100 mt-5" style="max-width: 800px;">
+    <div class="w-100 mt-5 dns-results-container">
         <h2 class="h4 mb-3">DNS Records Found</h2>
         
         <div class="table-responsive shadow-sm rounded">

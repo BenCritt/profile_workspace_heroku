@@ -44,13 +44,18 @@ main.pb-5 {
     line-height: 1 !important;
 }
 
-/* Responsive image styling */
-.responsive-img {
-    width: auto !important;
-    max-width: 100% !important;
-    height: auto !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
+/* Matches <div class="container w-100 error-content-container"> */
+.error-content-container {
+    max-width: 800px;
+}
+
+/* Matches <img ... class="... error-image"> */
+.error-image {
+    max-height: 300px;
+    width: auto;
+    /* Optional: Keep your padding if you want it */
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 /* On mobile devices, reset the height calculation so it flows naturally */
@@ -81,4 +86,15 @@ main.pb-5 {
     .nav-row {
         max-width: 500px;
     }
+}
+
+/* Constrain the width of the error message container */
+.error-content-container {
+    max-width: 800px;
+}
+
+/* Style the 404 image */
+.error-image {
+    max-height: 300px;
+    width: auto;
 }

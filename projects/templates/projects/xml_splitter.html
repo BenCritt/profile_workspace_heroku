@@ -1,58 +1,27 @@
 {% extends "projects/base.html" %}
 {% load static %}
 {% block scripts %}
-  <!-- Schema for SEO -->
   {% include "includes/schemas/xml_splitter_schema.html" %}
 {% endblock scripts %}    
-{% block styles %} 
-{% endblock styles %}
+
 {% block meta_tags %}
-<!-- Prevent browser caching to avoid stale CSRF tokens -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<!-- SEO fundamentals -->
-<meta name="description"
-      content="Upload a single XML file that contains many &lt;Order&gt;, &lt;Product&gt;, or &lt;Customer&gt; objects and instantly download a ZIP archive of one-object-per-file XMLs—each named by its ID.">
-<meta name="keywords"
-      content="XML Splitter, split XML, XML parser, separate XML files, XML utility, web-based XML tool">
-
-<!-- Open Graph -->
-<meta property="og:url"           content="https://www.bencritt.net/projects/xml-splitter/">
-<meta property="og:type"          content="website">
-<meta property="og:title"         content="XML Splitter – Split Multi‑Object XML into Individual Files">
-<meta property="og:description"   content="Upload a multi‑object XML file, split it into individual XML files named after each object's ID, and download everything as a ZIP.">
-<meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/xml-splitter.webp">
-<meta property="og:image:type"    content="image/webp">
-<meta property="og:image:alt"     content="XML Splitter Screenshot">
-<meta property="og:site_name"     content="Ben Crittenden">
-    
-<!--
-Once I have a specific image meant for this, I can use these optimized dimensions.
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
--->
-
-<!-- Twitter -->
-<meta name="twitter:card"         content="summary_large_image">
-<meta name="twitter:domain"       content="bencritt.net">
-<meta name="twitter:url"          content="https://www.bencritt.net/projects/xml-splitter/">
-<meta name="twitter:title"        content="XML Splitter – Split Multi‑Object XML into Individual Files">
-<meta name="twitter:description"  content="Upload a multi‑object XML file, split it into individual XML files named after each object's ID, and download everything as a ZIP.">
-<meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/xml-splitter.webp">
-<meta name="twitter:creator"      content="@bencritt89">
+    {% include "includes/meta_tags/xml_splitter_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
-<!-- Canonical link to help avoid duplicate content issues. -->
-<link rel="canonical" href="https://www.bencritt.net/projects/xml-splitter/">
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/xml-splitter/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/xml_splitter.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}XML Splitter | Split and Compress XML Files{% endblock title %}
 
 {% block content %}
 <div class="d-flex flex-column align-items-center w-100 px-4">
-    <div class="w-100 text-center" style="max-width: 500px;">
+    <div class="w-100 text-center xml-splitter-container">
         <h1 class="mb-4">XML Splitter</h1>
         
         <p class="mb-5">

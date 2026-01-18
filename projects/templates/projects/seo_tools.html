@@ -6,54 +6,19 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="SEO Professional Toolkit by Ben Crittenden: run technical audits with SEO Head Checker, inspect typography with Font Inspector, and analyze security attributes with Cookie Audit.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/seo-tools/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
-    <meta property="og:description" content="A collection of web-based SEO utilities: head tag auditing, font inspection, and cookie analysis for compliance and security attributes.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
-    <meta property="og:image:alt" content="SEO Professional Toolkit by Ben Crittenden">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/seo-tools/">
-    <meta name="twitter:title" content="SEO Professional Toolkit | SEO Head Checker, Font Inspector, Cookie Audit">
-    <meta name="twitter:description" content="Head tag auditing, font inspection, and cookie analysis in one SEO toolkit.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/seo-professional-toolkit.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/seo_tools_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/seo-tools/">
 {% endblock link_tags %}
 
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/seo_tools.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
-
-{% block styles %}
-<style>
-    /* Specific styles for the tool iframes */
-    .tool-iframe {
-        width: 100%;
-        height: 75vh;        /* fills most of the viewport */
-        min-height: 700px;   /* prevents tiny iframes on desktop */
-        border: 0;
-        display: block;
-        overflow: auto;      /* default: allow iframe scrolling */
-    }
-
-    /* Cookie Audit only: prevent double scrollbars */
-    .tool-iframe--no-scroll {
-        overflow: hidden;
-    }
-    
-    /* Ensure cards behave responsibly on mobile without extra media queries */
-    .tool-card {
-        width: 100%;
-        max-width: 450px;
-    }
-</style>
-{% endblock styles %}
 
 {% block content %}
 <div class="container-fluid py-4">

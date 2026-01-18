@@ -6,51 +6,19 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Freight Professional Toolkit by Ben Crittenden: A suite of free logistics tools including Carrier Safety Reporter, Freight Class Calculator, Fuel Surcharge Calculator, and HOS Trip Planner.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/freight-tools/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Freight Professional Toolkit | Safety, Class, FSC & HOS Tools">
-    <meta property="og:description" content="Central hub for freight brokers and logistics pros. Check carrier safety, calculate freight class and fuel surcharges, and plan HOS-compliant trips.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/freight-professional-toolkit.webp">
-    <meta property="og:image:alt" content="Freight Professional Toolkit by Ben Crittenden">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/freight-tools/">
-    <meta name="twitter:title" content="Freight Professional Toolkit | Safety, Class, FSC & HOS Tools">
-    <meta name="twitter:description" content="Free logistics utilities for freight brokers and truck drivers.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/freight-professional-toolkit.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/freight_tools_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/freight-tools/">
 {% endblock link_tags %}
 
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/freight_tools.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}Freight Professional Toolkit | Logistics & Brokerage Utilities{% endblock title %}
-
-{% block styles %}
-<style>
-    /* Styling matched exactly to other toolkits for consistency */
-    .tool-card {
-        width: 300px;
-        max-width: 100%;
-    }
-    
-    .iframe-card-wrapper {
-        width: 100%;
-        max-width: 450px;
-    }
-
-    /* Mobile override */
-    @media (max-width: 600px) {
-        .tool-card {
-            width: 100%;
-        }
-    }
-</style>
-{% endblock styles %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -104,7 +72,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:freight_safety' %}" 
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Carrier Safety Reporter"
                         loading="lazy"
                         scrolling="yes"> </iframe>
@@ -116,7 +83,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:freight_class_calculator' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Freight Class Calculator"
                         loading="lazy"
                         scrolling="no">
@@ -129,7 +95,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:fuel_surcharge_calculator' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="Fuel Surcharge Calculator"
                         loading="lazy"
                         scrolling="no">
@@ -142,7 +107,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:hos_trip_planner' %}"
-                        style="width: 100%; height: auto; min-height: 553px; border: none;"
                         title="HOS Trip Planner"
                         loading="lazy"
                         scrolling="yes">

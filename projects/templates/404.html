@@ -1,30 +1,24 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
-{% block styles %}
-{% endblock styles %}
-
-{% block scripts %}{% endblock scripts %}
-
 {% block meta_tags %}
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+  {% include "includes/meta_tags/404_meta.html" %}
 {% endblock meta_tags %}
 
-{% block link_tags %}
-{% endblock link_tags %}
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/404.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}404 | Page Not Found{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;" aria-label="404: Page Not Found">
+<div class="container-fluid py-5 text-center d-flex flex-column align-items-center justify-content-center page-404" aria-label="404: Page Not Found">
   
-  <div class="container w-100" style="max-width: 800px;">
+  <div class="container w-100 error-content-container">
     <img src="{% static 'img/404.webp' %}"
          alt="Spaceballs reference. Combing the desert scene." 
-         class="img-fluid mb-4 rounded shadow-sm"
-         style="max-height: 300px; width: auto;">
+         class="img-fluid mb-4 rounded shadow-sm error-image"
+    >
          
     <h1 class="display-4 fw-bold">404</h1>
     <p class="lead mb-5">The website has been combed, and your URL cannot be found.</p>
@@ -51,13 +45,13 @@
         </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <a href="{% url 'projects:weather' %}" class="btn btn-outline-light w-100 h-100 py-2">
-          Weather Forecast
+        <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          Glass Artist Toolkit
         </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <a href="{% url 'projects:qr_code_generator' %}" class="btn btn-outline-light w-100 h-100 py-2">
-          QR Code Generator
+        <a href="{% url 'projects:freight_tools' %}" class="btn btn-outline-light w-100 h-100 py-2">
+          Freight Professional Toolkit
         </a>
       </div>
       <div class="col-md-6 col-lg-4">

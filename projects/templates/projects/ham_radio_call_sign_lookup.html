@@ -5,54 +5,23 @@
   {% include "includes/schemas/ham_radio_lookup_schema.html" %}
 {% endblock scripts %}
 
-{% block styles %}
-<style>
-    /* removes the bullet in Django's <ul class="errorlist"><li>.</li></ul> */
-    ul.errorlist {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        color: var(--bs-danger); /* explicitly use Bootstrap's danger color */
-    }
-</style>
-{% endblock styles %}
-
 {% block meta_tags %}
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<meta name="description"
-      content="Free, instant lookup for any U.S. amateur-radio call-sign. See class, expiry, FRN, grid square and more.">
-<meta name="keywords"
-      content="ham radio call sign lookup, amateur radio licence lookup, FCC call sign search, ham callsign checker, amateur radio lookup, FCC licence database">
-
-<meta property="og:url"           content="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
-<meta property="og:type"          content="website">
-<meta property="og:title"         content="Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs">
-<meta property="og:description"   content="Free, instant lookup for any U.S. amateur-radio call-sign. See class, expiry, FRN, grid square and more.">
-<meta property="og:image"         content="https://www.bencritt.net/static/img/all-projects/ham-radio-call-sign-lookup.webp">
-<meta property="og:image:type"    content="image/webp">
-<meta property="og:image:alt"     content="Ham Radio Call Sign Lookup Screenshot">
-<meta property="og:site_name"     content="Ben Crittenden">
-
-<meta name="twitter:card"         content="summary_large_image">
-<meta name="twitter:domain"       content="bencritt.net">
-<meta name="twitter:url"          content="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
-<meta name="twitter:title"        content="Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs">
-<meta name="twitter:description"  content="Free, instant lookup for any U.S. amateur-radio call-sign. See class, expiry, FRN, grid square and more.">
-<meta name="twitter:image"        content="https://www.bencritt.net/static/img/all-projects/ham-radio-call-sign-lookup.webp">
-<meta name="twitter:creator"      content="@bencritt89">
+  {% include "includes/meta_tags/ham_radio_call_sign_lookup_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
-<link rel="canonical" href="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/ham-radio-call-sign-lookup/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/ham_radio_call_sign_lookup.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Ham Radio Call Sign Lookup | Look Up Amateur Radio Call Signs{% endblock title %}
 
 {% block content %}
-<div class="container py-5 mx-auto mb-5" style="max-width: 500px;">
+<div class="container py-5 mx-auto mb-5 lookup-container">
   <h1 class="text-center mb-4">Ham Radio Call Sign Lookup</h1>
   
     <form method="post" class="d-flex flex-column align-items-center gap-3 mb-4">

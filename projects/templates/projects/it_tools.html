@@ -6,52 +6,19 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-    
-    <meta property="og:url" content="https://www.bencritt.net/projects/it-tools/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="IT Professional Toolkit">
-    <meta property="og:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/it-tools/">
-    <meta name="twitter:title" content="IT Professional Toolkit">
-    <meta name="twitter:description" content="Access a collection of IT tools including SSL Verification, IP Address Lookup, and DNS Lookup to assist with your network and domain management needs.">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/hubs/it-professional-toolkit.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/it_tools_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/it-tools/">
 {% endblock link_tags %}
 
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/it_tools.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
 {% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
-
-{% block styles %}
-<style>
-    /* Preserving your specific card widths from the original CSS 
-      but keeping it local to avoid an extra network request.
-    */
-    .tool-card {
-        width: 300px; /* specific width for non-iframe cards */
-        max-width: 100%;
-    }
-    
-    .iframe-card-wrapper {
-        width: 100%;
-        max-width: 450px;
-    }
-
-    /* Mobile override: ensure cards are full width on small screens */
-    @media (max-width: 600px) {
-        .tool-card {
-            width: 100%;
-        }
-    }
-</style>
-{% endblock styles %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -63,7 +30,7 @@
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
                     <h2 class="h4 card-title">SSL Verification Tool</h2>
-                    <img src="{% static '/img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" class="img-fluid rounded my-3">                
+                    <img src="{% static 'img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.</p>
                     <a href="{% url 'projects:ssl_check' %}" class="btn btn-primary mt-2">Use SSL Tool</a>
                 </div>
@@ -72,7 +39,7 @@
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
                     <h2 class="h4 card-title">IP Address Lookup Tool</h2>
-                    <img src="{% static '/img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" class="img-fluid rounded my-3">
+                    <img src="{% static 'img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" class="img-fluid rounded my-3">
                     <p class="card-text">Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.</p>
                     <a href="{% url 'projects:ip_tool' %}" class="btn btn-primary mt-2">Use IP Address Lookup Tool</a>
                 </div>
@@ -81,7 +48,7 @@
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
                     <h2 class="h4 card-title">DNS Lookup Tool</h2>
-                    <img src="{% static '/img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" class="img-fluid rounded my-3">                
+                    <img src="{% static 'img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Use the DNS Lookup Tool to perform DNS lookups and retrieve various DNS records, such as A, MX, NS, CNAME, TXT, SOA, SRV, and CAA Records. It's essential for domain management and network troubleshooting.</p>
                     <a href="{% url 'projects:dns_tool' %}" class="btn btn-primary mt-2">Use DNS Lookup Tool</a>
                 </div>
@@ -95,7 +62,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:ssl_check' %}" 
-                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
                         scrolling="no"
                         title="SSL Verification Tool"
                         loading="lazy">
@@ -108,7 +74,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:ip_tool' %}" 
-                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
                         scrolling="no"
                         title="IP Address Lookup Tool"
                         loading="lazy">
@@ -121,7 +86,6 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:dns_tool' %}" 
-                        style="width: 100%; height: auto; min-height: 553px; border: none;" 
                         scrolling="no"
                         title="DNS Lookup Tool"
                         loading="lazy">

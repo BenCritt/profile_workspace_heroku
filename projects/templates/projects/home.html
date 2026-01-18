@@ -1,38 +1,22 @@
 {% extends "projects/base.html" %}
 {% load static %}
 
-{% block page_stylesheets %}
-  <link href="{% static 'template-css/home-css.css' %}" rel="stylesheet">
-{% endblock page_stylesheets %}
-
 {% block scripts %}
   {% include "includes/schemas/home_schema.html" %}
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description"         content="The official website of Ben Crittenden. IT professional specializing in web development, systems administration, and project management.">
-    <meta property="og:url"          content="https://www.bencritt.net">
-    <meta property="og:type"         content="website">
-    <meta property="og:title"        content="Ben Crittenden - IT Professional">
-    <meta property="og:description"  content="Official website of Ben Crittenden, an IT professional specializing in web development, systems administration, and project management. Explore his projects, skills, and professional achievements.">
-    <meta property="og:image"        content="https://www.bencritt.net/static/img/ben-crittenden-profile-picture.webp">
-    <meta property="og:image:type"   content="image/webp">
-    <meta property="og:image:alt"    content="Professional profile of Ben Crittenden - IT Professional">
-    <meta property="og:site_name"    content="Ben Crittenden">
-
-    <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:domain"      content="bencritt.net">
-    <meta name="twitter:url"         content="https://www.bencritt.net">
-    <meta name="twitter:title"       content="Ben Crittenden - IT Professional">
-    <meta name="twitter:description" content="Official website of Ben Crittenden, an IT professional specializing in web development, systems administration, and project management. Explore his projects, skills, and professional achievements.">
-    <meta name="twitter:image"       content="https://www.bencritt.net/static/img/ben-crittenden-profile-picture.webp">
-    <meta name="twitter:creator"     content="@bencritt89"/>
+  {% include "includes/meta_tags/home_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
   {{ block.super }}
   <link rel="canonical" href="https://www.bencritt.net">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/home.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Ben Crittenden | Official Website{% endblock title %}
 

@@ -6,27 +6,17 @@
 {% endblock scripts %}
 
 {% block meta_tags %}
-    <meta name="description" content="Generate safe firing schedules for fused glass projects (COE 90, 96, 104, 33). Automatically adjusts ramp rates for Borosilicate, Soft Glass, and Standard fusing.">
-
-    <meta property="og:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Kiln Firing Schedule Generator | Multi-COE Support">
-    <meta property="og:description" content="Create custom kiln firing schedules for Bullseye, System 96, Verre, Soft Glass, and Borosilicate with this automated ramp-rate calculator.">
-    <meta property="og:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
-    <meta property="og:image:alt" content="Kiln Firing Schedule Generator Tool">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="bencritt.net">
-    <meta property="twitter:url" content="https://www.bencritt.net/projects/kiln-schedule-generator/">
-    <meta name="twitter:title" content="Kiln Firing Schedule Generator | Multi-COE Support">
-    <meta name="twitter:description" content="Generate safe firing schedules for fused glass projects (COE 90, 96, 104, 33).">
-    <meta name="twitter:image" content="https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp">
-    <meta name="twitter:creator" content="@bencritt89"/>
+    {% include "includes/meta_tags/kiln_schedule_generator_meta.html" %}
 {% endblock meta_tags %}
 
 {% block link_tags %}
+    {{ block.super }}
     <link rel="canonical" href="https://www.bencritt.net/projects/kiln-schedule-generator/">
 {% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/kiln_schedule_generator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
 
 {% block title %}Kiln Firing Schedule Generator | Ben Crittenden{% endblock title %}
 
@@ -128,7 +118,7 @@
                 </div>
 
                 <div class="mt-3 p-3 bg-light border rounded text-dark">
-                    <p class="small mb-0" style="color: #333;">
+                    <p class="small mb-0 safety-note-text">
                         <strong>*AFAP:</strong> As Fast As Possible. Allow kiln to crash cool to the anneal temp naturally.
                         <br>
                         <strong>Safety Note:</strong> 
@@ -155,25 +145,4 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
-
-<style>
-    @media print {
-        /* Excluded from print area */
-        header, footer, nav, .navbar, .footer, .site-footer, .card, h1, p.lead, .d-print-none, .btn, footer.d-flex { display: none !important; }
-        
-        #print-area { display: block !important; width: 100%; }
-        
-        /* Force body and table text to black */
-        body { padding-top: 0 !important; color: black !important; background: white !important; }
-        .table { color: black !important; border: 1px solid #000 !important; }
-        
-        /* Force white text classes to print black (Fixes "Thickness" visibility) */
-        .text-white, .text-light, .text-white-50 { color: black !important; }
-        
-        /* Overrides */
-        .table-dark { background-color: #ddd !important; color: black !important; }
-        .badge { border: 1px solid black; color: black !important; background: transparent !important; }
-        .bg-light { background-color: white !important; border: 1px solid #ccc !important; }
-    }
-</style>
 {% endblock content %}
