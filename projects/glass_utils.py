@@ -39,7 +39,6 @@ def calculate_glass_volume_weight(shape, data):
         "glass_needed": round(weight_grams * 1.05, 1) # 5% waste buffer
     }
 
-# NEW BEGIN
 def generate_kiln_schedule(brand, project, thickness):
     """
     Generates a 5-step firing schedule based on glass brand, project type, and layers.
@@ -160,9 +159,6 @@ def estimate_stained_glass_cost(w, h, pieces, glass_price, rate, user_hours, mar
         "markup_used": markup
     }
 
-# NEW END
-
-
 def convert_temperature(temp, unit):
     if unit == "F":
         return {"val": (temp - 32) * 5/9, "unit": "°C", "orig": "°F"}
@@ -191,7 +187,6 @@ def estimate_stained_glass_materials(w, h, pieces, method, waste_factor):
     # Geometric estimation: Line_Length approx 2 * sqrt(Area * Pieces)
     estimated_line_length = 2.0 * math.sqrt(area * pieces)
 
-    # NEW BEGIN
     if method == "foil":
         raw_foil_inches = estimated_line_length * 2.0
         total_foil_inches = raw_foil_inches * waste_percent
@@ -204,7 +199,6 @@ def estimate_stained_glass_materials(w, h, pieces, method, waste_factor):
             "solder_lbs": round(solder_needed_lbs, 2),
             "flux_oz": round(solder_needed_lbs * 2, 1),
         }
-    # NEW END
     else: # Lead Came
         total_came_inches = estimated_line_length * waste_percent
         solder_needed_lbs = pieces * 0.01
@@ -217,16 +211,16 @@ def estimate_stained_glass_materials(w, h, pieces, method, waste_factor):
             "putty_lbs": round(area / 144.0 * 0.5, 1),
         }
 
-
 def calculate_lampwork_weight(glass_type, shape, dia_mm, length_in, qty, wall_mm=0):
     DENSITIES = {
-        "boro": 2.23, "soft": 2.50, "satake": 2.55,
-        "coe90": 2.50, "coe96": 2.50, "crystal": 3.10, "quartz": 2.20,
+        "boro": 2.23, "soft": 2.59, "satake": 3.55,
+        "coe90": 2.57, "coe96": 2.51, "crystal": 3.10, "quartz": 2.20,
     }
     
     radius_cm = (dia_mm / 2) / 10.0
     length_cm = length_in * 2.54
     
+    # Mathematical logic remains unchanged (Volume of a Cylinder/Annulus)
     if shape == "rod":
         vol_per_piece = math.pi * (radius_cm ** 2) * length_cm
     else:
@@ -234,12 +228,12 @@ def calculate_lampwork_weight(glass_type, shape, dia_mm, length_in, qty, wall_mm
         vol_per_piece = math.pi * (radius_cm**2 - inner_radius_cm**2) * length_cm
 
     total_vol = vol_per_piece * qty
-    density = DENSITIES.get(glass_type, 2.50)
+    density = DENSITIES.get(glass_type, 2.50) # Fallback to 2.50 if type not found
     total_weight_g = total_vol * density
     
     return {
         "weight_g": round(total_weight_g, 1),
-        "weight_lb": round(total_weight_g / 453.592, 3),
+        "weight_lb": round(total_weight_g / 453.592, 3), # Precise conversion factor
         "total_len_in": round(length_in * qty, 1),
         "density": density,
     }

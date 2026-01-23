@@ -405,7 +405,6 @@ class GlassVolumeForm(forms.Form):
         
         return cleaned_data
 
-# NEW BEGIN
 # --- Kiln Schedule Generator ---
 class KilnScheduleForm(forms.Form):
     BRAND_CHOICES = [
@@ -489,8 +488,6 @@ class StainedGlassCostForm(forms.Form):
         help_text="Standard is 2.0x for retail. Wholesale is often 1.5x.",
         widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"})
     )
-
-# NEW END
 
 # --- Kiln Controller Utilities ---
 class TempConverterForm(forms.Form):
@@ -597,6 +594,7 @@ class LampworkMaterialForm(forms.Form):
     )
     length_inches = forms.FloatField(
         label="Length Needed (inches)",
+        help_text="Standard Boro rods are ~20 inches. Soft glass is ~13 inches.",
         widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 20"})
     )
     quantity = forms.IntegerField(
@@ -614,8 +612,8 @@ class LampworkMaterialForm(forms.Form):
         if form_factor == "tube":
             if not wall:
                 self.add_error("wall_mm", "Wall thickness is required for tubing.")
-            elif diameter and (wall * 2 >= diameter):
-                self.add_error("wall_mm", "Wall thickness cannot exceed half the diameter.")
+            elif diameter and wall and (wall * 2 >= diameter):
+                self.add_error("wall_mm", "Wall thickness cannot be equal to or greater than half the diameter.")
         
         return cleaned_data
 

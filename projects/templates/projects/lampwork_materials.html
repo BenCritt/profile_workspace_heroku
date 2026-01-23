@@ -38,10 +38,16 @@
                             <div class="col-md-6">
                                 {{ form.glass_type.label_tag }}
                                 {{ form.glass_type }}
+                                {% if form.glass_type.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.glass_type.errors|striptags }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6">
                                 {{ form.form_factor.label_tag }}
                                 {{ form.form_factor }}
+                                {% if form.form_factor.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.form_factor.errors|striptags }}</div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -49,20 +55,34 @@
                             <div class="col-md-4">
                                 {{ form.diameter_mm.label_tag }}
                                 {{ form.diameter_mm }}
+                                {% if form.diameter_mm.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.diameter_mm.errors|striptags }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4" id="wall-input-group" style="display:none;">
                                 {{ form.wall_mm.label_tag }}
                                 {{ form.wall_mm }}
+                                {% if form.wall_mm.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.wall_mm.errors|striptags }}</div>
+                                {% endif %}
+                                <div class="form-text text-white-50">{{ form.wall_mm.help_text }}</div>
                             </div>
                             <div class="col-md-4">
                                 {{ form.length_inches.label_tag }}
                                 {{ form.length_inches }}
+                                {% if form.length_inches.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.length_inches.errors|striptags }}</div>
+                                {% endif %}
+                                <div class="form-text text-white-50">{{ form.length_inches.help_text }}</div>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             {{ form.quantity.label_tag }}
                             {{ form.quantity }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small mt-1 fw-bold">{{ form.quantity.errors|striptags }}</div>
+                            {% endif %}
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>

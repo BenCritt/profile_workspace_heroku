@@ -1060,7 +1060,6 @@ def kiln_schedule_generator(request):
 
     return render(request, "projects/kiln_schedule_generator.html", context)
 
-# NEW BEGIN
 # Stained Glass Cost Estimator
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -1079,7 +1078,6 @@ def stained_glass_cost_estimator(request):
         )
 
     return render(request, "projects/stained_glass_cost_estimator.html", context)
-# NEW END
 
 # Kiln Controller Utilities
 @trim_memory_after
