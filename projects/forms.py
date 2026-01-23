@@ -350,6 +350,16 @@ class GlassVolumeForm(forms.Form):
         ("inches", "Inches"),
         ("cm", "Centimeters"),
     ]
+    # Glass Choices
+    GLASS_TYPES = [
+        ("boro", "Borosilicate (COE 33)"),
+        ("soft", "Soft Glass / Effetre (COE 104)"),
+        ("coe90", "Bullseye (COE 90)"),
+        ("coe96", "System 96 / Oceanside (COE 96)"),
+        ("crystal", "Full Lead Crystal (Generic)"),
+        ("satake", "Satake (COE 120)"),
+        ("quartz", "Quartz / Fused Silica"),
+    ]
 
     shape = forms.ChoiceField(
         choices=SHAPE_CHOICES,
@@ -363,6 +373,15 @@ class GlassVolumeForm(forms.Form):
         initial="inches",
         widget=forms.Select(attrs={"class": "form-select"})
     )
+    # Glass Type Field
+    glass_type = forms.ChoiceField(
+        label="Glass Manufacturer",
+        choices=GLASS_TYPES,
+        initial="coe90",
+        help_text="Crucial for calculating exact weight.",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    
     # Dimensions
     diameter = forms.FloatField(
         required=False,
@@ -387,6 +406,13 @@ class GlassVolumeForm(forms.Form):
         label="Target Thickness / Depth",
         help_text="Thickness of the finished piece.",
         widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 0.375"})
+    )
+    # Waste Factor Field
+    waste_factor = forms.IntegerField(
+        label="Waste / Coldworking Buffer (%)",
+        initial=15,
+        help_text="Account for pot-melt loss and grinding.",
+        widget=forms.NumberInput(attrs={"class": "form-control"})
     )
     
     def clean(self):

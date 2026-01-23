@@ -1,14 +1,18 @@
 import math
 
-# Constants
-DEFAULT_GLASS_DENSITY = 2.5  # g/cm³ for standard soda-lime fusing glass
+def calculate_glass_volume_weight(shape, glass_type, waste_factor, data):
+    """
+    Calculates volume and weight for the Glass Volume Calculator based on specific glass densities.
+    """
+    # Define precise densities (g/cm³)
+    DENSITIES = {
+        "boro": 2.23, "soft": 2.59, "satake": 3.55,
+        "coe90": 2.57, "coe96": 2.51, "crystal": 3.10, "quartz": 2.20,
+    }
+    
+    # Get the specific density or fallback to 2.50
+    density = DENSITIES.get(glass_type, 2.50)
 
-def calculate_glass_volume_weight(shape, data):
-    """
-    Calculates volume and weight for the Glass Volume Calculator.
-    Expects data dict with: units, depth, diameter (if cylinder),
-    length/width (if rectangle).
-    """
     units = data.get("units")
     depth = data.get("depth", 0)
     
@@ -29,14 +33,20 @@ def calculate_glass_volume_weight(shape, data):
         # V = l * w * h
         volume_cm3 = length * width * depth_cm
 
-    weight_grams = volume_cm3 * DEFAULT_GLASS_DENSITY
+    # Apply the specific density
+    weight_grams = volume_cm3 * density
+    
+    # Apply dynamic waste factor (e.g., 15% becomes 1.15)
+    waste_multiplier = 1 + (waste_factor / 100.0)
     
     return {
         "volume_cc": round(volume_cm3, 2),
         "weight_g": round(weight_grams, 1),
         "weight_oz": round(weight_grams / 28.3495, 2),
         "weight_kg": round(weight_grams / 1000, 3),
-        "glass_needed": round(weight_grams * 1.05, 1) # 5% waste buffer
+        "glass_needed": round(weight_grams * waste_multiplier, 1),
+        "density_used": density,
+        "waste_percent": waste_factor
     }
 
 def generate_kiln_schedule(brand, project, thickness):

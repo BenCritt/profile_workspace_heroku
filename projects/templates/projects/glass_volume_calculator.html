@@ -45,30 +45,54 @@
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            {{ form.glass_type.label_tag }}
+                            {{ form.glass_type }}
+                            <div class="form-text text-white-50">{{ form.glass_type.help_text }}</div>
+                        </div>
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-4" id="group-diameter">
                                 {{ form.diameter.label_tag }}
                                 {{ form.diameter }}
-                                {{ form.diameter.errors }}
+                                {% if form.diameter.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.diameter.errors|striptags }}</div>
+                                {% endif %}
                             </div>
 
                             <div class="col-md-4" id="group-length">
                                 {{ form.length.label_tag }}
                                 {{ form.length }}
-                                {{ form.length.errors }}
+                                {% if form.length.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.length.errors|striptags }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-md-4" id="group-width">
                                 {{ form.width.label_tag }}
                                 {{ form.width }}
-                                {{ form.width.errors }}
+                                {% if form.width.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.width.errors|striptags }}</div>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            {{ form.depth.label_tag }}
-                            {{ form.depth }}
-                            <div class="form-text text-white-50">Enter the target thickness of your finished piece.</div>
-                            {{ form.depth.errors }}
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                {{ form.depth.label_tag }}
+                                {{ form.depth }}
+                                {% if form.depth.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.depth.errors|striptags }}</div>
+                                {% endif %}
+                                <div class="form-text text-white-50">{{ form.depth.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.waste_factor.label_tag }}
+                                {{ form.waste_factor }}
+                                {% if form.waste_factor.errors %}
+                                    <div class="text-danger small mt-1 fw-bold">{{ form.waste_factor.errors|striptags }}</div>
+                                {% endif %}
+                                <div class="form-text text-white-50">{{ form.waste_factor.help_text }}</div>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 btn-lg">Calculate Weight</button>
@@ -79,7 +103,10 @@
 
             {% if results %}
             <div class="alert alert-success border-success" role="alert">
-                <h3 class="alert-heading h4">Calculation Results</h3>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Calculation Results</h3>
+                    <span class="badge bg-light text-dark">Density: {{ results.density_used }} g/cm³</span>
+                </div>
                 <hr>
                 <div class="row text-center">
                     <div class="col-md-4 mb-3">
@@ -92,7 +119,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <div class="display-6 fw-bold text-decoration-underline">{{ results.glass_needed }}g</div>
-                        <div class="small fw-bold">Recommended Input<br>(includes 5% waste)</div>
+                        <div class="small fw-bold">Recommended Input<br>(includes {{ results.waste_percent }}% waste)</div>
                     </div>
                 </div>
             </div>
@@ -106,41 +133,25 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Select the relevant elements
         const shapeSelect = document.querySelector('#id_shape');
         const diameterGroup = document.getElementById('group-diameter');
         const lengthGroup = document.getElementById('group-length');
         const widthGroup = document.getElementById('group-width');
-        const diameterInput = document.querySelector('#id_diameter');
-        const lengthInput = document.querySelector('#id_length');
-        const widthInput = document.querySelector('#id_width');
 
-        // 2. Define the toggle function
+        // UPDATED: No longer clears input values on toggle
         function toggleFields() {
             if (shapeSelect.value === 'cylinder') {
-                // Show Diameter, Hide Length/Width
                 diameterGroup.style.display = 'block';
                 lengthGroup.style.display = 'none';
                 widthGroup.style.display = 'none';
-                
-                // Optional: Clear values of hidden fields to avoid confusion
-                lengthInput.value = '';
-                widthInput.value = '';
             } else {
-                // Show Length/Width, Hide Diameter
                 diameterGroup.style.display = 'none';
                 lengthGroup.style.display = 'block';
                 widthGroup.style.display = 'block';
-                
-                // Optional: Clear value of hidden field
-                diameterInput.value = '';
             }
         }
 
-        // 3. Attach Event Listener
         shapeSelect.addEventListener('change', toggleFields);
-
-        // 4. Run on load (to set correct state if page refreshes with data)
         toggleFields();
     });
 </script>

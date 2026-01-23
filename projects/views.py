@@ -1027,9 +1027,11 @@ def glass_volume_calculator(request):
     context = {"form": form}
 
     if request.method == "POST" and form.is_valid():
-        # Delegate math to utils
+        # Delegate math to utils with new dynamic arguments
         context["results"] = glass_utils.calculate_glass_volume_weight(
             shape=form.cleaned_data["shape"],
+            glass_type=form.cleaned_data["glass_type"],
+            waste_factor=form.cleaned_data["waste_factor"],
             data=form.cleaned_data
         )
 
