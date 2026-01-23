@@ -81,6 +81,10 @@
                             <div class="small text-warning">
                                 {% if results.material_name == "Copper Foil" %}
                                     Approx <strong>{{ results.rolls_needed }}</strong> standard roll(s)
+                                    <br>
+                                    <span class="text-muted" style="font-size: 0.7rem; font-style: italic;">
+                                        *Based on a standard 36-yard (1,296 inch) roll.
+                                    </span>
                                 {% else %}
                                     Approx <strong>{{ results.sticks_needed }}</strong> 6ft stick(s)
                                 {% endif %}

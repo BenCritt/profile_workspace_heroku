@@ -59,9 +59,17 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h2 class="h3 fw-bold mb-1">{{ project_name }}</h2>
-                            <p class="mb-0 text-muted">
-                                Thickness: <span class="fw-bold text-white">{{ form.thickness.value|title }}</span>
-                            </p>
+                                <p class="mb-0 text-muted">
+                                    Layers / Thickness: <span class="fw-bold text-white">
+                                        {% if form.thickness.value == 'single' %}
+                                            1 Layer (3mm)
+                                        {% elif form.thickness.value == 'two_layer' %}
+                                            2 Layers (6mm)
+                                        {% elif form.thickness.value == 'multi_layer' %}
+                                            3+ Layers (9mm+)
+                                        {% endif %}
+                                    </span>
+                                </p>
                         </div>
                         <div class="text-end">
                             {% if form.brand.value == 'bullseye' or form.brand.value == 'verre' %}

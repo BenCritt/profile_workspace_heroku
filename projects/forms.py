@@ -339,8 +339,6 @@ class SSLCheckForm(forms.Form):
         if not parsed_url.scheme:
             url = "https://" + url
         return url
-    
-    # NEW BEGIN
 
 # --- Glass Volume Calculator ---
 class GlassVolumeForm(forms.Form):
@@ -406,7 +404,8 @@ class GlassVolumeForm(forms.Form):
                 self.add_error("width", "Width is required for rectangle shapes.")
         
         return cleaned_data
-    
+
+# NEW BEGIN
 # --- Kiln Schedule Generator ---
 class KilnScheduleForm(forms.Form):
     BRAND_CHOICES = [
@@ -418,14 +417,15 @@ class KilnScheduleForm(forms.Form):
     ]
     PROJECT_CHOICES = [
         ("full_fuse", "Full Fuse (Smooth surface)"),
+        ("contour_fuse", "Contour Fuse (Softened edges)"),
         ("tack_fuse", "Tack Fuse (Textured surface)"),
         ("slump", "Slump (Shape into mold)"),
         ("fire_polish", "Fire Polish (Shine edges)"),
     ]
     THICKNESS_CHOICES = [
-        ("standard", "Standard (Up to 6mm / 0.25\")"),
-        ("thick", "Thick (Up to 9mm / 0.375\")"),
-        ("extra_thick", "Extra Thick (Up to 12mm / 0.5\")"),
+        ("single", "1 Layer / Standard (3mm)"),
+        ("two_layer", "2 Layers / Thick (6mm)"),
+        ("multi_layer", "3+ Layers / Extra Thick (9mm+)"),
     ]
 
     brand = forms.ChoiceField(
@@ -442,8 +442,8 @@ class KilnScheduleForm(forms.Form):
     )
     thickness = forms.ChoiceField(
         choices=THICKNESS_CHOICES,
-        label="Total Project Thickness",
-        help_text="Thicker projects require slower heating to prevent thermal shock.",
+        label="Layers / Total Thickness",
+        help_text="Multi-layer projects require a 'Bubble Squeeze' and longer annealing times.",
         widget=forms.Select(attrs={"class": "form-select"})
     )
 
@@ -483,6 +483,14 @@ class StainedGlassCostForm(forms.Form):
         help_text="Leave blank to auto-calculate based on piece count (avg 15 mins/piece).",
         widget=forms.NumberInput(attrs={"class": "form-control"})
     )
+    markup = forms.FloatField(
+        label="Profit Markup Multiplier",
+        initial=2.0,
+        help_text="Standard is 2.0x for retail. Wholesale is often 1.5x.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"})
+    )
+
+# NEW END
 
 # --- Kiln Controller Utilities ---
 class TempConverterForm(forms.Form):
@@ -611,8 +619,6 @@ class LampworkMaterialForm(forms.Form):
         
         return cleaned_data
 
-# NEW END
-# NEW 2 BEGIN
 # --- Freight Class Calculator ---
 class FreightClassForm(forms.Form):
     length = forms.FloatField(
@@ -679,4 +685,3 @@ class HOSTripPlannerForm(forms.Form):
         label="Start Time",
         widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
     )
-# NEW 2 END

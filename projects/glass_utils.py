@@ -39,10 +39,10 @@ def calculate_glass_volume_weight(shape, data):
         "glass_needed": round(weight_grams * 1.05, 1) # 5% waste buffer
     }
 
-
+# NEW BEGIN
 def generate_kiln_schedule(brand, project, thickness):
     """
-    Generates a 5-step firing schedule based on glass brand and project type.
+    Generates a 5-step firing schedule based on glass brand, project type, and layers.
     """
     # 1. Define Base Temperatures (Fahrenheit)
     glass_specs = {
@@ -60,6 +60,7 @@ def generate_kiln_schedule(brand, project, thickness):
     if brand == "boro":
         process_temps = {
             "full_fuse": 1650,
+            "contour_fuse": 1575,
             "tack_fuse": 1500,
             "slump": 1300,
             "fire_polish": 1375,
@@ -67,6 +68,7 @@ def generate_kiln_schedule(brand, project, thickness):
     else:
         process_temps = {
             "full_fuse": 1490,
+            "contour_fuse": 1410,
             "tack_fuse": 1350,
             "slump": 1225,
             "fire_polish": 1325,
@@ -74,28 +76,34 @@ def generate_kiln_schedule(brand, project, thickness):
         
     top_temp = process_temps.get(project, 1490)
 
-    # 2. Define Rates based on Thickness
-    if thickness == "extra_thick":
+    # 2. Define Rates and Holds based on Layers/Thickness
+    if thickness == "multi_layer": # 3+ Layers / 9mm+
         rate_1, squeeze_hold = 150, 45
         rate_2 = 250
+        anneal_hold = 120
         anneal_cool = 50
         cool_down = 100
-    elif thickness == "thick":
+        seg_1_name = "Bubble Squeeze"
+    elif thickness == "two_layer": # 2 Layers / 6mm
         rate_1, squeeze_hold = 250, 30
         rate_2 = 400
+        anneal_hold = 60
         anneal_cool = 80
         cool_down = 150
-    else: # Standard
+        seg_1_name = "Bubble Squeeze"
+    else: # Single Layer / Standard
         rate_1, squeeze_hold = 400, 20
         rate_2 = 600
+        anneal_hold = 30
         anneal_cool = 150
         cool_down = 300
+        seg_1_name = "Initial Heat"
 
     # 3. Construct Segments
     segments = [
-        {"step": 1, "name": "Initial Heat", "rate": rate_1, "temp": 1225, "hold": squeeze_hold},
-        {"step": 2, "name": "Process Heat", "rate": rate_2, "temp": top_temp, "hold": 10 if project == "full_fuse" else 20},
-        {"step": 3, "name": "Rapid Cool", "rate": 9999, "temp": anneal_temp, "hold": 60 if thickness == "extra_thick" else 30},
+        {"step": 1, "name": seg_1_name, "rate": rate_1, "temp": 1225, "hold": squeeze_hold},
+        {"step": 2, "name": "Process Heat", "rate": rate_2, "temp": top_temp, "hold": 10 if project in ["full_fuse", "contour_fuse"] else 20},
+        {"step": 3, "name": "Rapid Cool", "rate": 9999, "temp": anneal_temp, "hold": anneal_hold},
         {"step": 4, "name": "Anneal Cool", "rate": anneal_cool, "temp": strain_point, "hold": 0},
         {"step": 5, "name": "Final Cool", "rate": cool_down, "temp": 70, "hold": 0},
     ]
@@ -120,8 +128,7 @@ def generate_kiln_schedule(brand, project, thickness):
         "total_time": f"{hours} hours, {mins} minutes"
     }
 
-
-def estimate_stained_glass_cost(w, h, pieces, glass_price, rate, user_hours):
+def estimate_stained_glass_cost(w, h, pieces, glass_price, rate, user_hours, markup):
     """
     Calculates cost estimate for stained glass projects.
     """
@@ -138,7 +145,8 @@ def estimate_stained_glass_cost(w, h, pieces, glass_price, rate, user_hours):
     
     labor_cost = hours * rate
     total_cost = glass_cost + consumables_cost + labor_cost
-    retail_price = total_cost * 2.0
+    
+    retail_price = total_cost * markup
 
     return {
         "area_sqft": round(area_sqft, 2),
@@ -148,8 +156,11 @@ def estimate_stained_glass_cost(w, h, pieces, glass_price, rate, user_hours):
         "labor_cost": round(labor_cost, 2),
         "labor_method": labor_method,
         "total_base_cost": round(total_cost, 2),
-        "retail_price": round(retail_price, 2)
+        "retail_price": round(retail_price, 2),
+        "markup_used": markup
     }
+
+# NEW END
 
 
 def convert_temperature(temp, unit):
@@ -180,6 +191,7 @@ def estimate_stained_glass_materials(w, h, pieces, method, waste_factor):
     # Geometric estimation: Line_Length approx 2 * sqrt(Area * Pieces)
     estimated_line_length = 2.0 * math.sqrt(area * pieces)
 
+    # NEW BEGIN
     if method == "foil":
         raw_foil_inches = estimated_line_length * 2.0
         total_foil_inches = raw_foil_inches * waste_percent
@@ -188,10 +200,11 @@ def estimate_stained_glass_materials(w, h, pieces, method, waste_factor):
         return {
             "material_name": "Copper Foil",
             "length_feet": round(total_foil_inches / 12, 1),
-            "rolls_needed": math.ceil(total_foil_inches / (36 * 12)),
+            "rolls_needed": math.ceil(total_foil_inches / 1296), # UPDATED: 36 yards * 36 inches
             "solder_lbs": round(solder_needed_lbs, 2),
             "flux_oz": round(solder_needed_lbs * 2, 1),
         }
+    # NEW END
     else: # Lead Came
         total_came_inches = estimated_line_length * waste_percent
         solder_needed_lbs = pieces * 0.01

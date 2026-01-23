@@ -46,11 +46,12 @@
                             </div>
                         </div>
 
-                        <h5 class="mb-3 text-white-50">Project Complexity</h5>
+                        <h5 class="mb-3 text-white-50">Project Details</h5>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 {{ form.pieces.label_tag }}
                                 {{ form.pieces }}
+                                <div class="form-text text-white-50">{{ form.pieces.help_text }}</div>
                             </div>
                             <div class="col-md-6">
                                 {{ form.estimated_hours.label_tag }}
@@ -61,13 +62,18 @@
 
                         <h5 class="mb-3 text-white-50">Rates & Materials</h5>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 {{ form.glass_price.label_tag }}
                                 {{ form.glass_price }}
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 {{ form.labor_rate.label_tag }}
                                 {{ form.labor_rate }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.markup.label_tag }}
+                                {{ form.markup }}
+                                <div class="form-text text-white-50">{{ form.markup.help_text }}</div>
                             </div>
                         </div>
 
@@ -108,7 +114,7 @@
                         <div class="card-body d-flex flex-column justify-content-center align-items-center">
                             <h5 class="card-title text-success">Recommended Retail Price</h5>
                             <p class="display-4 fw-bold my-3">${{ results.retail_price }}</p>
-                            <p class="text-muted small mb-0">Based on standard 2.0x markup.</p>
+                            <p class="text-muted small mb-0">Based on a {{ results.markup_used }}x markup on cost of materials.</p>
                         </div>
                     </div>
                 </div>

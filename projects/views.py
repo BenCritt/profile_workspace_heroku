@@ -561,8 +561,6 @@ def view_404(request, exception):
 def home(request):
     return render(request, "projects/home.html")
 
-# NEW 3 START
-
 # QR Code Generator
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -589,7 +587,6 @@ def qr_code_generator(request):
 
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
-# NEW 3 END
 # Monte Carlo Simulator
 # Force memory trim after work.
 @trim_memory_after
@@ -851,7 +848,6 @@ def all_projects(request):
             "image": "lampwork-glass-calculator.webp",
             "description": "Calculate the precise weight of glass stock needed for your next project. This calculator supports Borosilicate (COE 33), Soft Glass (COE 104), Satake, and Lead Crystal. Simply input the dimensions of your solid rods or hollow tubing to instantly get the required weight in grams or pounds. Essential for lampworkers, glassblowers, and inventory planning."
         },
-        # NEW 2 BEGIN
         {
             "title": "Freight Class Calculator",
             "url_name": "projects:freight_class_calculator",
@@ -870,7 +866,6 @@ def all_projects(request):
             "image": "hos-trip-planner.webp",
             "description": "Plan realistic truck trips compliant with FMCSA Hours of Service (HOS) rules. Input your miles and start time to generate a step-by-step itinerary that automatically calculates mandatory 30-minute breaks and 10-hour daily resets."
         }
-        # NEW 2 END
     ]
     
     context = {
@@ -1014,8 +1009,6 @@ def seo_tools(request):
 def privacy_cookies(request):
     return render(request, "privacy_cookies.html")
 
-# NEW BEGIN
-
 # Glass Artist Toolkit Page
 @trim_memory_after
 # Prevents CSRF token issues in iframes.
@@ -1067,7 +1060,7 @@ def kiln_schedule_generator(request):
 
     return render(request, "projects/kiln_schedule_generator.html", context)
 
-
+# NEW BEGIN
 # Stained Glass Cost Estimator
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -1082,11 +1075,11 @@ def stained_glass_cost_estimator(request):
         context["results"] = glass_utils.estimate_stained_glass_cost(
             w=d["width"], h=d["height"], pieces=d["pieces"],
             glass_price=d["glass_price"], rate=d["labor_rate"],
-            user_hours=d["estimated_hours"]
+            user_hours=d["estimated_hours"], markup=d["markup"]
         )
 
     return render(request, "projects/stained_glass_cost_estimator.html", context)
-
+# NEW END
 
 # Kiln Controller Utilities
 @trim_memory_after
@@ -1176,10 +1169,6 @@ def lampwork_materials(request):
         context["results"] = results
 
     return render(request, "projects/lampwork_materials.html", context)
-
-# NEW END
-
-# NEW 2 BEGIN
 
 # Freight Class Calculator
 @trim_memory_after
@@ -1286,5 +1275,3 @@ def freight_safety(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_tools(request):
     return render(request, "projects/freight_tools.html")
-
-# NEW 2 END
