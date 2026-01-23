@@ -210,7 +210,7 @@ class QRForm(forms.Form):
 class MonteCarloForm(forms.Form):
     sim_quantity = forms.IntegerField(
         label="Number of Simulations",
-        widget=forms.NumberInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"}),
         validators=[
             MinValueValidator(1, message="The number of simulations must be at least 1."),
             MaxValueValidator(1000000, message="The number of simulations cannot exceed 1,000,000."),
@@ -218,22 +218,22 @@ class MonteCarloForm(forms.Form):
     )
     min_val = forms.FloatField(
         label="Minimum Value",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     max_val = forms.FloatField(
         label="Maximum Value",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     target_val = forms.FloatField(
         label="Target Value",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     
     # Second Range (Optional)
     second_sim_quantity = forms.IntegerField(
         required=False,
         label="Second Number of Simulations",
-        widget=forms.NumberInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"}),
         validators=[
             MinValueValidator(1, message="Must be at least 1 if used."),
             MaxValueValidator(1000000, message="Cannot exceed 1,000,000."),
@@ -242,17 +242,17 @@ class MonteCarloForm(forms.Form):
     second_min_val = forms.FloatField(
         label="Second Minimum Value", 
         required=False,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     second_max_val = forms.FloatField(
         label="Second Maximum Value", 
         required=False,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     second_target_val = forms.FloatField(
         label="Second Target Value", 
         required=False,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
 
@@ -266,7 +266,9 @@ class WeatherForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "53545"
+                "placeholder": "53545",
+                "inputmode": "decimal", 
+                "pattern": "[0-9]*"
             }
         )
     )
@@ -387,32 +389,32 @@ class GlassVolumeForm(forms.Form):
         required=False,
         label="Diameter",
         help_text="Required for Cylinder shapes.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 6.0"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 6.0", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     length = forms.FloatField(
         required=False,
         label="Length",
         help_text="Required for Rectangle shapes.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 8.0"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 8.0", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     width = forms.FloatField(
         required=False,
         label="Width",
         help_text="Required for Rectangle shapes.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 4.0"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 4.0", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     depth = forms.FloatField(
         required=True,
         label="Target Thickness / Depth",
         help_text="Thickness of the finished piece.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 0.375"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 0.375", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     # Waste Factor Field
     waste_factor = forms.IntegerField(
         label="Waste / Coldworking Buffer (%)",
         initial=15,
         help_text="Account for pot-melt loss and grinding.",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     
     def clean(self):
@@ -477,42 +479,42 @@ class StainedGlassCostForm(forms.Form):
     # Dimensions
     width = forms.FloatField(
         label="Width (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 12"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 12", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     height = forms.FloatField(
         label="Height (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 24"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 24", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     
     # Project Details
     pieces = forms.IntegerField(
         label="Number of Pieces",
         help_text="Total number of glass pieces in the pattern.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 50"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 50", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     
     # Costs
     glass_price = forms.FloatField(
         label="Avg. Glass Cost ($/sq ft)",
         initial=15.00,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     labor_rate = forms.FloatField(
         label="Hourly Labor Rate ($)",
         initial=25.00,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     estimated_hours = forms.FloatField(
         label="Estimated Labor Hours",
         required=False,
         help_text="Leave blank to auto-calculate based on piece count (avg 15 mins/piece).",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     markup = forms.FloatField(
         label="Profit Markup Multiplier",
         initial=2.0,
         help_text="Standard is 2.0x for retail. Wholesale is often 1.5x.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"})
+        widget=forms.TextInput(attrs={"class": "form-control", "step": "0.1", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
 # --- Kiln Controller Utilities ---
@@ -522,7 +524,7 @@ class TempConverterForm(forms.Form):
     
     temperature = forms.FloatField(
         label="Enter Temperature",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1490"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 1490", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     from_unit = forms.ChoiceField(
         choices=[("F", "Fahrenheit (°F)"), ("C", "Celsius (°C)")],
@@ -536,15 +538,15 @@ class RampCalculatorForm(forms.Form):
 
     start_temp = forms.FloatField(
         label="Current Temp",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 70"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 70", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     target_temp = forms.FloatField(
         label="Target Temp",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1225"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 1225", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     rate = forms.FloatField(
         label="Rate (°/hour)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 300"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 300", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
     # --- Stained Glass Materials Calculator ---
@@ -562,22 +564,22 @@ class StainedGlassMaterialsForm(forms.Form):
     )
     width = forms.FloatField(
         label="Panel Width (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 16"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 16", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     height = forms.FloatField(
         label="Panel Height (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 20"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 20", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     pieces = forms.IntegerField(
         label="Number of Pieces",
         help_text="Count from your pattern.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 45"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 45", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     waste_factor = forms.IntegerField(
         label="Waste Safety Margin (%)",
         initial=15,
         help_text="Extra material to account for trimming and mistakes.",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
 # --- Lampwork / Boro Calculator ---
@@ -610,23 +612,23 @@ class LampworkMaterialForm(forms.Form):
     )
     diameter_mm = forms.FloatField(
         label="Diameter (mm)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 12"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 12", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     wall_mm = forms.FloatField(
         label="Wall Thickness (mm)",
         required=False,
         help_text="Required for Tubing.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 2.2"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 2.2", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     length_inches = forms.FloatField(
         label="Length Needed (inches)",
         help_text="Standard Boro rods are ~20 inches. Soft glass is ~13 inches.",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 20"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 20", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     quantity = forms.IntegerField(
         label="Quantity",
         initial=1,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     
     def clean(self):
@@ -647,59 +649,59 @@ class LampworkMaterialForm(forms.Form):
 class FreightClassForm(forms.Form):
     length = forms.FloatField(
         label="Length (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 48"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 48", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     width = forms.FloatField(
         label="Width (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 40"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 40", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     height = forms.FloatField(
         label="Height (inches)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 50"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 50", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     weight = forms.FloatField(
         label="Weight per Pallet (lbs)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1500"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 1500", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     quantity = forms.IntegerField(
         label="Quantity (Pallet Count)",
         initial=1,
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
 # --- Fuel Surcharge Calculator ---
 class FuelSurchargeForm(forms.Form):
     trip_miles = forms.FloatField(
         label="Total Trip Miles",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1200"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 1200", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     current_price = forms.FloatField(
         label="Current Diesel Price ($/gal)",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 3.85"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 3.85", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     base_price = forms.FloatField(
         label="Base 'Peg' Price ($/gal)",
         initial=1.20,
         help_text="The baseline fuel cost established in your contract (often $1.20).",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     mpg = forms.FloatField(
         label="Truck MPG",
         initial=6.0,
         help_text="Average miles per gallon (Industry standard is usually 6.0 or 6.5).",
-        widget=forms.NumberInput(attrs={"class": "form-control"})
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
 
 # --- HOS Trip Planner ---
 class HOSTripPlannerForm(forms.Form):
     total_miles = forms.FloatField(
         label="Total Trip Miles",
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 1450"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 1450", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     avg_speed = forms.FloatField(
         label="Average Speed (mph)",
         initial=55.0,
-        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 55"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. 55", "inputmode": "decimal", "pattern": "[0-9]*"})
     )
     start_date = forms.DateField(
         label="Start Date",
