@@ -475,57 +475,6 @@ def manifest(request):
     }
     return JsonResponse(manifest_json)
 
-# Freight Carrier Safety Reporter
-# Force memory trim after work.
-@trim_memory_after
-# Disallow caching to prevent CSRF token errors.
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def freight_safety(request):
-    from .freight_utils import get_fmcsa_carrier_data_by_usdot
-    from .forms import CarrierSearchForm
-    form = CarrierSearchForm(request.POST or None)
-    carrier = None
-    error = None
-    # safety_score = None ~ I'm still working on this feature.
-
-    if request.method == "POST" and form.is_valid():
-        search_value = form.cleaned_data["search_value"]
-
-        try:
-
-            # Ensure the search is conducted only with a DOT number
-            carrier = get_fmcsa_carrier_data_by_usdot(search_value)
-
-            if not carrier:
-                error = "Carrier not found in FMCSA.  Please verify you're submitting a valid DOT Number."
-
-            """
-            I'm still working on this feature.
-            
-            if carrier:
-                safety_score = calculate_safety_score(carrier)  # Calculate the safety score
-                
-                # Check if the user clicked the 'Download PDF' button
-                if 'download_pdf' in request.POST:
-                    return generate_pdf(carrier, safety_score)  # Trigger the PDF generation
-            else:
-                error = "Carrier not found in FMCSA."
-            """
-        except requests.exceptions.RequestException as e:
-            # Catch any errors related to the API request
-            error = f"There was an issue retrieving the carrier data. Please try again later. Error: {str(e)}"
-
-    return render(
-        request,
-        "projects/freight_safety.html",
-        {
-            "form": form,
-            "carrier": carrier,
-            "error": error,
-        },  # "safety_score": safety_score
-    )
-
-
 # Grade Level Text Analyzer
 # Force memory trim after work.
 @trim_memory_after
@@ -612,46 +561,27 @@ def view_404(request, exception):
 def home(request):
     return render(request, "projects/home.html")
 
+# NEW 3 START
+
 # QR Code Generator
-# Force memory trim after work.
 @trim_memory_after
-# Disallow caching to prevent CSRF token errors.
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def qr_code_generator(request):
-    import qrcode
-    import io
+    from . import qr_utils
     from .forms import QRForm
-    """
-    Generates a QR code from user input and serves it directly as a download
-    without saving files to the server's filesystem.
-    """
+    from django.http import HttpResponse
+
     if request.method == "POST":
         form = QRForm(request.POST)
         if form.is_valid():
             # 1. Get data
             data = form.cleaned_data["qr_text"]
             
-            # 2. Generate QR Object
-            qr = qrcode.QRCode(
-                version=1, 
-                box_size=10, 
-                border=5
-            )
-            qr.add_data(data)
-            qr.make(fit=True)
+            # 2. Offload image generation to utils
+            qr_buffer = qr_utils.generate_qr_code_image(data)
             
-            # 3. Create Image in Memory (No Disk I/O)
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            # Use BytesIO to hold the image data in RAM
-            buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
-            
-            # Rewind the buffer to the beginning so it can be read
-            buffer.seek(0)
-            
-            # 4. Return the response directly from memory
-            response = HttpResponse(buffer, content_type="image/png")
+            # 3. Return the response directly from memory
+            response = HttpResponse(qr_buffer, content_type="image/png")
             response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
             return response
     else:
@@ -659,6 +589,7 @@ def qr_code_generator(request):
 
     return render(request, "projects/qr_code_generator.html", context={"form": form})
 
+# NEW 3 END
 # Monte Carlo Simulator
 # Force memory trim after work.
 @trim_memory_after
@@ -1085,438 +1016,6 @@ def privacy_cookies(request):
 
 # NEW BEGIN
 
-# Glass Volume Calculator
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def glass_volume_calculator(request):
-    from .forms import GlassVolumeForm
-    import math
-
-    # Standard density for soda-lime fusing glass (Bullseye/System 96) is approx 2.5 g/cm³
-    GLASS_DENSITY = 2.5 
-
-    form = GlassVolumeForm(request.POST or None)
-    context = {"form": form}
-
-    if request.method == "POST" and form.is_valid():
-        data = form.cleaned_data
-        shape = data["shape"]
-        units = data["units"]
-        depth = data["depth"]
-        
-        volume_cm3 = 0.0
-
-        # 1. Normalize inputs to Centimeters for calculation
-        # Conversion factor: 1 inch = 2.54 cm
-        scale = 2.54 if units == "inches" else 1.0
-        
-        depth_cm = depth * scale
-
-        if shape == "cylinder":
-            diameter = data["diameter"] * scale
-            radius = diameter / 2
-            # V = π * r² * h
-            volume_cm3 = math.pi * (radius ** 2) * depth_cm
-            
-        elif shape == "rectangle":
-            length = data["length"] * scale
-            width = data["width"] * scale
-            # V = l * w * h
-            volume_cm3 = length * width * depth_cm
-
-        # 2. Calculate Weight
-        weight_grams = volume_cm3 * GLASS_DENSITY
-        
-        # 3. Format Results
-        context["results"] = {
-            "volume_cc": round(volume_cm3, 2),
-            "weight_g": round(weight_grams, 1),
-            "weight_oz": round(weight_grams / 28.3495, 2), # Grams to Ounces
-            "weight_kg": round(weight_grams / 1000, 3),
-            "glass_needed": round(weight_grams * 1.05, 1) # Including 5% waste buffer
-        }
-
-    return render(request, "projects/glass_volume_calculator.html", context)
-
-# Kiln Schedule Generator
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def kiln_schedule_generator(request):
-    from .forms import KilnScheduleForm
-
-    form = KilnScheduleForm(request.POST or None)
-    context = {"form": form}
-
-    if request.method == "POST" and form.is_valid():
-        brand = form.cleaned_data["brand"]
-        project = form.cleaned_data["project_type"]
-        thickness = form.cleaned_data["thickness"]
-
-        # 1. Define Base Temperatures (Fahrenheit)
-        # Dictionary maps brand to (Anneal Temp, Strain Point)
-        glass_specs = {
-            "bullseye": {"anneal": 900, "strain": 800},
-            "verre":    {"anneal": 900, "strain": 800},     # Treating Verre as standard COE 90
-            "system96": {"anneal": 950, "strain": 850},
-            "soft":     {"anneal": 960, "strain": 840},     # Typical Effetre/Moretti values
-            "boro":     {"anneal": 1050, "strain": 950},    # Hard glass requires high heat
-        }
-        
-        # Get specs with safety default to Bullseye 90
-        specs = glass_specs.get(brand, glass_specs["bullseye"])
-        anneal_temp = specs["anneal"]
-        strain_point = specs["strain"]
-        
-        # Process Temps: Define standard vs Boro (High Temp)
-        if brand == "boro":
-            # Borosilicate needs significantly higher temps
-            process_temps = {
-                "full_fuse": 1650,  # Warning: High for some hobby kilns
-                "tack_fuse": 1500,
-                "slump": 1300,
-                "fire_polish": 1375,
-            }
-        else:
-            # Standard Soft/90/96/104 Temps
-            process_temps = {
-                "full_fuse": 1490,
-                "tack_fuse": 1350,
-                "slump": 1225,
-                "fire_polish": 1325,
-            }
-            
-        top_temp = process_temps.get(project, 1490)
-
-        # 2. Define Rates based on Thickness (Safety Logic)
-        # Structure: (Ramp 1 Speed, Bubble Squeeze Hold, Ramp 2 Speed, Anneal Cool Speed, Cool Down Speed)
-        if thickness == "extra_thick":
-            rate_1 = 150  # Very slow initial heat
-            squeeze_hold = 45
-            rate_2 = 250
-            anneal_cool = 50 # Very slow cool through anneal
-            cool_down = 100
-        elif thickness == "thick":
-            rate_1 = 250
-            squeeze_hold = 30
-            rate_2 = 400
-            anneal_cool = 80
-            cool_down = 150
-        else: # Standard (6mm)
-            rate_1 = 400
-            squeeze_hold = 20
-            rate_2 = 600
-            anneal_cool = 150 # Standard cool
-            cool_down = 300
-
-        # 3. Construct the Schedule Segments
-        # Segment format: [Segment Name, Rate (°F/hr), Target Temp (°F), Hold Time (min)]
-        segments = []
-        
-        # Seg 1: Initial Heat (Bubble Squeeze)
-        segments.append({
-            "step": 1, "name": "Initial Heat", 
-            "rate": rate_1, "temp": 1225, "hold": squeeze_hold
-        })
-        
-        # Seg 2: Process Heat (The Fuse/Slump)
-        segments.append({
-            "step": 2, "name": "Process Heat", 
-            "rate": rate_2, "temp": top_temp, "hold": 10 if project == "full_fuse" else 20
-        })
-        
-        # Seg 3: Rapid Cool (Crash to Anneal)
-        segments.append({
-            "step": 3, "name": "Rapid Cool", 
-            "rate": 9999, "temp": anneal_temp, "hold": 60 if thickness == "extra_thick" else 30
-        })
-        
-        # Seg 4: Anneal Soak (Critical for strength)
-        segments.append({
-            "step": 4, "name": "Anneal Cool", 
-            "rate": anneal_cool, "temp": strain_point, "hold": 0
-        })
-        
-        # Seg 5: Cool to Room Temp
-        segments.append({
-            "step": 5, "name": "Final Cool", 
-            "rate": cool_down, "temp": 70, "hold": 0
-        })
-
-        # Calculate Total Estimated Time
-        total_minutes = 0
-        current_temp = 70
-        for seg in segments:
-            # Time = Distance / Rate
-            dist = abs(seg["temp"] - current_temp)
-            if seg["rate"] == 9999: # AFAP (As Fast As Possible)
-                hours = 0.25 # Estimate 15 mins for crash cool
-            else:
-                hours = dist / seg["rate"]
-            
-            total_minutes += (hours * 60) + seg["hold"]
-            current_temp = seg["temp"]
-
-        hours = int(total_minutes // 60)
-        mins = int(total_minutes % 60)
-
-        context["schedule"] = segments
-        context["total_time"] = f"{hours} hours, {mins} minutes"
-        context["project_name"] = f"{form.cleaned_data['brand'].title()} - {form.cleaned_data['project_type'].replace('_', ' ').title()}"
-
-    return render(request, "projects/kiln_schedule_generator.html", context)
-
-# Stained Glass Cost Estimator
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def stained_glass_cost_estimator(request):
-    from .forms import StainedGlassCostForm
-    
-    form = StainedGlassCostForm(request.POST or None)
-    context = {"form": form}
-
-    if request.method == "POST" and form.is_valid():
-        w = form.cleaned_data["width"]
-        h = form.cleaned_data["height"]
-        pieces = form.cleaned_data["pieces"]
-        glass_price = form.cleaned_data["glass_price"]
-        rate = form.cleaned_data["labor_rate"]
-        user_hours = form.cleaned_data["estimated_hours"]
-
-        # 1. Calculate Area & Glass Cost
-        area_sqft = (w * h) / 144.0
-        # Add 35% waste factor for cuts/breaks
-        glass_cost = area_sqft * glass_price * 1.35
-
-        # 2. Calculate Consumables (Solder, Foil, Flux, Patina)
-        # Rule of thumb: Approx $0.60 - $0.75 per piece in consumables
-        consumables_cost = pieces * 0.65
-
-        # 3. Calculate Labor
-        if user_hours:
-            hours = user_hours
-            labor_method = "User Input"
-        else:
-            # Estimate 15 mins (0.25 hrs) per piece for end-to-end construction
-            hours = pieces * 0.25
-            labor_method = "Auto-Estimated (15m/piece)"
-        
-        labor_cost = hours * rate
-
-        # 4. Totals
-        total_cost = glass_cost + consumables_cost + labor_cost
-        retail_price = total_cost * 2.0  # Standard Keystone markup (100% markup)
-
-        context["results"] = {
-            "area_sqft": round(area_sqft, 2),
-            "glass_cost": round(glass_cost, 2),
-            "consumables_cost": round(consumables_cost, 2),
-            "labor_hours": round(hours, 1),
-            "labor_cost": round(labor_cost, 2),
-            "labor_method": labor_method,
-            "total_base_cost": round(total_cost, 2),
-            "retail_price": round(retail_price, 2)
-        }
-
-    return render(request, "projects/stained_glass_cost_estimator.html", context)
-
-# Kiln Controller Utilities
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def kiln_controller_utils(request):
-    from .forms import TempConverterForm, RampCalculatorForm
-    
-    # Initialize both forms
-    convert_form = TempConverterForm(initial={"action": "convert"})
-    ramp_form = RampCalculatorForm(initial={"action": "ramp"})
-    
-    context = {
-        "convert_form": convert_form,
-        "ramp_form": ramp_form
-    }
-
-    if request.method == "POST":
-        # Determine which form was submitted based on the hidden 'action' field
-        action = request.POST.get("action")
-
-        if action == "convert":
-            convert_form = TempConverterForm(request.POST)
-            if convert_form.is_valid():
-                temp = convert_form.cleaned_data["temperature"]
-                unit = convert_form.cleaned_data["from_unit"]
-                
-                if unit == "F":
-                    # F to C: (32°F − 32) × 5/9 = 0°C
-                    result_val = (temp - 32) * 5/9
-                    result_unit = "°C"
-                    input_unit = "°F"
-                else:
-                    # C to F: (0°C × 9/5) + 32 = 32°F
-                    result_val = (temp * 9/5) + 32
-                    result_unit = "°F"
-                    input_unit = "°C"
-
-                context["convert_result"] = {
-                    "input": f"{temp}{input_unit}",
-                    "output": f"{round(result_val, 1)}{result_unit}"
-                }
-                context["convert_form"] = convert_form
-
-        elif action == "ramp":
-            ramp_form = RampCalculatorForm(request.POST)
-            if ramp_form.is_valid():
-                start = ramp_form.cleaned_data["start_temp"]
-                target = ramp_form.cleaned_data["target_temp"]
-                rate = ramp_form.cleaned_data["rate"]
-
-                if rate > 0:
-                    # Logic: Time = Distance / Speed
-                    diff = abs(target - start)
-                    hours_decimal = diff / rate
-                    
-                    # Convert decimal hours to Hours:Minutes
-                    hours_int = int(hours_decimal)
-                    minutes_int = int((hours_decimal - hours_int) * 60)
-                    
-                    context["ramp_result"] = {
-                        "delta": round(diff, 1),
-                        "duration": f"{hours_int} hr {minutes_int} min",
-                        "total_decimal": round(hours_decimal, 2)
-                    }
-                else:
-                    ramp_form.add_error("rate", "Rate must be greater than 0.")
-                
-                context["ramp_form"] = ramp_form
-
-    return render(request, "projects/kiln_controller_utils.html", context)
-
-# Stained Glass Materials Calculator
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def stained_glass_materials(request):
-    from .forms import StainedGlassMaterialsForm
-    import math
-
-    form = StainedGlassMaterialsForm(request.POST or None)
-    context = {"form": form}
-
-    if request.method == "POST" and form.is_valid():
-        w = form.cleaned_data["width"]
-        h = form.cleaned_data["height"]
-        pieces = form.cleaned_data["pieces"]
-        method = form.cleaned_data["method"]
-        waste_percent = 1 + (form.cleaned_data["waste_factor"] / 100.0)
-
-        area = w * h
-        perimeter = 2 * (w + h)
-
-        # Geometric estimation of total pattern line length (internal + external)
-        # Based on a tiling approximation: Line_Length approx 2 * sqrt(Area * Pieces)
-        estimated_line_length = 2.0 * math.sqrt(area * pieces)
-
-        results = {}
-
-        if method == "foil":
-            # Foil covers every edge of every piece.
-            # Internal lines have 2 edges (one for each piece), border has 1.
-            # Approximation: Total Perimeter of all pieces = 2 * Line_Length
-            raw_foil_inches = estimated_line_length * 2.0
-            total_foil_inches = raw_foil_inches * waste_percent
-            
-            # Solder (Foil): Beads on both sides (x2 length)
-            # Standard estimate: 1lb solder per ~1500 linear inches of 1/4" bead
-            solder_needed_lbs = (estimated_line_length * 2) / 1500.0
-
-            results = {
-                "material_name": "Copper Foil",
-                "length_feet": round(total_foil_inches / 12, 1),
-                "rolls_needed": math.ceil(total_foil_inches / (36 * 12)), # Standard 36 yard roll
-                "solder_lbs": round(solder_needed_lbs, 2),
-                "flux_oz": round(solder_needed_lbs * 2, 1), # Rough estimate
-            }
-        
-        else: # Lead Came
-            # Came covers the lines exactly once.
-            total_came_inches = estimated_line_length * waste_percent
-            
-            # Solder (Came): Joints only. Approx 0.01 lbs per piece/joint.
-            solder_needed_lbs = pieces * 0.01
-
-            results = {
-                "material_name": "Lead Came",
-                "length_feet": round(total_came_inches / 12, 1),
-                "sticks_needed": math.ceil(total_came_inches / 72), # Standard 6ft (72") stick
-                "solder_lbs": round(solder_needed_lbs, 2),
-                "putty_lbs": round(area / 144.0 * 0.5, 1), # Approx 0.5 lb putty per sq ft
-            }
-
-        context["results"] = results
-        context["method_display"] = dict(form.fields['method'].choices)[method]
-
-    return render(request, "projects/stained_glass_materials.html", context)
-
-# Lampwork Material Calculator
-@trim_memory_after
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def lampwork_materials(request):
-    from .forms import LampworkMaterialForm
-    import math
-
-    form = LampworkMaterialForm(request.POST or None)
-    context = {"form": form}
-
-    # Density Mapping (g/cm³)
-    DENSITIES = {
-        "boro": 2.23,    # Standard Borosilicate
-        "soft": 2.50,    # Standard Soda Lime (Effetre)
-        "satake": 2.55,  # Satake Glass (Lead)
-        "coe90": 2.50,   # Bullseye (approx standard soda lime)
-        "coe96": 2.50,   # System 96 (approx standard soda lime)
-        "crystal": 3.10, # Generic Full Lead Crystal
-        "quartz": 2.20,  # Fused Silica
-    }
-
-    if request.method == "POST" and form.is_valid():
-        data = form.cleaned_data
-        
-        # 1. Inputs
-        g_type = data["glass_type"]
-        shape = data["form_factor"]
-        dia_mm = data["diameter_mm"]
-        length_in = data["length_inches"]
-        qty = data["quantity"]
-        
-        # 2. Conversions (mm -> cm, inches -> cm)
-        radius_cm = (dia_mm / 2) / 10.0
-        length_cm = length_in * 2.54
-        
-        # 3. Volume Calculation (cm³)
-        if shape == "rod":
-            # V = π * r² * h
-            vol_per_piece = math.pi * (radius_cm ** 2) * length_cm
-        else:
-            # Tubing: V = π * (r_out² - r_in²) * h
-            wall_mm = data["wall_mm"]
-            inner_radius_cm = ((dia_mm - (2 * wall_mm)) / 2) / 10.0
-            vol_per_piece = math.pi * (radius_cm**2 - inner_radius_cm**2) * length_cm
-
-        total_vol = vol_per_piece * qty
-
-        # 4. Weight Calculation
-        density = DENSITIES.get(g_type, 2.50) # Default to 2.5 if unknown
-        total_weight_g = total_vol * density
-        total_weight_lb = total_weight_g / 453.592
-
-        context["results"] = {
-            "weight_g": round(total_weight_g, 1),
-            "weight_lb": round(total_weight_lb, 3),
-            "total_len_in": round(length_in * qty, 1),
-            "glass_name": dict(form.fields['glass_type'].choices)[g_type],
-            "shape_name": dict(form.fields['form_factor'].choices)[shape],
-            "density": density,
-        }
-
-    return render(request, "projects/lampwork_materials.html", context)
-
 # Glass Artist Toolkit Page
 @trim_memory_after
 # Prevents CSRF token issues in iframes.
@@ -1524,6 +1023,159 @@ def lampwork_materials(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def glass_artist_toolkit(request):
     return render(request, "projects/glass_artist_toolkit.html")
+
+# Glass Volume Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def glass_volume_calculator(request):
+    from . import glass_utils
+    from .forms import GlassVolumeForm
+    form = GlassVolumeForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        # Delegate math to utils
+        context["results"] = glass_utils.calculate_glass_volume_weight(
+            shape=form.cleaned_data["shape"],
+            data=form.cleaned_data
+        )
+
+    return render(request, "projects/glass_volume_calculator.html", context)
+
+
+# Kiln Schedule Generator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def kiln_schedule_generator(request):
+    from . import glass_utils
+    from .forms import KilnScheduleForm
+    form = KilnScheduleForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        data = form.cleaned_data
+        # Delegate schedule generation to utils
+        result = glass_utils.generate_kiln_schedule(
+            brand=data["brand"],
+            project=data["project_type"],
+            thickness=data["thickness"]
+        )
+        context.update(result) # Merges "schedule" and "total_time"
+        
+        # Format the title for display
+        context["project_name"] = f"{data['brand'].title()} - {data['project_type'].replace('_', ' ').title()}"
+
+    return render(request, "projects/kiln_schedule_generator.html", context)
+
+
+# Stained Glass Cost Estimator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def stained_glass_cost_estimator(request):
+    from . import glass_utils
+    from .forms import StainedGlassCostForm
+    form = StainedGlassCostForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = glass_utils.estimate_stained_glass_cost(
+            w=d["width"], h=d["height"], pieces=d["pieces"],
+            glass_price=d["glass_price"], rate=d["labor_rate"],
+            user_hours=d["estimated_hours"]
+        )
+
+    return render(request, "projects/stained_glass_cost_estimator.html", context)
+
+
+# Kiln Controller Utilities
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def kiln_controller_utils(request):
+    from . import glass_utils
+    from .forms import TempConverterForm, RampCalculatorForm
+    
+    convert_form = TempConverterForm(initial={"action": "convert"})
+    ramp_form = RampCalculatorForm(initial={"action": "ramp"})
+    context = {"convert_form": convert_form, "ramp_form": ramp_form}
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "convert":
+            convert_form = TempConverterForm(request.POST)
+            if convert_form.is_valid():
+                res = glass_utils.convert_temperature(
+                    convert_form.cleaned_data["temperature"],
+                    convert_form.cleaned_data["from_unit"]
+                )
+                context["convert_result"] = {
+                    "input": f"{convert_form.cleaned_data['temperature']}{res['orig']}",
+                    "output": f"{round(res['val'], 1)}{res['unit']}"
+                }
+                context["convert_form"] = convert_form
+
+        elif action == "ramp":
+            ramp_form = RampCalculatorForm(request.POST)
+            if ramp_form.is_valid():
+                res = glass_utils.calculate_ramp_details(
+                    ramp_form.cleaned_data["start_temp"],
+                    ramp_form.cleaned_data["target_temp"],
+                    ramp_form.cleaned_data["rate"]
+                )
+                if res:
+                    context["ramp_result"] = res
+                else:
+                    ramp_form.add_error("rate", "Rate must be greater than 0.")
+                
+                context["ramp_form"] = ramp_form
+
+    return render(request, "projects/kiln_controller_utils.html", context)
+
+
+# Stained Glass Materials Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def stained_glass_materials(request):
+    from . import glass_utils
+    from .forms import StainedGlassMaterialsForm
+    form = StainedGlassMaterialsForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = glass_utils.estimate_stained_glass_materials(
+            w=d["width"], h=d["height"], pieces=d["pieces"],
+            method=d["method"], waste_factor=d["waste_factor"]
+        )
+        context["method_display"] = dict(form.fields['method'].choices)[d["method"]]
+
+    return render(request, "projects/stained_glass_materials.html", context)
+
+
+# Lampwork Material Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def lampwork_materials(request):
+    from . import glass_utils
+    from .forms import LampworkMaterialForm
+    form = LampworkMaterialForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        results = glass_utils.calculate_lampwork_weight(
+            glass_type=d["glass_type"], shape=d["form_factor"],
+            dia_mm=d["diameter_mm"], length_in=d["length_inches"],
+            qty=d["quantity"], wall_mm=d.get("wall_mm", 0)
+        )
+        # Add display names for template
+        results["glass_name"] = dict(form.fields['glass_type'].choices)[d["glass_type"]]
+        results["shape_name"] = dict(form.fields['form_factor'].choices)[d["form_factor"]]
+        
+        context["results"] = results
+
+    return render(request, "projects/lampwork_materials.html", context)
 
 # NEW END
 
@@ -1533,227 +1185,100 @@ def glass_artist_toolkit(request):
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_class_calculator(request):
+    from . import freight_calculator_utils
     from .forms import FreightClassForm
-
     form = FreightClassForm(request.POST or None)
     context = {"form": form}
 
     if request.method == "POST" and form.is_valid():
-        l = form.cleaned_data["length"]
-        w = form.cleaned_data["width"]
-        h = form.cleaned_data["height"]
-        weight_per = form.cleaned_data["weight"]
-        qty = form.cleaned_data["quantity"]
-
-        # 1. Calculate Totals
-        # Volume of one unit in cubic inches
-        vol_cubic_inches = l * w * h
-        # Volume of one unit in cubic feet (1728 cubic inches = 1 cubic foot)
-        vol_cubic_feet = vol_cubic_inches / 1728.0
-        
-        total_cubic_feet = vol_cubic_feet * qty
-        total_weight = weight_per * qty
-        
-        # 2. Calculate Density (PCF: Pounds per Cubic Foot)
-        if total_cubic_feet > 0:
-            density = total_weight / total_cubic_feet
-        else:
-            density = 0
-
-        # 3. Determine Estimated Freight Class (Standard NMFC Density Scale)
-        if density < 1:
-            est_class = 400
-        elif density < 2:
-            est_class = 300
-        elif density < 4:
-            est_class = 250
-        elif density < 6:
-            est_class = 150
-        elif density < 8:
-            est_class = 125
-        elif density < 10:
-            est_class = 100
-        elif density < 12:
-            est_class = 92.5
-        elif density < 15:
-            est_class = 85
-        elif density < 22.5:
-            est_class = 70
-        elif density < 30:
-            est_class = 65
-        elif density < 35:
-            est_class = 60
-        elif density < 50:
-            est_class = 55
-        else:
-            est_class = 50
-
-        context["results"] = {
-            "density": round(density, 2),
-            "estimated_class": est_class,
-            "total_weight": round(total_weight, 2),
-            "total_cubic_feet": round(total_cubic_feet, 2),
-            "qty": qty
-        }
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_freight_class(
+            length=d["length"], width=d["width"], height=d["height"],
+            weight_per_unit=d["weight"], quantity=d["quantity"]
+        )
 
     return render(request, "projects/freight_class_calculator.html", context)
+
 
 # Fuel Surcharge Calculator
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def fuel_surcharge_calculator(request):
+    from . import freight_calculator_utils
     from .forms import FuelSurchargeForm
-
     form = FuelSurchargeForm(request.POST or None)
     context = {"form": form}
 
     if request.method == "POST" and form.is_valid():
-        miles = form.cleaned_data["trip_miles"]
-        current = form.cleaned_data["current_price"]
-        base = form.cleaned_data["base_price"]
-        mpg = form.cleaned_data["mpg"]
-
-        # 1. Calculate the difference
-        # If current price is below base, surcharge is technically zero (or negative/credit).
-        # We calculate the raw diff but handle display logic in the template or here.
-        price_diff = current - base
-        
-        # 2. Calculate Surcharge Per Mile
-        # Formula: (Current - Base) / MPG
-        if mpg > 0:
-            fsc_per_mile = price_diff / mpg
-        else:
-            fsc_per_mile = 0.0
-
-        # 3. Calculate Total Surcharge
-        total_fsc = fsc_per_mile * miles
-
-        context["results"] = {
-            "fsc_per_mile": round(fsc_per_mile, 3),  # Standard 3 decimal places for rate/mile
-            "total_fsc": round(total_fsc, 2),
-            "price_diff": round(price_diff, 2),
-            "is_negative": price_diff < 0
-        }
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_fuel_surcharge(
+            miles=d["trip_miles"], current_price=d["current_price"],
+            base_price=d["base_price"], mpg=d["mpg"]
+        )
 
     return render(request, "projects/fuel_surcharge_calculator.html", context)
+
 
 # Truck Driver HOS Trip Planner
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def hos_trip_planner(request):
+    from . import freight_calculator_utils
     from .forms import HOSTripPlannerForm
-    from datetime import datetime, timedelta
-
+    from datetime import datetime
+    
     form = HOSTripPlannerForm(request.POST or None)
     context = {"form": form}
 
     if request.method == "POST" and form.is_valid():
-        # Inputs
-        miles_remaining = form.cleaned_data["total_miles"]
-        speed = form.cleaned_data["avg_speed"]
-        s_date = form.cleaned_data["start_date"]
-        s_time = form.cleaned_data["start_time"]
-
-        # Initialize Simulation Clock
-        current_time = datetime.combine(s_date, s_time)
-        itinerary = []
+        d = form.cleaned_data
+        start_datetime = datetime.combine(d["start_date"], d["start_time"])
         
-        # HOS Counters
-        shift_drive_time = 0.0
-        continuous_drive_time = 0.0
+        # Run HOS Simulation
+        simulation_results = freight_calculator_utils.generate_hos_itinerary(
+            miles_remaining=d["total_miles"],
+            speed=d["avg_speed"],
+            start_datetime=start_datetime
+        )
         
-        # Safety catch for infinite loops
-        iterations = 0
-        max_iterations = 50 
-
-        while miles_remaining > 0 and iterations < max_iterations:
-            iterations += 1
-            
-            # 1. Determine constraints for this leg
-            # How much time is left on the 11-hour shift limit?
-            time_left_in_shift = 11.0 - shift_drive_time
-            # How much time is left before mandatory 30-min break (8 hr limit)?
-            time_left_continuous = 8.0 - continuous_drive_time
-            # How much time to finish the trip?
-            time_to_finish = miles_remaining / speed
-
-            # The actual drive time is the smallest of these constraints
-            leg_duration = min(time_to_finish, time_left_in_shift, time_left_continuous)
-            
-            # Avoid tiny floating point fragments (less than 1 min)
-            if leg_duration < 0.01:
-                leg_duration = 0
-
-            # 2. "Drive" this leg
-            dist_covered = leg_duration * speed
-            start_leg_time = current_time
-            current_time += timedelta(hours=leg_duration)
-            
-            miles_remaining -= dist_covered
-            shift_drive_time += leg_duration
-            continuous_drive_time += leg_duration
-
-            # Add Drive Event
-            if leg_duration > 0:
-                itinerary.append({
-                    "event": "Drive",
-                    "start": start_leg_time,
-                    "end": current_time,
-                    "duration": f"{int(leg_duration)}h {int((leg_duration*60)%60)}m",
-                    "note": f"Covered {round(dist_covered, 1)} miles"
-                })
-
-            # 3. Check Logic for Breaks/Resets
-            
-            # A) Trip Finished?
-            if miles_remaining <= 0.1: # float tolerance
-                itinerary.append({
-                    "event": "Arrived",
-                    "start": current_time,
-                    "end": "",
-                    "duration": "",
-                    "note": "Destination Reached",
-                    "is_highlight": True
-                })
-                break
-
-            # B) 11-Hour Limit Hit? -> 10 Hour Reset
-            if shift_drive_time >= 11.0:
-                start_break = current_time
-                current_time += timedelta(hours=10)
-                itinerary.append({
-                    "event": "10-Hour Reset",
-                    "start": start_break,
-                    "end": current_time,
-                    "duration": "10h 00m",
-                    "note": "Mandatory Daily Reset (11hr limit reached)",
-                    "is_break": True
-                })
-                # Reset clocks
-                shift_drive_time = 0
-                continuous_drive_time = 0
-                continue # Skip checking 30min break if we just took a 10hr reset
-
-            # C) 8-Hour Limit Hit? -> 30 Minute Break
-            if continuous_drive_time >= 8.0:
-                start_break = current_time
-                current_time += timedelta(minutes=30)
-                itinerary.append({
-                    "event": "30-Min Break",
-                    "start": start_break,
-                    "end": current_time,
-                    "duration": "0h 30m",
-                    "note": "Mandatory FMCSA Break (8hr continuous limit)",
-                    "is_break": True
-                })
-                # Reset continuous clock only
-                continuous_drive_time = 0
-
-        context["itinerary"] = itinerary
-        context["arrival_time"] = current_time
-        context["total_trip_miles"] = form.cleaned_data["total_miles"]
+        context.update(simulation_results) # Merges 'itinerary' and 'arrival_time'
+        context["total_trip_miles"] = d["total_miles"]
 
     return render(request, "projects/hos_trip_planner.html", context)
+
+# Freight Carrier Safety Reporter
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_safety(request):
+    from .freight_calculator_utils import get_fmcsa_carrier_data_by_usdot
+    from .forms import CarrierSearchForm
+    
+    form = CarrierSearchForm(request.POST or None)
+    carrier = None
+    error = None
+
+    if request.method == "POST" and form.is_valid():
+        search_value = form.cleaned_data["search_value"]
+
+        try:
+            # Ensure the search is conducted only with a DOT number
+            carrier = get_fmcsa_carrier_data_by_usdot(search_value)
+
+            if not carrier:
+                error = "Carrier not found in FMCSA. Please verify you're submitting a valid DOT Number."
+
+        except requests.exceptions.RequestException as e:
+            error = f"There was an issue retrieving the carrier data. Please try again later. Error: {str(e)}"
+
+    return render(
+        request,
+        "projects/freight_safety.html",
+        {
+            "form": form,
+            "carrier": carrier,
+            "error": error,
+        }
+    )
 
 # Freight Professional Toolkit Page
 @trim_memory_after
