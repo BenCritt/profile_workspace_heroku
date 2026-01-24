@@ -942,3 +942,25 @@ class HOSTripPlannerForm(forms.Form):
         label="Start Time",
         widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
     )
+
+# --- Glass Reaction Checker ---
+class GlassReactionForm(forms.Form):
+    FAMILY_CHOICES = [
+        ("sulfur", "Sulfur/Selenium Bearing (Yellows, Reds, Oranges)"),
+        ("copper", "Copper Bearing (Turquoise, Cyan, Some Blues)"),
+        ("lead", "Lead Bearing (Select Cranberries, Special Pinks)"),
+        ("reactive_clear", "Reactive Ice/Cloud (Specialty Reactives)"),
+        ("silver", "Silver Foil / Silver Leaf"),
+        ("none", "Non-Reactive (Standard Clears, Blacks, Neutrals)"),
+    ]
+
+    glass_a = forms.ChoiceField(
+        choices=FAMILY_CHOICES,
+        label="First Glass Component",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    glass_b = forms.ChoiceField(
+        choices=FAMILY_CHOICES,
+        label="Second Glass Component",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )

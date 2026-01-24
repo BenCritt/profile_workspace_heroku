@@ -73,7 +73,6 @@ urlpatterns = [
     path("projects/cookie-audit/results/<uuid:task_id>/", views.cookie_audit_results, name="cookie_audit_results"),
     path("projects/cookie-audit/download/<uuid:task_id>/", views.cookie_audit_download, name="cookie_audit_download",),
     path("privacy-cookies/", views.privacy_cookies, name="privacy_cookies"),
-    # NEW BEGIN
     path(
         "projects/glass-volume-calculator/", 
         views.glass_volume_calculator, 
@@ -101,11 +100,9 @@ urlpatterns = [
     ),
     path("projects/glass-artist-toolkit/", views.glass_artist_toolkit, name="glass_artist_toolkit"),
     path("projects/lampwork-materials/", views.lampwork_materials, name="lampwork_materials"),
-    # NEW END
-    # NEW 2 BEGIN
     path("projects/freight-class-calculator/", views.freight_class_calculator, name="freight_class_calculator"),
     path("projects/fuel-surcharge-calculator/", views.fuel_surcharge_calculator, name="fuel_surcharge_calculator"),
     path("projects/hos-trip-planner/", views.hos_trip_planner, name="hos_trip_planner"),
     path("projects/freight-tools/", views.freight_tools, name="freight_tools"),
-    # NEW 2 END
+    path("projects/glass-reaction-checker/", views.glass_reaction_checker, name="glass_reaction_checker"),
 ]

@@ -75,10 +75,19 @@
 
              <div class="card tool-card shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title h4">Kiln Controller Utils</h2>
+                    <h2 class="card-title h4">Kiln Controller Utilities</h2>
                     <img src="{% static 'img/all-projects/kiln-utils.webp' %}" alt="Kiln Utilities" class="img-fluid rounded my-3">                
                     <p class="card-text small">Quick math for the kiln studio. Convert temperatures and calculate segment durations based on ramp rates.</p>
                     <a href="{% url 'projects:kiln_controller_utils' %}" class="btn btn-primary mt-2">Open Utils</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Reaction Checker</h2>
+                    <img src="{% static 'img/all-projects/glass-reaction-checker.webp' %}" alt="Glass Reaction Checker" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Check for chemical reactions between glass families (Sulfur, Copper, Lead, Silver) to prevent dark lines and discoloration.</p>
+                    <a href="{% url 'projects:glass_reaction_checker' %}" class="btn btn-primary mt-2">Open Checker</a>
                 </div>
             </div>
 
@@ -155,6 +164,18 @@
                         scrolling="no">
                     </iframe>
                     <a href="{% url 'projects:lampwork_materials' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:glass_reaction_checker' %}"
+                        title="Glass Reaction Checker"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:glass_reaction_checker' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

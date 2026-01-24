@@ -1275,3 +1275,29 @@ def freight_safety(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def freight_tools(request):
     return render(request, "projects/freight_tools.html")
+
+# Freight Professional Toolkit Page
+@trim_memory_after
+@ensure_csrf_cookie
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_tools(request):
+    return render(request, "projects/freight_tools.html")
+
+# Glass Reaction Checker
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def glass_reaction_checker(request):
+    from . import glass_utils
+    from .forms import GlassReactionForm
+
+    form = GlassReactionForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        type_a = form.cleaned_data["glass_a"]
+        type_b = form.cleaned_data["glass_b"]
+
+        # Delegate logic to utils
+        context["results"] = glass_utils.check_glass_reaction(type_a, type_b)
+
+    return render(request, "projects/glass_reaction_checker.html", context)

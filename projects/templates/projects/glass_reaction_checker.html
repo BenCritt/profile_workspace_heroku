@@ -1,0 +1,76 @@
+{% extends "projects/base.html" %}
+
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/glass_reaction_checker_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/glass_reaction_checker_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/glass-reaction-checker/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/glass_reaction_checker.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Glass Reaction Checker | Check Reactivity between Different Glass Families{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Glass Reaction Checker</h1>
+            <p class="lead text-muted text-center mb-5">
+                Prevent "poodle effects" and dark reaction lines in your fused glass projects.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.glass_a.label_tag }}
+                                {{ form.glass_a }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.glass_b.label_tag }}
+                                {{ form.glass_b }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">Check Compatibility</button>
+                        <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary mt-3 w-100">Go to Glass Artist Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-{{ results.severity }}" role="alert">
+                <h4 class="alert-heading">{{ results.status }}</h4>
+                <p><strong>{{ results.message }}</strong> {{ results.detail }}</p>
+                {% if results.tip %}
+                <hr>
+                <p class="mb-0 small">{{ results.tip }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="mt-5">
+                <h3>How this works</h3>
+                <p>Certain glass colors contain <strong>Sulfur</strong> (mostly warm colors) while others contain <strong>Copper</strong> or <strong>Lead</strong> (mostly cool colors/turquoises). When fused together, they form Copper Sulfide or Lead Sulfide, creating a dark outline.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

@@ -247,3 +247,55 @@ def calculate_lampwork_weight(glass_type, shape, dia_mm, length_in, qty, wall_mm
         "total_len_in": round(length_in * qty, 1),
         "density": density,
     }
+
+def check_glass_reaction(type_a, type_b):
+    """
+    Checks for chemical reactions between two glass families.
+    Returns a dictionary with result, severity, and details.
+    """
+    # Reaction Matrix: Define what reacts with what.
+    # Key = The category, Value = List of categories it reacts with.
+    REACTION_RULES = {
+        'sulfur': ['copper', 'lead', 'reactive_clear', 'silver'],
+        'copper': ['sulfur', 'reactive_clear', 'silver'],
+        'lead': ['sulfur'],
+        'reactive_clear': ['sulfur', 'copper', 'silver'],
+        'silver': ['sulfur', 'copper', 'reactive_clear'],
+        'none': []
+    }
+
+    # Family display names
+    NAMES = {
+        'sulfur': 'Sulfur/Selenium (Warm Colors)',
+        'copper': 'Copper (Cool Colors)',
+        'lead': 'Lead (Cranberries/Pinks)',
+        'reactive_clear': 'Reactive Ice/Cloud',
+        'silver': 'Silver Foil/Leaf',
+        'none': 'Non-Reactive (Clears/Blacks)'
+    }
+
+    name_a = NAMES.get(type_a, type_a)
+    name_b = NAMES.get(type_b, type_b)
+
+    if type_b in REACTION_RULES.get(type_a, []):
+        return {
+            "status": "Reaction Detected",
+            "severity": "danger",
+            "message": f"{name_a} reacts with {name_b}.",
+            "detail": "This combination will likely develop a dark gray or brownish line where the glasses meet.",
+            "tip": "Tip: You can prevent this reaction by placing a layer of Clear glass (Non-Reactive) between these two colors."
+        }
+    elif type_a == type_b:
+        return {
+            "status": "Safe (Same Family)",
+            "severity": "success",
+            "message": "Both selections are from the same chemical family.",
+            "detail": "Mixing glass from the same chemical family is safe."
+        }
+    else:
+        return {
+            "status": "Safe Combination",
+            "severity": "success",
+            "message": "These glass families typically do not react with one another.",
+            "detail": ""
+        }
