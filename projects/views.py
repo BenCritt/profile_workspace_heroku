@@ -865,6 +865,12 @@ def all_projects(request):
             "url_name": "projects:hos_trip_planner",
             "image": "hos-trip-planner.webp",
             "description": "Plan realistic truck trips compliant with FMCSA Hours of Service (HOS) rules. Input your miles and start time to generate a step-by-step itinerary that automatically calculates mandatory 30-minute breaks and 10-hour daily resets."
+        },
+        {
+            "title": "Glass Reaction Checker",
+            "url_name": "projects:glass_reaction_checker",
+            "image": "glass-reaction-checker.webp",
+            "description": "Prevent accidental discoloration and dark lines in your fused glass projects. This tool checks for chemical reactions between different glass families (Sulfur, Copper, Lead, and Silver) so you can plan your glass combinations safely."
         }
     ]
     
