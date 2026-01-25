@@ -49,6 +49,8 @@ mappings = [
     ("kiln_controller_utils", "kiln-controller-utils"),
     ("kiln_schedule_generator", "kiln-schedule-generator"),
     ("stained_glass_cost_estimator", "stained-glass-cost-estimator"),
+    ("stained_glass_estimator", "stained-glass-cost-estimator"),
+    ("stained-glass-estimator", "stained-glass-cost-estimator"),
     ("stained_glass_materials", "stained-glass-materials"),
     ("glass_artist_toolkit", "glass-artist-toolkit"),
     ("seo_tools", "seo-tools"),

@@ -84,7 +84,7 @@ urlpatterns = [
         name="kiln_schedule_generator"
     ),
     path(
-        "projects/stained-glass-estimator/", 
+        "projects/stained-glass-cost-estimator/", 
         views.stained_glass_cost_estimator, 
         name="stained_glass_cost_estimator"
     ),
