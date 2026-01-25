@@ -32,6 +32,14 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("glass_reaction_checker", "glass-reaction-checker"),
+    ("frit_mixing_calculator", "frit-mixing-calculator"),
+    ("circle_cutter_calculator", "circle-cutter-calculator"),
+    ("tie_down_calculator", "tie-down-calculator"),
+    ("cost_per_mile_calculator", "cost-per-mile-calculator"),
+    ("linear_foot_calculator", "linear-foot-calculator"),
+    ("detention_layover_fee_calculator", "detention-layover-fee-calculator"),
+    ("warehouse_storage_calculator", "warehouse-storage-calculator"),
     ("freight_tools", "freight-tools"),
     ("freight_class_calculator", "freight-class-calculator"),
     ("fuel_surcharge_calculator", "fuel-surcharge-calculator"),
