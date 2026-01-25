@@ -425,3 +425,49 @@ def calculate_warehouse_storage(area_length, area_width, p_length, p_width, stac
         "orientation": best_orientation,
         "total_sq_ft": round(area_length * area_width, 1)
     }
+
+def calculate_partial_rate(origin_zip, dest_zip, distance_miles, trailer_type, pallets, weight, base_ftl_cpm, markup, min_charge):
+    """
+    Estimates a Volume LTL / Partial rate based on specific trailer utilization.
+    Calculates the FTL baseline cost and applies the broker's specific financial parameters.
+    """
+    # 1. Define Trailer Constraints based on Selection
+    TRAILER_SPECS = {
+        "dry_van": {"max_pallets": 26, "max_weight": 40000},
+        "reefer":  {"max_pallets": 26, "max_weight": 38000}, # Heavy refrigeration unit reduces weight capacity
+        "flatbed": {"max_pallets": 24, "max_weight": 45000}  # Flatbeds are usually 48' but carry more weight
+    }
+    
+    max_pallets = TRAILER_SPECS[trailer_type]["max_pallets"]
+    max_weight = TRAILER_SPECS[trailer_type]["max_weight"]
+
+    # 2. Use exact road miles directly from Google Maps
+    road_miles = distance_miles
+    
+    # 3. Calculate the Full Truckload (FTL) baseline cost
+    ftl_cost = road_miles * base_ftl_cpm
+    
+    # 4. Determine trailer utilization (take the higher percentage: space or weight)
+    space_percentage = pallets / max_pallets
+    weight_percentage = weight / max_weight
+    trailer_utilization = max(space_percentage, weight_percentage)
+    
+    # 5. Calculate Final Estimate using the Broker's financial variables
+    partial_estimate = ftl_cost * trailer_utilization * markup
+    
+    # Ensure a minimum charge (user-defined)
+    final_rate = max(min_charge, partial_estimate)
+    
+    # 6. Check if FTL might be cheaper/better
+    # Triggers if they use more than 60% of the trailer capacity
+    recommend_ftl = trailer_utilization >= 0.60
+
+    return {
+        "estimated_rate": round(final_rate, 2),
+        "road_miles": int(road_miles),
+        "trailer_percentage": round(trailer_utilization * 100, 1),
+        "recommend_ftl": recommend_ftl,
+        "origin_zip": origin_zip,
+        "dest_zip": dest_zip,
+        "limiting_factor": "Space" if space_percentage >= weight_percentage else "Weight"
+    }

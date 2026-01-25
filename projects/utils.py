@@ -46,3 +46,28 @@ def get_coordinates(zip_code):
     else:
         # Return None if the API call was unsuccessful or if no results were found.
         return None
+    
+# Used by the Freight Partial Calculator to get actual highway miles.
+def get_road_distance(origin_zip, dest_zip):
+    API_KEY = os.environ.get("GOOGLE_MAPS_KEY")
+    # "units=imperial" ensures the distance is returned in miles
+    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_zip}+USA&destinations={dest_zip}+USA&units=imperial&key={API_KEY}"
+
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("status") == "OK":
+            # Extract the distance in miles from the JSON response
+            # Google returns it as text like "2,045 mi", so we parse out the number.
+            element = data["rows"][0]["elements"][0]
+            if element.get("status") == "OK":
+                distance_text = element["distance"]["text"]
+                # Clean the text (e.g., "2,045 mi" -> 2045.0)
+                exact_miles = float(distance_text.replace(" mi", "").replace(",", ""))
+                return exact_miles
+    except Exception as e:
+        print(f"Error fetching road distance: {e}")
+        
+    return None

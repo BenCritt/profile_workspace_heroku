@@ -1343,3 +1343,108 @@ class WarehouseStorageForm(forms.Form):
             }),
         validators=[MinValueValidator(1)],
     )
+
+# --- Freight Partial / Volume LTL Estimator ---
+class PartialRateForm(forms.Form):
+    TRAILER_CHOICES = [
+        ("dry_van", "53' Dry Van (26 Pallets / 40,000 lbs)"),
+        ("reefer", "53' Reefer (26 Pallets / 38,000 lbs)"),
+        ("flatbed", "48' Flatbed (24 Pallets / 45,000 lbs)"),
+    ]
+
+    # --- Location Data ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "90210"})
+    )
+    dest_zip = forms.CharField(
+        label="Destination ZIP Code",
+        max_length=5,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "10001"})
+    )
+
+    # --- Freight Data ---
+    trailer_type = forms.ChoiceField(
+        label="Trailer Type",
+        choices=TRAILER_CHOICES,
+        initial="dry_van",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    pallets = forms.IntegerField(
+        label="Pallet Count",
+        help_text="Volume LTL is typically 5 to 14 pallets.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "inputmode": "numeric",
+            "step": "1",
+            "min": "1",
+            "max": "20",
+            "placeholder": "8"
+            }),
+        validators=[MinValueValidator(1), MaxValueValidator(20)],
+    )
+    weight = forms.FloatField(
+        label="Total Weight (lbs)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "12000",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+
+    # --- Financial Data ---
+    base_ftl_cpm = forms.FloatField(
+        label="Current FTL Rate Per Mile ($)",
+        help_text="The going rate for a Full Truckload today.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "2.50", 
+            "step": "0.01",
+            "inputmode": "decimal",
+            "min": "0.01"
+            }),
+        validators=[MinValueValidator(0.01)],
+    )
+    markup = forms.FloatField(
+        label="Broker Markup Multiplier",
+        help_text="Standard is 1.25 (25% markup).",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "1.25", 
+            "step": "0.01",
+            "inputmode": "decimal",
+            "min": "1.0"
+            }),
+        validators=[MinValueValidator(1.0)],
+    )
+    min_charge = forms.FloatField(
+        label="Minimum Charge ($)",
+        help_text="Your absolute minimum to move any freight.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "500", 
+            "step": "1",
+            "inputmode": "numeric",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+
+    def clean_origin_zip(self):
+        zip_code = self.cleaned_data["origin_zip"]
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Origin ZIP code.")
+        return zip_code
+
+    def clean_dest_zip(self):
+        zip_code = self.cleaned_data["dest_zip"]
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Destination ZIP code.")
+        return zip_code

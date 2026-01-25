@@ -60,6 +60,7 @@ class StaticViewSitemap(Sitemap):
             "projects:linear_foot_calculator",
             "projects:detention_layover_fee_calculator",
             "projects:warehouse_storage_calculator",
+            "projects:partial_rate_calculator",
         ]
 
     def location(self, item):

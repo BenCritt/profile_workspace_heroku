@@ -45,6 +45,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [LTL Linear Foot & Density Visualizer](https://www.bencritt.net/projects/linear-foot-calculator/) — Calculate linear feet occupied in a 53-foot trailer and detect potential LTL penalty triggers.
 * [Detention & Layover Fee Calculator](https://www.bencritt.net/projects/detention-layover-fee-calculator/) — Calculate billable detention hours and fees by subtracting standard free time from total facility time.
 * [Warehouse Pallet Storage Estimator](https://www.bencritt.net/projects/warehouse-storage-calculator/) — Estimate maximum pallet capacity for any warehouse footprint, testing both standard and rotated orientations.
+* [Freight Partial & Volume LTL Rate Calculator](https://www.bencritt.net/projects/partial-rate-calculator/) — Calculate volume LTL rates using ZIP-to-ZIP road miles, trailer utilization, and broker margins.
 
 ### SEO & Web Development
 * [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Scan URLs/sitemaps to export <head> tags (meta, canonical, OG, schema) to CSV.

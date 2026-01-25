@@ -1,0 +1,97 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/partial_rate_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/partial_rate_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/partial-rate-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/partial_rate_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Freight Partial & Volume LTL Rate Calculator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-truck-flatbed me-2"></i>Freight Partial Estimator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate Volume LTL and Partial Truckload estimates based on trailer utilization and your custom brokerage margins.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Partial Rate</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {% if results %}
+                {% if results.recommend_ftl %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>Full Truckload Recommended</h5>
+                    <p class="mb-0 text-center small">
+                        At <strong>{{ results.trailer_percentage }}%</strong> capacity, it is likely cheaper and faster to book a dedicated <strong>Full Truckload (FTL)</strong>. Partials this large are extremely difficult to pair with other freight.
+                    </p>
+                </div>
+                {% endif %}
+
+            <div class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Estimated Partial Rate: ${{ results.estimated_rate }}</h4>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Trailer Utilization</small><br>
+                        <span class="fs-4 fw-bold">{{ results.trailer_percentage }}%</span> 
+                        <small>({{ results.limiting_factor }} constrained)</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Estimated Distance</small><br>
+                        <span class="fs-4 fw-bold">{{ results.road_miles }}</span> <small>road miles</small>
+                    </div>
+                    <div class="col-12 text-center">
+                        <small class="text-muted">Route: {{ results.origin_zip }} ➔ {{ results.dest_zip }}</small><br>
+                        <small class="text-muted">Trailer: {{ trailer_name }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Volume LTL vs. Partial Truckload</h3>
+            <p class="small text-muted mb-2">
+                <strong>Volume LTL:</strong> Moves through a standard LTL carrier's hub-and-spoke network, but rates are spot-quoted based on trailer capacity rather than NMFC class. Highly susceptible to damage from cross-docking.
+            </p>
+            <p class="small text-muted">
+                <strong>Partial Truckload:</strong> Freight stays on one truck from origin to destination (no cross-docking). It is paired with another shipper's freight to fill the trailer. Lower damage risk, but transit times depend on the carrier's ability to find matching freight.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% endblock content %}

@@ -913,6 +913,12 @@ def all_projects(request):
             "url_name": "projects:warehouse_storage_calculator",
             "image": "warehouse-storage-calculator.webp",
             "description": "Calculate the exact maximum pallet capacity for any warehouse footprint. This tool automatically tests both standard and rotated pallet orientations to maximize your square footage."
+        },
+        {
+            "title": "Freight Partial & Volume LTL Rate Calculator",
+            "url_name": "projects:partial_rate_calculator",
+            "image": "partial-rate-calculator.webp",
+            "description": "Calculate Volume LTL and Partial Truckload estimates based on exact trailer utilization, ZIP-to-ZIP road distance, and custom brokerage margins. Essential for determining if a large shipment is cheaper to move via LTL or dedicated Full Truckload (FTL)."
         }
     ]
     
@@ -1507,3 +1513,42 @@ def warehouse_storage_calculator(request):
         )
 
     return render(request, "projects/warehouse_storage_calculator.html", context)
+
+# Freight Partial (Volume LTL) Estimator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def partial_rate_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import PartialRateForm
+    from .utils import get_road_distance
+    
+    form = PartialRateForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        
+        # 1. Get exact highway miles from Google Maps
+        exact_miles = get_road_distance(d["origin_zip"], d["dest_zip"])
+        
+        if exact_miles:
+            # 2. Offload calculation to utils
+            context["results"] = freight_calculator_utils.calculate_partial_rate(
+                origin_zip=d["origin_zip"],
+                dest_zip=d["dest_zip"],
+                distance_miles=exact_miles, # Now using exact miles
+                trailer_type=d["trailer_type"],
+                pallets=d["pallets"],
+                weight=d["weight"],
+                base_ftl_cpm=d["base_ftl_cpm"],
+                markup=d["markup"],
+                min_charge=d["min_charge"]
+            )
+            
+            # 3. Pass the human-readable trailer name to the template
+            context["trailer_name"] = dict(form.fields['trailer_type'].choices)[d["trailer_type"]]
+
+        else:
+            context["error_message"] = "Unable to calculate a valid driving route between these ZIP codes."
+
+    return render(request, "projects/partial_rate_calculator.html", context)

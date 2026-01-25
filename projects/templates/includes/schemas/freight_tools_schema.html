@@ -76,6 +76,11 @@
             "@type": "ListItem",
             "position": 9,
             "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "item": { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" }
           }
         ]
       },
@@ -88,7 +93,8 @@
         { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
+        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" }
       ]
     },
 
@@ -251,6 +257,25 @@
       "featureList": [
         "Calculates maximum floor capacity.",
         "Determines optimal pallet orientation."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app",
+      "name": "Freight Partial & Volume LTL Rate Calculator",
+      "description": "Calculate Volume LTL and Partial Truckload estimates based on trailer utilization, exact road miles, and custom brokerage margins.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/partial-rate-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/partial-rate-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Compare Volume LTL vs Full Truckload rates",
+        "Calculate trailer utilization based on exact trailer specs (Dry Van, Reefer, Flatbed)",
+        "Determine limiting freight factor (Space vs Weight)",
+        "ZIP to ZIP freight rate estimator based on Google Maps road miles"
       ]
     }
   ]

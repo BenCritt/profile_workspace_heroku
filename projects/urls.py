@@ -112,4 +112,5 @@ urlpatterns = [
     path("projects/linear-foot-calculator/", views.linear_foot_calculator,name="linear_foot_calculator"),
     path("projects/detention-layover-fee-calculator/", views.detention_layover_fee_calculator, name="detention_layover_fee_calculator"),
     path("projects/warehouse-storage-calculator/", views.warehouse_storage_calculator, name="warehouse_storage_calculator"),
+    path("projects/partial-rate-calculator/", views.partial_rate_calculator, name="partial_rate_calculator"),
 ]

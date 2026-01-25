@@ -32,6 +32,7 @@ urlpatterns = [
 
 # Mapping of old (underscore) URLs to new (dashed) URLs
 mappings = [
+    ("partial_rate_calculator", "partial-rate-calculator"),
     ("glass_reaction_checker", "glass-reaction-checker"),
     ("frit_mixing_calculator", "frit-mixing-calculator"),
     ("circle_cutter_calculator", "circle-cutter-calculator"),

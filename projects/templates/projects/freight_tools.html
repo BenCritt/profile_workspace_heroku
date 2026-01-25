@@ -109,6 +109,15 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Partial Rate Calculator</h2>
+                    <img src="{% static 'img/all-projects/partial-rate-calculator.webp' %}" alt="Freight Partial Rate Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate Volume LTL / Partial rates based on trailer utilization, exact road miles, and broker margins.</p>
+                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -217,6 +226,18 @@
                         scrolling="yes">
                     </iframe>
                     <a href="{% url 'projects:warehouse_storage_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:partial_rate_calculator' %}"
+                        title="Freight Partial & Volume LTL Rate Calculator"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 
