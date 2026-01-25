@@ -56,9 +56,9 @@ class StaticViewSitemap(Sitemap):
             "projects:fuel_surcharge_calculator",
             "projects:hos_trip_planner",
             "projects:tie_down_calculator",
-            "projects:cpm_calculator",
+            "projects:cost_per_mile_calculator",
             "projects:linear_foot_calculator",
-            "projects:detention_calculator",
+            "projects:detention_layover_fee_calculator",
             "projects:warehouse_storage_calculator",
         ]
 
