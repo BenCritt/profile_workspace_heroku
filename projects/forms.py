@@ -1025,7 +1025,7 @@ class CircleCutterForm(forms.Form):
         label="Desired Finished Diameter (inches)",
         widget=forms.NumberInput(attrs={
             "class": "form-control", 
-            "placeholder": "e.g. 10.5",
+            "placeholder": "10.5",
             "inputmode": "decimal", # Triggers the correct mobile keyboard
             "min": "0.00001"        # Prevents negative numbers
             }),
