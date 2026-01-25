@@ -55,12 +55,27 @@
           {
             "@type": "ListItem",
             "position": 5,
-            "item": { "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app" }
+            "item": { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" }
           },
           {
             "@type": "ListItem",
             "position": 6,
-            "item": { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" }
+            "item": { "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": { "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "item": { "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "item": { "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app" }
           }
         ]
       },
@@ -69,8 +84,11 @@
         { "@id": "https://www.bencritt.net/projects/glass-volume-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/stained-glass-cost-estimator/#app" },
         { "@id": "https://www.bencritt.net/projects/stained-glass-materials/#app" },
+        { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" },
         { "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app" },
-        { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" }
+        { "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app" }
       ]
     },
 
@@ -152,6 +170,25 @@
 
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/lampwork-materials/#app",
+      "name": "Lampwork Glass Calculator",
+      "description": "Calculate required weight for Boro, Soft Glass, Satake, or Lead Crystal rods and tubing based on length and diameter.",
+      "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/lampwork-materials/",
+      "image": "https://www.bencritt.net/static/img/all-projects/lampwork-glass-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate weight for solid rods and hollow tubing",
+        "Supports COE 33, 90, 96, 104 and Lead Crystal",
+        "Uses specific glass density for high accuracy"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
       "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app",
       "name": "Kiln Controller Utilities",
       "description": "Quick math helpers for programming digital kiln controllers, including temperature conversion and segment time calculations.",
@@ -171,20 +208,58 @@
 
     {
       "@type": "SoftwareApplication",
-      "@id": "https://www.bencritt.net/projects/lampwork-materials/#app",
-      "name": "Lampwork Glass Calculator",
-      "description": "Calculate required weight for Boro, Soft Glass, Satake, or Lead Crystal rods and tubing based on length and diameter.",
+      "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app",
+      "name": "Glass Reaction Checker",
+      "description": "Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver) to prevent dark lines and discoloration in fused glass projects.",
       "applicationCategory": "Utility Software",
       "operatingSystem": "Web-based",
       "isAccessibleForFree": true,
-      "url": "https://www.bencritt.net/projects/lampwork-materials/",
-      "image": "https://www.bencritt.net/static/img/all-projects/lampwork-glass-calculator.webp",
+      "url": "https://www.bencritt.net/projects/glass-reaction-checker/",
+      "image": "https://www.bencritt.net/static/img/all-projects/glass-reaction-checker.webp",
       "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate weight for solid rods and hollow tubing",
-        "Supports COE 33, 90, 96, 104 and Lead Crystal",
-        "Uses specific glass density for high accuracy"
+        "Identifies potential chemical reactions between distinct glass families",
+        "Prevents costly mistakes like Lead Sulfide or Copper Sulfide staining",
+        "Categorizes glass by chemical bearing (Sulfur, Copper, Lead, Silver)"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app",
+      "name": "Enamel & Frit Mixing Calculator",
+      "description": "Calculate the exact medium-to-powder ratio for mixing glass enamels and frits based on the desired application style.",
+      "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/frit-mixing-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/frit-mixing-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate exact weight or drops of medium needed for dry glass powder",
+        "Select styles including fluid painting, screen printing, and airbrushing",
+        "Uses industry-standard medium-to-powder viscosity ratios"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app",
+      "name": "Circle & Oval Cutter Calculator",
+      "description": "Calculate the exact radius setting for glass circle cutters by factoring in the tool head offset and grinding allowances.",
+      "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/circle-cutter-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/circle-cutter-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Automatically subtracts the cutting wheel offset (pivot to blade)",
+        "Adds customizable allowances for material lost during edge grinding",
+        "Supports standard circle cuts and oval measurements"
       ]
     }
   ]
