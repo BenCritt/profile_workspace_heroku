@@ -40,6 +40,11 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Freight Class Calculator](https://www.bencritt.net/projects/freight-class-calculator/) — Estimate NMFC Freight Class for LTL shipments based on density to avoid re-bills.
 * [Fuel Surcharge Calculator](https://www.bencritt.net/projects/fuel-surcharge-calculator/) — Calculate fair fuel surcharges (FSC) based on current diesel prices, base pegs, and trip miles.
 * [HOS Trip Planner](https://www.bencritt.net/projects/hos-trip-planner/) — Plan realistic ETAs compliant with FMCSA Hours of Service rules (11hr drive / 10hr reset).
+* [FMCSA Tie-Down & Load Securement Calculator](https://www.bencritt.net/projects/tie-down-calculator/) — Calculate required tie-downs to secure cargo per FMCSA § 393.102/106 rules, based on weight, length, and WLL.
+* [Owner-Operator Cost Per Mile (CPM) Calculator](https://www.bencritt.net/projects/cost-per-mile-calculator) — Calculate Break-Even Rate Per Mile factoring in fixed monthly and variable costs.
+* [LTL Linear Foot & Density Visualizer](https://www.bencritt.net/projects/linear-foot-calculator/) — Calculate linear feet occupied in a 53-foot trailer and detect potential LTL penalty triggers.
+* [Detention & Layover Fee Calculator](https://www.bencritt.net/projects/detention-layover-fee-calculator/) — Calculate billable detention hours and fees by subtracting standard free time from total facility time.
+* [Warehouse Pallet Storage Estimator](https://www.bencritt.net/projects/warehouse-storage-calculator/) — Estimate maximum pallet capacity for any warehouse footprint, testing both standard and rotated orientations.
 
 ### SEO & Web Development
 * [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Scan URLs/sitemaps to export <head> tags (meta, canonical, OG, schema) to CSV.
@@ -54,7 +59,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 
 ### Glass Art & Kiln Tools
 * [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver).
-* [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing enamels and frits.
+* [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing enamels and frits for various applications.
 * [Circle & Oval Cutter Calculator](https://www.bencritt.net/projects/circle-cutter-calculator/) — Calculate radius settings for glass circle cutters, factoring in wheel offsets and grind allowances.
 * [Kiln Schedule Generator](https://www.bencritt.net/projects/kiln-schedule-generator/) — Generate safe firing schedules for Bullseye (90) and System 96 glass, adjusted for thickness.
 * [Glass Volume Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact weight of glass needed for pot melts and casting molds (2.5g/cm³ density).
@@ -82,4 +87,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-01-24_
+_Last Updated: 2026-01-25_
