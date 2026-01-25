@@ -873,7 +873,7 @@ class FuelSurchargeForm(forms.Form):
         label="Total Trip Miles",
         widget=forms.NumberInput(attrs={
             "class": "form-control", 
-            "placeholder": "e.g. 1200",
+            "placeholder": "1200",
             "inputmode": "decimal", # Triggers the correct mobile keyboard
             "min": "0.00001"        # Prevents negative numbers
             }),
