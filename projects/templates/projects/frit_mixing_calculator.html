@@ -1,0 +1,88 @@
+{% extends "projects/base.html" %}
+
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/frit_mixing_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/frit_mixing_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/frit-mixing-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/frit_mixing_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Enamel & Frit Mixing Calculator | Fused Glass Medium Ratios{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Enamel & Frit Mixing Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate the exact amount of mixing medium needed for your glass powders and enamels.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.powder_weight.label_tag }}
+                                {{ form.powder_weight }}
+                                <div class="form-text text-white-50">{{ form.powder_weight.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.application_style.label_tag }}
+                                {{ form.application_style }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Medium</button>
+                        <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary mt-3 w-100">Go to Glass Artist Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading text-center">{{ results.style_name }}</h4>
+                <p class="text-center mb-4">{{ results.style_desc }}</p>
+                
+                <div class="row text-center mb-3">
+                    <div class="col-4 border-end border-info">
+                        <div class="display-6 fw-bold">{{ results.powder_g }}g</div>
+                        <div class="small text-uppercase tracking-wider">Dry Powder</div>
+                    </div>
+                    <div class="col-4 border-end border-info">
+                        <div class="display-6 fw-bold text-decoration-underline">{{ results.medium_g }}g</div>
+                        <div class="small fw-bold text-uppercase tracking-wider">Medium ({{ results.ratio_percent }}%)</div>
+                        <div class="small fst-italic mt-1">(approx. {{ results.medium_drops }} drops)</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="display-6 fw-bold">{{ results.total_g }}g</div>
+                        <div class="small text-uppercase tracking-wider">Total Mix</div>
+                    </div>
+                </div>
+                
+                <hr>
+                <p class="mb-0 small text-center"><strong>Pro Tip:</strong> Add the medium to your powder slowly, mulling thoroughly with a palette knife to remove any trapped air bubbles.</p>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

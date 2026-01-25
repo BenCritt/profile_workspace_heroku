@@ -105,4 +105,5 @@ urlpatterns = [
     path("projects/hos-trip-planner/", views.hos_trip_planner, name="hos_trip_planner"),
     path("projects/freight-tools/", views.freight_tools, name="freight_tools"),
     path("projects/glass-reaction-checker/", views.glass_reaction_checker, name="glass_reaction_checker"),
+    path("projects/frit-mixing-calculator/", views.frit_mixing_calculator, name="frit_mixing_calculator"),
 ]

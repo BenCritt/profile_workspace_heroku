@@ -91,6 +91,15 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Enamel/Frit Mixer</h2>
+                    <img src="{% static 'img/all-projects/frit-mixing-calculator.webp' %}" alt="Frit Mixing Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate the exact medium-to-powder ratio for mixing glass enamels based on your application style.</p>
+                    <a href="{% url 'projects:frit_mixing_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -176,6 +185,18 @@
                         scrolling="no">
                     </iframe>
                     <a href="{% url 'projects:glass_reaction_checker' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:frit_mixing_calculator' %}"
+                        title="Enamel & Frit Mixing Calculator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:frit_mixing_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

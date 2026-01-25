@@ -299,3 +299,56 @@ def check_glass_reaction(type_a, type_b):
             "message": "These glass families typically do not react with one another.",
             "detail": ""
         }
+    
+def calculate_frit_medium_ratio(powder_weight, application_style):
+    """
+    Calculates the required medium weight and consistency profile for mixing glass powder/enamel.
+    Returns a dictionary of calculated results.
+    """
+    # Define standard medium-to-powder ratios based on application style
+    # These are industry standard guidelines for typical water-based or oil-based mediums
+    RATIOS = {
+        'paste': 0.15,        # 15% medium by weight (stiff paste for palette knife)
+        'screen_print': 0.25, # 25% medium by weight (thick cream for silkscreen)
+        'painting': 0.35,     # 35% medium by weight (fluid for brushwork)
+        'airbrush': 0.50,     # 50% medium by weight (watery for spraying)
+    }
+
+    # Style display names and tooltips
+    STYLE_INFO = {
+        'paste': {
+            'name': 'Stiff Paste (Palette Knife)',
+            'desc': 'Ideal for creating texture, impasto effects, or filling deep crevices.'
+        },
+        'screen_print': {
+            'name': 'Screen Printing (Squeegee)',
+            'desc': 'Thick cream consistency. Won\'t bleed under the mesh but flows easily.'
+        },
+        'painting': {
+            'name': 'Fluid Painting (Brush)',
+            'desc': 'Smooth consistency for traditional brushwork. Should flow off the brush without dripping.'
+        },
+        'airbrush': {
+            'name': 'Airbrush / Spraying',
+            'desc': 'Watery consistency that passes through an airbrush nozzle without clogging.'
+        },
+    }
+
+    ratio = RATIOS.get(application_style, 0.35) # Default to painting
+    info = STYLE_INFO.get(application_style, STYLE_INFO['painting'])
+
+    medium_weight = powder_weight * ratio
+    total_weight = powder_weight + medium_weight
+
+    # A rough conversion: 1 gram of medium is approx. 20 drops
+    drops = int(medium_weight * 20)
+
+    return {
+        "powder_g": round(powder_weight, 1),
+        "medium_g": round(medium_weight, 1),
+        "medium_drops": drops,
+        "total_g": round(total_weight, 1),
+        "ratio_percent": int(ratio * 100),
+        "style_name": info['name'],
+        "style_desc": info['desc']
+    }

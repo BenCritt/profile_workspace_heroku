@@ -964,3 +964,29 @@ class GlassReactionForm(forms.Form):
         label="Second Glass Component",
         widget=forms.Select(attrs={"class": "form-select"})
     )
+
+# --- Enamel/Frit Mixing Calculator ---
+class FritMixingForm(forms.Form):
+    STYLE_CHOICES = [
+        ("painting", "Fluid Painting (Brush)"),
+        ("screen_print", "Screen Printing (Squeegee)"),
+        ("paste", "Stiff Paste (Palette Knife)"),
+        ("airbrush", "Airbrush / Spraying"),
+    ]
+
+    powder_weight = forms.FloatField(
+        label="Powder/Frit Weight (grams)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "10.0",
+            "inputmode": "decimal", # Triggers the correct mobile keyboard
+            "min": "0.00001"        # Prevents negative numbers
+            }),
+        help_text="Weigh your dry powder first."
+    )
+    application_style = forms.ChoiceField(
+        choices=STYLE_CHOICES,
+        label="Desired Application Style",
+        initial="painting",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )

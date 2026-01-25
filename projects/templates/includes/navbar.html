@@ -27,9 +27,7 @@
 
               <!-- single-link items -->
               <li class="nav-item"><a class="nav-link" href="{% url 'projects:all_projects' %}">All Projects</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'projects:qr_code_generator' %}">QR Code Generator</a></li>
               <li class="nav-item"><a class="nav-link" href="{% url 'projects:weather' %}">Weather Forecast</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
 
               <!-- Glass Artist Toolkit dropdown -->
               <li class="nav-item dropdown">
@@ -44,6 +42,8 @@
                   <li><a class="dropdown-item" href="{% url 'projects:stained_glass_cost_estimator' %}">Stained Glass Cost Estimator</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:stained_glass_materials' %}">Stained Glass Materials Calculator</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:lampwork_materials' %}">Lampwork Glass Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:glass_reaction_checker' %}">Glass Reaction Checker</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:frit_mixing_calculator' %}">Enamel & Frit Mixing Calculator</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="{% url 'projects:glass_artist_toolkit' %}">View All Glass Artist Tools</a></li>
                 </ul>
@@ -108,6 +108,8 @@
                   <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:qr_code_generator' %}">QR Code Generator</a></li>
                 </ul>
               </li>
             </ul>

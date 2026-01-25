@@ -871,6 +871,12 @@ def all_projects(request):
             "url_name": "projects:glass_reaction_checker",
             "image": "glass-reaction-checker.webp",
             "description": "Prevent accidental discoloration and dark lines in your fused glass projects. This tool checks for chemical reactions between different glass families (Sulfur, Copper, Lead, and Silver) so you can plan your glass combinations safely."
+        },
+        {
+            "title": "Enamel & Frit Mixing Calculator",
+            "url_name": "projects:frit_mixing_calculator",
+            "image": "frit-mixing-calculator.webp",
+            "description": "Stop guessing your mix. Calculate the exact amount of liquid medium needed for your glass powders and enamels based on your application style (brush painting, screen printing, palette knife, or airbrush)."
         }
     ]
     
@@ -1307,3 +1313,22 @@ def glass_reaction_checker(request):
         context["results"] = glass_utils.check_glass_reaction(type_a, type_b)
 
     return render(request, "projects/glass_reaction_checker.html", context)
+
+# Enamel/Frit Mixing Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def frit_mixing_calculator(request):
+    from . import glass_utils
+    from .forms import FritMixingForm
+
+    form = FritMixingForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = glass_utils.calculate_frit_medium_ratio(
+            powder_weight=d["powder_weight"],
+            application_style=d["application_style"]
+        )
+
+    return render(request, "projects/frit_mixing_calculator.html", context)
