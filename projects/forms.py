@@ -1356,12 +1356,20 @@ class PartialRateForm(forms.Form):
     origin_zip = forms.CharField(
         label="Origin ZIP Code",
         max_length=5,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "90210"})
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "90210",
+            "inputmode": "numeric"
+            })
     )
     dest_zip = forms.CharField(
         label="Destination ZIP Code",
         max_length=5,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "10001"})
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "10001",
+            "inputmode": "numeric"
+            })
     )
 
     # --- Freight Data ---
