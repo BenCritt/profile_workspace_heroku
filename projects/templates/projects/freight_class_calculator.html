@@ -42,7 +42,7 @@
             </div>
 
             {% if results %}
-            <div class="alert alert-success shadow-sm" role="alert">
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
                 <h4 class="alert-heading text-center mb-3">Estimated Freight Class: {{ results.estimated_class }}</h4>
                 <hr>
                 <div class="row text-center">
@@ -101,4 +101,14 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

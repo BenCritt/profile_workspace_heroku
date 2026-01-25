@@ -75,7 +75,7 @@
             </div>
 
             {% if results %}
-            <div class="alert alert-success border-success" role="alert">
+            <div id="results-section"class="alert alert-success border-success" role="alert">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h3 class="alert-heading h4 mb-0">Maximum Pallet Capacity</h3>
                     <span class="badge bg-light text-dark">Area: {{ results.total_sq_ft }} sq ft.</span>
@@ -107,4 +107,14 @@
     </div>
 
 </div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock %}

@@ -60,7 +60,7 @@
             </div>
 
             {% if itinerary %}
-            <div class="card shadow-sm border-0">
+            <div id="results-section" class="card shadow-sm border-0">
                 <div class="card-header bg-success text-white text-center py-3">
                     <h4 class="mb-0">Estimated Arrival: {{ arrival_time|date:"l, F jS @ g:i A" }}</h4>
                 </div>
@@ -105,4 +105,14 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+    {% if itinerary %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

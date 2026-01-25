@@ -78,7 +78,7 @@
             </div>
 
             {% if results %}
-            <div class="alert {% if results.is_detention_owed %}alert-success border-success{% else %}alert-secondary border-secondary{% endif %}" role="alert">
+            <div id="results-section" class="alert {% if results.is_detention_owed %}alert-success border-success{% else %}alert-secondary border-secondary{% endif %}" role="alert">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h3 class="alert-heading h4 mb-0">Total Detention Fee Owed</h3>
                     <span class="badge bg-light text-dark">Billable: {{ results.billable_time_str }}</span>
@@ -114,4 +114,14 @@
     </div>
 
 </div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock %}

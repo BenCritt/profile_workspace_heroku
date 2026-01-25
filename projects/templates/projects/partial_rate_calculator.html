@@ -56,8 +56,8 @@
                 </div>
                 {% endif %}
 
-            <div class="alert alert-success shadow-sm" role="alert">
-                <h4 class="alert-heading text-center mb-3">Estimated Partial Rate: ${{ results.estimated_rate }}</h4>
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Estimated Partial Rate: ${{ results.estimated_rate|floatformat:2 }}</h4>
                 <hr>
                 <div class="row text-center">
                     <div class="col-6 mb-3">
@@ -94,4 +94,16 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    // Smoothly scroll the results into view
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

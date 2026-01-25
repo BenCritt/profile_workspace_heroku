@@ -50,7 +50,7 @@
     </div>
 
     {% if carrier %}
-        <div class="w-100 mt-4 freight-results-container">
+        <div id="results-section" class="w-100 mt-4 freight-results-container">
             <div class="text-center mb-4">
                 <p class="h5 text-muted">Freight Carrier Safety Report for:</p>
                 <h2 class="h2 fw-bold text-primary">{{ carrier.name }}</h2>
@@ -112,4 +112,16 @@
     </div>
 
 </div>
+    <!--
+    {% if carrier %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    -->
+    {% endif %}
 {% endblock content %}
