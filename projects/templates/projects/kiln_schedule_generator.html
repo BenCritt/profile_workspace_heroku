@@ -54,7 +54,7 @@
             </div>
 
             {% if schedule %}
-            <div id="print-area">
+            <div id="results-section">
                 <div class="border-bottom border-2 border-dark mb-4 pb-3">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -153,4 +153,14 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+    {% if schedule %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

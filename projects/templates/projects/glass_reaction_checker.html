@@ -51,7 +51,7 @@
             </div>
 
             {% if results %}
-            <div class="alert alert-{{ results.severity }}" role="alert">
+            <div id="results-section" class="alert alert-{{ results.severity }}" role="alert">
                 <h4 class="alert-heading">{{ results.status }}</h4>
                 <p><strong>{{ results.message }}</strong> {{ results.detail }}</p>
                 {% if results.tip %}
@@ -73,4 +73,14 @@
     </div>
 
 </div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock %}

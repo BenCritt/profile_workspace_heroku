@@ -92,7 +92,7 @@
             </div>
 
             {% if results %}
-            <div class="card border-primary">
+            <div id="results-section" class="card border-primary">
                 <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
                     <span>Results: {{ results.shape_name }} ({{ results.glass_name }})</span>
                     <span class="badge bg-light text-dark">Density: {{ results.density }} g/cm³</span>
@@ -141,4 +141,14 @@
         }
     });
 </script>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

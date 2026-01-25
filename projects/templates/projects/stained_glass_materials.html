@@ -68,7 +68,7 @@
             </div>
 
             {% if results %}
-            <div class="card border-info">
+            <div id="results-section" class="card border-info">
                 <div class="card-header bg-info text-dark fw-bold">
                     Results for {{ method_display }}
                 </div>
@@ -117,4 +117,14 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}

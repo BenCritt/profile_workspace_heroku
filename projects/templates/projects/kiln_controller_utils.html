@@ -56,7 +56,7 @@
                     </form>
 
                     {% if convert_result %}
-                    <div class="mt-4 text-center p-3 bg-dark border border-secondary rounded">
+                    <div id="results-section" class="mt-4 text-center p-3 bg-dark border border-secondary rounded">
                         <span class="text-muted d-block small mb-1">Result</span>
                         <span class="fs-4">{{ convert_result.input }} = </span>
                         <span class="fs-2 fw-bold text-success">{{ convert_result.output }}</span>
@@ -99,7 +99,7 @@
                     </form>
 
                     {% if ramp_result %}
-                    <div class="mt-4 p-3 bg-dark border border-secondary rounded">
+                    <div id="results-section" class="mt-4 p-3 bg-dark border border-secondary rounded">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small text-muted">Temp Change:</span>
                             <span class="fw-bold">{{ ramp_result.delta }}°</span>
@@ -124,4 +124,14 @@
         {% include 'includes/attribution.html' %}
     </div>
 </div>
+    {% if convert_result or ramp_result %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
 {% endblock content %}
