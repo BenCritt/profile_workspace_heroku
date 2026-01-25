@@ -877,6 +877,42 @@ def all_projects(request):
             "url_name": "projects:frit_mixing_calculator",
             "image": "frit-mixing-calculator.webp",
             "description": "Stop guessing your mix. Calculate the exact amount of liquid medium needed for your glass powders and enamels based on your application style (brush painting, screen printing, palette knife, or airbrush)."
+        },
+        {
+            "title": "Circle & Oval Cutter Calculator",
+            "url_name": "projects:circle_cutter_calculator",
+            "image": "circle-cutter-calculator.webp",
+            "description": "Calculate the exact radius setting for your glass circle cutter rig. This tool factors in the cutting wheel offset and your desired edge-grinding allowance to prevent ruined glass."
+        },
+        {
+            "title": "FMCSA Tie-Down Calculator",
+            "url_name": "projects:tie_down_calculator",
+            "image": "tie-down-calculator.webp",
+            "description": "Stay compliant with FMCSA regulations. Calculate the minimum number of tie-downs required for your cargo based on weight, length, and Working Load Limit (WLL). This tool automatically applies the stricter of the § 393.102 and § 393.106 rules."
+        },
+        {
+            "title": "Cost Per Mile (CPM) Calculator",
+            "url_name": "projects:cost_per_mile_calculator",
+            "image": "cost-per-mile-calculator.webp",
+            "description": "Calculate your true Break-Even Rate Per Mile. This owner-operator CPM calculator factors in fixed costs (insurance, truck payments) and variable costs (fuel, tires, driver pay) to help you negotiate profitable freight rates."
+        },
+        {
+            "title": "LTL Linear Foot & Density Visualizer",
+            "url_name": "projects:linear_foot_calculator",
+            "image": "linear-foot-calculator.webp",
+            "description": "Avoid massive LTL rate hikes. Calculate exactly how many linear feet your shipment will take up in a trailer and check if you are violating the 'Linear Foot Rule' density limits."
+        },
+        {
+            "title": "Detention & Layover Fee Calculator",
+            "url_name": "projects:detention_layover_fee_calculator",
+            "image": "detention-layover-fee-calculator.webp",
+            "description": "Stop arguing over waiting time. Calculate exact billable detention hours and fees by subtracting standard free time from your total facility time."
+        },
+                {
+            "title": "Warehouse Pallet Storage Estimator",
+            "url_name": "projects:warehouse_storage_calculator",
+            "image": "warehouse-storage-calculator.webp",
+            "description": "Calculate the exact maximum pallet capacity for any warehouse footprint. This tool automatically tests both standard and rotated pallet orientations to maximize your square footage."
         }
     ]
     
@@ -1358,3 +1394,116 @@ def circle_cutter_calculator(request):
         )
 
     return render(request, "projects/circle_cutter_calculator.html", context)
+
+# FMCSA Load Securement / Tie-Down Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def tie_down_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import TieDownForm
+    form = TieDownForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_required_tie_downs(
+            weight=d["cargo_weight"],
+            length=d["cargo_length"],
+            strap_wll=d["strap_wll"]
+        )
+
+    return render(request, "projects/tie_down_calculator.html", context)
+
+# Cost Per Mile (CPM) Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def cost_per_mile_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import CPMCalculatorForm
+    form = CPMCalculatorForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_cost_per_mile(
+            miles=d["monthly_miles"],
+            truck_pay=d["truck_payment"],
+            insurance=d["insurance"],
+            other_fixed=d["other_fixed"],
+            fuel_cpm=d["fuel_cpm"],
+            maint_cpm=d["maintenance_cpm"],
+            driver_cpm=d["driver_pay"]
+        )
+
+    return render(request, "projects/cost_per_mile_calculator.html", context)
+
+# --- New View ---
+# LTL Linear Foot & Density Visualizer
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def linear_foot_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import LinearFootForm
+    form = LinearFootForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_linear_feet(
+            length=d["length"],
+            width=d["width"],
+            height=d["height"],
+            weight=d["weight"],
+            quantity=d["quantity"],
+            is_stackable=d["is_stackable"]
+        )
+
+    return render(request, "projects/linear_foot_calculator.html", context)
+
+# Detention & Layover Fee Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def detention_layover_fee_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import DetentionFeeForm
+    from datetime import datetime
+    
+    form = DetentionFeeForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        arrival_dt = datetime.combine(d["arrival_date"], d["arrival_time"])
+        departure_dt = datetime.combine(d["departure_date"], d["departure_time"])
+
+        context["results"] = freight_calculator_utils.calculate_detention_fee(
+            arrival_dt=arrival_dt,
+            departure_dt=departure_dt,
+            free_time_hours=d["free_time_hours"],
+            hourly_rate=d["hourly_rate"]
+        )
+
+    return render(request, "projects/detention_layover_fee_calculator.html", context)
+
+# --- New View ---
+# Warehouse Pallet Storage Estimator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def warehouse_storage_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import WarehouseStorageForm
+    
+    form = WarehouseStorageForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        context["results"] = freight_calculator_utils.calculate_warehouse_storage(
+            area_length=d["area_length"],
+            area_width=d["area_width"],
+            p_length=d["pallet_length"],
+            p_width=d["pallet_width"],
+            stack_height=d["stack_height"]
+        )
+
+    return render(request, "projects/warehouse_storage_calculator.html", context)

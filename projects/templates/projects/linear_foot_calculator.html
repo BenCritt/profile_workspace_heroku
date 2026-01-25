@@ -1,0 +1,111 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/linear_foot_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/linear_foot_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/linear-foot-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/linear_foot_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}LTL Linear Foot Calculator & Density Checker | Freight Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">LTL Linear Foot Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate trailer space required and avoid "Linear Foot Rule" penalty fees.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                {{ form.length.label_tag }}
+                                {{ form.length }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.width.label_tag }}
+                                {{ form.width }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.height.label_tag }}
+                                {{ form.height }}
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                {{ form.weight.label_tag }}
+                                {{ form.weight }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.quantity.label_tag }}
+                                {{ form.quantity }}
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                {{ form.is_stackable.label_tag }}
+                                {{ form.is_stackable }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Trailer Space</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert {% if results.rule_triggered %}alert-danger border-danger{% else %}alert-success border-success{% endif %}" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Trailer Space Required</h3>
+                    <span class="badge bg-light text-dark">Rows: {{ results.rows }}</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">{{ results.linear_feet }} ft.</div>
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">Total Linear Feet Occupied</div>
+                </div>
+                
+                <div class="card {% if results.rule_triggered %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>Linear Foot Rule Check:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Shipment Density:</strong> {{ results.density }} PCF.</li>
+                            <li><strong>Space Threshold:</strong> Your freight takes up {{ results.linear_feet }} feet. The penalty threshold is usually 12.0 feet.</li>
+                            
+                            {% if results.rule_triggered %}
+                            <li class="mt-2 text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> WARNING: This shipment likely violates the "Linear Foot Rule." Because it takes up 12+ feet and weighs less than 6 PCF, carriers may charge extreme penalties or upgrade this to a Truckload rate.</li>
+                            {% else %}
+                            <li class="mt-2 text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Safe. This shipment should not trigger Linear Foot penalties.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

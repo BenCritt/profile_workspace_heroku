@@ -1,0 +1,117 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/detention_layover_fee_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/detention_layover_fee_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/detention-layover-fee-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/detention_layover_fee_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Detention & Layover Fee Calculator | Freight Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Detention Fee Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate billable waiting time and eliminate disputes.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+                        {% endif %}
+
+                        <h3 class="h5 mb-3 text-white border-bottom pb-2">Log Sheet (In / Out)</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.arrival_date.label_tag }}
+                                {{ form.arrival_date }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.arrival_time.label_tag }}
+                                {{ form.arrival_time }}
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                {{ form.departure_date.label_tag }}
+                                {{ form.departure_date }}
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                {{ form.departure_time.label_tag }}
+                                {{ form.departure_time }}
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mt-4 mb-3 text-white border-bottom pb-2">Contract Terms</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.free_time_hours.label_tag }}
+                                {{ form.free_time_hours }}
+                                <div class="form-text text-white-50">{{ form.free_time_hours.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.hourly_rate.label_tag }}
+                                {{ form.hourly_rate }}
+                                <div class="form-text text-white-50">{{ form.hourly_rate.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Detention Fee</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert {% if results.is_detention_owed %}alert-success border-success{% else %}alert-secondary border-secondary{% endif %}" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Total Detention Fee Owed</h3>
+                    <span class="badge bg-light text-dark">Billable: {{ results.billable_time_str }}</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">${{ results.total_fee|floatformat:2 }}</div>
+                    {% if results.is_detention_owed %}
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider text-success">Bill this amount to the Broker/Shipper</div>
+                    {% else %}
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">No Detention Owed (Within Free Time)</div>
+                    {% endif %}
+                </div>
+                
+                <div class="card {% if results.is_detention_owed %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>Time Breakdown:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Total Time at Facility:</strong> {{ results.total_time_str }}</li>
+                            <li><strong>Contracted Free Time:</strong> -{{ form.free_time_hours.value }} hours</li>
+                            <li class="mt-1 pt-1 border-top border-dark-subtle"><strong>Billable Decimal Hours:</strong> {{ results.billable_hours_decimal }} hours.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

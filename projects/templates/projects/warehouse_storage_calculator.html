@@ -1,0 +1,110 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/warehouse_storage_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/warehouse_storage_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/warehouse-storage-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/warehouse_storage_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Warehouse Pallet Storage Estimator & Capacity Calculator | Freight Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Warehouse Pallet Storage Estimator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate the maximum pallet capacity for any storage footprint.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <h3 class="h5 mb-3 text-white border-bottom pb-2">Storage Footprint (Feet)</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.area_length.label_tag }}
+                                {{ form.area_length }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.area_width.label_tag }}
+                                {{ form.area_width }}
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mt-4 mb-3 text-white border-bottom pb-2">Pallet Dimensions (Inches)</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.pallet_length.label_tag }}
+                                {{ form.pallet_length }}
+                                <div class="form-text text-white-50">{{ form.pallet_length.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.pallet_width.label_tag }}
+                                {{ form.pallet_width }}
+                                <div class="form-text text-white-50">{{ form.pallet_width.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                {{ form.stack_height.label_tag }}
+                                {{ form.stack_height }}
+                                <div class="form-text text-white-50">{{ form.stack_height.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Storage Capacity</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success border-success" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Maximum Pallet Capacity</h3>
+                    <span class="badge bg-light text-dark">Area: {{ results.total_sq_ft }} sq ft.</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">{{ results.max_capacity }}</div>
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">Total Pallets</div>
+                </div>
+                
+                <div class="card bg-success bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>Storage Breakdown:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Floor Loaded:</strong> You can fit {{ results.floor_capacity }} pallets on the floor.</li>
+                            <li><strong>Stacking Height:</strong> Stacked {{ results.stack_height }} high.</li>
+                            <li><strong>Optimal Orientation:</strong> {{ results.orientation }}. The algorithm determined this layout maximizes your {{ results.total_sq_ft }} sq. ft. of space.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

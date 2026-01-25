@@ -251,3 +251,177 @@ def generate_hos_itinerary(miles_remaining, speed, start_datetime):
         "itinerary": itinerary,
         "arrival_time": current_time
     }
+
+def calculate_required_tie_downs(weight, length, strap_wll):
+    """
+    Calculates the minimum required tie-downs based on FMCSA § 393.102 (Weight/Aggregate WLL)
+    and § 393.106 (Length). Returns the strictest standard.
+    """
+    strap_wll = float(strap_wll)
+
+    # --- Rule A: Aggregate WLL (Weight Requirement) ---
+    # The aggregate WLL must be at least 50% of the cargo weight.
+    required_aggregate_wll = weight * 0.50
+    tie_downs_by_weight = math.ceil(required_aggregate_wll / strap_wll)
+
+    # --- Rule B: Length Requirement ---
+    if length <= 5:
+        tie_downs_by_length = 1 if weight <= 1100 else 2
+    elif length <= 10:
+        tie_downs_by_length = 2
+    else:
+        # 2 tie-downs for first 10 ft, + 1 for every 10ft (or fraction) beyond.
+        extra_length = length - 10
+        tie_downs_by_length = 2 + math.ceil(extra_length / 10)
+
+    # The law requires the STRICTER of the two rules.
+    final_count = max(tie_downs_by_weight, tie_downs_by_length)
+
+    # Determine which rule was the deciding factor for the UI explanation.
+    if tie_downs_by_weight >= tie_downs_by_length:
+        reason = "Weight (Aggregate WLL)"
+    else:
+        reason = "Cargo Length"
+
+    return {
+        "final_count": final_count,
+        "by_weight": tie_downs_by_weight,
+        "by_length": tie_downs_by_length,
+        "limiting_factor": reason,
+        "cargo_weight": weight,
+        "cargo_length": length
+    }
+
+def calculate_cost_per_mile(miles, truck_pay, insurance, other_fixed, fuel_cpm, maint_cpm, driver_cpm):
+    """
+    Calculates the Cost Per Mile (CPM) / Break-Even rate for an owner-operator.
+    Returns breakdown of fixed vs. variable costs.
+    """
+    # 1. Total Monthly Fixed Costs
+    total_fixed_monthly = truck_pay + insurance + other_fixed
+    fixed_cpm = total_fixed_monthly / miles
+
+    # 2. Total Variable CPM
+    variable_cpm = fuel_cpm + maint_cpm + driver_cpm
+
+    # 3. Final Break-Even CPM
+    total_cpm = fixed_cpm + variable_cpm
+
+    return {
+        "total_cpm": round(total_cpm, 2),
+        "fixed_cpm": round(fixed_cpm, 2),
+        "variable_cpm": round(variable_cpm, 2),
+        "total_fixed_monthly": round(total_fixed_monthly, 2),
+        "monthly_miles": miles
+    }
+import math
+
+def calculate_linear_feet(length, width, height, weight, quantity, is_stackable):
+    """
+    Calculates Linear Feet occupied in a standard 53' trailer and checks for LTL rule violations.
+    Standard trailer width is approx. 96-102 inches.
+    """
+    # Convert string boolean from form to Python boolean
+    is_stackable = is_stackable == 'True'
+
+    # 1. Determine Floor Spaces Needed (Pinwheeling/Turned Pallets Logic)
+    # A standard 48x40 pallet can be placed side-by-side (40+40 = 80 inches) in a 96" wide trailer.
+    pallets_per_row = 1
+    if (width * 2) <= 96:
+        pallets_per_row = 2
+    elif (width + length) <= 96: # Pinwheeling
+        pallets_per_row = 2
+
+    # If stackable, you need half the floor spaces.
+    effective_quantity = math.ceil(quantity / 2) if is_stackable else quantity
+    
+    # Calculate rows required
+    rows_required = math.ceil(effective_quantity / pallets_per_row)
+
+    # 2. Calculate Linear Feet
+    # If pinwheeled, the math gets complex. For standard LTL estimates, Carriers use the longest dimension per row.
+    linear_inches = rows_required * max(length, width) if pallets_per_row == 2 and (width + length) <= 96 else rows_required * length
+    linear_feet = linear_inches / 12.0
+
+    # 3. Calculate Density (Total Weight / Total Cubic Feet)
+    total_weight = weight * quantity
+    total_cubic_feet = (length * width * height * quantity) / 1728.0
+    density = total_weight / total_cubic_feet if total_cubic_feet > 0 else 0
+
+    # 4. Check "Linear Foot Rule" (Industry Standard: > 12 feet AND < 6 lbs/cubic ft)
+    rule_triggered = linear_feet >= 12.0 and density < 6.0
+
+    return {
+        "linear_feet": round(linear_feet, 1),
+        "total_weight": round(total_weight, 2),
+        "density": round(density, 2),
+        "rows": rows_required,
+        "is_stackable": is_stackable,
+        "rule_triggered": rule_triggered
+    }
+
+def calculate_detention_fee(arrival_dt, departure_dt, free_time_hours, hourly_rate):
+    """
+    Calculates the total time at the facility, the billable detention time,
+    and the total fee owed based on the hourly rate.
+    """
+    # 1. Calculate Total Time (timedelta)
+    time_diff = departure_dt - arrival_dt
+    total_hours = time_diff.total_seconds() / 3600.0
+
+    # 2. Determine Billable Hours
+    billable_hours = max(0, total_hours - free_time_hours)
+
+    # 3. Calculate Fee
+    total_fee = billable_hours * hourly_rate
+
+    # Format output for the UI
+    total_h = int(total_hours)
+    total_m = int((total_hours - total_h) * 60)
+    
+    billable_h = int(billable_hours)
+    billable_m = int((billable_hours - billable_h) * 60)
+
+    return {
+        "total_fee": round(total_fee, 2),
+        "total_time_str": f"{total_h}h {total_m}m",
+        "billable_time_str": f"{billable_h}h {billable_m}m",
+        "billable_hours_decimal": round(billable_hours, 2),
+        "is_detention_owed": total_fee > 0
+    }
+
+import math
+
+def calculate_warehouse_storage(area_length, area_width, p_length, p_width, stack_height):
+    """
+    Calculates the maximum number of pallets that can fit into a specific warehouse footprint.
+    Checks both standard orientation and rotated orientation to maximize space.
+    """
+    # Convert area feet to inches
+    area_l_in = area_length * 12
+    area_w_in = area_width * 12
+
+    # Option 1: Standard Orientation (Pallet Length along Area Length)
+    rows_1 = math.floor(area_l_in / p_length)
+    cols_1 = math.floor(area_w_in / p_width)
+    total_floor_1 = rows_1 * cols_1
+
+    # Option 2: Rotated Orientation (Pallet Width along Area Length)
+    rows_2 = math.floor(area_l_in / p_width)
+    cols_2 = math.floor(area_w_in / p_length)
+    total_floor_2 = rows_2 * cols_2
+
+    # Determine optimal orientation
+    max_floor_pallets = max(total_floor_1, total_floor_2)
+    best_orientation = "Standard (Lengthwise)" if total_floor_1 >= total_floor_2 else "Rotated (Widthwise)"
+
+    # Apply Stacking
+    total_capacity = max_floor_pallets * stack_height
+
+    return {
+        "max_capacity": total_capacity,
+        "floor_capacity": max_floor_pallets,
+        "stack_height": stack_height,
+        "orientation": best_orientation,
+        "total_sq_ft": round(area_length * area_width, 1)
+    }

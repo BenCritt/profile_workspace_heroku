@@ -51,6 +51,31 @@
             "@type": "ListItem",
             "position": 4,
             "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
           }
         ]
       },
@@ -58,7 +83,12 @@
         { "@id": "https://www.bencritt.net/projects/freight-safety/#app" },
         { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" }
+        { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" },
+        { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
       ]
     },
 
@@ -135,6 +165,92 @@
         "Simulate truck trips compliant with FMCSA rules",
         "Automatically calculates 10-hour resets and 30-minute breaks",
         "Generates step-by-step driving itinerary"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app",
+      "name": "FMCSA Tie-Down & Load Securement Calculator",
+      "description": "Calculate the exact number of tie-downs required to secure cargo according to FMCSA § 393.102 and § 393.106 rules.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/tie-down-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/tie-down-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculates minimum tie-downs based on 50% Aggregate WLL",
+        "Calculates minimum tie-downs based on cargo length",
+        "Includes standard presets for web straps and Grade 70 chains"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app",
+      "name": "Owner-Operator Cost Per Mile (CPM) Calculator",
+      "description": "Calculate your exact Break-Even Rate Per Mile by combining fixed monthly costs and variable costs.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/cost-per-mile-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/cost-per-mile-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculates Fixed Cost Per Mile.",
+        "Combines variable costs (fuel, tires, pay)."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app",
+      "name": "LTL Linear Foot & Density Visualizer",
+      "description": "Calculate linear feet occupied in a trailer and check for LTL density limit violations.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/linear-foot-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/linear-foot-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculates occupied linear feet.",
+        "Warns of extreme carrier penalty rates."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app",
+      "name": "Detention & Layover Fee Calculator",
+      "description": "Calculate billable waiting time and layover fees by factoring in free time and hourly rates.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/detention-layover-fee-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/detention-layover-fee-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculates billable decimal hours.",
+        "Determines total detention fee owed."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app",
+      "name": "Warehouse Pallet Storage Estimator",
+      "description": "Calculate the exact maximum pallet capacity for any warehouse footprint.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/warehouse-storage-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/warehouse-storage-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculates maximum floor capacity.",
+        "Determines optimal pallet orientation."
       ]
     }
   ]

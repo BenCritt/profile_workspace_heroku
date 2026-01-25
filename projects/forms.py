@@ -1044,3 +1044,302 @@ class CircleCutterForm(forms.Form):
         help_text="Adds extra glass to account for material lost on the grinder.",
         widget=forms.Select(attrs={"class": "form-select"})
     )
+
+# --- Tie-Down / Load Securement Calculator ---
+class TieDownForm(forms.Form):
+    STRAP_CHOICES = [
+        (3333, "Standard 2-inch Web Strap (3,333 lbs WLL)"),
+        (5400, "Heavy-Duty 4-inch Web Strap (5,400 lbs WLL)"),
+        (4700, "Grade 70 Chain - 5/16 inch (4,700 lbs WLL)"),
+        (6600, "Grade 70 Chain - 3/8 inch (6,600 lbs WLL)"),
+    ]
+
+    cargo_weight = forms.FloatField(
+        label="Cargo Weight (lbs)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "15000",
+            "inputmode": "decimal", # Triggers the correct mobile keyboard
+            "min": "0.00001"        # Prevents negative numbers
+            }),
+        validators=[MinValueValidator(0.00001, message="Weight must be no less than 0.00001 lbs.")],
+    )
+    cargo_length = forms.FloatField(
+        label="Cargo Length (feet)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "12",
+            "inputmode": "decimal", # Triggers the correct mobile keyboard
+            "min": "0.00001"        # Prevents negative numbers
+            }),
+        validators=[MinValueValidator(0.00001, message="Length must be no less than 0.00001 feet.")],
+    )
+    strap_wll = forms.ChoiceField(
+        choices=STRAP_CHOICES,
+        label="Strap / Tie-Down Type",
+        help_text="Select the Working Load Limit (WLL) of your securement device.",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+# --- Cost Per Mile (CPM) Calculator ---
+class CPMCalculatorForm(forms.Form):
+    # Monthly Fixed Costs
+    monthly_miles = forms.FloatField(
+        label="Average Monthly Miles",
+        help_text="Total loaded and empty miles driven per month.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "10000",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001, message="Miles must be greater than zero.")],
+    )
+    truck_payment = forms.FloatField(
+        label="Truck & Trailer Payment ($)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "2500",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    insurance = forms.FloatField(
+        label="Monthly Insurance ($)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "1200",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    other_fixed = forms.FloatField(
+        label="Other Fixed Costs ($)",
+        help_text="Permits, parking, load board subscriptions, etc.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "300",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+
+    # Variable Costs (Per Mile or Monthly)
+    fuel_cpm = forms.FloatField(
+        label="Fuel Cost Per Mile ($)",
+        help_text="Divide your average fuel price by your truck's MPG.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "0.65",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    maintenance_cpm = forms.FloatField(
+        label="Maintenance & Tires Per Mile ($)",
+        help_text="Industry standard is roughly $0.15 - $0.20 per mile.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "0.15",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    driver_pay = forms.FloatField(
+        label="Driver Pay Per Mile ($)",
+        help_text="What you pay yourself or your driver.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "0.60",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+# --- LTL Linear Foot & Density Visualizer ---
+class LinearFootForm(forms.Form):
+    # Pallet Dimensions
+    length = forms.FloatField(
+        label="Length per Pallet (inches)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "48",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    width = forms.FloatField(
+        label="Width per Pallet (inches)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "40",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    height = forms.FloatField(
+        label="Height per Pallet (inches)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "48",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    weight = forms.FloatField(
+        label="Weight per Pallet (lbs)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "500",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    quantity = forms.IntegerField(
+        label="Total Pallet Count",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "inputmode": "numeric",
+            "step": "1",
+            "min": "1"
+            }),
+        validators=[MinValueValidator(1)],
+    )
+    
+    # Linear Foot Rule Triggers
+    is_stackable = forms.ChoiceField(
+        choices=[(True, "Yes, these pallets can be stacked."), (False, "No, do not stack (Top Freight only).")],
+        label="Are these pallets stackable?",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+# --- Detention & Layover Fee Calculator ---
+class DetentionFeeForm(forms.Form):
+    # Time Inputs
+    arrival_date = forms.DateField(
+        label="Arrival Date",
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    arrival_time = forms.TimeField(
+        label="Arrival Time",
+        widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
+    )
+    departure_date = forms.DateField(
+        label="Departure Date",
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    departure_time = forms.TimeField(
+        label="Departure Time",
+        widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
+    )
+
+    # Contract Terms
+    free_time_hours = forms.FloatField(
+        label="Contracted Free Time (Hours)",
+        help_text="Industry standard is 2.0 hours.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2.0",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    hourly_rate = forms.FloatField(
+        label="Detention Rate per Hour ($)",
+        help_text="Often ranges from $40 to $80 per hour.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "60",
+            "inputmode": "decimal",
+            "min": "0"
+            }),
+        validators=[MinValueValidator(0)],
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        a_date = cleaned_data.get("arrival_date")
+        a_time = cleaned_data.get("arrival_time")
+        d_date = cleaned_data.get("departure_date")
+        d_time = cleaned_data.get("departure_time")
+
+        if a_date and a_time and d_date and d_time:
+            from datetime import datetime
+            arrival = datetime.combine(a_date, a_time)
+            departure = datetime.combine(d_date, d_time)
+
+            if departure <= arrival:
+                raise forms.ValidationError("Departure time must be after the arrival time.")
+        
+        return cleaned_data
+    
+# --- Warehouse Pallet Storage Estimator ---
+class WarehouseStorageForm(forms.Form):
+    # Warehouse Area Dimensions
+    area_length = forms.FloatField(
+        label="Storage Area Length (feet)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "40",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    area_width = forms.FloatField(
+        label="Storage Area Width (feet)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "20",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+
+    # Pallet Dimensions
+    pallet_length = forms.FloatField(
+        label="Pallet Length (inches)",
+        help_text="Standard is 48 inches.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "48",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+    pallet_width = forms.FloatField(
+        label="Pallet Width (inches)",
+        help_text="Standard is 40 inches.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "40",
+            "inputmode": "decimal",
+            "min": "0.00001"
+            }),
+        validators=[MinValueValidator(0.00001)],
+    )
+
+    # Stacking
+    stack_height = forms.IntegerField(
+        label="Max Stacking Height (Pallets)",
+        help_text="1 = Floor loaded (no stacking). 2 = Double stacked.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "1",
+            "inputmode": "numeric",
+            "step": "1",
+            "min": "1"
+            }),
+        validators=[MinValueValidator(1)],
+    )

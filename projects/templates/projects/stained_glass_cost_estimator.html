@@ -87,23 +87,23 @@
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="card border-secondary h-100">
-                        <div class="card-header bg-transparent border-secondary">Cost Breakdown</div>
+                        <div class="card-header bg-transparent border-secondary text-white">Cost Breakdown</div>
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between text-light">
                                 <span>Glass Materials <small class="text-muted">(inc. 35% waste)</small></span>
-                                <span>${{ results.glass_cost }}</span>
+                                <span>${{ results.glass_cost|floatformat:2 }}</span>
                             </li>
-                            <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between text-light">
                                 <span>Consumables <small class="text-muted">(Solder/Foil)</small></span>
-                                <span>${{ results.consumables_cost }}</span>
+                                <span>${{ results.consumables_cost|floatformat:2 }}</span>
                             </li>
-                            <li class="list-group-item bg-transparent d-flex justify-content-between">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between text-light">
                                 <span>Labor <small class="text-muted">({{ results.labor_hours }} hrs)</small></span>
-                                <span>${{ results.labor_cost }}</span>
+                                <span>${{ results.labor_cost|floatformat:2 }}</span>
                             </li>
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between fw-bold">
                                 <span>Total Base Cost</span>
-                                <span>${{ results.total_base_cost }}</span>
+                                <span>${{ results.total_base_cost|floatformat:2 }}</span>
                             </li>
                         </ul>
                     </div>
@@ -113,13 +113,14 @@
                     <div class="card border-success h-100 text-center">
                         <div class="card-body d-flex flex-column justify-content-center align-items-center">
                             <h5 class="card-title text-success">Recommended Retail Price</h5>
-                            <p class="display-4 fw-bold my-3">${{ results.retail_price }}</p>
+                            <p class="display-4 fw-bold my-3 text-white">${{ results.retail_price|floatformat:2 }}</p>
                             <p class="text-muted small mb-0">Based on a {{ results.markup_used }}x markup.</p>
                         </div>
                     </div>
                 </div>
             </div>
             {% endif %}
+
         </div>
     </div>
     <div class="mt-5 text-center">

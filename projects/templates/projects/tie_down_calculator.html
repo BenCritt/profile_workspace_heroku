@@ -1,0 +1,93 @@
+{% extends "projects/base.html" %}
+
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/tie_down_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/tie_down_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/tie-down-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/tie_down_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}FMCSA Tie-Down & Load Securement Calculator | Freight Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">FMCSA Load Securement Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate the minimum number of tie-downs required for your cargo.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.cargo_weight.label_tag }}
+                                {{ form.cargo_weight }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.cargo_length.label_tag }}
+                                {{ form.cargo_length }}
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-12">
+                                {{ form.strap_wll.label_tag }}
+                                {{ form.strap_wll }}
+                                <div class="form-text text-white-50">{{ form.strap_wll.help_text }}</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Required Tie-Downs</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success border-success" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Minimum Required Tie-Downs</h3>
+                    <span class="badge bg-light text-dark">Limiting Factor: {{ results.limiting_factor }}</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">{{ results.final_count }}</div>
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">Straps / Chains Required</div>
+                </div>
+                
+                <div class="card bg-success bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>FMCSA Rule Breakdown:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Rule A (Weight):</strong> § 393.102 requires an aggregate WLL of at least 50% of cargo weight ({{ results.cargo_weight|floatformat:0 }} lbs). This requires <strong>{{ results.by_weight }}</strong> tie-downs.</li>
+                            <li><strong>Rule B (Length):</strong> § 393.106 requires tie-downs based on cargo length ({{ results.cargo_length|floatformat:1 }} ft) and weight. This requires <strong>{{ results.by_length }}</strong> tie-downs.</li>
+                            <li><strong>Result:</strong> You must use the stricter standard ({{ results.final_count }} tie-downs).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

@@ -107,4 +107,9 @@ urlpatterns = [
     path("projects/glass-reaction-checker/", views.glass_reaction_checker, name="glass_reaction_checker"),
     path("projects/frit-mixing-calculator/", views.frit_mixing_calculator, name="frit_mixing_calculator"),
     path("projects/circle-cutter-calculator/", views.circle_cutter_calculator, name="circle_cutter_calculator"),
+    path("projects/tie-down-calculator/", views.tie_down_calculator, name="tie_down_calculator"),
+    path("projects/cost-per-mile-calculator/", views.cost_per_mile_calculator, name="cost_per_mile_calculator"),
+    path("projects/linear-foot-calculator/", views.linear_foot_calculator,name="linear_foot_calculator"),
+    path("projects/detention-layover-fee-calculator/", views.detention_layover_fee_calculator, name="detention_layover_fee_calculator"),
+    path("projects/warehouse-storage-calculator/", views.warehouse_storage_calculator, name="warehouse_storage_calculator"),
 ]

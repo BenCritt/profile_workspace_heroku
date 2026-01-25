@@ -7,14 +7,11 @@ class RootSitemap(Sitemap):
     priority = 1.0
     changefreq = "daily"
 
-    # MUST be a method
     def items(self):
         return ["projects:home"]
 
     def location(self, item):
-        # Get the path.
         path = reverse(item)
-        # Remove the trailing slash.
         if path == "/":
             return ""
         return path
@@ -51,10 +48,18 @@ class StaticViewSitemap(Sitemap):
             "projects:stained_glass_materials",
             "projects:glass_artist_toolkit",
             "projects:lampwork_materials",
+            "projects:glass_reaction_checker",
+            "projects:frit_mixing_calculator",
+            "projects:circle_cutter_calculator",
             "projects:freight_tools",
             "projects:freight_class_calculator",
             "projects:fuel_surcharge_calculator",
             "projects:hos_trip_planner",
+            "projects:tie_down_calculator",
+            "projects:cpm_calculator",
+            "projects:linear_foot_calculator",
+            "projects:detention_calculator",
+            "projects:warehouse_storage_calculator",
         ]
 
     def location(self, item):

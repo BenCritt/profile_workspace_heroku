@@ -1,0 +1,111 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/cost_per_mile_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/cost_per_mile_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/cpm-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/cost_per_mile_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Owner-Operator Cost Per Mile (CPM) Calculator | Freight Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Cost Per Mile (CPM) Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate your break-even rate to ensure every load is profitable.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <h3 class="h5 mb-3 text-white border-bottom pb-2">Monthly Fixed Costs</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.monthly_miles.label_tag }}
+                                {{ form.monthly_miles }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.truck_payment.label_tag }}
+                                {{ form.truck_payment }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.insurance.label_tag }}
+                                {{ form.insurance }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.other_fixed.label_tag }}
+                                {{ form.other_fixed }}
+                                <div class="form-text text-white-50">{{ form.other_fixed.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <h3 class="h5 mt-4 mb-3 text-white border-bottom pb-2">Variable Costs (Per Mile)</h3>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                {{ form.fuel_cpm.label_tag }}
+                                {{ form.fuel_cpm }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.maintenance_cpm.label_tag }}
+                                {{ form.maintenance_cpm }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.driver_pay.label_tag }}
+                                {{ form.driver_pay }}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate My CPM</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success border-success" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Break-Even Rate Per Mile</h3>
+                    <span class="badge bg-light text-dark">Based on {{ results.monthly_miles|floatformat:0 }} miles/month</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">${{ results.total_cpm|floatformat:2 }}</div>
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">Do not accept loads below this rate</div>
+                </div>
+                
+                <div class="card bg-success bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>Cost Breakdown:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Fixed Costs:</strong> ${{ results.fixed_cpm|floatformat:2 }} per mile (Total: ${{ results.total_fixed_monthly|floatformat:2 }}/month)</li>
+                            <li><strong>Variable Costs:</strong> ${{ results.variable_cpm|floatformat:2 }} per mile (Fuel, Maintenance, Driver)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}
