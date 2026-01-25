@@ -1332,3 +1332,29 @@ def frit_mixing_calculator(request):
         )
 
     return render(request, "projects/frit_mixing_calculator.html", context)
+
+# Circle/Oval Cutter Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def circle_cutter_calculator(request):
+    from . import glass_utils
+    from .forms import CircleCutterForm
+
+    form = CircleCutterForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        
+        # Determine display name for the shape
+        shape_map = dict(form.fields['shape_type'].choices)
+        shape_name = shape_map[d["shape_type"]]
+
+        context["results"] = glass_utils.calculate_circle_cutter_settings(
+            target_dim=d["target_diameter"],
+            shape=shape_name,
+            cutter_offset=d["cutter_offset"], # New argument
+            grind_allowance=float(d["grind_allowance"])
+        )
+
+    return render(request, "projects/circle_cutter_calculator.html", context)

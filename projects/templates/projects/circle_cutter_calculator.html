@@ -1,0 +1,101 @@
+{% extends "projects/base.html" %}
+
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/circle_cutter_calculator_schema.html" %}
+{% endblock scripts %}
+    
+{% block meta_tags %}
+    {% include "includes/meta_tags/circle_cutter_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/circle-cutter-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/circle_cutter_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Circle & Oval Cutter Calculator | Glass Cutting Tools{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4 text-center">Circle & Oval Cutter Calculator</h1>
+            <p class="lead text-muted text-center mb-5">
+                Calculate the exact gauge setting for your glass cutter rig.
+            </p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.target_diameter.label_tag }}
+                                {{ form.target_diameter }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.shape_type.label_tag }}
+                                {{ form.shape_type }}
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                {{ form.grind_allowance.label_tag }}
+                                {{ form.grind_allowance }}
+                                <div class="form-text text-white-50">{{ form.grind_allowance.help_text }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.cutter_offset.label_tag }}
+                                {{ form.cutter_offset }}
+                                <div class="form-text text-white-50">{{ form.cutter_offset.help_text }}</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mt-4">Calculate Gauge Setting</button>
+                        <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary mt-3 w-100">Go to Glass Artist Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="alert alert-success border-success" role="alert">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="alert-heading h4 mb-0">Ruler / Gauge Setting</h3>
+                    <span class="badge bg-light text-dark">Shape: {{ results.shape }}</span>
+                </div>
+                <hr>
+                <div class="text-center my-4">
+                    <div class="display-1 fw-bold">{{ results.tool_setting }}"</div>
+                    <div class="fs-5 mt-2 text-uppercase tracking-wider">Set your tool to this measurement</div>
+                </div>
+                
+                <div class="card bg-success bg-opacity-10 border-0 mt-3">
+                    <div class="card-body small">
+                        <strong>How we got this number:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li>Target Diameter: {{ results.target_dim }}"</li>
+                            {% if results.grind_allowance > 0 %}
+                            <li>+ Grinding Allowance: {{ results.grind_allowance }}" (Total Cut: {{ results.cut_dim }}")</li>
+                            {% endif %}
+                            <li>÷ Converted to Radius: {{ results.cut_dim|add:"0"|divisibleby:2 }}"</li>
+                            <li>- Tool Head Offset: {{ results.offset_used }}"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}

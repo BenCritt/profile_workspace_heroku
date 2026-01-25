@@ -53,6 +53,9 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [SSL Verification](https://www.bencritt.net/projects/ssl-check/) — Inspect certificate chains, issuers, expiration dates, and validity.
 
 ### Glass Art & Kiln Tools
+* [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver).
+* [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing enamels and frits.
+* [Circle & Oval Cutter Calculator](https://www.bencritt.net/projects/circle-cutter-calculator/) — Calculate radius settings for glass circle cutters, factoring in wheel offsets and grind allowances.
 * [Kiln Schedule Generator](https://www.bencritt.net/projects/kiln-schedule-generator/) — Generate safe firing schedules for Bullseye (90) and System 96 glass, adjusted for thickness.
 * [Glass Volume Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact weight of glass needed for pot melts and casting molds (2.5g/cm³ density).
 * [Stained Glass Cost Estimator](https://www.bencritt.net/projects/stained-glass-cost-estimator/) — Calculate fair pricing by factoring in materials, waste, foil/solder usage, and labor.
@@ -79,4 +82,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-01-15_
+_Last Updated: 2026-01-24_

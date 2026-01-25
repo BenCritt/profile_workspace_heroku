@@ -982,11 +982,65 @@ class FritMixingForm(forms.Form):
             "inputmode": "decimal", # Triggers the correct mobile keyboard
             "min": "0.00001"        # Prevents negative numbers
             }),
+        validators=[MinValueValidator(0.00001, message="Powder weight must be no less than 0.00001 grams.")],
         help_text="Weigh your dry powder first."
     )
     application_style = forms.ChoiceField(
         choices=STYLE_CHOICES,
         label="Desired Application Style",
         initial="painting",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+# --- Circle/Oval Cutter Calculator ---
+class CircleCutterForm(forms.Form):
+    # Add this inside your CircleCutterForm class
+    cutter_offset = forms.FloatField(
+            label="Cutter Head Offset",
+            help_text="Distance from the center pivot to the cutting wheel. (Standard is 0.20 or 3/16\").",
+            widget=forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "0.20",
+                "step": "0.01",
+                "inputmode": "decimal",
+                "min": "0.01" # Update frontend validation
+                }),
+            validators=[MinValueValidator(0.01, message="Offset must be greater than zero.")],
+        )
+
+    SHAPE_CHOICES = [
+        ("circle", "Circle"),
+        ("oval_width", "Oval (Width/Minor Axis)"),
+        ("oval_length", "Oval (Length/Major Axis)"),
+    ]
+
+    GRIND_CHOICES = [
+        (0.0, "No Grinding (Exact Cut)"),
+        (0.0625, "1/16 inch (Light Grind)"),
+        (0.125, "1/8 inch (Standard Grind)"),
+        (0.25, "1/4 inch (Heavy Grind/Foil)"),
+    ]
+
+    target_diameter = forms.FloatField(
+        label="Desired Finished Diameter (inches)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", 
+            "placeholder": "e.g. 10.5",
+            "inputmode": "decimal", # Triggers the correct mobile keyboard
+            "min": "0.00001"        # Prevents negative numbers
+            }),
+        validators=[MinValueValidator(0.00001, message="Diameter must be no less than 0.00001 inches.")]
+    )
+    shape_type = forms.ChoiceField(
+        choices=SHAPE_CHOICES,
+        label="Shape Type",
+        initial="circle",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+    grind_allowance = forms.ChoiceField(
+        choices=GRIND_CHOICES,
+        label="Edge Grinding Allowance",
+        initial=0.0625,
+        help_text="Adds extra glass to account for material lost on the grinder.",
         widget=forms.Select(attrs={"class": "form-select"})
     )

@@ -100,6 +100,15 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Circle Cutter Settings</h2>
+                    <img src="{% static 'img/all-projects/circle-cutter-calculator.webp' %}" alt="Circle Cutter Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate the exact gauge setting for your glass cutter by factoring in tool offset and grinding allowances.</p>
+                    <a href="{% url 'projects:circle_cutter_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -197,6 +206,18 @@
                         scrolling="no">
                     </iframe>
                     <a href="{% url 'projects:frit_mixing_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:circle_cutter_calculator' %}"
+                        title="Circle & Oval Cutter Calculator"
+                        loading="lazy"
+                        scrolling="no">
+                    </iframe>
+                    <a href="{% url 'projects:circle_cutter_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

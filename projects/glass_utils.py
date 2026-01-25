@@ -352,3 +352,28 @@ def calculate_frit_medium_ratio(powder_weight, application_style):
         "style_name": info['name'],
         "style_desc": info['desc']
     }
+
+def calculate_circle_cutter_settings(target_dim, shape, cutter_offset, grind_allowance=0.0):
+    """
+    Calculates the tool setting required for a circle/oval glass cutter.
+    Accounts for cutter head offset and optional grinding allowance.
+    """
+    # If the user plans to grind the edges, the cut needs to be slightly larger
+    cut_dim = target_dim + grind_allowance
+
+    # The tool setting is the Radius minus the Cutter Offset
+    target_radius = cut_dim / 2.0
+    tool_setting = target_radius - cutter_offset
+
+    # Ensure we don't return negative settings for impossible small cuts
+    if tool_setting < 0:
+        tool_setting = 0
+
+    return {
+        "shape": shape,
+        "target_dim": round(target_dim, 3),
+        "cut_dim": round(cut_dim, 3),
+        "tool_setting": round(tool_setting, 3),
+        "grind_allowance": grind_allowance,
+        "offset_used": cutter_offset
+    }
