@@ -32,75 +32,39 @@
         "name": "Freight Logistics Tools",
         "itemListOrder": "https://schema.org/ItemListOrderAscending",
         "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "item": { "@id": "https://www.bencritt.net/projects/freight-safety/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 4,
-            "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" }
-          },
+          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/freight-safety/#app" } },
+          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" } },
+          { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" } },
+          { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" } },
           {
             "@type": "ListItem",
             "position": 5,
-            "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 6,
-            "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 7,
-            "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 8,
-            "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 9,
-            "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 10,
-            "item": { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" }
-          },
-          {
-            "@type": "ListItem",
-            "position": 11,
-            "item": { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" }
+            "item": { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" }
           }
+          { "@type": "ListItem", "position": 6, "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" } },
+          { "@type": "ListItem", "position": 7, "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" } },
+          { "@type": "ListItem", "position": 8, "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" } },
+          { "@type": "ListItem", "position": 9, "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" } },
+          { "@type": "ListItem", "position": 10, "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" } },
+          { "@type": "ListItem", "position": 11, "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" } },
+          { "@type": "ListItem", "position": 12, "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" } },
+          { "@type": "ListItem", "position": 13, "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" } }
         ]
       },
       "hasPart": [
         { "@id": "https://www.bencritt.net/projects/freight-safety/#app" },
+        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" },
         { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" },
         { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" }
+        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" }
       ]
     },
 
@@ -301,6 +265,44 @@
         "Load profitability and net profit/loss analysis",
         "Effective Rate Per Mile (RPM) and Deadhead Ratio tracking",
         "Repositioning cost analysis based on custom operating CPM"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app",
+      "name": "Multi-Stop Route Mileage Splitter",
+      "description": "Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles. Calculate stop-off charges for invoicing.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/",
+      "image": "https://www.bencritt.net/static/img/all-projects/multi-stop-mileage-splitter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Split routes into per-leg mileage breakdowns via Google Maps",
+        "Support up to 5 intermediate stops (7 total route points)",
+        "Calculate stop-off charges for multi-stop invoicing",
+        "Show per-leg percentage of total and cumulative miles"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app",
+      "name": "Freight Lane Rate-Per-Mile Analyzer",
+      "description": "Analyze any quoted freight rate against exact Google Maps road miles. See effective RPM, market context, all-in rate with FSC, and carrier margin analysis.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-lane-rate-analyzer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate effective Rate Per Mile using exact Google Maps road miles",
+        "Compare rates against general dry van market benchmarks",
+        "Show all-in RPM including fuel surcharge",
+        "Analyze carrier margin against operating cost per mile"
       ]
     }
   ]

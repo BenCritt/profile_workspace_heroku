@@ -554,3 +554,178 @@ def calculate_deadhead_cost(
         results["has_load_analysis"] = False
 
     return results
+
+def calculate_multi_stop_route(legs, stop_off_charge=None):
+    """
+    Aggregates per-leg mileage data produced by the view (which calls
+    get_road_distance for each consecutive pair) into a full route
+    breakdown suitable for invoicing, driver pay, and stop-off billing.
+
+    Args:
+        legs (list[dict]): Ordered list of leg dicts.  Each dict contains:
+            - "from_zip"  (str): Origin ZIP for this leg.
+            - "to_zip"    (str): Destination ZIP for this leg.
+            - "miles"     (int): Exact road miles from Google Maps.
+        stop_off_charge (float|None): Optional dollar amount charged per
+            intermediate stop (every stop that is NOT the origin or final
+            destination).  Common values: $50–$150 per stop.
+
+    Returns:
+        dict: Full route breakdown including:
+            - legs (list[dict]): Enriched with leg_number, cumulative_miles,
+              pct_of_total, and label.
+            - total_miles (int): Sum of all leg miles.
+            - total_legs (int): Number of legs.
+            - num_stops (int): Total route points (origin + stops + dest).
+            - num_intermediate_stops (int): Stops between origin and dest.
+            - stop_off_charge (float|None): Per-stop charge echoed back.
+            - total_stop_off_charges (float): Total stop-off fees.
+            - has_stop_off (bool): Whether stop-off billing is active.
+    """
+    total_miles = sum(leg["miles"] for leg in legs)
+
+    # Enrich each leg with computed fields.
+    cumulative = 0
+    for i, leg in enumerate(legs):
+        cumulative += leg["miles"]
+        leg["leg_number"] = i + 1
+        leg["cumulative_miles"] = cumulative
+        leg["pct_of_total"] = (
+            round((leg["miles"] / total_miles) * 100, 1) if total_miles > 0 else 0.0
+        )
+        leg["label"] = f"Leg {i + 1}: {leg['from_zip']} → {leg['to_zip']}"
+
+    # Stop-off charges: billed for every intermediate stop.
+    # Route A → B → C → D has intermediate stops B and C (= total_legs - 1).
+    num_intermediate_stops = max(len(legs) - 1, 0)
+    total_stop_off = 0.0
+    if stop_off_charge and stop_off_charge > 0 and num_intermediate_stops > 0:
+        total_stop_off = round(stop_off_charge * num_intermediate_stops, 2)
+
+    # Total unique points on the route (origin + intermediates + destination).
+    num_stops = len(legs) + 1
+
+    return {
+        "legs": legs,
+        "total_miles": total_miles,
+        "total_legs": len(legs),
+        "num_stops": num_stops,
+        "num_intermediate_stops": num_intermediate_stops,
+        "stop_off_charge": round(stop_off_charge, 2) if stop_off_charge else None,
+        "total_stop_off_charges": total_stop_off,
+        "has_stop_off": stop_off_charge is not None and stop_off_charge > 0,
+    }
+
+def calculate_lane_rate(
+    origin_zip, dest_zip, distance_miles, line_haul_rate,
+    fuel_surcharge=None, operating_cpm=None
+):
+    """
+    Analyzes a quoted freight rate against exact Google Maps road miles to
+    produce effective Rate Per Mile (RPM) metrics, optional all-in analysis
+    with fuel surcharge, and optional margin analysis against operating CPM.
+
+    Args:
+        origin_zip (str): Origin ZIP code (for display context).
+        dest_zip (str): Destination ZIP code (for display context).
+        distance_miles (int): Exact road miles from Google Maps.
+        line_haul_rate (float): Flat dollar rate quoted for the load.
+        fuel_surcharge (float|None): Total fuel surcharge for the trip ($).
+        operating_cpm (float|None): All-in operating Cost Per Mile ($).
+
+    Returns:
+        dict: Rate analysis breakdown.
+    """
+    # --- Core RPM Calculation ---
+    line_haul_rpm = line_haul_rate / distance_miles if distance_miles > 0 else 0.0
+
+    results = {
+        "origin_zip": origin_zip,
+        "dest_zip": dest_zip,
+        "distance_miles": distance_miles,
+        "line_haul_rate": round(line_haul_rate, 2),
+        "line_haul_rpm": round(line_haul_rpm, 3),
+    }
+
+    # --- Rate Context (general dry van benchmarks) ---
+    # These tiers provide directional context, not authoritative market data.
+    if line_haul_rpm < 1.50:
+        rate_context = "well_below"
+        rate_context_label = "Well Below Average"
+        rate_context_note = (
+            "This rate is well below typical dry van market rates. "
+            "Most carriers cannot operate profitably at this level."
+        )
+    elif line_haul_rpm < 2.00:
+        rate_context = "below"
+        rate_context_label = "Below Average"
+        rate_context_note = (
+            "This rate is below the typical dry van range. "
+            "Margins will be tight for most carriers."
+        )
+    elif line_haul_rpm < 2.75:
+        rate_context = "average"
+        rate_context_label = "Average Range"
+        rate_context_note = (
+            "This rate falls within the typical dry van spot market range."
+        )
+    elif line_haul_rpm < 3.50:
+        rate_context = "above"
+        rate_context_label = "Above Average"
+        rate_context_note = (
+            "This is a strong rate, above typical dry van averages."
+        )
+    else:
+        rate_context = "premium"
+        rate_context_label = "Premium Rate"
+        rate_context_note = (
+            "This is a premium rate, typical of specialized, expedited, "
+            "or high-demand lanes."
+        )
+
+    results["rate_context"] = rate_context
+    results["rate_context_label"] = rate_context_label
+    results["rate_context_note"] = rate_context_note
+
+    # --- Fuel Surcharge Analysis (optional) ---
+    if fuel_surcharge is not None and fuel_surcharge > 0:
+        all_in_rate = line_haul_rate + fuel_surcharge
+        all_in_rpm = all_in_rate / distance_miles if distance_miles > 0 else 0.0
+        fsc_per_mile = fuel_surcharge / distance_miles if distance_miles > 0 else 0.0
+
+        results["has_fsc"] = True
+        results["fuel_surcharge"] = round(fuel_surcharge, 2)
+        results["all_in_rate"] = round(all_in_rate, 2)
+        results["all_in_rpm"] = round(all_in_rpm, 3)
+        results["fsc_per_mile"] = round(fsc_per_mile, 3)
+    else:
+        results["has_fsc"] = False
+
+    # --- Margin Analysis (optional, requires operating CPM) ---
+    if operating_cpm is not None and operating_cpm > 0:
+        total_operating_cost = operating_cpm * distance_miles
+
+        # Use all-in rate if FSC was provided, otherwise line-haul only.
+        revenue = results.get("all_in_rate", line_haul_rate)
+        net_profit = revenue - total_operating_cost
+        is_profitable = net_profit > 0
+
+        # Margin percentage: (revenue - cost) / revenue * 100
+        margin_pct = (net_profit / revenue) * 100 if revenue > 0 else 0.0
+
+        # Net profit per mile
+        net_profit_per_mile = net_profit / distance_miles if distance_miles > 0 else 0.0
+
+        results["has_margin"] = True
+        results["operating_cpm"] = round(operating_cpm, 2)
+        results["total_operating_cost"] = round(total_operating_cost, 2)
+        results["net_profit"] = round(net_profit, 2)
+        results["abs_net_profit"] = round(abs(net_profit), 2)
+        results["is_profitable"] = is_profitable
+        results["margin_pct"] = round(margin_pct, 1)
+        results["net_profit_per_mile"] = round(net_profit_per_mile, 3)
+        results["revenue_label"] = "All-In" if results.get("has_fsc") else "Line-Haul"
+    else:
+        results["has_margin"] = False
+
+    return results

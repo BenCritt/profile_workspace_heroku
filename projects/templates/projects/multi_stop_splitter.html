@@ -1,0 +1,251 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/multi_stop_splitter_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/multi_stop_splitter_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/multi-stop-mileage-splitter/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/multi_stop_splitter.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Multi-Stop Route Mileage Splitter | Per-Leg Distance Calculator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-signpost-split me-2"></i>Multi-Stop Route Mileage Splitter</h1>
+            <p class="text-muted text-center mb-5">
+                Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles.
+                Calculate stop-off charges for invoicing, driver pay, or rate analysis.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Required: Route Endpoints --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Route Endpoints</legend>
+                            {{ form.origin_zip.label_tag }}
+                            {{ form.origin_zip }}
+                            {% if form.origin_zip.help_text %}
+                                <small class="form-text text-muted">{{ form.origin_zip.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.origin_zip.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.destination_zip.label_tag }}
+                                {{ form.destination_zip }}
+                                {% if form.destination_zip.help_text %}
+                                    <small class="form-text text-muted">{{ form.destination_zip.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.destination_zip.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Intermediate Stops --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Intermediate Stops (Optional)</legend>
+                            <small class="form-text text-muted d-block mb-2">
+                                Add up to 5 intermediate stops in route order. Leave unused stops blank.
+                            </small>
+
+                            {{ form.stop_1.label_tag }}
+                            {{ form.stop_1 }}
+                            {% for error in form.stop_1.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.stop_2.label_tag }}
+                                {{ form.stop_2 }}
+                                {% for error in form.stop_2.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-3">
+                                {{ form.stop_3.label_tag }}
+                                {{ form.stop_3 }}
+                                {% for error in form.stop_3.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-3">
+                                {{ form.stop_4.label_tag }}
+                                {{ form.stop_4 }}
+                                {% for error in form.stop_4.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-3">
+                                {{ form.stop_5.label_tag }}
+                                {{ form.stop_5 }}
+                                {% for error in form.stop_5.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Stop-Off Billing --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Stop-Off Billing (Optional)</legend>
+                            {{ form.stop_off_charge.label_tag }}
+                            {{ form.stop_off_charge }}
+                            {% if form.stop_off_charge.help_text %}
+                                <small class="form-text text-muted">{{ form.stop_off_charge.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.stop_off_charge.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Split Route</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Summary Header --- #}
+                <h4 class="alert-heading text-center mb-3">
+                    Total Route: {{ results.total_miles }} miles &middot; {{ results.total_legs }} leg{{ results.total_legs|pluralize }}
+                </h4>
+                <hr>
+
+                {# --- Route String --- #}
+                <div class="text-center mb-3">
+                    <small class="text-muted">
+                        Route:
+                        {% for zip in route_zips %}{% if not forloop.first %} ➜ {% endif %}{{ zip }}{% endfor %}
+                    </small>
+                </div>
+                <hr>
+
+                {# --- Per-Leg Breakdown Table --- #}
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless text-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-start">Leg</th>
+                                <th>Miles</th>
+                                <th>% of Total</th>
+                                <th>Cumulative</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leg in results.legs %}
+                            <tr>
+                                <td class="text-start">
+                                    <small>{{ leg.from_zip }} ➜ {{ leg.to_zip }}</small>
+                                </td>
+                                <td><strong>{{ leg.miles }}</strong></td>
+                                <td>{{ leg.pct_of_total }}%</td>
+                                <td>{{ leg.cumulative_miles }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-top">
+                                <td class="text-start"><strong>Total</strong></td>
+                                <td><strong>{{ results.total_miles }}</strong></td>
+                                <td>100%</td>
+                                <td>{{ results.total_miles }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                {# --- Stop-Off Charges (if calculated) --- #}
+                {% if results.has_stop_off %}
+                <hr>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Intermediate Stops</small><br>
+                        <span class="fs-5 fw-bold">{{ results.num_intermediate_stops }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Per-Stop Fee</small><br>
+                        <span class="fs-5 fw-bold">${{ results.stop_off_charge|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Total Stop-Off</small><br>
+                        <span class="fs-5 fw-bold">${{ results.total_stop_off_charges|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Why Split Routes by Leg?</h3>
+            <p class="small text-muted mb-2">
+                Freight brokers, dispatchers, and carriers need per-leg mileage for several critical workflows.
+                <strong>Invoicing</strong> multi-stop loads requires knowing exactly how many miles each stop adds so shippers can be billed accurately.
+                <strong>Driver pay</strong> on multi-stop routes is often calculated per mile per leg, especially when different rates apply to different portions of a run.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Stop-off charges</strong> are flat fees billed for each additional stop beyond a standard point-to-point haul. Typical rates range from $50 to $150 per stop, depending on the carrier and lane. This tool calculates the total stop-off cost so you can include it on rate confirmations and invoices.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:deadhead_calculator' %}">Deadhead Calculator</a> to evaluate whether repositioning to the first pickup on this route is worthwhile, or the <a href="{% url 'projects:hos_trip_planner' %}">HOS Trip Planner</a> to estimate realistic transit times with mandatory rest breaks.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

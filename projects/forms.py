@@ -1566,3 +1566,267 @@ class DeadheadCalculatorForm(forms.Form):
             )
 
         return cleaned_data
+    
+class MultiStopSplitterForm(forms.Form):
+    """
+    Accepts an origin, a destination, up to 5 intermediate stops (ZIPs),
+    and an optional per-stop fee for invoicing.
+
+    Fieldset 1 — Route Endpoints (required):  origin_zip, destination_zip
+    Fieldset 2 — Intermediate Stops (optional): stop_1 through stop_5
+    Fieldset 3 — Stop-Off Billing  (optional): stop_off_charge
+    """
+
+    # --- Route Endpoints ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        help_text="First pickup or starting location.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "60601",
+            "inputmode": "numeric",
+        }),
+    )
+    destination_zip = forms.CharField(
+        label="Final Destination ZIP Code",
+        max_length=5,
+        help_text="Last delivery or ending location.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "90210",
+            "inputmode": "numeric",
+        }),
+    )
+
+    # --- Intermediate Stops (all optional) ---
+    stop_1 = forms.CharField(
+        label="Stop 1 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "46201",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_2 = forms.CharField(
+        label="Stop 2 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "37201",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_3 = forms.CharField(
+        label="Stop 3 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_4 = forms.CharField(
+        label="Stop 4 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_5 = forms.CharField(
+        label="Stop 5 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+
+    # --- Stop-Off Billing (optional) ---
+    stop_off_charge = forms.FloatField(
+        label="Stop-Off Charge Per Stop ($)",
+        required=False,
+        help_text="(Optional) Flat fee billed per intermediate stop. Common: $50–$150.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "75",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+
+    # --- ZIP Validation Helpers ---
+    def _validate_zip(self, field_name, label):
+        """Shared ZIP validation for optional stop fields."""
+        zip_code = self.cleaned_data.get(field_name, "").strip()
+        if not zip_code:
+            return ""  # Empty optional fields are fine.
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError(f"Invalid {label} ZIP code.")
+        return zip_code
+
+    def clean_origin_zip(self):
+        zip_code = self.cleaned_data["origin_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Origin ZIP code.")
+        return zip_code
+
+    def clean_destination_zip(self):
+        zip_code = self.cleaned_data["destination_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Destination ZIP code.")
+        return zip_code
+
+    def clean_stop_1(self):
+        return self._validate_zip("stop_1", "Stop 1")
+
+    def clean_stop_2(self):
+        return self._validate_zip("stop_2", "Stop 2")
+
+    def clean_stop_3(self):
+        return self._validate_zip("stop_3", "Stop 3")
+
+    def clean_stop_4(self):
+        return self._validate_zip("stop_4", "Stop 4")
+
+    def clean_stop_5(self):
+        return self._validate_zip("stop_5", "Stop 5")
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        origin = cleaned_data.get("origin_zip", "")
+        destination = cleaned_data.get("destination_zip", "")
+        stops = [
+            cleaned_data.get(f"stop_{i}", "").strip()
+            for i in range(1, 6)
+        ]
+        # Filter out empty stops, preserving user-specified order.
+        intermediate = [z for z in stops if z]
+
+        # Assemble full ordered route for the view.
+        route_zips = []
+        if origin:
+            route_zips.append(origin)
+        route_zips.extend(intermediate)
+        if destination:
+            route_zips.append(destination)
+
+        cleaned_data["route_zips"] = route_zips
+
+        # Validate: origin and destination must differ when no stops are given.
+        if origin and destination and origin == destination and not intermediate:
+            self.add_error(
+                "destination_zip",
+                "Origin and Destination are the same ZIP with no intermediate stops."
+            )
+
+        return cleaned_data
+    
+class LaneRateAnalyzerForm(forms.Form):
+    """
+    Accepts origin/destination ZIPs, a quoted line-haul rate, and optional
+    FSC and operating CPM for deeper analysis.
+
+    Fieldset 1 — Lane (required):  origin_zip, dest_zip
+    Fieldset 2 — Rate (required):  line_haul_rate
+    Fieldset 3 — Optional Analysis: fuel_surcharge, operating_cpm
+    """
+
+    # --- Lane Endpoints ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "60601",
+            "inputmode": "numeric",
+        }),
+    )
+    dest_zip = forms.CharField(
+        label="Destination ZIP Code",
+        max_length=5,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "30301",
+            "inputmode": "numeric",
+        }),
+    )
+
+    # --- Rate ---
+    line_haul_rate = forms.FloatField(
+        label="Line-Haul Rate ($)",
+        help_text="The flat dollar rate quoted for this load (before FSC).",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2800",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0.01",
+        }),
+        validators=[MinValueValidator(0.01, message="Rate must be at least $0.01.")],
+    )
+
+    # --- Optional: Fuel Surcharge ---
+    fuel_surcharge = forms.FloatField(
+        label="Fuel Surcharge — Total ($)",
+        required=False,
+        help_text="(Optional) Total FSC for the trip. Shows all-in RPM.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "225",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+
+    # --- Optional: Operating CPM ---
+    operating_cpm = forms.FloatField(
+        label="Operating Cost Per Mile ($)",
+        required=False,
+        help_text="(Optional) Your all-in CPM. Shows margin analysis.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "1.75",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0.01",
+        }),
+        validators=[MinValueValidator(0.01)],
+    )
+
+    # --- ZIP Validation ---
+    def clean_origin_zip(self):
+        zip_code = self.cleaned_data["origin_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Origin ZIP code.")
+        return zip_code
+
+    def clean_dest_zip(self):
+        zip_code = self.cleaned_data["dest_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Destination ZIP code.")
+        return zip_code

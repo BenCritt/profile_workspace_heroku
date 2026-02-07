@@ -114,4 +114,6 @@ urlpatterns = [
     path("projects/warehouse-storage-calculator/", views.warehouse_storage_calculator, name="warehouse_storage_calculator"),
     path("projects/partial-rate-calculator/", views.partial_rate_calculator, name="partial_rate_calculator"),
     path("projects/deadhead-calculator/", views.deadhead_calculator, name="deadhead_calculator"),
+    path("projects/multi-stop-mileage-splitter/", views.multi_stop_splitter, name="multi_stop_splitter"),
+    path("projects/freight-lane-rate-analyzer/", views.lane_rate_analyzer, name="lane_rate_analyzer"),
 ]

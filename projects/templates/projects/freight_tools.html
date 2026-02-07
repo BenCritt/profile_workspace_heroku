@@ -39,10 +39,55 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
+                    <h2 class="card-title h4">Partial Rate Calculator</h2>
+                    <img src="{% static 'img/all-projects/partial-rate-calculator.webp' %}" alt="Freight Partial Rate Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate Volume LTL / Partial rates based on trailer utilization, exact road miles, and broker margins.</p>
+                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Deadhead Mileage & Cost</h2>
+                    <img src="{% static 'img/all-projects/deadhead-calculator.webp' %}" alt="Deadhead Mileage Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate the true cost of repositioning empty equipment and evaluate load profitability after factoring in deadhead miles.</p>
+                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Multi-Stop Route Mileage Splitter</h2>
+                    <img src="{% static 'img/all-projects/multi-stop-mileage-splitter.webp' %}" alt="Multi-Stop Route Mileage Splitter" class="img-fluid rounded my-3">
+                    <p class="card-text small">Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles, with optional stop-off charges.</p>
+                    <a href="{% url 'projects:multi_stop_splitter' %}" class="btn btn-primary mt-2">Open Splitter</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Freight Lane Rate Analyzer</h2>
+                    <img src="{% static 'img/all-projects/freight-lane-rate-analyzer.webp' %}" alt="Freight Lane Rate-Per-Mile Analyzer" class="img-fluid rounded my-3">
+                    <p class="card-text small">Analyze any quoted freight rate against exact Google Maps road miles with optional FSC and margin analysis.</p>
+                    <a href="{% url 'projects:lane_rate_analyzer' %}" class="btn btn-primary mt-2">Open Analyzer</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
                     <h2 class="card-title h4">Freight Class Calculator</h2>
                     <img src="{% static 'img/all-projects/freight-class-calculator.webp' %}" alt="Freight Class Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Avoid re-bills by calculating density (PCF) and estimating the correct NMFC Freight Class for LTL shipments.</p>
                     <a href="{% url 'projects:freight_class_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Linear Foot Visualizer</h2>
+                    <img src="{% static 'img/all-projects/linear-foot-calculator.webp' %}" alt="Linear Foot Calculator" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Calculate trailer space required and avoid "Linear Foot Rule" carrier penalties by verifying density limits.</p>
+                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
                 </div>
             </div>
 
@@ -84,15 +129,6 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title h4">Linear Foot Visualizer</h2>
-                    <img src="{% static 'img/all-projects/linear-foot-calculator.webp' %}" alt="Linear Foot Calculator" class="img-fluid rounded my-3">                
-                    <p class="card-text small">Calculate trailer space required and avoid "Linear Foot Rule" carrier penalties by verifying density limits.</p>
-                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
-                </div>
-            </div>
-
-            <div class="card tool-card shadow-sm">
-                <div class="card-body">
                     <h2 class="card-title h4">Detention Layover Fee Calculator</h2>
                     <img src="{% static 'img/all-projects/detention-layover-fee-calculator.webp' %}" alt="Detention Fee Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Stop arguing over waiting time. Calculate exact billable detention hours and fees by factoring in your contracted free time.</p>
@@ -109,156 +145,103 @@
                 </div>
             </div>
 
-            <div class="card tool-card shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title h4">Partial Rate Calculator</h2>
-                    <img src="{% static 'img/all-projects/partial-rate-calculator.webp' %}" alt="Freight Partial Rate Calculator" class="img-fluid rounded my-3">                
-                    <p class="card-text small">Calculate Volume LTL / Partial rates based on trailer utilization, exact road miles, and broker margins.</p>
-                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
-                </div>
-            </div>
-
-            <div class="card tool-card shadow-sm">
-                <div class="card-body">
-                    <h2 class="card-title h4">Deadhead Mileage & Cost</h2>
-                    <img src="{% static 'img/all-projects/deadhead-calculator.webp' %}" alt="Deadhead Mileage Calculator" class="img-fluid rounded my-3">                
-                    <p class="card-text small">Calculate the true cost of repositioning empty equipment and evaluate load profitability after factoring in deadhead miles.</p>
-                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
-                </div>
-            </div>
-
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
 
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
-                    <iframe 
-                        src="{% url 'projects:freight_safety' %}" 
-                        title="Carrier Safety Reporter"
-                        loading="lazy"
-                        scrolling="yes"> </iframe>
+                    <iframe src="{% url 'projects:freight_safety' %}" title="Carrier Safety Reporter" loading="lazy" scrolling="yes"> </iframe>
                     <a href="{% url 'projects:freight_safety' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
-        
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:freight_class_calculator' %}"
-                        title="Freight Class Calculator"
-                        loading="lazy"
-                        scrolling="no">
-                    </iframe>
-                    <a href="{% url 'projects:freight_class_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-        
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:fuel_surcharge_calculator' %}"
-                        title="Fuel Surcharge Calculator"
-                        loading="lazy"
-                        scrolling="no">
-                    </iframe>
-                    <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
 
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:hos_trip_planner' %}"
-                        title="HOS Trip Planner"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:hos_trip_planner' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:tie_down_calculator' %}"
-                        title="FMCSA Tie-Down & Load Securement Calculator"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:tie_down_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:cost_per_mile_calculator' %}"
-                        title="Owner-Operator Cost Per Mile (CPM) Calculator"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:cost_per_mile_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:linear_foot_calculator' %}"
-                        title="LTL Linear Foot Calculator & Density Checker"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:detention_layover_fee_calculator' %}"
-                        title="Detention & Layover Fee Calculator"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:warehouse_storage_calculator' %}"
-                        title="Warehouse Pallet Storage Estimator"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
-                    <a href="{% url 'projects:warehouse_storage_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
-                </div>
-            </div>
-
-            <div class="card iframe-card-wrapper shadow-sm">
-                <div class="card-body p-0 p-md-3">
-                    <iframe
-                        src="{% url 'projects:partial_rate_calculator' %}"
-                        title="Freight Partial & Volume LTL Rate Calculator"
-                        loading="lazy"
-                        scrolling="yes">
-                    </iframe>
+                    <iframe src="{% url 'projects:partial_rate_calculator' %}" title="Freight Partial & Volume LTL Rate Calculator" loading="lazy" scrolling="yes"></iframe>
                     <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:deadhead_calculator' %}" title="Deadhead Mileage & Cost Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:multi_stop_splitter' %}" title="Multi-Stop Route Mileage Splitter" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:multi_stop_splitter' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
                     <iframe
-                        src="{% url 'projects:deadhead_calculator' %}"
-                        title="Deadhead Mileage & Cost Calculator"
+                        src="{% url 'projects:lane_rate_analyzer' %}"
+                        title="Freight Lane Rate-Per-Mile Analyzer"
                         loading="lazy"
                         scrolling="yes">
                     </iframe>
-                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                    <a href="{% url 'projects:lane_rate_analyzer' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:freight_class_calculator' %}" title="Freight Class Calculator" loading="lazy" scrolling="no"></iframe>
+                    <a href="{% url 'projects:freight_class_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:linear_foot_calculator' %}" title="LTL Linear Foot Calculator & Density Checker" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+        
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:fuel_surcharge_calculator' %}" title="Fuel Surcharge Calculator" loading="lazy" scrolling="no"></iframe>
+                    <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:hos_trip_planner' %}" title="HOS Trip Planner" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:hos_trip_planner' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:tie_down_calculator' %}" title="FMCSA Tie-Down & Load Securement Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:tie_down_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:cost_per_mile_calculator' %}" title="Owner-Operator Cost Per Mile (CPM) Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:cost_per_mile_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:detention_layover_fee_calculator' %}" title="Detention & Layover Fee Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:warehouse_storage_calculator' %}" title="Warehouse Pallet Storage Estimator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:warehouse_storage_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

@@ -1,0 +1,261 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/lane_rate_analyzer_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/lane_rate_analyzer_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/freight-lane-rate-analyzer/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/lane_rate_analyzer.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Freight Lane Rate-Per-Mile Analyzer | RPM Calculator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-speedometer2 me-2"></i>Freight Lane Rate Analyzer</h1>
+            <p class="text-muted text-center mb-5">
+                Analyze any quoted freight rate against exact Google Maps road miles.
+                See your effective Rate Per Mile, market context, and optional margin analysis.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Required: Lane Endpoints --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Lane</legend>
+                            {{ form.origin_zip.label_tag }}
+                            {{ form.origin_zip }}
+                            {% for error in form.origin_zip.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.dest_zip.label_tag }}
+                                {{ form.dest_zip }}
+                                {% for error in form.dest_zip.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Required: Rate --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Quoted Rate</legend>
+                            {{ form.line_haul_rate.label_tag }}
+                            {{ form.line_haul_rate }}
+                            {% if form.line_haul_rate.help_text %}
+                                <small class="form-text text-muted">{{ form.line_haul_rate.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.line_haul_rate.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Optional: Deeper Analysis --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Additional Analysis (Optional)</legend>
+                            {{ form.fuel_surcharge.label_tag }}
+                            {{ form.fuel_surcharge }}
+                            {% if form.fuel_surcharge.help_text %}
+                                <small class="form-text text-muted">{{ form.fuel_surcharge.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.fuel_surcharge.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.operating_cpm.label_tag }}
+                                {{ form.operating_cpm }}
+                                {% if form.operating_cpm.help_text %}
+                                    <small class="form-text text-muted">{{ form.operating_cpm.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.operating_cpm.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Analyze Rate</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+
+                {# --- Unprofitable Warning (only when margin analysis active) --- #}
+                {% if results.has_margin and not results.is_profitable %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-x-circle-fill me-2"></i>Unprofitable Lane</h5>
+                    <p class="mb-0 text-center small">
+                        At ${{ results.operating_cpm|floatformat:2 }}/mi operating cost, this load loses
+                        <strong>${{ results.abs_net_profit|floatformat:2 }}</strong> over {{ results.distance_miles }} miles.
+                    </p>
+                </div>
+                {% endif %}
+
+                {# --- Rate Context Banner --- #}
+                {% if results.rate_context == "well_below" %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.rate_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.rate_context_note }}</p>
+                </div>
+                {% elif results.rate_context == "below" %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.rate_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.rate_context_note }}</p>
+                </div>
+                {% elif results.rate_context == "above" or results.rate_context == "premium" %}
+                <div class="alert alert-info shadow-sm border-info" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-check-circle-fill me-2"></i>{{ results.rate_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.rate_context_note }}</p>
+                </div>
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Primary RPM --- #}
+                <h4 class="alert-heading text-center mb-3">
+                    Line-Haul RPM: ${{ results.line_haul_rpm|floatformat:3 }}/mi
+                </h4>
+                <hr>
+
+                {# --- Lane & Mileage Summary --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Lane</small><br>
+                        <span class="fs-6 fw-bold">{{ results.origin_zip }} ➜ {{ results.dest_zip }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Road Miles</small><br>
+                        <span class="fs-5 fw-bold">{{ results.distance_miles }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Line-Haul Rate</small><br>
+                        <span class="fs-5 fw-bold">${{ results.line_haul_rate|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {# --- FSC Analysis (if provided) --- #}
+                {% if results.has_fsc %}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Fuel Surcharge</small><br>
+                        <span class="fs-5 fw-bold">${{ results.fuel_surcharge|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">All-In Rate</small><br>
+                        <span class="fs-5 fw-bold">${{ results.all_in_rate|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">All-In RPM</small><br>
+                        <span class="fs-5 fw-bold">${{ results.all_in_rpm|floatformat:3 }}</span>
+                    </div>
+                </div>
+                <div class="text-center mb-1">
+                    <small class="text-muted">FSC per mile: ${{ results.fsc_per_mile|floatformat:3 }}</small>
+                </div>
+                {% endif %}
+
+                {# --- Margin Analysis (if CPM provided) --- #}
+                {% if results.has_margin %}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">{{ results.revenue_label }} Revenue</small><br>
+                        {% if results.has_fsc %}
+                        <span class="fs-5 fw-bold">${{ results.all_in_rate|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="fs-5 fw-bold">${{ results.line_haul_rate|floatformat:2 }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Total Operating Cost</small><br>
+                        <span class="fs-5 fw-bold">${{ results.total_operating_cost|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Net {{ results.is_profitable|yesno:"Profit,Loss" }}</small><br>
+                        <span class="fs-5 fw-bold">${{ results.net_profit|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Margin</small><br>
+                        <span class="fs-5 fw-bold">{{ results.margin_pct }}%</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Net $/Mile</small><br>
+                        <span class="fs-5 fw-bold">${{ results.net_profit_per_mile|floatformat:3 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding Rate Per Mile</h3>
+            <p class="small text-muted mb-2">
+                <strong>Rate Per Mile (RPM)</strong> is the most fundamental metric in freight pricing. It divides the quoted flat rate by the exact number of road miles between origin and destination. Brokers and carriers use RPM to compare loads across different lane lengths, evaluate market competitiveness, and make quick accept/reject decisions.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Line-Haul vs. All-In RPM:</strong> The line-haul RPM reflects only the base rate. When a fuel surcharge (FSC) is added, the all-in RPM gives a more complete picture of what the carrier actually earns per mile. Some rate confirmations bundle FSC into the line-haul; others break it out separately. This tool handles both scenarios.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Market Context:</strong> Dry van spot rates typically range from $2.00 to $2.75 per mile nationally, though this varies significantly by lane, season, and market conditions. The benchmarks shown are directional guidance, not real-time market data.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost, then plug it in here to see your true margin. Pair with the <a href="{% url 'projects:fuel_surcharge_calculator' %}">Fuel Surcharge Calculator</a> to compute FSC from current diesel prices.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

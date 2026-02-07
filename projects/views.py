@@ -930,6 +930,25 @@ def all_projects(request):
                     "ZIP to instantly see whether that load is profitable "
                     "after deadhead, your effective rate per mile, deadhead "
                     "ratio, and break-even minimum."
+        },
+        {
+            "title": "Multi-Stop Route Mileage Splitter",
+            "url_name": "projects:multi_stop_splitter",
+            "image": "multi-stop-mileage-splitter.webp",
+            "description": "Split any multi-stop freight route into individual "
+                    "leg mileages using exact Google Maps road miles. "
+                    "See per-leg distances, percentage of total, cumulative "
+                    "miles, and optional stop-off charges for invoicing."
+        },
+        {
+            "title": "Freight Lane Rate-Per-Mile Analyzer",
+            "url_name": "projects:lane_rate_analyzer",
+            "image": "freight-lane-rate-analyzer.webp",
+            "description": "Analyze any quoted freight rate against exact "
+                    "Google Maps road miles. See effective Rate Per Mile "
+                    "(RPM), rate context against market benchmarks, "
+                    "optional all-in RPM with fuel surcharge, and margin "
+                    "analysis against your operating cost per mile."
         }
     ]
     
@@ -1607,3 +1626,95 @@ def deadhead_calculator(request):
         context["delivery_zip"] = d.get("delivery_zip", "")
 
     return render(request, "projects/deadhead_calculator.html", context)
+
+# Multi-Stop Route Mileage Splitter
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def multi_stop_splitter(request):
+    from . import freight_calculator_utils
+    from .forms import MultiStopSplitterForm
+    from .utils import get_road_distance
+
+    form = MultiStopSplitterForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        route_zips = d["route_zips"]  # Built by form.clean()
+
+        # Need at least 2 points to form a route.
+        if len(route_zips) < 2:
+            context["error_message"] = (
+                "A route requires at least an origin and a destination."
+            )
+            return render(request, "projects/multi_stop_splitter.html", context)
+
+        # --- Call Google Maps for each consecutive pair ---
+        legs = []
+        for i in range(len(route_zips) - 1):
+            from_zip = route_zips[i]
+            to_zip = route_zips[i + 1]
+            miles = get_road_distance(from_zip, to_zip)
+
+            if not miles:
+                # Identify which leg failed for a clear error message.
+                context["error_message"] = (
+                    f"Unable to calculate a driving route for Leg {i + 1}: "
+                    f"{from_zip} → {to_zip}. Please verify both ZIP codes."
+                )
+                return render(
+                    request, "projects/multi_stop_splitter.html", context
+                )
+
+            legs.append({
+                "from_zip": from_zip,
+                "to_zip": to_zip,
+                "miles": miles,
+            })
+
+        # --- Offload aggregation to utils ---
+        context["results"] = freight_calculator_utils.calculate_multi_stop_route(
+            legs=legs,
+            stop_off_charge=d.get("stop_off_charge"),
+        )
+
+        # Pass the full route list for the template's route summary line.
+        context["route_zips"] = route_zips
+
+    return render(request, "projects/multi_stop_splitter.html", context)
+
+# Freight Lane Rate-Per-Mile Analyzer
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def lane_rate_analyzer(request):
+    from . import freight_calculator_utils
+    from .forms import LaneRateAnalyzerForm
+    from .utils import get_road_distance
+
+    form = LaneRateAnalyzerForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+
+        # 1. Get exact road miles from Google Maps
+        exact_miles = get_road_distance(d["origin_zip"], d["dest_zip"])
+
+        if not exact_miles:
+            context["error_message"] = (
+                "Unable to calculate a valid driving route between "
+                "these ZIP codes. Please verify both entries."
+            )
+            return render(request, "projects/lane_rate_analyzer.html", context)
+
+        # 2. Offload analysis to utils
+        context["results"] = freight_calculator_utils.calculate_lane_rate(
+            origin_zip=d["origin_zip"],
+            dest_zip=d["dest_zip"],
+            distance_miles=exact_miles,
+            line_haul_rate=d["line_haul_rate"],
+            fuel_surcharge=d.get("fuel_surcharge"),
+            operating_cpm=d.get("operating_cpm"),
+        )
+
+    return render(request, "projects/lane_rate_analyzer.html", context)
