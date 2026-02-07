@@ -154,7 +154,7 @@
                 {% endif %}
 
                 {# --- High Deadhead Ratio Warning --- #}
-                {% if results.deadhead_ratio >= 20 and results.is_profitable %}
+                {% if results.deadhead_ratio >= 20 and results.is_profitable and results.profit_margin_ratio < 2.0 %}
                 <div class="alert alert-warning shadow-sm border-warning" role="alert">
                     <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>High Deadhead Ratio</h5>
                     <p class="mb-0 text-center small">

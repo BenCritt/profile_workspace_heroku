@@ -531,6 +531,9 @@ def calculate_deadhead_cost(
         # Profitability flag
         is_profitable = net_profit > 0
 
+        # How many times over CPM is the effective RPM?
+        profit_margin_ratio = effective_rpm_all_miles / operating_cpm if operating_cpm > 0 else 0
+
         results.update({
             "has_load_analysis": True,
             "load_rate": round(load_rate, 2),
@@ -545,6 +548,7 @@ def calculate_deadhead_cost(
             "min_rpm_loaded": round(min_rpm_loaded, 3),
             "deadhead_ratio": round(deadhead_ratio, 1),
             "is_profitable": is_profitable,
+            "profit_margin_ratio": round(profit_margin_ratio, 2),
         })
     else:
         results["has_load_analysis"] = False
