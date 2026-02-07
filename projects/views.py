@@ -908,7 +908,7 @@ def all_projects(request):
             "image": "detention-layover-fee-calculator.webp",
             "description": "Stop arguing over waiting time. Calculate exact billable detention hours and fees by subtracting standard free time from your total facility time."
         },
-                {
+        {
             "title": "Warehouse Pallet Storage Estimator",
             "url_name": "projects:warehouse_storage_calculator",
             "image": "warehouse-storage-calculator.webp",
@@ -919,6 +919,17 @@ def all_projects(request):
             "url_name": "projects:partial_rate_calculator",
             "image": "partial-rate-calculator.webp",
             "description": "Calculate Volume LTL and Partial Truckload estimates based on exact trailer utilization, ZIP-to-ZIP road distance, and custom brokerage margins. Essential for determining if a large shipment is cheaper to move via LTL or dedicated Full Truckload (FTL)."
+        },
+        {
+            "title": "Deadhead Mileage & Cost Calculator",
+            "url_name": "projects:deadhead_calculator",
+            "image": "deadhead-calculator.webp",
+            "description": "Calculate the true cost of running empty using exact "
+                    "Google Maps road miles and your all-in operating CPM. "
+                    "Optionally plug in a load's offered rate and delivery "
+                    "ZIP to instantly see whether that load is profitable "
+                    "after deadhead, your effective rate per mile, deadhead "
+                    "ratio, and break-even minimum."
         }
     ]
     
@@ -1330,13 +1341,6 @@ def freight_safety(request):
 def freight_tools(request):
     return render(request, "projects/freight_tools.html")
 
-# Freight Professional Toolkit Page
-@trim_memory_after
-@ensure_csrf_cookie
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-def freight_tools(request):
-    return render(request, "projects/freight_tools.html")
-
 # Glass Reaction Checker
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -1552,3 +1556,54 @@ def partial_rate_calculator(request):
             context["error_message"] = "Unable to calculate a valid driving route between these ZIP codes."
 
     return render(request, "projects/partial_rate_calculator.html", context)
+
+# Deadhead Mileage & Cost Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def deadhead_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import DeadheadCalculatorForm
+    from .utils import get_road_distance
+
+    form = DeadheadCalculatorForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+
+        # 1. Get exact deadhead miles (current position → pickup) from Google Maps
+        deadhead_miles = get_road_distance(d["current_zip"], d["pickup_zip"])
+
+        if not deadhead_miles:
+            context["error_message"] = (
+                "Unable to calculate a valid driving route between "
+                "the current truck location and the pickup ZIP."
+            )
+            return render(request, "projects/deadhead_calculator.html", context)
+
+        # 2. If evaluating a specific load, also get the loaded miles
+        loaded_miles = None
+        if d.get("delivery_zip") and d.get("load_rate"):
+            loaded_miles = get_road_distance(d["pickup_zip"], d["delivery_zip"])
+
+            if not loaded_miles:
+                context["error_message"] = (
+                    "Unable to calculate a valid driving route between "
+                    "the pickup ZIP and the delivery ZIP."
+                )
+                return render(request, "projects/deadhead_calculator.html", context)
+
+        # 3. Offload calculation to utils
+        context["results"] = freight_calculator_utils.calculate_deadhead_cost(
+            deadhead_miles=deadhead_miles,
+            operating_cpm=d["operating_cpm"],
+            load_rate=d.get("load_rate"),
+            loaded_miles=loaded_miles,
+        )
+
+        # 4. Pass location context for the results display
+        context["current_zip"] = d["current_zip"]
+        context["pickup_zip"] = d["pickup_zip"]
+        context["delivery_zip"] = d.get("delivery_zip", "")
+
+    return render(request, "projects/deadhead_calculator.html", context)

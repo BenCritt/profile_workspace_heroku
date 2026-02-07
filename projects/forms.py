@@ -1456,3 +1456,113 @@ class PartialRateForm(forms.Form):
         except (KeyError, IndexError):
             raise forms.ValidationError("Invalid Destination ZIP code.")
         return zip_code
+
+# --- Deadhead Calculator ---
+class DeadheadCalculatorForm(forms.Form):
+    # --- Location Data ---
+    current_zip = forms.CharField(
+        label="Current Truck Location (ZIP Code)",
+        max_length=5,
+        help_text="Where the truck is now (or last drop location).",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "60601",
+            "inputmode": "numeric"
+        })
+    )
+    pickup_zip = forms.CharField(
+        label="Next Pickup Location (ZIP Code)",
+        max_length=5,
+        help_text="The shipper's pickup ZIP for the load being evaluated.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "46201",
+            "inputmode": "numeric"
+        })
+    )
+
+    # --- Operating Cost ---
+    operating_cpm = forms.FloatField(
+        label="Operating Cost Per Mile ($)",
+        help_text="Your all-in CPM (use the CPM Calculator if unsure).",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "1.75",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0.01"
+        }),
+        validators=[MinValueValidator(0.01, message="Operating CPM must be at least $0.01.")],
+    )
+
+    # --- Optional: Load Evaluation Fields ---
+    load_rate = forms.FloatField(
+        label="Offered Load Rate ($)",
+        required=False,
+        help_text="(Optional) The flat dollar rate offered for the next load.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2800",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0"
+        }),
+        validators=[MinValueValidator(0)],
+    )
+    delivery_zip = forms.CharField(
+        label="Delivery Destination (ZIP Code)",
+        max_length=5,
+        required=False,
+        help_text="(Optional) The consignee's delivery ZIP. Required if evaluating a load.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "37201",
+            "inputmode": "numeric"
+        })
+    )
+
+    # --- ZIP Code Validation ---
+    def clean_current_zip(self):
+        zip_code = self.cleaned_data["current_zip"]
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Current Location ZIP code.")
+        return zip_code
+
+    def clean_pickup_zip(self):
+        zip_code = self.cleaned_data["pickup_zip"]
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Pickup Location ZIP code.")
+        return zip_code
+
+    def clean_delivery_zip(self):
+        zip_code = self.cleaned_data.get("delivery_zip", "").strip()
+        if not zip_code:
+            return ""  # Optional field; empty is fine.
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Delivery Destination ZIP code.")
+        return zip_code
+
+    def clean(self):
+        cleaned_data = super().clean()
+        load_rate = cleaned_data.get("load_rate")
+        delivery_zip = cleaned_data.get("delivery_zip", "").strip()
+
+        # If one optional field is filled, the other must also be filled.
+        if load_rate and not delivery_zip:
+            self.add_error(
+                "delivery_zip",
+                "A Delivery ZIP is required when evaluating a load rate."
+            )
+        if delivery_zip and not load_rate:
+            self.add_error(
+                "load_rate",
+                "An Offered Load Rate is required when a Delivery ZIP is provided."
+            )
+
+        return cleaned_data

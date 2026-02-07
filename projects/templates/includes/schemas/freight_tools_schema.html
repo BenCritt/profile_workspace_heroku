@@ -81,6 +81,11 @@
             "@type": "ListItem",
             "position": 10,
             "item": { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "item": { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" }
           }
         ]
       },
@@ -94,7 +99,8 @@
         { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" }
+        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" }
       ]
     },
 
@@ -276,6 +282,25 @@
         "Calculate trailer utilization based on exact trailer specs (Dry Van, Reefer, Flatbed)",
         "Determine limiting freight factor (Space vs Weight)",
         "ZIP to ZIP freight rate estimator based on Google Maps road miles"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app",
+      "name": "Deadhead Mileage & Cost Calculator",
+      "description": "Calculate the true cost of running empty using exact Google Maps road miles and evaluate load profitability.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/deadhead-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/deadhead-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Exact deadhead mileage calculation via Google Maps",
+        "Load profitability and net profit/loss analysis",
+        "Effective Rate Per Mile (RPM) and Deadhead Ratio tracking",
+        "Repositioning cost analysis based on custom operating CPM"
       ]
     }
   ]

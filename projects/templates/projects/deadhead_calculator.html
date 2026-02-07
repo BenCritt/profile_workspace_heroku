@@ -1,0 +1,270 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/deadhead_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/deadhead_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/deadhead-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/deadhead_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Deadhead Mileage & Cost Calculator | Empty Mile Profitability Tool{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-sign-turn-right me-2"></i>Deadhead Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate the true cost of repositioning an empty truck using exact Google Maps road miles.
+                Optionally evaluate whether a specific load is profitable after deadhead.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Required Fields --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Deadhead Route</legend>
+                            {{ form.current_zip.label_tag }}
+                            {{ form.current_zip }}
+                            {% if form.current_zip.help_text %}
+                                <small class="form-text text-muted">{{ form.current_zip.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.current_zip.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.pickup_zip.label_tag }}
+                                {{ form.pickup_zip }}
+                                {% if form.pickup_zip.help_text %}
+                                    <small class="form-text text-muted">{{ form.pickup_zip.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.pickup_zip.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-3">
+                                {{ form.operating_cpm.label_tag }}
+                                {{ form.operating_cpm }}
+                                {% if form.operating_cpm.help_text %}
+                                    <small class="form-text text-muted">{{ form.operating_cpm.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.operating_cpm.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional Load Evaluation Fields --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Load Evaluation (Optional)</legend>
+                            {{ form.load_rate.label_tag }}
+                            {{ form.load_rate }}
+                            {% if form.load_rate.help_text %}
+                                <small class="form-text text-muted">{{ form.load_rate.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.load_rate.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.delivery_zip.label_tag }}
+                                {{ form.delivery_zip }}
+                                {% if form.delivery_zip.help_text %}
+                                    <small class="form-text text-muted">{{ form.delivery_zip.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.delivery_zip.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Deadhead Cost</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS — Deadhead Only (no load evaluation)                  #}
+            {# ============================================================= #}
+            {% if results and not results.has_load_analysis %}
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Deadhead Cost: ${{ results.deadhead_cost|floatformat:2 }}</h4>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Empty Miles</small><br>
+                        <span class="fs-4 fw-bold">{{ results.deadhead_miles }}</span> <small>road miles</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Operating CPM</small><br>
+                        <span class="fs-4 fw-bold">${{ results.operating_cpm|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-12 text-center">
+                        <small class="text-muted">Route: {{ current_zip }} ➔ {{ pickup_zip }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS — Full Load Profitability Analysis                    #}
+            {# ============================================================= #}
+            {% if results and results.has_load_analysis %}
+
+                {# --- Unprofitable Load Warning --- #}
+                {% if not results.is_profitable %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-x-circle-fill me-2"></i>Unprofitable Load</h5>
+                    <p class="mb-0 text-center small">
+                        After factoring in <strong>{{ results.deadhead_miles }}</strong> deadhead miles, this load loses
+                        <strong>${{ results.abs_net_profit|floatformat:2 }}</strong>. The minimum rate to break even is
+                        <strong>${{ results.break_even_rate|floatformat:2 }}</strong>.
+                    </p>
+                </div>
+                {% endif %}
+
+                {# --- High Deadhead Ratio Warning --- #}
+                {% if results.deadhead_ratio >= 20 and results.is_profitable %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>High Deadhead Ratio</h5>
+                    <p class="mb-0 text-center small">
+                        The deadhead ratio is <strong>{{ results.deadhead_ratio }}%</strong>. Ratios above 15–20% significantly erode margins. Consider repositioning closer or negotiating a higher rate.
+                    </p>
+                </div>
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">
+                    Net {{ results.is_profitable|yesno:"Profit,Loss" }}: ${{ results.net_profit|floatformat:2 }}
+                </h4>
+                <hr>
+
+                {# --- Route & Mileage Summary --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Deadhead</small><br>
+                        <span class="fs-5 fw-bold">{{ results.deadhead_miles }}</span> <small>mi</small>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Loaded</small><br>
+                        <span class="fs-5 fw-bold">{{ results.loaded_miles }}</span> <small>mi</small>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Total</small><br>
+                        <span class="fs-5 fw-bold">{{ results.total_trip_miles }}</span> <small>mi</small>
+                    </div>
+                </div>
+                <hr>
+
+                {# --- Financial Breakdown --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Load Rate</small><br>
+                        <span class="fs-5 fw-bold">${{ results.load_rate|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Total Operating Cost</small><br>
+                        <span class="fs-5 fw-bold">${{ results.total_operating_cost|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Deadhead Cost</small><br>
+                        <span class="fs-5 fw-bold">${{ results.deadhead_cost|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Deadhead Ratio</small><br>
+                        <span class="fs-5 fw-bold">{{ results.deadhead_ratio }}%</span>
+                    </div>
+                </div>
+                <hr>
+
+                {# --- Rate Per Mile Analysis --- #}
+                <div class="row text-center mb-2">
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Effective RPM (All Miles)</small><br>
+                        <span class="fs-5 fw-bold">${{ results.effective_rpm_all_miles|floatformat:3 }}</span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <small class="text-uppercase text-muted">Effective RPM (Loaded Only)</small><br>
+                        <span class="fs-5 fw-bold">${{ results.effective_rpm_loaded|floatformat:3 }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Break-Even Rate</small><br>
+                        <span class="fs-5 fw-bold">${{ results.break_even_rate|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Min RPM (Loaded)</small><br>
+                        <span class="fs-5 fw-bold">${{ results.min_rpm_loaded|floatformat:3 }}</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">Route: {{ current_zip }} ➔ {{ pickup_zip }} ➔ {{ delivery_zip }}</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding Deadhead Miles</h3>
+            <p class="small text-muted mb-2">
+                <strong>Deadhead miles</strong> are the miles a truck drives empty to reposition for its next load. Because the truck burns fuel and accumulates wear without generating revenue, every deadhead mile is pure cost. Dispatchers and owner-operators must factor this repositioning cost into every load decision.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Deadhead Ratio</strong> compares empty miles to loaded miles. A 0% ratio means the truck is always loaded (ideal). Industry guidance suggests keeping this below 15–20%. A 30% ratio, for example, means 30 empty miles for every 100 loaded miles — a significant drag on profitability.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Effective RPM (All Miles)</strong> divides the load rate by total miles driven (empty + loaded). This is the real revenue per mile the truck earns. <strong>Effective RPM (Loaded Only)</strong> divides the rate by loaded miles alone — what the rate sheet shows, but not the full picture when deadhead is involved.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost before evaluating loads with this tool.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

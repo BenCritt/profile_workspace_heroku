@@ -471,3 +471,82 @@ def calculate_partial_rate(origin_zip, dest_zip, distance_miles, trailer_type, p
         "dest_zip": dest_zip,
         "limiting_factor": "Space" if space_percentage >= weight_percentage else "Weight"
     }
+
+def calculate_deadhead_cost(
+    deadhead_miles, operating_cpm,
+    load_rate=None, loaded_miles=None
+):
+    """
+    Calculates the cost of running empty (deadhead) miles and, if a load
+    is being evaluated, determines whether accepting it is profitable after
+    factoring in the deadhead repositioning cost.
+
+    Args:
+        deadhead_miles (int): Exact road miles from current position to pickup
+                              (sourced from Google Maps via get_road_distance).
+        operating_cpm (float): The operator's all-in Cost Per Mile (from CPM tool).
+        load_rate (float|None): The flat dollar rate offered for the next load.
+        loaded_miles (int|None): Exact road miles for the loaded portion of the
+                                 next load (sourced from Google Maps).
+
+    Returns:
+        dict: Deadhead cost breakdown plus optional load profitability analysis.
+    """
+    # --- 1. Core Deadhead Cost ---
+    deadhead_cost = deadhead_miles * operating_cpm
+
+    results = {
+        "deadhead_miles": deadhead_miles,
+        "operating_cpm": operating_cpm,
+        "deadhead_cost": round(deadhead_cost, 2),
+    }
+
+    # --- 2. Load Profitability Analysis (only if a load is being evaluated) ---
+    if load_rate is not None and loaded_miles is not None and loaded_miles > 0:
+        # Total miles the truck will actually travel (empty + loaded)
+        total_trip_miles = deadhead_miles + loaded_miles
+
+        # Total operating cost for the entire repositioning + haul
+        total_operating_cost = total_trip_miles * operating_cpm
+
+        # Net profit/loss after all costs
+        net_profit = load_rate - total_operating_cost
+
+        # Effective Rate Per Mile based on ALL miles driven (the real number)
+        effective_rpm_all_miles = load_rate / total_trip_miles if total_trip_miles > 0 else 0.0
+
+        # Effective Rate Per Mile based on LOADED miles only (what the rate sheet shows)
+        effective_rpm_loaded = load_rate / loaded_miles
+
+        # Minimum flat rate needed to break even on total miles
+        break_even_rate = total_operating_cost
+
+        # Minimum Rate Per Loaded Mile the load needs to pay to cover all miles
+        min_rpm_loaded = total_operating_cost / loaded_miles
+
+        # Deadhead Ratio: empty miles as a percentage of loaded miles
+        # Industry rule of thumb: >15-20% deadhead ratio starts hurting margins
+        deadhead_ratio = (deadhead_miles / loaded_miles) * 100
+
+        # Profitability flag
+        is_profitable = net_profit > 0
+
+        results.update({
+            "has_load_analysis": True,
+            "load_rate": round(load_rate, 2),
+            "loaded_miles": loaded_miles,
+            "total_trip_miles": total_trip_miles,
+            "total_operating_cost": round(total_operating_cost, 2),
+            "net_profit": round(net_profit, 2),
+            "abs_net_profit": round(abs(net_profit), 2),
+            "effective_rpm_all_miles": round(effective_rpm_all_miles, 3),
+            "effective_rpm_loaded": round(effective_rpm_loaded, 3),
+            "break_even_rate": round(break_even_rate, 2),
+            "min_rpm_loaded": round(min_rpm_loaded, 3),
+            "deadhead_ratio": round(deadhead_ratio, 1),
+            "is_profitable": is_profitable,
+        })
+    else:
+        results["has_load_analysis"] = False
+
+    return results
