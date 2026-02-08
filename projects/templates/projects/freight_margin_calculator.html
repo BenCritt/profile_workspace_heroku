@@ -1,0 +1,319 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/freight_margin_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/freight_margin_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/freight-margin-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/freight_margin_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Freight Margin & Gross Profit Calculator | Brokerage Profitability Tool{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-graph-up-arrow me-2"></i>Freight Margin Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate brokerage gross profit and margin on any freight load.
+                Optionally break down FSC and accessorial spreads, and add lane ZIPs for per-mile profitability.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Required: Rates --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Load Rates</legend>
+                            {{ form.customer_rate.label_tag }}
+                            {{ form.customer_rate }}
+                            {% if form.customer_rate.help_text %}
+                                <small class="form-text text-muted">{{ form.customer_rate.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.customer_rate.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.carrier_rate.label_tag }}
+                                {{ form.carrier_rate }}
+                                {% if form.carrier_rate.help_text %}
+                                    <small class="form-text text-muted">{{ form.carrier_rate.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.carrier_rate.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Fuel Surcharges --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Fuel Surcharges (Optional)</legend>
+                            {{ form.customer_fsc.label_tag }}
+                            {{ form.customer_fsc }}
+                            {% if form.customer_fsc.help_text %}
+                                <small class="form-text text-muted">{{ form.customer_fsc.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.customer_fsc.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.carrier_fsc.label_tag }}
+                                {{ form.carrier_fsc }}
+                                {% if form.carrier_fsc.help_text %}
+                                    <small class="form-text text-muted">{{ form.carrier_fsc.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.carrier_fsc.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Accessorials --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Accessorials (Optional)</legend>
+                            {{ form.customer_accessorials.label_tag }}
+                            {{ form.customer_accessorials }}
+                            {% if form.customer_accessorials.help_text %}
+                                <small class="form-text text-muted">{{ form.customer_accessorials.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.customer_accessorials.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.carrier_accessorials.label_tag }}
+                                {{ form.carrier_accessorials }}
+                                {% if form.carrier_accessorials.help_text %}
+                                    <small class="form-text text-muted">{{ form.carrier_accessorials.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.carrier_accessorials.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Lane ZIPs for per-mile metrics --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Lane (Optional — Per-Mile Analysis)</legend>
+                            {{ form.origin_zip.label_tag }}
+                            {{ form.origin_zip }}
+                            {% if form.origin_zip.help_text %}
+                                <small class="form-text text-muted">{{ form.origin_zip.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.origin_zip.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.dest_zip.label_tag }}
+                                {{ form.dest_zip }}
+                                {% for error in form.dest_zip.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Margin</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-warning shadow-sm text-center" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+
+                {# --- Unprofitable Warning --- #}
+                {% if not results.is_profitable %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-x-circle-fill me-2"></i>Negative Margin</h5>
+                    <p class="mb-0 text-center small">
+                        This load <strong>loses ${{ results.abs_gross_profit|floatformat:2 }}</strong>.
+                        The all-in carrier cost exceeds the all-in customer revenue.
+                    </p>
+                </div>
+                {% endif %}
+
+                {# --- Margin Health Banner --- #}
+                {% if results.is_profitable %}
+                    {% if results.margin_health == "critical" %}
+                    <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                        <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.margin_health_label }}</h5>
+                        <p class="mb-0 text-center small">{{ results.margin_health_note }}</p>
+                    </div>
+                    {% elif results.margin_health == "tight" %}
+                    <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                        <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.margin_health_label }}</h5>
+                        <p class="mb-0 text-center small">{{ results.margin_health_note }}</p>
+                    </div>
+                    {% elif results.margin_health == "strong" or results.margin_health == "premium" %}
+                    <div class="alert alert-info shadow-sm border-info" role="alert">
+                        <h5 class="alert-heading text-center"><i class="bi bi-check-circle-fill me-2"></i>{{ results.margin_health_label }}</h5>
+                        <p class="mb-0 text-center small">{{ results.margin_health_note }}</p>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Primary: Gross Profit & Margin --- #}
+                <h4 class="alert-heading text-center mb-1">
+                    Gross Profit: ${{ results.gross_profit|floatformat:2 }}
+                </h4>
+                <p class="text-center mb-3">
+                    <span class="fs-5 fw-bold">{{ results.margin_pct }}% Margin</span>
+                </p>
+                <hr>
+
+                {# --- Revenue vs. Cost Summary --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Customer All-In</small><br>
+                        <span class="fs-5 fw-bold">${{ results.customer_all_in|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Carrier All-In</small><br>
+                        <span class="fs-5 fw-bold">${{ results.carrier_all_in|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {# --- Line-Haul Spread --- #}
+                <div class="text-center mb-1">
+                    <small class="text-muted">Line-Haul Spread: ${{ results.line_haul_spread|floatformat:2 }}
+                        ({{ results.customer_rate|floatformat:2 }} − {{ results.carrier_rate|floatformat:2 }})
+                    </small>
+                </div>
+
+                {# --- FSC Breakdown (if applicable) --- #}
+                {% if results.has_fsc %}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Customer FSC</small><br>
+                        <span class="fs-6 fw-bold">${{ results.customer_fsc|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Carrier FSC</small><br>
+                        <span class="fs-6 fw-bold">${{ results.carrier_fsc|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">FSC Spread</small><br>
+                        <span class="fs-6 fw-bold">${{ results.fsc_spread|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# --- Accessorial Breakdown (if applicable) --- #}
+                {% if results.has_accessorials %}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Cust. Accessorials</small><br>
+                        <span class="fs-6 fw-bold">${{ results.customer_accessorials|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Carrier Accessorials</small><br>
+                        <span class="fs-6 fw-bold">${{ results.carrier_accessorials|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Accessorial Spread</small><br>
+                        <span class="fs-6 fw-bold">${{ results.accessorial_spread|floatformat:2 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# --- Per-Mile Metrics (if ZIPs provided) --- #}
+                {% if results.has_mileage %}
+                <hr>
+                <div class="text-center mb-2">
+                    <small class="text-muted">
+                        {{ results.origin_zip }} ➜ {{ results.dest_zip }} — {{ results.distance_miles }} road miles
+                    </small>
+                </div>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Revenue/Mi</small><br>
+                        <span class="fs-6 fw-bold">${{ results.revenue_per_mile|floatformat:3 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Cost/Mi</small><br>
+                        <span class="fs-6 fw-bold">${{ results.cost_per_mile|floatformat:3 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Profit/Mi</small><br>
+                        <span class="fs-6 fw-bold">${{ results.profit_per_mile|floatformat:3 }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding Freight Brokerage Margins</h3>
+            <p class="small text-muted mb-2">
+                <strong>Gross Profit</strong> is the difference between what a shipper pays the brokerage (revenue) and what the brokerage pays the carrier (cost). This is the core metric brokerages use to evaluate load profitability before overhead.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Margin Percentage</strong> represents gross profit as a fraction of total customer revenue: (Gross Profit ÷ Customer All-In) × 100. Most freight brokerages target 10–18% on standard loads. Margins below 5% typically result in net losses after accounting for insurance, software, and back-office costs.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>FSC Spread:</strong> Many brokerages charge the shipper a higher FSC than they pass through to the carrier. This creates additional margin beyond the line-haul spread. Some operations keep a flat FSC spread per load; others use a percentage markup.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Accessorial Margin:</strong> Accessorial charges (lumper fees, liftgate, detention, etc.) are another source of brokerage profit. The spread between what you bill the customer and what you reimburse the carrier directly impacts gross profit.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:lane_rate_analyzer' %}">Lane Rate Analyzer</a> to evaluate individual carrier rates before booking. Pair this tool with the <a href="{% url 'projects:deadhead_calculator' %}">Deadhead Calculator</a> to factor repositioning costs into your margin decisions.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}
