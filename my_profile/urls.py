@@ -5,34 +5,20 @@ from django.views.generic.base import RedirectView
 
 handler404 = "projects.views.view_404"
 
-urlpatterns = [
-    # path("admin/", admin.site.urls),
-    path(
-        "", include("projects.urls")
-    ),  # Ensures "" is home, "/projects/" is all_projects
-    # Redirects.
-    re_path(
-        r"^projects/all_projects/?$",
-        RedirectView.as_view(url="/projects/", permanent=True),
-    ),
-    re_path(
-        r"^projects/all-projects/?$",
-        RedirectView.as_view(url="/projects/", permanent=True),
-    ),
-    re_path(
-        r"^all_projects/?$",
-        RedirectView.as_view(url="/projects/", permanent=True),
-    ),
-    re_path(
-        r"^all-projects/?$",
-        RedirectView.as_view(url="/projects/", permanent=True),
-    ),
-    re_path(r"^projects/?$", RedirectView.as_view(url="/projects/", permanent=True)),
-]
-
-# Mapping of old (underscore) URLs to new (dashed) URLs
+# ---------------------------------------------------------------------------
+# 1. Mapping of old (underscore / outdated) slugs to current (dashed) slugs.
+#    NOTE: ("all_projects", "") is handled manually below to avoid a
+#    double-slash destination ("/projects//").
+# ---------------------------------------------------------------------------
 mappings = [
     ("partial_rate_calculator", "partial-rate-calculator"),
+    ("deadhead_calculator", "deadhead-calculator"),
+    ("multi_stop_splitter", "multi-stop-mileage-splitter"),
+    ("multi_stop_mileage_splitter", "multi-stop-mileage-splitter"),
+    ("multi-stop-splitter", "multi-stop-mileage-splitter"),
+    ("lane_rate_analyzer", "freight-lane-rate-analyzer"),
+    ("lane-rate-analyzer", "freight-lane-rate-analyzer"),
+    ("freight_lane_rate_analyzer", "freight-lane-rate-analyzer"),
     ("glass_reaction_checker", "glass-reaction-checker"),
     ("frit_mixing_calculator", "frit-mixing-calculator"),
     ("circle_cutter_calculator", "circle-cutter-calculator"),
@@ -69,55 +55,91 @@ mappings = [
     ("ip_tool", "ip-tool"),
     ("dns_tool", "dns-lookup"),
     ("it_tools", "it-tools"),
-    ("all_projects", ""),
 ]
 
-# Generate URL patterns for each mapping
+# ---------------------------------------------------------------------------
+# 2. Build programmatic redirect patterns from the mappings above.
+# ---------------------------------------------------------------------------
+redirect_patterns = []
+
 for old, new in mappings:
-    urlpatterns.extend(
-        [
-            # Handle URLs with the "projects/" prefix
+    destination = f"/projects/{new}/"
+
+    # A. Redirect legacy/underscore slugs → canonical dashed URL.
+    #    Only generated when old != new (avoids a self-redirect).
+    if old != new:
+        # /projects/old_name  OR  /projects/old_name/
+        redirect_patterns.append(
             re_path(
-                rf"^projects/{old}$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
+                rf"^projects/{old}/?$",
+                RedirectView.as_view(url=destination, permanent=True),
+            )
+        )
+        # /old_name  OR  /old_name/  (root-level → /projects/ namespace)
+        redirect_patterns.append(
             re_path(
-                rf"^projects/{old}/$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            re_path(
-                rf"^projects/{new}$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            re_path(
-                rf"^projects/{new}/$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            # Handle URLs without the "projects/" prefix
-            re_path(
-                rf"^{old}$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            re_path(
-                rf"^{old}/$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            re_path(
-                rf"^{new}$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-            re_path(
-                rf"^{new}/$",
-                RedirectView.as_view(url=f"/projects/{new}/", permanent=True),
-            ),
-        ]
+                rf"^{old}/?$",
+                RedirectView.as_view(url=destination, permanent=True),
+            )
+        )
+
+    # B. Canonicalization for the current dashed slug.
+
+    # /projects/new-name  (missing trailing slash) → /projects/new-name/
+    # Deliberately matches WITHOUT slash only to avoid looping with the
+    # include that serves the canonical /projects/new-name/ URL.
+    redirect_patterns.append(
+        re_path(
+            rf"^projects/{new}$",
+            RedirectView.as_view(url=destination, permanent=True),
+        )
     )
-"""
-# Redirect non-trailing slash URLs to trailing slash versions.
-# Temporarily commenting out, as this might cause redirect loops.
-urlpatterns.append(
+
+    # /new-name  OR  /new-name/  (root-level → /projects/ namespace)
+    redirect_patterns.append(
+        re_path(
+            rf"^{new}/?$",
+            RedirectView.as_view(url=destination, permanent=True),
+        )
+    )
+
+# ---------------------------------------------------------------------------
+# 3. Assemble urlpatterns.
+#    Order: manual redirects → programmatic redirects → app include (last).
+#    Placing the include last ensures specific redirects always take
+#    precedence and aren't shadowed by a broad include match.
+# ---------------------------------------------------------------------------
+urlpatterns = [
+    # path("admin/", admin.site.urls),
+
+    # -- Manual "all projects" redirects --
     re_path(
-        r"^(?P<path>.*[^/])$", RedirectView.as_view(url="/%(path)s/", permanent=True)
-    )
-)
-"""
+        r"^projects/all_projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^projects/all-projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^all_projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    re_path(
+        r"^all-projects/?$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+    # /projects (no trailing slash) → /projects/
+    # Uses $ (NOT /?$) so that /projects/ itself falls through to the
+    # include below and is served normally — preventing a redirect loop.
+    re_path(
+        r"^projects$",
+        RedirectView.as_view(url="/projects/", permanent=True),
+    ),
+
+    # -- Programmatic redirects (generated from mappings) --
+    *redirect_patterns,
+
+    # -- Main app include (last, so redirects above take precedence) --
+    path("", include("projects.urls")),
+]
