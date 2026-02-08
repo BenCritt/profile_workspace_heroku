@@ -80,9 +80,6 @@
                     </form>
                 </div>
             </div>
-                    </form>
-                </div>
-            </div>
 
             {# ============================================================= #}
             {#  RESULTS                                                        #}
@@ -267,19 +264,42 @@
     {% if result and result.in_amateur_band %}
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                const resultsDiv = document.getElementById("results-section");
-                if (resultsDiv) {
-                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Only scroll if we are NOT in an iframe (prevents visual glitches)
+                if (window.self === window.top) {
+                    const resultsDiv = document.getElementById("results-section");
+                    if (resultsDiv) {
+                        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 }
             });
         </script>
     {% endif %}
 
 <script>
-    // Hide Hub button if loaded within an iframe
+    // 1. Hide Hub button if loaded within an iframe
     if (window.self !== window.top) {
         const hubLink = document.getElementById('hub-link');
         if (hubLink) hubLink.style.display = 'none';
     }
+
+    // 2. IFRAME RESIZER LOGIC
+    function sendHeightUpdate() {
+        const height = document.body.scrollHeight;
+        // Add buffer to prevent scrollbars
+        window.parent.postMessage({ type: 'setHeight', height: height + 30 }, '*');
+    }
+
+    // Send height on load
+    window.addEventListener('load', sendHeightUpdate);
+    window.addEventListener('DOMContentLoaded', sendHeightUpdate);
+
+    // Send height on window resize (only if width changes to avoid loops)
+    let lastWidth = window.innerWidth;
+    window.addEventListener('resize', function() {
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            sendHeightUpdate();
+        }
+    });
 </script>
 {% endblock content %}
