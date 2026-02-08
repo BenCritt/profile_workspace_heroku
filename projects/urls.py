@@ -119,4 +119,7 @@ urlpatterns = [
     path("projects/freight-margin-calculator/", views.freight_margin_calculator, name="freight_margin_calculator"),
     path("projects/band-plan-checker/", views.band_plan_checker, name="band_plan_checker"),
     path("projects/radio-tools/", views.radio_tools, name="radio_tools"),
+    path("projects/repeater-finder/", views.repeater_finder, name="repeater_finder"),
+    path("projects/repeater-finder/start/", views.repeater_finder_start, name="repeater_finder_start"),
+    path("projects/repeater-finder/status/<str:task_id>/", views.repeater_finder_status, name="repeater_finder_status"),
 ]

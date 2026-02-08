@@ -24,6 +24,7 @@ class StaticViewSitemap(Sitemap):
 
     def items(self):
         return [
+            "projects:repeater_finder",
             "projects:all_projects",
             "projects:qr_code_generator",
             "projects:monte_carlo_simulator",

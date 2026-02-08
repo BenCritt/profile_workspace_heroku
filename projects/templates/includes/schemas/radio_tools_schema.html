@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/radio-tools/#webpage",
       "name": "Radio Hobbyist Toolkit",
-      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Ham Radio Call Sign Lookup and Band Plan Checker.",
+      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup and Band Plan Checker.",
       "url": "https://www.bencritt.net/projects/radio-tools/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -32,13 +32,44 @@
         "name": "Radio Hobbyist Tools",
         "itemListOrder": "https://schema.org/ItemListOrderAscending",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
-          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } }
+          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" } },
+          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
+          { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } }
         ]
       },
       "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" },
         { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
         { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/repeater-finder/#app",
+      "name": "Repeater Finder",
+      "description": "Find open VHF and UHF amateur radio repeaters along any US driving route. Enter origin and destination ZIP codes to see frequencies, offsets, PL tones, and locations sorted by position along the route.",
+      "url": "https://www.bencritt.net/projects/repeater-finder/",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/repeater-finder.webp",
+      "creator": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Route-based repeater search using exact Google Maps driving directions.",
+        "Configurable search radius from 10 to 40 miles off the route centerline.",
+        "Filter results by band: 2 Meters, 70 Centimeters, 1.25 Meters, and 6 Meters.",
+        "Shows output frequency, offset, PL/CTCSS tone, call sign, and location for each repeater.",
+        "Results sorted by approximate mile marker along the route.",
+        "Only includes open repeaters from RepeaterBook.",
+        "Automatic deduplication across overlapping search zones."
       ]
     },
 

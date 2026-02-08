@@ -2036,3 +2036,105 @@ class BandPlanForm(forms.Form):
         ),
         help_text="Select your license class to check your transmit privileges at this frequency.",
     )
+
+# --- Repeater Finder ---
+BAND_CHOICES = [
+    ("2m", "2 Meters (144–148 MHz)"),
+    ("70cm", "70 Centimeters (420–450 MHz)"),
+    ("1.25m", "1.25 Meters (222–225 MHz)"),
+    ("6m", "6 Meters (50–54 MHz)"),
+]
+
+RADIUS_CHOICES = [
+    (10, "10 miles"),
+    (15, "15 miles"),
+    (20, "20 miles"),
+    (30, "30 miles (default)"),
+    (40, "40 miles"),
+]
+
+
+class RepeaterFinderForm(forms.Form):
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "53704",
+                "id": "id_origin_zip",
+                "inputmode": "numeric",
+                "autofocus": True,
+            }
+        ),
+        help_text="Starting point of your route.",
+        error_messages={
+            "required": "Please enter an origin ZIP code.",
+        },
+    )
+
+    dest_zip = forms.CharField(
+        label="Destination ZIP Code",
+        max_length=10,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "60601",
+                "id": "id_dest_zip",
+                "inputmode": "numeric",
+            }
+        ),
+        help_text="End point of your route.",
+        error_messages={
+            "required": "Please enter a destination ZIP code.",
+        },
+    )
+
+    search_radius = forms.TypedChoiceField(
+        label="Search Radius",
+        choices=RADIUS_CHOICES,
+        coerce=int,
+        initial=30,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_search_radius",
+            }
+        ),
+        help_text="How far from the route centerline to search for repeaters.",
+    )
+
+    bands = forms.MultipleChoiceField(
+        label="Bands to Include",
+        choices=BAND_CHOICES,
+        initial=["2m", "70cm"],
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "form-check-input"},
+        ),
+        help_text="Select which amateur bands to include in results.",
+        error_messages={
+            "required": "Please select at least one band.",
+        },
+    )
+
+    def clean_origin_zip(self):
+        value = self.cleaned_data["origin_zip"].strip()
+        if not value.isdigit() or len(value) != 5:
+            raise forms.ValidationError("Enter a valid 5-digit US ZIP code.")
+        return value
+
+    def clean_dest_zip(self):
+        value = self.cleaned_data["dest_zip"].strip()
+        if not value.isdigit() or len(value) != 5:
+            raise forms.ValidationError("Enter a valid 5-digit US ZIP code.")
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        origin = cleaned.get("origin_zip")
+        dest = cleaned.get("dest_zip")
+        if origin and dest and origin == dest:
+            raise forms.ValidationError(
+                "Origin and destination cannot be the same ZIP code."
+            )
+        return cleaned

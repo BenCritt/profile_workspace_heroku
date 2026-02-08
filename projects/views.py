@@ -964,6 +964,12 @@ def all_projects(request):
             "url_name": "projects:band_plan_checker",
             "image": "band-plan-checker.webp",
             "description": "Check any US amateur radio band plan against current FCC allocations and restrictions."
+        },
+        {
+            "title": "Repeater Finder",
+            "url_name": "projects:repeater_finder",
+            "image": "repeater-finder.webp",
+            "description": "Find nearby amateur radio repeaters based on your location."
         }
     ]
     
@@ -1815,3 +1821,81 @@ def band_plan_checker(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def radio_tools(request):
     return render(request, "projects/radio_tools.html")
+
+# Repeater Finder Tool
+def repeater_finder(request):
+    from .forms import RepeaterFinderForm
+    from .repeater_finder_utils import find_repeaters_along_route
+    """
+    GET  → Empty form.
+    POST → Validate, run route + repeater search, render results.
+    """
+    form = RepeaterFinderForm()
+    results = None
+    error_message = None
+
+    if request.method == "POST":
+        form = RepeaterFinderForm(request.POST)
+        if form.is_valid():
+            origin_zip = form.cleaned_data["origin_zip"]
+            dest_zip = form.cleaned_data["dest_zip"]
+            search_radius = form.cleaned_data["search_radius"]
+            bands = form.cleaned_data["bands"]
+
+            results = find_repeaters_along_route(
+                origin_zip=origin_zip,
+                dest_zip=dest_zip,
+                search_radius_mi=search_radius,
+                bands=bands,
+            )
+
+            if results.get("error"):
+                error_message = results["error"]
+                results = None
+
+    context = {
+        "form": form,
+        "results": results,
+        "error_message": error_message,
+    }
+    return render(request, "projects/repeater_finder.html", context)
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def repeater_finder(request):
+    """Renders the main page."""
+    from .forms import RepeaterFinderForm
+    form = RepeaterFinderForm()
+    return render(request, "projects/repeater_finder.html", {"form": form})
+
+@require_POST
+def repeater_finder_start(request):
+    """AJAX endpoint to start the search task."""
+    from .forms import RepeaterFinderForm
+    from . import repeater_finder_utils
+    form = RepeaterFinderForm(request.POST)
+    
+    if form.is_valid():
+        try:
+            # Extract clean data
+            origin = form.cleaned_data["origin_zip"]
+            dest = form.cleaned_data["dest_zip"]
+            radius = form.cleaned_data["search_radius"]
+            bands = form.cleaned_data["bands"] # List of strings like ['2m', '70cm']
+
+            # Start background thread
+            task_id = repeater_finder_utils.start_search_task(origin, dest, radius, bands)
+            
+            return JsonResponse({"status": "ok", "task_id": task_id})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    else:
+        return JsonResponse({"status": "error", "errors": form.errors}, status=400)
+
+def repeater_finder_status(request, task_id):
+    from . import repeater_finder_utils
+    """AJAX endpoint to poll task status."""
+    status = repeater_finder_utils.get_task_status(task_id)
+    if not status:
+        return JsonResponse({"status": "error", "message": "Task not found"}, status=404)
+    return JsonResponse(status)

@@ -30,6 +30,15 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
+                    <h2 class="card-title h4">Repeater Finder</h2>
+                    <img src="{% static 'img/all-projects/repeater-finder.webp' %}" alt="Repeater Finder" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Find open VHF and UHF repeaters along your driving route. Enter origin and destination to see frequencies, offsets, and tones sorted by mile marker.</p>
+                    <a href="{% url 'projects:repeater_finder' %}" class="btn btn-primary mt-2">Open Finder</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
                     <h2 class="card-title h4">Ham Radio Call Sign Lookup</h2>
                     <img src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" class="img-fluid rounded my-3">                
                     <p class="card-text small">Search any US amateur radio call sign and view license class, grid square, expiration date, FRN, and trustee details.</p>
@@ -52,6 +61,13 @@
 
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:repeater_finder' %}" title="Repeater Finder" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:repeater_finder' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
                     <iframe src="{% url 'projects:ham_radio_call_sign_lookup' %}" title="Ham Radio Call Sign Lookup" loading="lazy" scrolling="yes"></iframe>
                     <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
@@ -67,4 +83,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Listen for resize messages from the child iframes (Repeater Finder, etc.)
+    window.addEventListener('message', function(e) {
+        // Ensure the message type is what we expect
+        if (e.data.type === 'setHeight' && e.data.height) {
+            const iframes = document.querySelectorAll('iframe');
+            // Find which iframe sent the message
+            for (let i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === e.source) {
+                    // Update that specific iframe's height
+                    iframes[i].style.height = e.data.height + 'px';
+                    break;
+                }
+            }
+        }
+    });
+</script>
 {% endblock content %}

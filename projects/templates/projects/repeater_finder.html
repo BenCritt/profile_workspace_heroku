@@ -1,0 +1,275 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/repeater_finder_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/repeater_finder_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/repeater-finder/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/repeater_finder.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Repeater Finder | Find VHF/UHF Repeaters Along Your Travel Route{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-signpost-split me-2"></i>Repeater Finder</h1>
+            <p class="text-muted text-center mb-5">
+                Enter origin and destination ZIP codes to find open VHF and UHF repeaters
+                along your driving route.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form id="finderForm">
+                        {% csrf_token %}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Route</legend>
+                            {{ form.origin_zip.label_tag }}
+                            {{ form.origin_zip }}
+                            <div class="mt-3">
+                                {{ form.dest_zip.label_tag }}
+                                {{ form.dest_zip }}
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Search Options</legend>
+                            {{ form.search_radius.label_tag }}
+                            {{ form.search_radius }}
+                            <div class="mt-3">
+                                <label class="form-label">{{ form.bands.label }}</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% for checkbox in form.bands %}
+                                        <div class="form-check">
+                                            {{ checkbox.tag }}
+                                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                                {{ checkbox.choice_label }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 mt-3">Find Repeaters</button>
+                        
+                        <a href="{% url 'projects:radio_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-2">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to Radio Hobbyist Toolkit
+                        </a>
+
+                    </form>
+                </div>
+            </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="loadingSection" class="d-none text-center my-4">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <h5 id="loadingText">Initializing...</h5>
+                <p class="text-muted small">This may take up to 60 seconds depending on route length.</p>
+            </div>
+
+            <div id="errorAlert" class="alert alert-danger d-none shadow-sm text-center" role="alert"></div>
+
+            <div id="resultsContainer" class="d-none">
+                <div class="alert alert-info shadow-sm" role="alert">
+                    <h5 class="alert-heading text-center">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Route Summary
+                    </h5>
+                    <div class="row text-center mt-3">
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Distance</small><br>
+                            <span class="fs-6 fw-bold" id="resDist"></span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Time</small><br>
+                            <span class="fs-6 fw-bold" id="resTime"></span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Via</small><br>
+                            <span class="fs-6 fw-bold" id="resSummary"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm table-striped align-middle" id="resultsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>~Mile</th>
+                                <th>Freq</th>
+                                <th>Offset</th>
+                                <th>Tone</th>
+                                <th>Call</th>
+                                <th>Loc</th>
+                                <th>Band</th>
+                                <th>Dist</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// --- HIDE HUB BUTTON IN IFRAME ---
+if (window.self !== window.top) {
+    const hubLink = document.getElementById('hub-link');
+    if (hubLink) hubLink.style.display = 'none';
+}
+document.getElementById('finderForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const btn = document.getElementById('submitBtn');
+    const loading = document.getElementById('loadingSection');
+    const results = document.getElementById('resultsContainer');
+    const errorAlert = document.getElementById('errorAlert');
+    const loadingText = document.getElementById('loadingText');
+
+    // Reset UI
+    btn.disabled = true;
+    loading.classList.remove('d-none');
+    results.classList.add('d-none');
+    errorAlert.classList.add('d-none');
+    
+    // Resize immediately on start to shrink if needed
+    sendHeightUpdate();
+    
+    // 1. Start Task
+    fetch("{% url 'projects:repeater_finder_start' %}", {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            pollStatus(data.task_id);
+        } else {
+            showError(data.message || 'Validation error');
+            btn.disabled = false;
+            loading.classList.add('d-none');
+            sendHeightUpdate();
+        }
+    })
+    .catch(err => {
+        showError("Server error: " + err);
+        btn.disabled = false;
+        loading.classList.add('d-none');
+        sendHeightUpdate();
+    });
+
+    // 2. Poll Status
+    function pollStatus(taskId) {
+        const pollUrl = "{% url 'projects:repeater_finder_status' 'TASK_ID' %}".replace('TASK_ID', taskId);
+        
+        fetch(pollUrl)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'processing') {
+                loadingText.innerText = data.progress || 'Processing...';
+                setTimeout(() => pollStatus(taskId), 2000); 
+            } else if (data.status === 'done') {
+                renderResults(data.result);
+                loading.classList.add('d-none');
+                btn.disabled = false;
+            } else {
+                showError(data.error || 'Unknown error occurred.');
+                loading.classList.add('d-none');
+                btn.disabled = false;
+                sendHeightUpdate();
+            }
+        })
+        .catch(err => {
+            showError("Network error while polling.");
+            loading.classList.add('d-none');
+            btn.disabled = false;
+            sendHeightUpdate();
+        });
+    }
+
+    function renderResults(data) {
+        if (!data || !data.route) return;
+        
+        results.classList.remove('d-none');
+        
+        document.getElementById('resDist').innerText = data.route.distance_miles + " mi";
+        document.getElementById('resTime').innerText = data.route.duration_text;
+        document.getElementById('resSummary').innerText = data.route.summary;
+
+        const tbody = document.querySelector('#resultsTable tbody');
+        tbody.innerHTML = '';
+        
+        if (data.repeaters.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No repeaters found with current settings.</td></tr>';
+        } else {
+            data.repeaters.forEach(rpt => {
+                const row = `
+                    <tr>
+                        <td>${Math.round(rpt.approx_route_mile)}</td>
+                        <td class="fw-bold">${rpt.frequency_display}</td>
+                        <td>${rpt.offset_display}</td>
+                        <td>${rpt.pl_tone}</td>
+                        <td><a href="/projects/ham-radio-call-sign-lookup/?callsign=${rpt.callsign}" target="_blank">${rpt.callsign}</a></td>
+                        <td>${rpt.city}, ${rpt.state}</td>
+                        <td><span class="badge bg-secondary">${rpt.band_display}</span></td>
+                        <td>${rpt.dist_from_route_mi} mi</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Slight delay to allow DOM to paint before calculating height
+        setTimeout(sendHeightUpdate, 100);
+    }
+
+    function showError(msg) {
+        errorAlert.innerText = msg;
+        errorAlert.classList.remove('d-none');
+    }
+
+    // --- IFRAME RESIZER LOGIC ---
+    
+    function sendHeightUpdate() {
+        // Calculate total scroll height
+        const height = document.body.scrollHeight;
+        // Send to parent window
+        window.parent.postMessage({ type: 'setHeight', height: height + 20 }, '*');
+    }
+
+    // 1. Send on initial load
+    window.addEventListener('load', sendHeightUpdate);
+
+    // 2. Track width to prevent vertical resize loops
+    let lastWidth = window.innerWidth;
+
+    window.addEventListener('resize', function() {
+        // ONLY update height if the WIDTH has changed.
+        // This prevents the infinite loop where setting height -> triggers resize -> sets height...
+        if (window.innerWidth !== lastWidth) {
+            lastWidth = window.innerWidth;
+            sendHeightUpdate();
+        }
+    });
+});
+</script>
+{% endblock content %}
