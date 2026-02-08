@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 # API Key retrieved from environment variables (Production standard)
-# GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_KEY")
-GOOGLE_MAPS_API_KEY = "AIzaSyD0xBXRANSgMPe8HvaE2rSmm7u8E8QYAyM"  # Placeholder for development/testing. Replace with env var in production.
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_KEY")
 
 GOOGLE_DIRECTIONS_URL = "https://maps.googleapis.com/maps/api/directions/json"
 

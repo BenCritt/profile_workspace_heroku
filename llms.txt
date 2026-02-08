@@ -33,6 +33,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Freight Professional Toolkit](https://www.bencritt.net/projects/freight-tools/) — A suite of logistics utilities including Carrier Safety, Freight Class, FSC, and HOS planning.
 * [Glass Artist Toolkit](https://www.bencritt.net/projects/glass-artist-toolkit/) — The central hub for all fused glass, stained glass, and kiln casting utilities.
 * [IT Professional Toolkit](https://www.bencritt.net/projects/it-tools/) — A collection of network diagnostics including SSL verification, IP lookup, and DNS tools.
+* [Radio Hobbyist Toolkit](https://www.bencritt.net/projects/radio-tools/) — A suite of utilities for ham radio operators including Repeater Finder, Band Plan Checker, and Call Sign Lookup.
 * [SEO Professional Toolkit](https://www.bencritt.net/projects/seo-tools/) — A suite of technical SEO auditing tools including Head Checker, Font Inspector, and Cookie Audit.
 
 ### Freight & Logistics
@@ -72,15 +73,17 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Lampwork Glass Calculator](https://www.bencritt.net/projects/lampwork-materials/) — Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing.
 * [Kiln Controller Utilities](https://www.bencritt.net/projects/kiln-controller-utils/) — Quick math helpers for programming digital kiln controllers (Ramp/Hold calculations).
 
+### Radio Hobbyist Tools
+* [Repeater Finder](https://www.bencritt.net/projects/repeater-finder/) — Find open VHF/UHF amateur radio repeaters along any US driving route using RepeaterBook data.
+* [Band Plan Checker](https://www.bencritt.net/projects/band-plan-checker/) — Identify US amateur radio bands, modes, and license privileges for any frequency.
+* [Ham Radio Call Sign Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search US amateur radio call signs for license class, grid square, and expiration.
+
 ### Data, Education & Utilities
 * [Grade Level Text Analyzer](https://www.bencritt.net/projects/grade-level-analyzer/) — Calculate readability via Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.
 * [QR Code Generator](https://www.bencritt.net/projects/qr-code-generator/) — Create downloadable PNG QR codes for text or URLs.
 * [Monte Carlo Simulator](https://www.bencritt.net/projects/monte-carlo-simulator/) — Perform probability simulations with dual data ranges and PDF export.
 * [ISS Tracker](https://www.bencritt.net/projects/iss-tracker/) — Track the International Space Station's real-time position and next pass by ZIP code.
 * [Weather Forecast](https://www.bencritt.net/projects/weather/) — Check current conditions and daily forecasts using Google Maps & OpenWeatherMap APIs.
-
-### Specialized Industry Tools
-* [Ham Radio Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search US amateur radio call signs for license class, grid square, and expiration.
 
 ---
 
@@ -91,4 +94,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-07_
+_Last Updated: 2026-02-08_
