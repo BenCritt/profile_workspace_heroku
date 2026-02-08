@@ -116,4 +116,5 @@ urlpatterns = [
     path("projects/deadhead-calculator/", views.deadhead_calculator, name="deadhead_calculator"),
     path("projects/multi-stop-mileage-splitter/", views.multi_stop_splitter, name="multi_stop_splitter"),
     path("projects/freight-lane-rate-analyzer/", views.lane_rate_analyzer, name="lane_rate_analyzer"),
+    path("projects/freight-margin-calculator/", views.freight_margin_calculator, name="freight_margin_calculator"),
 ]

@@ -729,3 +729,138 @@ def calculate_lane_rate(
         results["has_margin"] = False
 
     return results
+
+def calculate_freight_margin(
+    customer_rate, carrier_rate,
+    customer_fsc=None, carrier_fsc=None,
+    customer_accessorials=None, carrier_accessorials=None,
+    distance_miles=None, origin_zip=None, dest_zip=None
+):
+    """
+    Calculates brokerage gross profit and margin on a freight load.
+
+    Computes the spread between what the shipper (customer) pays and what the
+    carrier receives, including optional fuel surcharges and accessorial costs
+    on each side. When ZIPs are provided and Google Maps mileage is available,
+    also returns per-mile profitability metrics.
+
+    Args:
+        customer_rate (float): Line-haul rate billed to the shipper ($).
+        carrier_rate (float): Line-haul rate paid to the carrier ($).
+        customer_fsc (float|None): FSC billed to customer ($).
+        carrier_fsc (float|None): FSC paid to carrier ($).
+        customer_accessorials (float|None): Extra charges billed to customer ($).
+        carrier_accessorials (float|None): Extra costs paid to carrier ($).
+        distance_miles (int|None): Exact road miles from Google Maps.
+        origin_zip (str|None): Origin ZIP (for display context).
+        dest_zip (str|None): Destination ZIP (for display context).
+
+    Returns:
+        dict: Margin analysis breakdown.
+    """
+    # --- Revenue Side (what the customer pays the brokerage) ---
+    cust_fsc = customer_fsc if customer_fsc and customer_fsc > 0 else 0.0
+    cust_acc = customer_accessorials if customer_accessorials and customer_accessorials > 0 else 0.0
+    customer_all_in = customer_rate + cust_fsc + cust_acc
+
+    # --- Cost Side (what the brokerage pays the carrier) ---
+    carr_fsc = carrier_fsc if carrier_fsc and carrier_fsc > 0 else 0.0
+    carr_acc = carrier_accessorials if carrier_accessorials and carrier_accessorials > 0 else 0.0
+    carrier_all_in = carrier_rate + carr_fsc + carr_acc
+
+    # --- Core Margin Calculation ---
+    gross_profit = customer_all_in - carrier_all_in
+    is_profitable = gross_profit > 0
+
+    # Margin %: (Gross Profit / Customer All-In Revenue) * 100
+    margin_pct = (gross_profit / customer_all_in) * 100 if customer_all_in > 0 else 0.0
+
+    # --- Line-Haul-Only Spread (always useful to see the base spread) ---
+    line_haul_spread = customer_rate - carrier_rate
+
+    # --- FSC Spread (if either side has FSC) ---
+    fsc_spread = cust_fsc - carr_fsc
+
+    # --- Margin Health Indicator ---
+    if margin_pct < 5:
+        margin_health = "critical"
+        margin_health_label = "Critical — Below Break-Even Risk"
+        margin_health_note = (
+            "After overhead (software, insurance, back-office), "
+            "margins below 5% often result in a net loss for the brokerage."
+        )
+    elif margin_pct < 10:
+        margin_health = "tight"
+        margin_health_label = "Tight Margin"
+        margin_health_note = (
+            "This covers basic operating costs but leaves little room "
+            "for claims, chargebacks, or payment delays."
+        )
+    elif margin_pct < 18:
+        margin_health = "average"
+        margin_health_label = "Average Brokerage Margin"
+        margin_health_note = (
+            "This falls within the typical freight brokerage target range of 10–18%."
+        )
+    elif margin_pct < 25:
+        margin_health = "strong"
+        margin_health_label = "Strong Margin"
+        margin_health_note = (
+            "Above-average margin. Common on contracted lanes, "
+            "specialized equipment, or high-service accounts."
+        )
+    else:
+        margin_health = "premium"
+        margin_health_label = "Premium Margin"
+        margin_health_note = (
+            "Exceptional spread, typical of expedited freight, "
+            "hot-shot loads, or niche capacity situations."
+        )
+
+    results = {
+        # --- Core ---
+        "customer_rate": round(customer_rate, 2),
+        "carrier_rate": round(carrier_rate, 2),
+        "customer_all_in": round(customer_all_in, 2),
+        "carrier_all_in": round(carrier_all_in, 2),
+        "gross_profit": round(gross_profit, 2),
+        "abs_gross_profit": round(abs(gross_profit), 2),
+        "margin_pct": round(margin_pct, 1),
+        "is_profitable": is_profitable,
+        "line_haul_spread": round(line_haul_spread, 2),
+
+        # --- Health ---
+        "margin_health": margin_health,
+        "margin_health_label": margin_health_label,
+        "margin_health_note": margin_health_note,
+
+        # --- FSC breakdown (only if at least one side has FSC) ---
+        "has_fsc": cust_fsc > 0 or carr_fsc > 0,
+        "customer_fsc": round(cust_fsc, 2),
+        "carrier_fsc": round(carr_fsc, 2),
+        "fsc_spread": round(fsc_spread, 2),
+
+        # --- Accessorials breakdown (only if at least one side has accessorials) ---
+        "has_accessorials": cust_acc > 0 or carr_acc > 0,
+        "customer_accessorials": round(cust_acc, 2),
+        "carrier_accessorials": round(carr_acc, 2),
+        "accessorial_spread": round(cust_acc - carr_acc, 2),
+    }
+
+    # --- Per-Mile Analysis (optional, requires Google Maps distance) ---
+    if distance_miles and distance_miles > 0:
+        revenue_per_mile = customer_all_in / distance_miles
+        cost_per_mile = carrier_all_in / distance_miles
+        profit_per_mile = gross_profit / distance_miles
+
+        results["has_mileage"] = True
+        results["distance_miles"] = distance_miles
+        results["origin_zip"] = origin_zip or ""
+        results["dest_zip"] = dest_zip or ""
+        results["revenue_per_mile"] = round(revenue_per_mile, 3)
+        results["cost_per_mile"] = round(cost_per_mile, 3)
+        results["profit_per_mile"] = round(profit_per_mile, 3)
+    else:
+        results["has_mileage"] = False
+
+    return results

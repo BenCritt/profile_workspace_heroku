@@ -11,6 +11,7 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("freight_margin_calculator", "freight-margin-calculator"),
     ("partial_rate_calculator", "partial-rate-calculator"),
     ("deadhead_calculator", "deadhead-calculator"),
     ("multi_stop_splitter", "multi-stop-mileage-splitter"),

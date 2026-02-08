@@ -1830,3 +1830,160 @@ class LaneRateAnalyzerForm(forms.Form):
         except (KeyError, IndexError):
             raise forms.ValidationError("Invalid Destination ZIP code.")
         return zip_code
+    
+class FreightMarginForm(forms.Form):
+    """
+    Calculates brokerage gross profit and margin on a freight load.
+
+    Fieldset 1 — Rates (required):   customer_rate, carrier_rate
+    Fieldset 2 — FSC (optional):     customer_fsc, carrier_fsc
+    Fieldset 3 — Accessorials (opt):  customer_accessorials, carrier_accessorials
+    Fieldset 4 — Lane (optional):     origin_zip, dest_zip (for per-mile metrics)
+    """
+
+    # --- Required: Customer (Shipper) Rate ---
+    customer_rate = forms.FloatField(
+        label="Customer Rate ($)",
+        help_text="The total line-haul rate billed to the shipper.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "3200",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0.01",
+        }),
+        validators=[MinValueValidator(0.01, message="Customer rate must be at least $0.01.")],
+    )
+
+    # --- Required: Carrier Rate ---
+    carrier_rate = forms.FloatField(
+        label="Carrier Rate ($)",
+        help_text="The line-haul rate paid to the carrier.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2600",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0.01",
+        }),
+        validators=[MinValueValidator(0.01, message="Carrier rate must be at least $0.01.")],
+    )
+
+    # --- Optional: Fuel Surcharges ---
+    customer_fsc = forms.FloatField(
+        label="Customer FSC ($)",
+        required=False,
+        help_text="(Optional) Fuel surcharge billed to customer.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "275",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+    carrier_fsc = forms.FloatField(
+        label="Carrier FSC ($)",
+        required=False,
+        help_text="(Optional) Fuel surcharge paid to carrier.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "225",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+
+    # --- Optional: Accessorials ---
+    customer_accessorials = forms.FloatField(
+        label="Customer Accessorials ($)",
+        required=False,
+        help_text="(Optional) Total accessorial charges billed to customer (lumper, liftgate, etc.).",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "150",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+    carrier_accessorials = forms.FloatField(
+        label="Carrier Accessorials ($)",
+        required=False,
+        help_text="(Optional) Total accessorial costs paid to carrier.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "100",
+            "inputmode": "decimal",
+            "step": "0.01",
+            "min": "0",
+        }),
+        validators=[MinValueValidator(0)],
+    )
+
+    # --- Optional: Lane (for per-mile metrics) ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        required=False,
+        help_text="(Optional) Shows margin per mile using exact Google Maps road miles.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "60601",
+            "inputmode": "numeric",
+        }),
+    )
+    dest_zip = forms.CharField(
+        label="Destination ZIP Code",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "30301",
+            "inputmode": "numeric",
+        }),
+    )
+
+    # --- ZIP Validation ---
+    def clean_origin_zip(self):
+        zip_code = self.cleaned_data.get("origin_zip", "").strip()
+        if not zip_code:
+            return ""  # Optional field; empty is fine.
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Origin ZIP code.")
+        return zip_code
+
+    def clean_dest_zip(self):
+        zip_code = self.cleaned_data.get("dest_zip", "").strip()
+        if not zip_code:
+            return ""  # Optional field; empty is fine.
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Destination ZIP code.")
+        return zip_code
+
+    def clean(self):
+        cleaned_data = super().clean()
+        origin_zip = cleaned_data.get("origin_zip", "").strip()
+        dest_zip = cleaned_data.get("dest_zip", "").strip()
+
+        # If one ZIP is filled, the other must also be filled.
+        if origin_zip and not dest_zip:
+            self.add_error(
+                "dest_zip",
+                "A Destination ZIP is required when an Origin ZIP is provided."
+            )
+        if dest_zip and not origin_zip:
+            self.add_error(
+                "origin_zip",
+                "An Origin ZIP is required when a Destination ZIP is provided."
+            )
+
+        return cleaned_data

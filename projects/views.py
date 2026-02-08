@@ -949,6 +949,15 @@ def all_projects(request):
                     "(RPM), rate context against market benchmarks, "
                     "optional all-in RPM with fuel surcharge, and margin "
                     "analysis against your operating cost per mile."
+        },
+        {
+            "title": "Freight Margin & Gross Profit Calculator",
+            "url_name": "projects:freight_margin_calculator",
+            "image": "freight-margin-calculator.webp",
+            "description": "Calculate brokerage gross profit and margin on "
+                    "any freight load. Enter customer and carrier rates, "
+                    "optional FSC and accessorials on each side, and "
+                    "optional lane ZIPs for per-mile profitability metrics."
         }
     ]
     
@@ -1718,3 +1727,44 @@ def lane_rate_analyzer(request):
         )
 
     return render(request, "projects/lane_rate_analyzer.html", context)
+
+# Freight Margin / Gross Profit Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_margin_calculator(request):
+    from . import freight_calculator_utils
+    from .forms import FreightMarginForm
+    from .utils import get_road_distance
+
+    form = FreightMarginForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+
+        # 1. If ZIPs provided, get exact road miles from Google Maps.
+        distance_miles = None
+        if d.get("origin_zip") and d.get("dest_zip"):
+            distance_miles = get_road_distance(d["origin_zip"], d["dest_zip"])
+
+            if not distance_miles:
+                context["error_message"] = (
+                    "Unable to calculate a valid driving route between "
+                    "these ZIP codes. Margin calculated without per-mile metrics."
+                )
+                # Don't return early — still calculate the margin without miles.
+
+        # 2. Offload calculation to utils.
+        context["results"] = freight_calculator_utils.calculate_freight_margin(
+            customer_rate=d["customer_rate"],
+            carrier_rate=d["carrier_rate"],
+            customer_fsc=d.get("customer_fsc"),
+            carrier_fsc=d.get("carrier_fsc"),
+            customer_accessorials=d.get("customer_accessorials"),
+            carrier_accessorials=d.get("carrier_accessorials"),
+            distance_miles=distance_miles,
+            origin_zip=d.get("origin_zip", ""),
+            dest_zip=d.get("dest_zip", ""),
+        )
+
+    return render(request, "projects/freight_margin_calculator.html", context)

@@ -75,6 +75,15 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
+                    <h2 class="card-title h4">Margin & Gross Profit Calculator</h2>
+                    <img src="{% static 'img/all-projects/freight-margin-calculator.webp' %}" alt="Freight Margin & Gross Profit Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text small">Calculate brokerage gross profit and margin with optional FSC, accessorial, and per-mile breakdowns.</p>
+                    <a href="{% url 'projects:freight_margin_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
                     <h2 class="card-title h4">Freight Class Calculator</h2>
                     <img src="{% static 'img/all-projects/freight-class-calculator.webp' %}" alt="Freight Class Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Avoid re-bills by calculating density (PCF) and estimating the correct NMFC Freight Class for LTL shipments.</p>
@@ -186,6 +195,18 @@
                         scrolling="yes">
                     </iframe>
                     <a href="{% url 'projects:lane_rate_analyzer' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:freight_margin_calculator' %}"
+                        title="Freight Margin & Gross Profit Calculator"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:freight_margin_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
         
