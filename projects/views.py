@@ -958,6 +958,12 @@ def all_projects(request):
                     "any freight load. Enter customer and carrier rates, "
                     "optional FSC and accessorials on each side, and "
                     "optional lane ZIPs for per-mile profitability metrics."
+        },
+        {
+            "title": "Band Plan Checker",
+            "url_name": "projects:band_plan_checker",
+            "image": "band-plan-checker.webp",
+            "description": "Check any US amateur radio band plan against current FCC allocations and restrictions."
         }
     ]
     
