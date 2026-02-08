@@ -1,0 +1,70 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/radio_tools_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/radio_tools_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/radio-tools/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/radio_tools.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Radio Hobbyist Toolkit | Ham Radio & Amateur Radio Utilities{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center">
+        <h1 class="mb-4">Radio Hobbyist Toolkit</h1>
+        <p class="lead text-muted mb-5">Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts.</p>
+        
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Ham Radio Call Sign Lookup</h2>
+                    <img src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Search any US amateur radio call sign and view license class, grid square, expiration date, FRN, and trustee details.</p>
+                    <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="btn btn-primary mt-2">Open Lookup</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Band Plan Checker</h2>
+                    <img src="{% static 'img/all-projects/band-plan-checker.webp' %}" alt="Band Plan Checker" class="img-fluid rounded my-3">                
+                    <p class="card-text small">Enter any frequency to see which US amateur band it falls in, what modes are permitted, and whether your license class can transmit.</p>
+                    <a href="{% url 'projects:band_plan_checker' %}" class="btn btn-primary mt-2">Open Checker</a>
+                </div>
+            </div>
+
+        </div>  
+        
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:ham_radio_call_sign_lookup' %}" title="Ham Radio Call Sign Lookup" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:band_plan_checker' %}" title="Band Plan Checker" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:band_plan_checker' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

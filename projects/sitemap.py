@@ -64,6 +64,9 @@ class StaticViewSitemap(Sitemap):
             "projects:deadhead_calculator",
             "projects:multi_stop_splitter",
             "projects:lane_rate_analyzer",
+            "projects:freight_margin_calculator",
+            "projects:band_plan_checker",
+            "projects:radio_tools",
         ]
 
     def location(self, item):

@@ -1,0 +1,267 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/band_plan_checker_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/band_plan_checker_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/band-plan-checker/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/band_plan_checker.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Band Plan Checker | US Amateur Radio Frequency Privileges{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-broadcast-pin me-2"></i>Band Plan Checker</h1>
+            <p class="text-muted text-center mb-5">
+                Enter a frequency to see which US amateur band it falls in,
+                what modes are permitted, and whether your license class grants
+                transmit privileges.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Frequency Input --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Frequency</legend>
+                            {{ form.frequency.label_tag }}
+                            {{ form.frequency }}
+                            {% if form.frequency.help_text %}
+                                <small class="form-text text-muted">{{ form.frequency.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.frequency.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- License Class (Optional) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">License Class (Optional)</legend>
+                            {{ form.license_class.label_tag }}
+                            {{ form.license_class }}
+                            {% if form.license_class.help_text %}
+                                <small class="form-text text-muted">{{ form.license_class.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.license_class.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Check Frequency</button>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if result %}
+
+                {# --- Error --- #}
+                {% if result.error %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ result.error }}
+                </div>
+
+                {# --- Not in Amateur Band --- #}
+                {% elif not result.in_amateur_band %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>{{ result.freq_display }}</strong> does not fall within any US amateur radio band allocation.
+                </div>
+
+                {# --- Valid Amateur Frequency --- #}
+                {% else %}
+
+                    {# --- Transmit Privilege Banner (if class was selected) --- #}
+                    {% if result.can_transmit is not None %}
+                        {% if result.can_transmit %}
+                        <div class="alert alert-info shadow-sm border-info" role="alert">
+                            <h5 class="alert-heading text-center">
+                                <i class="bi bi-check-circle-fill me-2"></i>{{ result.class_info.name }} — Can Transmit
+                            </h5>
+                            <p class="mb-0 text-center small">
+                                {{ result.class_info.name }} class operators have transmit privileges at {{ result.freq_display }}.
+                                {% if result.tech_cw_note %}
+                                    <br><strong>Note:</strong> Technician privilege here is <strong>CW only</strong> at {{ result.tech_cw_note.max_power_w }} W PEP max.
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                            <h5 class="alert-heading text-center">
+                                <i class="bi bi-x-circle-fill me-2"></i>{{ result.class_info.name }} — Cannot Transmit
+                            </h5>
+                            <p class="mb-0 text-center small">
+                                {{ result.class_info.name }} class operators do <strong>not</strong> have transmit privileges at {{ result.freq_display }}.
+                            </p>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {# --- Segment Details --- #}
+                    <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                        <h4 class="alert-heading text-center mb-1">
+                            {{ result.freq_display }}
+                        </h4>
+                        <p class="text-center mb-3">
+                            <span class="fs-5 fw-bold">{{ result.segments.0.band }}</span>
+                        </p>
+                        <hr>
+
+                        {% for seg in result.segments %}
+                        <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+
+                            {# --- Segment Range --- #}
+                            <div class="row text-center mb-2">
+                                <div class="col-6">
+                                    <small class="text-uppercase text-muted">Segment Start</small><br>
+                                    <span class="fs-6 fw-bold">{{ seg.freq_start }} MHz</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-uppercase text-muted">Segment End</small><br>
+                                    <span class="fs-6 fw-bold">{{ seg.freq_end }} MHz</span>
+                                </div>
+                            </div>
+
+                            {# --- Permitted Modes --- #}
+                            <div class="text-center mb-2">
+                                <small class="text-uppercase text-muted d-block mb-1">Permitted Modes</small>
+                                {% for mode in seg.modes %}
+                                    <span class="badge bg-secondary me-1">{{ mode }}</span>
+                                {% endfor %}
+                            </div>
+
+                            {# --- License Classes with Privileges --- #}
+                            <div class="text-center mb-2">
+                                <small class="text-uppercase text-muted d-block mb-1">License Classes</small>
+                                {% for cls in seg.classes %}
+                                    {% if cls == "E" %}
+                                        <span class="badge bg-primary me-1" title="Amateur Extra">Extra</span>
+                                    {% elif cls == "A" %}
+                                        <span class="badge bg-info text-dark me-1" title="Advanced (grandfathered)">Advanced</span>
+                                    {% elif cls == "G" %}
+                                        <span class="badge bg-success me-1" title="General">General</span>
+                                    {% elif cls == "T" %}
+                                        <span class="badge bg-warning text-dark me-1" title="Technician">Technician</span>
+                                    {% elif cls == "N" %}
+                                        <span class="badge bg-light text-dark me-1" title="Novice (grandfathered)">Novice</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            {# --- Max Power --- #}
+                            <div class="text-center mb-2">
+                                <small class="text-muted">
+                                    Max Power: <strong>{{ seg.max_power_w }} W PEP</strong>
+                                </small>
+                            </div>
+
+                            {# --- Notes --- #}
+                            {% if seg.notes %}
+                            <div class="text-center">
+                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>{{ seg.notes }}</small>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                {% endif %}{# end in_amateur_band check #}
+            {% endif %}{# end result #}
+
+        </div>
+    </div>
+
+    {# --- Quick-Reference Band Table --- #}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">US Amateur Bands — Quick Reference</h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Band</th>
+                            <th>Lower Edge</th>
+                            <th>Upper Edge</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for band in bands_summary %}
+                        <tr>
+                            <td>{{ band.name }}</td>
+                            <td>{{ band.freq_start }} MHz</td>
+                            <td>{{ band.freq_end }} MHz</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2">
+                Source: FCC Part 97 (47 CFR § 97.301–305). Verify against the current
+                <a href="https://www.arrl.org/band-plan" target="_blank" rel="noopener">ARRL Band Plan chart</a>
+                before transmitting.
+            </p>
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding the US Amateur Radio Band Plan</h3>
+            <p class="small text-muted mb-2">
+                <strong>Band Allocations</strong> define the frequency ranges the FCC has allocated for amateur radio use in the United States. Each band is subdivided into segments with specific rules about which emission modes are permitted and which license classes may transmit.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>License Class Privileges:</strong> The FCC issues four active license classes — Technician, General, Amateur Extra, and the grandfathered Advanced class. Higher-class licenses unlock additional frequency segments, particularly on HF (below 30 MHz). Technicians have full VHF/UHF privileges and limited HF access (10 meters, plus CW on portions of 80, 40, and 15 meters at 200 W PEP).
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Permitted Modes:</strong> Each sub-band segment may allow CW (Morse code), Phone (voice — SSB or FM), Data (digital modes like FT8, RTTY, PSK31), Image (SSTV, FAX), or a combination. Mode restrictions are tightest at the bottom of each HF band (typically CW/Data only) and broaden as you move up in frequency.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Power Limits:</strong> The default maximum is 1,500 W PEP for most bands and classes. Notable exceptions include 30 meters (200 W PEP, shared allocation), 60 meters (100 W ERP, channelized), and Technician/Novice HF CW segments (200 W PEP).
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a> to check any US call sign's license class and expiration status.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if result and result.in_amateur_band %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}
