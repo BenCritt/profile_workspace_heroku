@@ -107,6 +107,21 @@
                 </ul>
               </li>
 
+              <!-- Radio Hobbyist Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:radio_tools' %}" id="radioToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Radio Hobbyist Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="radioToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:radio_tools' %}">View All Radio Tools</a></li>
+                  
+                </ul>
+              </li>
+
               <!-- More Tools dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="moreToolsDropdown"
@@ -116,9 +131,7 @@
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:monte_carlo_simulator' %}">Monte Carlo Simulator</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:grade_level_analyzer' %}">Grade Level Text Analyzer</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>                  
                   <li><a class="dropdown-item" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:qr_code_generator' %}">QR Code Generator</a></li>
                 </ul>

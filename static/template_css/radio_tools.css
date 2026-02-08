@@ -1,0 +1,25 @@
+/* Style the iframes inside the cards */
+.iframe-card-wrapper iframe {
+    width: 100%;
+    height: auto;
+    min-height: 553px;
+    border: none;
+}
+    
+/* Styling matched exactly to other toolkits for consistency */
+.tool-card {
+    width: 300px;
+    max-width: 100%;
+}
+    
+.iframe-card-wrapper {
+    width: 100%;
+    max-width: 450px;
+}
+
+/* Mobile override */
+@media (max-width: 600px) {
+    .tool-card {
+        width: 100%;
+    }
+}

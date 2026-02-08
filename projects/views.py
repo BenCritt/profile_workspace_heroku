@@ -1768,3 +1768,44 @@ def freight_margin_calculator(request):
         )
 
     return render(request, "projects/freight_margin_calculator.html", context)
+
+# Band Plan Checker
+def band_plan_checker(request):
+    from .forms import BandPlanForm
+    from .band_plan_utils import lookup_frequency, get_all_bands_summary
+    """
+    GET  → Render the empty form plus a quick-reference band summary.
+    POST → Validate the form, perform the lookup, render results.
+    """
+    form = BandPlanForm()
+    result = None
+    bands_summary = get_all_bands_summary()
+
+    if request.method == "POST":
+        form = BandPlanForm(request.POST)
+        if form.is_valid():
+            freq = form.cleaned_data["frequency"]
+            lc = form.cleaned_data.get("license_class") or None
+            result = lookup_frequency(freq, license_class=lc)
+
+    context = {
+        "form": form,
+        "result": result,
+        "bands_summary": bands_summary,
+        # Page metadata — adjust as needed for your base template's
+        # title/meta blocks.
+        "page_title": "Band Plan Checker — US Amateur Radio Frequency Privileges",
+        "page_description": (
+            "Enter any frequency to instantly see which US amateur band it "
+            "falls in, what modes are permitted, and whether your license "
+            "class grants transmit privileges."
+        ),
+    }
+    return render(request, "projects/band_plan_checker.html", context)
+
+# Radio Hobbyist Toolkit Page
+@trim_memory_after
+@ensure_csrf_cookie
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def radio_tools(request):
+    return render(request, "projects/radio_tools.html")

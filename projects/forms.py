@@ -1566,7 +1566,8 @@ class DeadheadCalculatorForm(forms.Form):
             )
 
         return cleaned_data
-    
+
+# --- Multi Stop Route Splitter ---
 class MultiStopSplitterForm(forms.Form):
     """
     Accepts an origin, a destination, up to 5 intermediate stops (ZIPs),
@@ -1739,7 +1740,8 @@ class MultiStopSplitterForm(forms.Form):
             )
 
         return cleaned_data
-    
+
+# --- Lane Rate Analyzer ---
 class LaneRateAnalyzerForm(forms.Form):
     """
     Accepts origin/destination ZIPs, a quoted line-haul rate, and optional
@@ -1830,7 +1832,8 @@ class LaneRateAnalyzerForm(forms.Form):
         except (KeyError, IndexError):
             raise forms.ValidationError("Invalid Destination ZIP code.")
         return zip_code
-    
+
+# --- Freight Margin Calculator ---
 class FreightMarginForm(forms.Form):
     """
     Calculates brokerage gross profit and margin on a freight load.
@@ -1987,3 +1990,49 @@ class FreightMarginForm(forms.Form):
             )
 
         return cleaned_data
+
+# --- Band Plan Checker ---
+LICENSE_CLASS_CHOICES = [
+    ("", "— Show all classes —"),
+    ("T", "Technician"),
+    ("G", "General"),
+    ("A", "Advanced (grandfathered)"),
+    ("E", "Amateur Extra"),
+]
+
+
+class BandPlanForm(forms.Form):
+    frequency = forms.FloatField(
+        label="Frequency (MHz)",
+        min_value=0.001,
+        max_value=300000,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "14.225",
+                "step": "any",
+                "id": "id_frequency",
+                "autofocus": True,
+            }
+        ),
+        help_text="Enter the frequency in megahertz (MHz).",
+        error_messages={
+            "required": "Please enter a frequency.",
+            "invalid": "Enter a valid number (e.g. 14.225).",
+            "min_value": "Frequency must be greater than 0.",
+            "max_value": "Frequency must be 300,000 MHz or less.",
+        },
+    )
+
+    license_class = forms.ChoiceField(
+        label="Your License Class (optional)",
+        choices=LICENSE_CLASS_CHOICES,
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_license_class",
+            }
+        ),
+        help_text="Select your license class to check your transmit privileges at this frequency.",
+    )

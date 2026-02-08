@@ -1,0 +1,90 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": "https://www.bencritt.net/projects/radio-tools/#webpage",
+      "name": "Radio Hobbyist Toolkit",
+      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Ham Radio Call Sign Lookup and Band Plan Checker.",
+      "url": "https://www.bencritt.net/projects/radio-tools/",
+      "inLanguage": "en-US",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.bencritt.net/#website",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "about": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "@id": "https://www.bencritt.net/projects/radio-tools/#primaryimage",
+        "url": "https://www.bencritt.net/static/img/hubs/radio-hobbyist-toolkit.webp",
+        "caption": "Radio Hobbyist Toolkit"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "Radio Hobbyist Tools",
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
+          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } }
+        ]
+      },
+      "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
+        { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app",
+      "name": "Ham Radio Call Sign Lookup",
+      "description": "Search any US amateur radio call sign and view license class, grid square, expiration date, FRN, grant and last-action dates, and trustee or club details.",
+      "applicationCategory": "Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/",
+      "image": "https://www.bencritt.net/static/img/all-projects/ham-radio-call-sign-lookup.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Real-time FCC licence status",
+        "Licence class and expiry date",
+        "Grid-square and lat/lon location",
+        "FRN, grant, and last-action dates",
+        "Trustee and club details when available"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/band-plan-checker/#app",
+      "name": "Band Plan Checker",
+      "description": "Enter any frequency to instantly see which US amateur radio band it falls in, what modes are permitted, and whether your license class grants transmit privileges. Based on FCC Part 97.",
+      "applicationCategory": "Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/band-plan-checker/",
+      "image": "https://www.bencritt.net/static/img/all-projects/band-plan-checker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Instant frequency-to-band identification",
+        "Permitted mode lookup (CW, Phone, Data, FM, Image, SSB)",
+        "License class privilege check (Technician, General, Advanced, Extra)",
+        "Power limit display per segment",
+        "Technician HF CW sub-band detection with 200 W notation",
+        "60-meter channelized frequency support",
+        "Quick-reference US amateur band table"
+      ]
+    }
+  ]
+}
+</script>
