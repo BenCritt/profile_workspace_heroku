@@ -55,6 +55,19 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Antenna Length Calculator</h2>
+                    <img src="{% static 'img/all-projects/antenna-length-calculator.webp' %}"
+                        alt="Antenna Length Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text small">Calculate element lengths for dipoles,
+                    verticals, EFHW, J-poles, ground planes, loops, and ⅝-wave
+                    verticals in feet and meters.</p>
+                    <a href="{% url 'projects:antenna_calculator' %}"
+                    class="btn btn-primary mt-2">Open Calculator</a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -77,6 +90,16 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe src="{% url 'projects:band_plan_checker' %}" title="Band Plan Checker" loading="lazy" scrolling="yes"></iframe>
                     <a href="{% url 'projects:band_plan_checker' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:antenna_calculator' %}"
+                            title="Antenna Length Calculator" loading="lazy"
+                            scrolling="yes"></iframe>
+                    <a href="{% url 'projects:antenna_calculator' %}"
+                    class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 
