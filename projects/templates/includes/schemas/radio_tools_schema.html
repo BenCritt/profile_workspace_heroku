@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/radio-tools/#webpage",
       "name": "Radio Hobbyist Toolkit",
-      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup and Band Plan Checker.",
+      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup, Band Plan Checker, and Antenna Length Calculator.",
       "url": "https://www.bencritt.net/projects/radio-tools/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -34,13 +34,15 @@
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" } },
           { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
-          { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } }
+          { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } },
+          { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" } }
         ]
       },
       "hasPart": [
         { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" },
         { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
-        { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" }
+        { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" }
       ]
     },
 
@@ -114,6 +116,28 @@
         "Technician HF CW sub-band detection with 200 W notation",
         "60-meter channelized frequency support",
         "Quick-reference US amateur band table"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app",
+      "name": "Antenna Length Calculator",
+      "description": "Calculate element lengths for amateur radio antennas including dipoles, quarter-wave verticals, end-fed half-waves, J-poles, ground planes, full-wave loops, and five-eighths-wave verticals. Enter a frequency and get dimensions in both imperial and metric units with build notes.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/antenna-length-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/antenna-length-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate half-wave dipole, quarter-wave vertical, end-fed half-wave, J-pole, ground plane, full-wave loop, and five-eighths-wave vertical antenna lengths",
+        "Results in both imperial (feet and inches) and metric (meters and centimeters)",
+        "Optional velocity factor adjustment for insulated wire, copper pipe, or twin-lead construction",
+        "Practical build notes and construction tips for each antenna type",
+        "Quick-reference table of common amateur band center frequencies",
+        "Zero external dependencies — pure math, instant results"
       ]
     }
   ]

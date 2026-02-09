@@ -970,6 +970,12 @@ def all_projects(request):
             "url_name": "projects:repeater_finder",
             "image": "repeater-finder.webp",
             "description": "Find nearby amateur radio repeaters based on your location."
+        },
+        {
+            "title": "Antenna Length Calculator",
+            "url_name": "projects:antenna_calculator",
+            "image": "antenna-length-calculator.webp",
+            "description": "Calculate the length of various types of antennas based on frequency."
         }
     ]
     
@@ -1899,3 +1905,34 @@ def repeater_finder_status(request, task_id):
     if not status:
         return JsonResponse({"status": "error", "message": "Task not found"}, status=404)
     return JsonResponse(status)
+
+# Antenna Length Calculator
+def antenna_calculator(request):
+    from .forms import AntennaCalculatorForm
+    from .antenna_calculator_utils import calculate_antenna, QUICK_PICK_FREQUENCIES
+    """
+    GET  → Empty form + quick-pick frequency reference.
+    POST → Validate, calculate antenna dimensions, render results.
+    """
+    form = AntennaCalculatorForm()
+    result = None
+
+    if request.method == "POST":
+        form = AntennaCalculatorForm(request.POST)
+        if form.is_valid():
+            frequency_mhz = form.cleaned_data["frequency"]
+            antenna_type = form.cleaned_data["antenna_type"]
+            velocity_factor = form.cleaned_data.get("velocity_factor")
+
+            result = calculate_antenna(
+                frequency_mhz=frequency_mhz,
+                antenna_type=antenna_type,
+                velocity_factor=velocity_factor,
+            )
+
+    context = {
+        "form": form,
+        "result": result,
+        "quick_picks": QUICK_PICK_FREQUENCIES,
+    }
+    return render(request, "projects/antenna_calculator.html", context)

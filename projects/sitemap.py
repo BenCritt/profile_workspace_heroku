@@ -23,8 +23,7 @@ class StaticViewSitemap(Sitemap):
     changefreq = "weekly"
 
     def items(self):
-        return [
-            "projects:repeater_finder",
+        return [            
             "projects:all_projects",
             "projects:qr_code_generator",
             "projects:monte_carlo_simulator",
@@ -68,6 +67,8 @@ class StaticViewSitemap(Sitemap):
             "projects:freight_margin_calculator",
             "projects:band_plan_checker",
             "projects:radio_tools",
+            "projects:repeater_finder",
+            "projects:antenna_calculator",
         ]
 
     def location(self, item):

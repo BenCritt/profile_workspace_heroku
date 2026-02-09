@@ -1,0 +1,242 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/antenna-length-calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/antenna-length-calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/antenna-length-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/antenna-length-calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Antenna Length Calculator | Dipole, Vertical, EFHW, J-Pole & More{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-rulers me-2"></i>Antenna Length Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Enter a design frequency and antenna type to calculate element
+                lengths in both imperial and metric units.  Supports dipoles,
+                verticals, end-fed half-waves, J-poles, ground planes,
+                full-wave loops, and ⅝-wave verticals.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Frequency Input --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Design Frequency</legend>
+                            {{ form.frequency.label_tag }}
+                            {{ form.frequency }}
+                            {% if form.frequency.help_text %}
+                                <small class="form-text text-muted">{{ form.frequency.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.frequency.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Antenna Type --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Antenna Type</legend>
+                            {{ form.antenna_type.label_tag }}
+                            {{ form.antenna_type }}
+                            {% if form.antenna_type.help_text %}
+                                <small class="form-text text-muted">{{ form.antenna_type.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.antenna_type.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Velocity Factor (Optional) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Velocity Factor (Optional)</legend>
+                            {{ form.velocity_factor.label_tag }}
+                            {{ form.velocity_factor }}
+                            {% if form.velocity_factor.help_text %}
+                                <small class="form-text text-muted">{{ form.velocity_factor.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.velocity_factor.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Lengths</button>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if result %}
+
+                {# --- Error --- #}
+                {% if result.error %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ result.error }}
+                </div>
+
+                {% else %}
+
+                {# --- Antenna Info Banner --- #}
+                <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                    <h4 class="alert-heading text-center mb-1">
+                        {{ result.antenna_type.name }}
+                    </h4>
+                    <p class="text-center mb-3">
+                        <span class="fs-5 fw-bold">{{ result.frequency_display }}</span>
+                    </p>
+                    <hr>
+
+                    {# --- Wavelength --- #}
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Wavelength</small><br>
+                            <span class="fs-6 fw-bold">{{ result.wavelength_imperial }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Wavelength</small><br>
+                            <span class="fs-6 fw-bold">{{ result.wavelength_metric }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-uppercase text-muted">Velocity Factor</small><br>
+                            <span class="fs-6 fw-bold">{{ result.velocity_factor }}</span>
+                        </div>
+                    </div>
+                    <hr>
+
+                    {# --- Element Lengths --- #}
+                    {% for elem in result.elements %}
+                    <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                        <div class="text-center mb-2">
+                            <small class="text-uppercase text-muted d-block mb-1">{{ elem.label }}</small>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <span class="fs-5 fw-bold">{{ elem.imperial }}</span><br>
+                                <small class="text-muted">({{ elem.length_ft }} ft)</small>
+                            </div>
+                            <div class="col-6">
+                                <span class="fs-5 fw-bold">{{ elem.metric }}</span><br>
+                                <small class="text-muted">({{ elem.length_m }} m)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {# --- Build Notes --- #}
+                {% if result.notes %}
+                <div class="alert alert-info shadow-sm" role="alert">
+                    <h5 class="alert-heading text-center">
+                        <i class="bi bi-tools me-2"></i>Build Notes
+                    </h5>
+                    {% for note in result.notes %}
+                    <p class="small mb-{% if forloop.last %}0{% else %}2{% endif %}">
+                        <i class="bi bi-chevron-right me-1"></i>{{ note }}
+                    </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# --- Antenna Description --- #}
+                <div class="text-center mb-3">
+                    <small class="text-muted">{{ result.antenna_type.description }}</small>
+                </div>
+
+                {% endif %}{# end error check #}
+            {% endif %}{# end result #}
+
+        </div>
+    </div>
+
+    {# --- Quick-Pick Frequency Reference Table --- #}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Common Band Center Frequencies — Quick Reference</h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Band</th>
+                            <th>Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for qp in quick_picks %}
+                        <tr>
+                            <td>{{ qp.band }}</td>
+                            <td>{{ qp.freq }} MHz</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="small text-muted mt-2">
+                These are approximate center frequencies for the most popular amateur
+                segments.  Adjust to your specific operating preference (e.g. CW vs. SSB
+                portions of HF bands).
+            </p>
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding Antenna Lengths</h3>
+            <p class="small text-muted mb-2">
+                <strong>Why 468 and not 492?</strong> The theoretical half-wavelength in free space is 492 / f<sub>MHz</sub> feet. Real wire antennas are electrically shorter due to "end effects" — the capacitance at the tips of the wire slows the signal slightly. The empirical constant 468 (a shortening factor of approximately 0.952) accounts for this and produces a good starting point for a resonant half-wave antenna built with typical wire gauges (#12 – #14 AWG) at reasonable heights.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Velocity Factor (VF)</strong> describes how fast a radio signal travels through a conductor relative to the speed of light. Bare copper wire has a VF of roughly 0.95 (already built into the 468 constant). Insulated wire, coaxial cable stubs, and enclosed elements (like copper pipe J-poles) each have different velocity factors. If you're building with a non-standard material, entering the correct VF here will adjust all calculated lengths accordingly.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Always cut long and trim.</strong> These calculations are starting points. Real-world resonance depends on height above ground, nearby structures, wire gauge, feed-line interaction, and antenna shape. Cut your wire 2–3% longer than calculated, then use an antenna analyzer or SWR meter to trim to the desired resonant frequency.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Multi-band operation:</strong> End-Fed Half-Wave (EFHW) antennas cut for a fundamental frequency will also resonate on harmonic multiples — for example, an EFHW cut for 7.150 MHz (40 meters) also works on 14.3 MHz (20m), 21.45 MHz (15m), and 28.6 MHz (10m). A matching transformer (49:1 unun) handles the impedance transformation at the feed point.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a> to verify which modes and license classes are permitted on your chosen frequency before building.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if result and not result.error %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

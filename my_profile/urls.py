@@ -11,6 +11,9 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("antenna-calculator", "antenna-length-calculator"),
+    ("antenna_length_calculator", "antenna-length-calculator"),
+    ("antenna_calculator", "antenna-length-calculator"),
     ("repeater_finder", "repeater-finder"),
     ("band_plan_checker", "band-plan-checker"),
     ("radio_tools", "radio-tools"),

@@ -2138,3 +2138,68 @@ class RepeaterFinderForm(forms.Form):
                 "Origin and destination cannot be the same ZIP code."
             )
         return cleaned
+    
+# --- Antenna Length Calculator ---
+VELOCITY_FACTOR_HELP = (
+    "Accounts for wire insulation or enclosed elements. "
+    "Bare copper wire ≈ 0.95; insulated wire ≈ 0.93; "
+    "copper pipe ≈ 0.95; twin-lead ≈ 0.82. "
+    "Leave blank to use the standard default for the selected antenna type."
+)
+class AntennaCalculatorForm(forms.Form):
+    from .antenna_calculator_utils import ANTENNA_TYPE_CHOICES
+    frequency = forms.FloatField(
+        label="Design Frequency (MHz)",
+        min_value=0.001,
+        max_value=3000.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "146.000",
+                "id": "id_frequency",
+                "step": "any",
+                "inputmode": "decimal",
+                "autofocus": True,
+            }
+        ),
+        help_text="Enter the target frequency in megahertz (MHz).",
+        error_messages={
+            "required": "Please enter a design frequency.",
+            "min_value": "Frequency must be greater than zero.",
+            "max_value": "Frequency must be 3,000 MHz or less.",
+        },
+    )
+
+    antenna_type = forms.ChoiceField(
+        label="Antenna Type",
+        choices=ANTENNA_TYPE_CHOICES,
+        initial="dipole",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_antenna_type",
+            }
+        ),
+        help_text="Select the antenna design you want to build.",
+    )
+
+    velocity_factor = forms.FloatField(
+        label="Velocity Factor (optional)",
+        required=False,
+        min_value=0.50,
+        max_value=1.00,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "0.95",
+                "id": "id_velocity_factor",
+                "step": "0.01",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text=VELOCITY_FACTOR_HELP,
+        error_messages={
+            "min_value": "Velocity factor cannot be less than 0.50.",
+            "max_value": "Velocity factor cannot exceed 1.00.",
+        },
+    )
