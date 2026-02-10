@@ -982,6 +982,18 @@ def all_projects(request):
             "url_name": "projects:grid_square_converter",
             "image": "grid-square-converter.webp",
             "description": "Convert between grid square coordinates and latitude/longitude."
+        },
+        {
+            "title": "RF Exposure Calculator",
+            "url_name": "projects:rf_exposure_calculator",
+            "image": "rf-exposure-calculator.webp",
+            "description": "Evaluate your amateur radio station's compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65. Required by FCC Part 97.13(c)(1) for all amateur stations."
+        },
+        {
+            "title": "Coax Cable Loss Calculator",
+            "url_name": "projects:coax_cable_loss_calculator",
+            "image": "coax-cable-loss-calculator.webp",
+            "description": "Calculate feed line attenuation, SWR mismatch loss, and power delivered to the antenna for RG-58, RG-213, LMR-400, and more."
         }
     ]
     
@@ -1794,6 +1806,8 @@ def freight_margin_calculator(request):
     return render(request, "projects/freight_margin_calculator.html", context)
 
 # Band Plan Checker
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def band_plan_checker(request):
     from .forms import BandPlanForm
     from .band_plan_utils import lookup_frequency, get_all_bands_summary
@@ -1835,43 +1849,6 @@ def radio_tools(request):
     return render(request, "projects/radio_tools.html")
 
 # Repeater Finder Tool
-def repeater_finder(request):
-    from .forms import RepeaterFinderForm
-    from .repeater_finder_utils import find_repeaters_along_route
-    """
-    GET  → Empty form.
-    POST → Validate, run route + repeater search, render results.
-    """
-    form = RepeaterFinderForm()
-    results = None
-    error_message = None
-
-    if request.method == "POST":
-        form = RepeaterFinderForm(request.POST)
-        if form.is_valid():
-            origin_zip = form.cleaned_data["origin_zip"]
-            dest_zip = form.cleaned_data["dest_zip"]
-            search_radius = form.cleaned_data["search_radius"]
-            bands = form.cleaned_data["bands"]
-
-            results = find_repeaters_along_route(
-                origin_zip=origin_zip,
-                dest_zip=dest_zip,
-                search_radius_mi=search_radius,
-                bands=bands,
-            )
-
-            if results.get("error"):
-                error_message = results["error"]
-                results = None
-
-    context = {
-        "form": form,
-        "results": results,
-        "error_message": error_message,
-    }
-    return render(request, "projects/repeater_finder.html", context)
-
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def repeater_finder(request):
@@ -1913,6 +1890,8 @@ def repeater_finder_status(request, task_id):
     return JsonResponse(status)
 
 # Antenna Length Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def antenna_calculator(request):
     from .forms import AntennaCalculatorForm
     from .antenna_calculator_utils import calculate_antenna, QUICK_PICK_FREQUENCIES
@@ -1944,6 +1923,8 @@ def antenna_calculator(request):
     return render(request, "projects/antenna_calculator.html", context)
 
 # Grid Square Converter
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def grid_square_converter(request):
     from .forms import GridSquareForm
     from .grid_square_utils import (
@@ -1987,3 +1968,70 @@ def grid_square_converter(request):
         "precision_table": PRECISION_TABLE,
     }
     return render(request, "projects/grid_square_converter.html", context)
+
+# RF Exposure Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def rf_exposure_calculator(request):
+    from .forms import RFExposureForm
+    from .rf_exposure_utils import calculate_rf_exposure, EXAMPLE_SCENARIOS
+    """
+    GET  → Empty form + example scenarios reference.
+    POST → Validate, calculate RF exposure, render compliance results.
+    """
+    form = RFExposureForm()
+    result = None
+
+    if request.method == "POST":
+        form = RFExposureForm(request.POST)
+        if form.is_valid():
+            result = calculate_rf_exposure(
+                power_watts=form.cleaned_data["power_watts"],
+                gain_value=form.cleaned_data["gain_value"],
+                gain_reference=form.cleaned_data["gain_reference"],
+                frequency_mhz=form.cleaned_data["frequency_mhz"],
+                distance_value=form.cleaned_data["distance_value"],
+                distance_unit=form.cleaned_data["distance_unit"],
+                mode=form.cleaned_data["mode"],
+                custom_duty_cycle=form.cleaned_data.get("custom_duty_cycle"),
+                feed_line_loss_db=form.cleaned_data.get("feed_line_loss_db") or 0.0,
+            )
+
+    context = {
+        "form": form,
+        "result": result,
+        "examples": EXAMPLE_SCENARIOS,
+    }
+    return render(request, "projects/rf_exposure_calculator.html", context)
+
+# Coax Cable Loss Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def coax_cable_loss_calculator(request):
+    from .forms import CoaxCableLossForm
+    from .coax_calculator_utils import calculate_coax_loss, EXAMPLE_SCENARIOS
+    """
+    GET  → Empty form + example scenarios reference.
+    POST → Validate, calculate coax cable loss, render results.
+    """
+    form = CoaxCableLossForm()
+    result = None
+
+    if request.method == "POST":
+        form = CoaxCableLossForm(request.POST)
+        if form.is_valid():
+            result = calculate_coax_loss(
+                cable_type=form.cleaned_data["cable_type"],
+                frequency_mhz=form.cleaned_data["frequency_mhz"],
+                length_value=form.cleaned_data["length_value"],
+                length_unit=form.cleaned_data["length_unit"],
+                power_watts=form.cleaned_data.get("power_watts"),
+                swr=form.cleaned_data.get("swr"),
+            )
+
+    context = {
+        "form": form,
+        "result": result,
+        "examples": EXAMPLE_SCENARIOS,
+    }
+    return render(request, "projects/coax_cable_loss_calculator.html", context)

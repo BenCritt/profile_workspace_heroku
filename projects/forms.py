@@ -2337,3 +2337,286 @@ class GridSquareForm(forms.Form):
                 )
 
         return cleaned
+    
+# -- RF Exposure Calculator --
+DISTANCE_UNIT_CHOICES = [
+    ("feet", "Feet"),
+    ("meters", "Meters"),
+]
+
+class RFExposureForm(forms.Form):
+    from .rf_exposure_utils import MODE_CHOICES, GAIN_REF_CHOICES
+    power_watts = forms.FloatField(
+        label="Transmitter Power (Watts PEP)",
+        min_value=0.1,
+        max_value=2000,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "100",
+                "id": "id_power_watts",
+                "step": "any",
+                "inputmode": "decimal",
+                "autofocus": True,
+            }
+        ),
+        help_text="Peak Envelope Power at the transmitter output. FCC amateur limit is 1,500 W PEP.",
+        error_messages={
+            "required": "Please enter your transmitter power.",
+            "min_value": "Power must be greater than zero.",
+            "max_value": "Power cannot exceed 2,000 watts.",
+        },
+    )
+
+    frequency_mhz = forms.FloatField(
+        label="Operating Frequency (MHz)",
+        min_value=0.3,
+        max_value=100000,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "14.200",
+                "id": "id_frequency_mhz",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Frequency in megahertz. MPE limits vary by frequency band.",
+        error_messages={
+            "required": "Please enter your operating frequency.",
+            "min_value": "Frequency must be at least 0.3 MHz.",
+        },
+    )
+
+    gain_value = forms.FloatField(
+        label="Antenna Gain",
+        min_value=-10.0,
+        max_value=50.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "2.15",
+                "id": "id_gain_value",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text=(
+            "Antenna gain. Common values: 0 dBd (dipole), 2.15 dBi (dipole), "
+            "6–8 dBi (3-element Yagi), 0 dBi (¼λ vertical)."
+        ),
+    )
+
+    gain_reference = forms.ChoiceField(
+        label="Gain Reference",
+        choices=GAIN_REF_CHOICES,
+        initial="dBi",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_gain_reference",
+            }
+        ),
+    )
+
+    distance_value = forms.FloatField(
+        label="Distance to Nearest Person",
+        min_value=0.1,
+        max_value=10000,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "25",
+                "id": "id_distance_value",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Distance from the antenna to the nearest area accessible by people.",
+    )
+
+    distance_unit = forms.ChoiceField(
+        label="Distance Unit",
+        choices=DISTANCE_UNIT_CHOICES,
+        initial="feet",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_distance_unit",
+            }
+        ),
+    )
+
+    mode = forms.ChoiceField(
+        label="Transmission Mode",
+        choices=MODE_CHOICES,
+        initial="ssb",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_mode",
+            }
+        ),
+        help_text="Mode determines the duty cycle, which affects average power.",
+    )
+
+    custom_duty_cycle = forms.FloatField(
+        label="Custom Duty Cycle (%)",
+        required=False,
+        min_value=1,
+        max_value=100,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "50",
+                "id": "id_custom_duty_cycle",
+                "step": "1",
+                "inputmode": "numeric",
+            }
+        ),
+        help_text="Only used when Transmission Mode is set to Custom.",
+    )
+
+    feed_line_loss_db = forms.FloatField(
+        label="Feed Line Loss (dB, optional)",
+        required=False,
+        min_value=0.0,
+        max_value=30.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "1.5",
+                "id": "id_feed_line_loss",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text=(
+            "Loss in your feed line reduces the power radiated by the antenna. "
+            "Leave blank or 0 for a worst-case (no loss) evaluation."
+        ),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        mode = cleaned.get("mode")
+        custom = cleaned.get("custom_duty_cycle")
+
+        if mode == "custom" and (custom is None or custom <= 0):
+            raise forms.ValidationError(
+                "Please enter a custom duty cycle percentage (1–100%)."
+            )
+
+        return cleaned
+    
+# --- Coax Cable Loss Calculator --
+class CoaxCableLossForm(forms.Form):
+    from .coax_calculator_utils import CABLE_CHOICES, LENGTH_UNIT_CHOICES
+    cable_type = forms.ChoiceField(
+        label="Cable Type",
+        choices=CABLE_CHOICES,
+        initial="rg213",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_cable_type",
+                "autofocus": True,
+            }
+        ),
+        help_text="Select the coaxial cable type used in your feed line.",
+    )
+
+    frequency_mhz = forms.FloatField(
+        label="Frequency (MHz)",
+        min_value=1.0,
+        max_value=3000.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "146.0",
+                "id": "id_frequency_mhz",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Operating frequency in megahertz (1–3,000 MHz).",
+        error_messages={
+            "required": "Please enter your operating frequency.",
+            "min_value": "Frequency must be at least 1.0 MHz.",
+            "max_value": "Frequency cannot exceed 3,000 MHz.",
+        },
+    )
+
+    length_value = forms.FloatField(
+        label="Cable Length",
+        min_value=0.1,
+        max_value=5000.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "100",
+                "id": "id_length_value",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Total length of the coaxial cable run.",
+        error_messages={
+            "required": "Please enter the cable length.",
+            "min_value": "Cable length must be greater than zero.",
+            "max_value": "Cable length cannot exceed 5,000.",
+        },
+    )
+
+    length_unit = forms.ChoiceField(
+        label="Unit",
+        choices=LENGTH_UNIT_CHOICES,
+        initial="feet",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_length_unit",
+            }
+        ),
+    )
+
+    power_watts = forms.FloatField(
+        label="Transmitter Power (Watts, optional)",
+        required=False,
+        min_value=0.0,
+        max_value=5000.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "100",
+                "id": "id_power_watts",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="If provided, calculates watts lost and watts delivered to the antenna.",
+        error_messages={
+            "max_value": "Power cannot exceed 5,000 watts.",
+        },
+    )
+
+    swr = forms.FloatField(
+        label="SWR at Antenna (optional)",
+        required=False,
+        min_value=1.0,
+        max_value=20.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "1.5",
+                "id": "id_swr",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Standing Wave Ratio at the antenna. Leave blank or 1.0 to skip mismatch loss.",
+        error_messages={
+            "min_value": "SWR cannot be less than 1.0.",
+            "max_value": "SWR cannot exceed 20.0.",
+        },
+    )

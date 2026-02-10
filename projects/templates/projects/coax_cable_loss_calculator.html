@@ -1,0 +1,318 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/coax_cable_loss_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/coax_cable_loss_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/coax-cable-loss-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/coax_cable_loss_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Coax Cable Loss Calculator | Feed Line Attenuation for Ham Radio{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-ethernet me-2"></i>Coax Cable Loss Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Calculate feed line attenuation for common coaxial cable types.
+                Determine matched loss, SWR mismatch loss, and how much power
+                actually reaches your antenna.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Cable Type --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Cable Selection</legend>
+                            {{ form.cable_type.label_tag }}
+                            {{ form.cable_type }}
+                            {% if form.cable_type.help_text %}
+                                <small class="form-text text-muted">{{ form.cable_type.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.cable_type.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Frequency --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Frequency</legend>
+                            {{ form.frequency_mhz.label_tag }}
+                            {{ form.frequency_mhz }}
+                            {% if form.frequency_mhz.help_text %}
+                                <small class="form-text text-muted">{{ form.frequency_mhz.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.frequency_mhz.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Cable Length --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Cable Length</legend>
+                            <div class="row">
+                                <div class="col-7">
+                                    {{ form.length_value.label_tag }}
+                                    {{ form.length_value }}
+                                </div>
+                                <div class="col-5">
+                                    {{ form.length_unit.label_tag }}
+                                    {{ form.length_unit }}
+                                </div>
+                            </div>
+                            {% if form.length_value.help_text %}
+                                <small class="form-text text-muted">{{ form.length_value.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.length_value.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Transmitter Power (Optional) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Power (Optional)</legend>
+                            {{ form.power_watts.label_tag }}
+                            {{ form.power_watts }}
+                            {% if form.power_watts.help_text %}
+                                <small class="form-text text-muted">{{ form.power_watts.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.power_watts.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- SWR (Optional) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">SWR (Optional)</legend>
+                            {{ form.swr.label_tag }}
+                            {{ form.swr }}
+                            {% if form.swr.help_text %}
+                                <small class="form-text text-muted">{{ form.swr.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.swr.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Loss</button>
+
+                        <a href="{% url 'projects:radio_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-2">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to Radio Hobbyist Toolkit
+                        </a>
+
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if result %}
+
+                {% if result.error %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ result.error }}
+                </div>
+
+                {% else %}
+
+                {# --- Impedance Mismatch Warning --- #}
+                {% if result.impedance_warning %}
+                <div class="alert alert-warning shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Impedance Mismatch:</strong> {{ result.cable_label }} is
+                    {{ result.cable_impedance }}-ohm cable. Most amateur radio equipment
+                    uses 50-ohm feed lines. Using 75-ohm cable will cause additional
+                    SWR and loss not accounted for in the matched-loss calculation.
+                    This cable is best suited for receive-only or TV/CATV applications.
+                </div>
+                {% endif %}
+
+                {# --- Main Results Card --- #}
+                <div id="results-section" class="alert alert-info shadow-sm" role="alert">
+                    <h4 class="alert-heading text-center mb-3">
+                        <i class="bi bi-bar-chart-line me-2"></i>Feed Line Loss Results
+                    </h4>
+
+                    {# --- Cable & Setup Summary --- #}
+                    <div class="text-center mb-3">
+                        <small class="text-muted d-block">{{ result.cable_label }}</small>
+                        <small class="text-muted">
+                            {{ result.frequency_mhz }} MHz — {{ result.length.imperial }}
+                            ({{ result.length.metric }})
+                        </small>
+                    </div>
+                    <hr>
+
+                    {# --- Loss Breakdown --- #}
+                    <div class="row text-center mb-3">
+                        <div class="col-12 mb-2">
+                            <small class="text-uppercase text-muted">Loss Breakdown</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Matched Loss</small>
+                            <span class="fw-bold">{{ result.matched_loss_display }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Mismatch Loss</small>
+                            <span class="fw-bold">
+                                {% if result.swr %}
+                                    {{ result.mismatch_loss_display }}
+                                {% else %}
+                                    — (no SWR)
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Total Loss</small>
+                            <span class="fs-5 fw-bold">{{ result.total_loss_display }}</span>
+                        </div>
+                    </div>
+
+                    {% if result.swr %}
+                    <div class="text-center mb-3">
+                        <small class="text-muted">
+                            SWR {{ result.swr }}:1 adds {{ result.mismatch_loss_display }}
+                            of mismatch loss.
+                        </small>
+                    </div>
+                    {% endif %}
+                    <hr>
+
+                    {# --- Efficiency --- #}
+                    <div class="text-center mb-3">
+                        <small class="text-uppercase text-muted d-block mb-1">Feed Line Efficiency</small>
+                        <span class="fs-4 fw-bold">{{ result.efficiency_display }}</span>
+                        <small class="text-muted d-block mt-1">
+                            Loss per 100 ft at {{ result.frequency_mhz }} MHz:
+                            {{ result.loss_per_100ft_display }}
+                        </small>
+                    </div>
+
+                    {# --- Power Calculations (if provided) --- #}
+                    {% if result.power_in_watts %}
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-12 mb-2">
+                            <small class="text-uppercase text-muted">Power Analysis</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Power In</small>
+                            <span class="fw-bold">{{ result.power_in_watts }} W</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Power Lost</small>
+                            <span class="fw-bold text-danger">{{ result.power_lost_display }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Power Delivered</small>
+                            <span class="fw-bold text-success">{{ result.power_out_display }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% endif %}{# end error check #}
+            {% endif %}{# end result #}
+
+        </div>
+    </div>
+
+    {# --- Example Scenarios Reference --- #}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Common Scenarios — Quick Reference</h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Cable</th>
+                            <th>Freq</th>
+                            <th>Length</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ex in examples %}
+                        <tr>
+                            <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
+                            <td>{{ ex.cable|upper }}</td>
+                            <td>{{ ex.freq }} MHz</td>
+                            <td>{{ ex.length }} {{ ex.unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding Coaxial Cable Loss</h3>
+            <p class="small text-muted mb-2">
+                <strong>Why does cable loss matter?</strong> Every decibel of loss in your feed line is power that never reaches your antenna. A 3 dB loss means half your power is wasted as heat in the cable. On VHF and UHF, where cable loss increases significantly with frequency, choosing the right cable can make the difference between a strong signal and a marginal one.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Matched loss vs. mismatch loss:</strong> Matched loss (also called "flat loss" or "attenuation") occurs even with a perfect 1.0:1 SWR. It increases with frequency and cable length. Mismatch loss is the additional power reflected back due to an imperfect impedance match (SWR > 1.0). In practice, moderate SWR (under 2:1) adds relatively little additional loss — usually less than 0.5 dB.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>How to choose cable:</strong> For HF (below 30 MHz), even RG-8/213 performs well for runs under 100 feet. For VHF (2m), LMR-400 or equivalent is a strong choice for tower runs. For UHF (70cm) and above, every foot of cable matters — use the lowest-loss cable you can afford and keep runs as short as practical. Tower-mounted preamps and remote antenna tuners can help compensate for unavoidable loss.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Real-world factors:</strong> Published loss specs assume new cable at 68°F (20°C) with properly installed connectors. Actual loss increases with cable age, UV exposure, moisture ingress, tight bends, and poor connector workmanship. Measured loss in an installed cable run is typically 10–20% higher than book values. When in doubt, measure your actual cable loss with an antenna analyzer.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>75-ohm cable note:</strong> RG-6 and other 75-ohm cables are designed for TV/CATV use. Connecting them to 50-ohm amateur equipment creates a baseline 1.5:1 SWR from the impedance mismatch alone, before any antenna mismatch is factored in. They can work for receive-only applications but are not recommended for transmitting.
+            </p>
+            <p class="small text-muted">
+                <strong>Related tools:</strong>
+                Use the <a href="{% url 'projects:rf_exposure_calculator' %}">RF Exposure Calculator</a>
+                to evaluate your station's MPE compliance using the feed line loss calculated here.
+                Calculate antenna element dimensions with the
+                <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a>,
+                then determine how much power your feed line will deliver.
+                <a href="{% url 'projects:band_plan_checker' %}">Check your operating privileges and power limits</a>
+                with the Band Plan Checker.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if result and not result.error %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

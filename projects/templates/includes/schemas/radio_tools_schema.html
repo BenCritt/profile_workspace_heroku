@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/radio-tools/#webpage",
       "name": "Radio Hobbyist Toolkit",
-      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup, Band Plan Checker, Antenna Length Calculator, and Grid Square Converter.",
+      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup, Band Plan Checker, Antenna Length Calculator, Grid Square Converter, RF Exposure Calculator, and Coax Cable Loss Calculator.",
       "url": "https://www.bencritt.net/projects/radio-tools/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -36,7 +36,9 @@
           { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
           { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } },
           { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" } },
-          { "@type": "ListItem", "position": 5, "item": { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" } }
+          { "@type": "ListItem", "position": 5, "item": { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" } },
+          { "@type": "ListItem", "position": 6, "item": { "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app" } },
+          { "@type": "ListItem", "position": 7, "item": { "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app" } }
         ]
       },
       "hasPart": [
@@ -44,7 +46,9 @@
         { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
         { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" },
         { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" }
+        { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" },
+        { "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app" }
       ]
     },
 
@@ -162,6 +166,52 @@
         "Shows all precision levels (field+square, subsquare, extended) simultaneously",
         "Google Maps link for every result",
         "Precision reference table with resolution and approximate area"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app",
+      "name": "RF Exposure Calculator",
+      "description": "Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65. Calculate power density, minimum safe distances, and pass/fail status for both controlled and uncontrolled environments.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/rf-exposure-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/rf-exposure-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "FCC OET Bulletin 65 compliant power density and MPE calculation",
+        "Separate compliance evaluation for controlled and uncontrolled environments",
+        "Minimum safe distance calculation for both environment types",
+        "Duty cycle adjustment by transmission mode (SSB, CW, FM, FT8, RTTY, AM, custom)",
+        "Antenna gain input in dBi or dBd with automatic conversion",
+        "Optional feed line loss deduction for accurate radiated power",
+        "Results in both imperial and metric units"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app",
+      "name": "Coax Cable Loss Calculator",
+      "description": "Calculate feed line attenuation for common coaxial cable types. Determine matched loss, SWR mismatch loss, power delivered to the antenna, and feed line efficiency at any operating frequency.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/coax-cable-loss-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/coax-cable-loss-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Matched-line loss calculation using log-log interpolation from manufacturer specs",
+        "Built-in database of 10 common coaxial cable types from RG-174 to hardline",
+        "SWR mismatch loss calculation with combined total system loss",
+        "Power delivered and power lost in watts when transmitter power is provided",
+        "Feed line efficiency percentage for quick comparison between cable types",
+        "Impedance mismatch warning for 75-ohm cables used with 50-ohm equipment",
+        "Results in both imperial and metric units"
       ]
     }
   ]

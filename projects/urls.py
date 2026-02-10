@@ -124,4 +124,6 @@ urlpatterns = [
     path("projects/repeater-finder/status/<str:task_id>/", views.repeater_finder_status, name="repeater_finder_status"),
     path("projects/antenna-length-calculator/", views.antenna_calculator, name="antenna_calculator"),
     path("projects/grid-square-converter/", views.grid_square_converter, name="grid_square_converter"),
+    path("projects/rf-exposure-calculator/", views.rf_exposure_calculator, name="rf_exposure_calculator"),
+    path("projects/coax-cable-loss-calculator/", views.coax_cable_loss_calculator, name="coax_cable_loss_calculator"),
 ]

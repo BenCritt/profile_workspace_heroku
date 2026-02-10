@@ -80,6 +80,8 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Ham Radio Call Sign Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search US amateur radio call signs for license class, grid square, and expiration.
 * [Antenna Length Calculator](https://www.bencritt.net/projects/antenna-length-calculator/) — Calculate element lengths for amateur radio antennas including dipoles, verticals, EFHW, and loops.
 * [Grid Square Converter](https://www.bencritt.net/projects/grid-square-converter/) — Convert between Maidenhead grid squares and geographic coordinates with Google Maps visualization.
+* [RF Exposure Calculator](https://www.bencritt.net/projects/rf-exposure-calculator/) — Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65.
+* [Coax Cable Loss Calculator](https://www.bencritt.net/projects/coax-cable-loss-calculator/) — Calculate feed line attenuation, SWR mismatch loss, and efficiency for common coaxial cable types.
 
 ### Data, Education & Utilities
 * [Grade Level Text Analyzer](https://www.bencritt.net/projects/grade-level-analyzer/) — Calculate readability via Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.
@@ -97,4 +99,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-09_
+_Last Updated: 2026-02-10_

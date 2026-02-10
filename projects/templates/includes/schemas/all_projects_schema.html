@@ -271,6 +271,37 @@
     },
     {
       "@type": "SoftwareApplication",
+      "name": "RF Exposure Calculator",
+      "description": "Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65 with power density and minimum safe distance calculations.",
+      "applicationCategory": "Amateur Radio Utility",
+      "url": "https://www.bencritt.net/projects/rf-exposure-calculator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "FCC OET Bulletin 65 compliant power density and MPE calculation.",
+        "Separate compliance evaluation for controlled and uncontrolled environments.",
+        "Minimum safe distance calculation with duty cycle adjustment by mode.",
+        "Antenna gain input in dBi or dBd with optional feed line loss deduction."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Coax Cable Loss Calculator",
+      "description": "Calculate feed line attenuation for common coaxial cable types. Determine matched loss, SWR mismatch loss, power delivered to the antenna, and feed line efficiency at any operating frequency.",
+      "applicationCategory": "Amateur Radio Utility",
+      "url": "https://www.bencritt.net/projects/coax-cable-loss-calculator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "featureList": [
+        "Matched-line loss calculation using log-log interpolation from manufacturer specs.",
+        "Built-in database of 10 common coaxial cable types from RG-174 to hardline.",
+        "SWR mismatch loss calculation with combined total system loss.",
+        "Power delivered and power lost in watts when transmitter power is provided.",
+        "Feed line efficiency percentage for quick comparison between cable types."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
       "name": "Font Inspector",
       "description": "Detect font families, weights, styles, sources, and file formats used on any webpage, with CSV export.",
       "applicationCategory": "Web Development Utility",

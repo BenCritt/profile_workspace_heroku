@@ -1,0 +1,379 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/rf_exposure_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/rf_exposure_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/rf-exposure-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/rf_exposure_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}RF Exposure Calculator | FCC OET Bulletin 65 MPE Compliance{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-radioactive me-2"></i>RF Exposure Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Evaluate your amateur radio station's compliance with FCC Maximum
+                Permissible Exposure (MPE) limits per OET Bulletin 65.
+                Required by FCC Part 97.13(c)(1) for all amateur stations.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {# --- Power & Frequency --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Station Parameters</legend>
+                            {{ form.power_watts.label_tag }}
+                            {{ form.power_watts }}
+                            {% if form.power_watts.help_text %}
+                                <small class="form-text text-muted">{{ form.power_watts.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.power_watts.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.frequency_mhz.label_tag }}
+                                {{ form.frequency_mhz }}
+                                {% if form.frequency_mhz.help_text %}
+                                    <small class="form-text text-muted">{{ form.frequency_mhz.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.frequency_mhz.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Antenna Gain --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Antenna</legend>
+                            <div class="row">
+                                <div class="col-7">
+                                    {{ form.gain_value.label_tag }}
+                                    {{ form.gain_value }}
+                                </div>
+                                <div class="col-5">
+                                    {{ form.gain_reference.label_tag }}
+                                    {{ form.gain_reference }}
+                                </div>
+                            </div>
+                            {% if form.gain_value.help_text %}
+                                <small class="form-text text-muted">{{ form.gain_value.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.gain_value.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Distance --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Distance</legend>
+                            <div class="row">
+                                <div class="col-7">
+                                    {{ form.distance_value.label_tag }}
+                                    {{ form.distance_value }}
+                                </div>
+                                <div class="col-5">
+                                    {{ form.distance_unit.label_tag }}
+                                    {{ form.distance_unit }}
+                                </div>
+                            </div>
+                            {% if form.distance_value.help_text %}
+                                <small class="form-text text-muted">{{ form.distance_value.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.distance_value.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Mode / Duty Cycle --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Transmission Mode</legend>
+                            {{ form.mode.label_tag }}
+                            {{ form.mode }}
+                            {% if form.mode.help_text %}
+                                <small class="form-text text-muted">{{ form.mode.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.mode.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3" id="custom-duty-wrapper">
+                                {{ form.custom_duty_cycle.label_tag }}
+                                {{ form.custom_duty_cycle }}
+                                {% if form.custom_duty_cycle.help_text %}
+                                    <small class="form-text text-muted">{{ form.custom_duty_cycle.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.custom_duty_cycle.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Feed Line Loss (Optional) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Feed Line Loss (Optional)</legend>
+                            {{ form.feed_line_loss_db.label_tag }}
+                            {{ form.feed_line_loss_db }}
+                            {% if form.feed_line_loss_db.help_text %}
+                                <small class="form-text text-muted">{{ form.feed_line_loss_db.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.feed_line_loss_db.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Evaluate Compliance</button>
+
+                        <a href="{% url 'projects:radio_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-2">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to Radio Hobbyist Toolkit
+                        </a>
+
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if result %}
+
+                {% if result.error %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ result.error }}
+                </div>
+
+                {% else %}
+
+                {# --- Compliance Banner --- #}
+                <div id="results-section" class="alert shadow-sm
+                    {% if result.compliant_uncontrolled %}alert-success{% else %}alert-danger{% endif %}"
+                    role="alert">
+
+                    {# Overall status #}
+                    <h4 class="alert-heading text-center mb-3">
+                        {% if result.compliant_uncontrolled %}
+                            <i class="bi bi-check-circle-fill me-2"></i>Compliant
+                        {% else %}
+                            <i class="bi bi-x-circle-fill me-2"></i>Exceeds MPE Limits
+                        {% endif %}
+                    </h4>
+
+                    {# --- Power Density vs. Limits --- #}
+                    <div class="text-center mb-3">
+                        <small class="text-uppercase text-muted d-block mb-1">Power Density at {{ result.distance.imperial }}</small>
+                        <span class="fs-4 fw-bold">{{ result.power_density_display }}</span>
+                    </div>
+                    <hr>
+
+                    {# --- Controlled Environment --- #}
+                    <div class="row text-center mb-3">
+                        <div class="col-12 mb-2">
+                            <small class="text-uppercase text-muted">Controlled (Occupational)</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">MPE Limit</small>
+                            <span class="fw-bold">{{ result.mpe_controlled_display }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Status</small>
+                            {% if result.compliant_controlled %}
+                                <span class="badge bg-success">PASS</span>
+                            {% else %}
+                                <span class="badge bg-danger">FAIL</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Min. Distance</small>
+                            <span class="fw-bold">{{ result.min_distance_controlled.imperial }}</span>
+                        </div>
+                    </div>
+
+                    {# --- Uncontrolled Environment --- #}
+                    <div class="row text-center mb-3">
+                        <div class="col-12 mb-2">
+                            <small class="text-uppercase text-muted">Uncontrolled (General Public)</small>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">MPE Limit</small>
+                            <span class="fw-bold">{{ result.mpe_uncontrolled_display }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Status</small>
+                            {% if result.compliant_uncontrolled %}
+                                <span class="badge bg-success">PASS</span>
+                            {% else %}
+                                <span class="badge bg-danger">FAIL</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Min. Distance</small>
+                            <span class="fw-bold">{{ result.min_distance_uncontrolled.imperial }}</span>
+                        </div>
+                    </div>
+                    <hr>
+
+                    {# --- Evaluation Summary --- #}
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Eff. Power</small>
+                            <span class="fw-bold">{{ result.effective_power_watts }} W</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Gain</small>
+                            <span class="fw-bold">{{ result.gain_display }}</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Duty Cycle</small>
+                            <span class="fw-bold">{{ result.duty_cycle_pct }}% ({{ result.mode_label }})</span>
+                        </div>
+                    </div>
+
+                    {% if result.feed_line_loss_db > 0 %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Feed line loss: {{ result.feed_line_loss_db }} dB
+                            ({{ result.power_watts }} W PEP → {{ result.effective_power_watts }} W at antenna)
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {# --- Minimum Safe Distances Card --- #}
+                <div class="alert alert-info shadow-sm" role="alert">
+                    <h5 class="alert-heading text-center">
+                        <i class="bi bi-signpost-split me-2"></i>Minimum Safe Distances
+                    </h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted d-block mb-1">Controlled</small>
+                            <span class="fs-5 fw-bold">{{ result.min_distance_controlled.imperial }}</span><br>
+                            <small class="text-muted">({{ result.min_distance_controlled.metric }})</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted d-block mb-1">Uncontrolled</small>
+                            <span class="fs-5 fw-bold">{{ result.min_distance_uncontrolled.imperial }}</span><br>
+                            <small class="text-muted">({{ result.min_distance_uncontrolled.metric }})</small>
+                        </div>
+                    </div>
+                    <p class="small text-center mt-3 mb-0">
+                        These are the closest distances a person may be to the antenna
+                        while you are transmitting at the specified power and duty cycle.
+                    </p>
+                </div>
+
+                {% endif %}{# end error check #}
+            {% endif %}{# end result #}
+
+        </div>
+    </div>
+
+    {# --- Example Scenarios Reference --- #}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Common Station Scenarios — Quick Reference</h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Power</th>
+                            <th>Gain</th>
+                            <th>Freq</th>
+                            <th>Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ex in examples %}
+                        <tr>
+                            <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
+                            <td>{{ ex.power }} W</td>
+                            <td>{{ ex.gain }} {{ ex.ref }}</td>
+                            <td>{{ ex.freq }} MHz</td>
+                            <td>{{ ex.mode|upper }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding RF Exposure Compliance</h3>
+            <p class="small text-muted mb-2">
+                <strong>Why is this required?</strong> FCC Part 97.13(c)(1) requires every amateur station licensee to perform a routine RF exposure evaluation before transmitting. This isn't just for high-power stations — even QRP setups technically need an evaluation, though they almost always pass easily. The regulation protects both the operator and nearby people from excessive radio-frequency energy absorption.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Controlled vs. Uncontrolled environments:</strong> A "controlled" environment is one where people present are aware of the RF exposure and can take steps to minimize it (you, your household members who know about the antenna). "Uncontrolled" applies to neighbors, passers-by, and anyone who might be near your antenna without knowing it's active. Most residential stations must meet the stricter uncontrolled limits at their property boundaries.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Duty cycle matters:</strong> SSB voice typically has only about 20% duty cycle (you're transmitting less than half the time, and speech doesn't fully modulate the carrier). FM and digital modes like FT8 run at 100% duty during transmission. Lower duty cycles significantly reduce your average exposure, often making the difference between compliant and non-compliant on HF.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Far-field vs. near-field:</strong> This calculator uses the standard far-field power density formula, which is valid when the distance from the antenna is at least one wavelength. For very close distances (near-field), actual exposure may differ. The far-field calculation is the standard method recommended in OET Bulletin 65 for routine amateur evaluations.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>What if I fail?</strong> Options include reducing power, using a lower-gain antenna, choosing a mode with a lower duty cycle, increasing antenna height (distance to people), or restricting transmission times. Often, switching from FM to SSB on HF dramatically improves compliance due to the duty cycle difference.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a> to determine element dimensions for your antenna, and the <a href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a> to verify the power limits for your license class and band.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+{# --- Toggle custom duty cycle field visibility --- #}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const modeSelect = document.getElementById("id_mode");
+        const customWrapper = document.getElementById("custom-duty-wrapper");
+
+        function toggleCustomDuty() {
+            customWrapper.style.display = (modeSelect.value === "custom") ? "" : "none";
+        }
+
+        modeSelect.addEventListener("change", toggleCustomDuty);
+        toggleCustomDuty();
+    });
+</script>
+
+    {% if result and not result.error %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}
