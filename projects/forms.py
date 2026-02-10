@@ -2203,3 +2203,137 @@ class AntennaCalculatorForm(forms.Form):
             "max_value": "Velocity factor cannot exceed 1.00.",
         },
     )
+
+# --- Grid Square Converter ---
+CONVERSION_CHOICES = [
+    ("grid_to_coords", "Grid Square → Coordinates"),
+    ("coords_to_grid", "Coordinates → Grid Square"),
+    ("zip_to_grid", "ZIP Code → Grid Square"),
+]
+
+PRECISION_CHOICES = [
+    (4, "4 characters (Field + Square)"),
+    (6, "6 characters (Subsquare) — default"),
+    (8, "8 characters (Extended)"),
+]
+
+
+class GridSquareForm(forms.Form):
+    conversion_mode = forms.ChoiceField(
+        label="Conversion Direction",
+        choices=CONVERSION_CHOICES,
+        initial="grid_to_coords",
+        widget=forms.RadioSelect(
+            attrs={"class": "form-check-input"},
+        ),
+        help_text="Choose which direction to convert.",
+    )
+
+    grid_square = forms.CharField(
+        label="Grid Square",
+        required=False,
+        max_length=8,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "EN53dj",
+                "id": "id_grid_square",
+            }
+        ),
+        help_text="Enter a 4, 6, or 8 character Maidenhead grid square.",
+    )
+
+    latitude = forms.FloatField(
+        label="Latitude",
+        required=False,
+        min_value=-90.0,
+        max_value=90.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "43.0731",
+                "id": "id_latitude",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Decimal degrees (−90 to 90). Negative = South.",
+    )
+
+    longitude = forms.FloatField(
+        label="Longitude",
+        required=False,
+        min_value=-180.0,
+        max_value=180.0,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "-89.4012",
+                "id": "id_longitude",
+                "step": "any",
+                "inputmode": "decimal",
+            }
+        ),
+        help_text="Decimal degrees (−180 to 180). Negative = West.",
+    )
+
+    zip_code = forms.CharField(
+        label="ZIP Code",
+        required=False,
+        max_length=5,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "53704",
+                "id": "id_zip_code",
+                "inputmode": "numeric",
+            }
+        ),
+        help_text="Enter a 5-digit US ZIP code.",
+    )
+
+    precision = forms.TypedChoiceField(
+        label="Output Precision",
+        choices=PRECISION_CHOICES,
+        coerce=int,
+        initial=6,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "id": "id_precision",
+            }
+        ),
+        help_text="Number of grid square characters to output (for coordinate/ZIP conversion).",
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        mode = cleaned.get("conversion_mode")
+
+        if mode == "grid_to_coords":
+            grid = cleaned.get("grid_square", "").strip()
+            if not grid:
+                raise forms.ValidationError(
+                    "Please enter a grid square to convert."
+                )
+
+        elif mode == "coords_to_grid":
+            lat = cleaned.get("latitude")
+            lon = cleaned.get("longitude")
+            if lat is None or lon is None:
+                raise forms.ValidationError(
+                    "Please enter both latitude and longitude."
+                )
+
+        elif mode == "zip_to_grid":
+            zip_code = cleaned.get("zip_code", "").strip()
+            if not zip_code:
+                raise forms.ValidationError(
+                    "Please enter a ZIP code."
+                )
+            if not zip_code.isdigit() or len(zip_code) != 5:
+                raise forms.ValidationError(
+                    "Enter a valid 5-digit US ZIP code."
+                )
+
+        return cleaned

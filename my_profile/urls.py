@@ -11,6 +11,7 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("grid_square_converter", "grid-square-converter"),
     ("antenna-calculator", "antenna-length-calculator"),
     ("antenna_length_calculator", "antenna-length-calculator"),
     ("antenna_calculator", "antenna-length-calculator"),

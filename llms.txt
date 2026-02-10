@@ -42,6 +42,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Deadhead Mileage & Cost Calculator](https://www.bencritt.net/projects/deadhead-calculator/) — Calculate the true cost of running empty using exact Google Maps road miles and evaluate load profitability.
 * [Multi-Stop Route Mileage Splitter](https://www.bencritt.net/projects/multi-stop-mileage-splitter/) — Split multi-stop freight routes into individual leg mileages using exact Google Maps road miles and calculate stop-off charges.
 * [Freight Lane Rate-Per-Mile Analyzer](https://www.bencritt.net/projects/freight-lane-rate-analyzer/) — Analyze quoted freight rates against exact road miles to calculate effective RPM and carrier margins.
+* [Freight Margin & Gross Profit Calculator](https://www.bencritt.net/projects/freight-margin-calculator/) — Calculate brokerage gross profit and margin percentage on any freight load with optional FSC spread.
 * [Freight Class Calculator](https://www.bencritt.net/projects/freight-class-calculator/) — Estimate NMFC Freight Class for LTL shipments based on density to avoid re-bills.
 * [Fuel Surcharge Calculator](https://www.bencritt.net/projects/fuel-surcharge-calculator/) — Calculate fair fuel surcharges (FSC) based on current diesel prices, base pegs, and trip miles.
 * [HOS Trip Planner](https://www.bencritt.net/projects/hos-trip-planner/) — Plan realistic ETAs compliant with FMCSA Hours of Service rules (11hr drive / 10hr reset).
@@ -67,7 +68,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing enamels and frits for various applications.
 * [Circle & Oval Cutter Calculator](https://www.bencritt.net/projects/circle-cutter-calculator/) — Calculate radius settings for glass circle cutters, factoring in wheel offsets and grind allowances.
 * [Kiln Schedule Generator](https://www.bencritt.net/projects/kiln-schedule-generator/) — Generate safe firing schedules for Bullseye (90) and System 96 glass, adjusted for thickness.
-* [Glass Volume Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact weight of glass needed for pot melts and casting molds (2.5g/cm³ density).
+* [Glass Volume & Weight Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact weight of glass needed for pot melts and casting molds (2.5g/cm³ density).
 * [Stained Glass Cost Estimator](https://www.bencritt.net/projects/stained-glass-cost-estimator/) — Calculate fair pricing by factoring in materials, waste, foil/solder usage, and labor.
 * [Stained Glass Materials Calculator](https://www.bencritt.net/projects/stained-glass-materials/) — Estimate linear footage of foil/came and weight of solder required for a project.
 * [Lampwork Glass Calculator](https://www.bencritt.net/projects/lampwork-materials/) — Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing.
@@ -77,6 +78,8 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Repeater Finder](https://www.bencritt.net/projects/repeater-finder/) — Find open VHF/UHF amateur radio repeaters along any US driving route using RepeaterBook data.
 * [Band Plan Checker](https://www.bencritt.net/projects/band-plan-checker/) — Identify US amateur radio bands, modes, and license privileges for any frequency.
 * [Ham Radio Call Sign Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search US amateur radio call signs for license class, grid square, and expiration.
+* [Antenna Length Calculator](https://www.bencritt.net/projects/antenna-length-calculator/) — Calculate element lengths for amateur radio antennas including dipoles, verticals, EFHW, and loops.
+* [Grid Square Converter](https://www.bencritt.net/projects/grid-square-converter/) — Convert between Maidenhead grid squares and geographic coordinates with Google Maps visualization.
 
 ### Data, Education & Utilities
 * [Grade Level Text Analyzer](https://www.bencritt.net/projects/grade-level-analyzer/) — Calculate readability via Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.
@@ -94,4 +97,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-08_
+_Last Updated: 2026-02-09_

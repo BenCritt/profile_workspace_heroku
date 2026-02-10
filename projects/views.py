@@ -976,6 +976,12 @@ def all_projects(request):
             "url_name": "projects:antenna_calculator",
             "image": "antenna-length-calculator.webp",
             "description": "Calculate the length of various types of antennas based on frequency."
+        },
+        {
+            "title": "Grid Square Converter",
+            "url_name": "projects:grid_square_converter",
+            "image": "grid-square-converter.webp",
+            "description": "Convert between grid square coordinates and latitude/longitude."
         }
     ]
     
@@ -1936,3 +1942,48 @@ def antenna_calculator(request):
         "quick_picks": QUICK_PICK_FREQUENCIES,
     }
     return render(request, "projects/antenna_calculator.html", context)
+
+# Grid Square Converter
+def grid_square_converter(request):
+    from .forms import GridSquareForm
+    from .grid_square_utils import (
+        grid_to_coordinates,
+        coordinates_to_grid,
+        zip_to_grid,
+        PRECISION_TABLE,
+    )
+    from .utils import get_coordinates
+    """
+    GET  → Empty form + precision reference table.
+    POST → Validate, run the selected conversion, render results.
+    """
+    form = GridSquareForm()
+    result = None
+    conversion_mode = None
+
+    if request.method == "POST":
+        form = GridSquareForm(request.POST)
+        if form.is_valid():
+            conversion_mode = form.cleaned_data["conversion_mode"]
+            precision = form.cleaned_data["precision"]
+
+            if conversion_mode == "grid_to_coords":
+                grid = form.cleaned_data["grid_square"].strip()
+                result = grid_to_coordinates(grid)
+
+            elif conversion_mode == "coords_to_grid":
+                lat = form.cleaned_data["latitude"]
+                lon = form.cleaned_data["longitude"]
+                result = coordinates_to_grid(lat, lon, precision=precision)
+
+            elif conversion_mode == "zip_to_grid":
+                zip_code = form.cleaned_data["zip_code"].strip()
+                result = zip_to_grid(zip_code, get_coordinates)
+
+    context = {
+        "form": form,
+        "result": result,
+        "conversion_mode": conversion_mode,
+        "precision_table": PRECISION_TABLE,
+    }
+    return render(request, "projects/grid_square_converter.html", context)

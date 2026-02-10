@@ -69,6 +69,7 @@ class StaticViewSitemap(Sitemap):
             "projects:radio_tools",
             "projects:repeater_finder",
             "projects:antenna_calculator",
+            "projects:grid_square_converter",
         ]
 
     def location(self, item):

@@ -68,6 +68,19 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Grid Square Converter</h2>
+                    <img src="{% static 'img/all-projects/grid-square-converter.webp' %}"
+                        alt="Grid Square Converter" class="img-fluid rounded my-3">
+                    <p class="card-text small">Convert between Maidenhead grid squares
+                    and coordinates at 4, 6, or 8 character precision, or find the
+                    grid for any US ZIP code.</p>
+                    <a href="{% url 'projects:grid_square_converter' %}"
+                    class="btn btn-primary mt-2">Open Converter</a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -99,6 +112,16 @@
                             title="Antenna Length Calculator" loading="lazy"
                             scrolling="yes"></iframe>
                     <a href="{% url 'projects:antenna_calculator' %}"
+                    class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:grid_square_converter' %}"
+                            title="Grid Square Converter" loading="lazy"
+                            scrolling="yes"></iframe>
+                    <a href="{% url 'projects:grid_square_converter' %}"
                     class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>

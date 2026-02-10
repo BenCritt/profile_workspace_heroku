@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/radio-tools/#webpage",
       "name": "Radio Hobbyist Toolkit",
-      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup, Band Plan Checker, and Antenna Length Calculator.",
+      "description": "Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts. Includes Repeater Finder, Ham Radio Call Sign Lookup, Band Plan Checker, Antenna Length Calculator, and Grid Square Converter.",
       "url": "https://www.bencritt.net/projects/radio-tools/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -35,14 +35,16 @@
           { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" } },
           { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
           { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } },
-          { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" } }
+          { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" } },
+          { "@type": "ListItem", "position": 5, "item": { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" } }
         ]
       },
       "hasPart": [
         { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" },
         { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
         { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" },
-        { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" }
+        { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" }
       ]
     },
 
@@ -138,6 +140,28 @@
         "Practical build notes and construction tips for each antenna type",
         "Quick-reference table of common amateur band center frequencies",
         "Zero external dependencies — pure math, instant results"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/grid-square-converter/#app",
+      "name": "Grid Square Converter",
+      "description": "Convert between Maidenhead grid squares and geographic coordinates. Supports 4, 6, and 8 character precision with bidirectional conversion and US ZIP code lookup.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/grid-square-converter/",
+      "image": "https://www.bencritt.net/static/img/all-projects/grid-square-converter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Grid square to latitude/longitude conversion with bounding box",
+        "Latitude/longitude to grid square conversion at 4, 6, or 8 character precision",
+        "US ZIP code to grid square lookup via Google Maps geocoding",
+        "Shows all precision levels (field+square, subsquare, extended) simultaneously",
+        "Google Maps link for every result",
+        "Precision reference table with resolution and approximate area"
       ]
     }
   ]

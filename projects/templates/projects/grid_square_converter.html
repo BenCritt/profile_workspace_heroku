@@ -1,0 +1,332 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/grid_square_converter_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/grid_square_converter_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/grid-square-converter/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/grid_square_converter.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Grid Square Converter | Maidenhead Locator ↔ Coordinates{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-grid-3x3-gap me-2"></i>Grid Square Converter</h1>
+            <p class="text-muted text-center mb-5">
+                Convert between Maidenhead grid squares and geographic coordinates.
+                Supports 4, 6, and 8 character precision.  You can also look up
+                the grid square for any US ZIP code.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" id="converter-form" class="d-flex flex-column gap-3 mb-4">
+                        {% csrf_token %}
+
+                        {# --- Conversion Mode --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Conversion Direction</legend>
+                            <div class="d-flex flex-column gap-2">
+                                {% for radio in form.conversion_mode %}
+                                    <div class="form-check">
+                                        {{ radio.tag }}
+                                        <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Grid Square Input --- #}
+                        <fieldset class="mb-3 mode-field" id="field-grid">
+                            
+                            {{ form.grid_square.label_tag }}
+                            {{ form.grid_square }}
+                            {% if form.grid_square.help_text %}
+                                <small class="form-text text-muted">{{ form.grid_square.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.grid_square.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Coordinate Inputs --- #}
+                        <fieldset class="mb-3 mode-field" id="field-coords">
+                            <legend class="h6 fw-bold text-muted mb-3">Coordinates</legend>
+                            {{ form.latitude.label_tag }}
+                            {{ form.latitude }}
+                            {% if form.latitude.help_text %}
+                                <small class="form-text text-muted">{{ form.latitude.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.latitude.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.longitude.label_tag }}
+                                {{ form.longitude }}
+                                {% if form.longitude.help_text %}
+                                    <small class="form-text text-muted">{{ form.longitude.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.longitude.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- ZIP Code Input --- #}
+                        <fieldset class="mb-3 mode-field" id="field-zip">
+                            
+                            {{ form.zip_code.label_tag }}
+                            {{ form.zip_code }}
+                            {% if form.zip_code.help_text %}
+                                <small class="form-text text-muted">{{ form.zip_code.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.zip_code.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Precision (for coord/ZIP modes) --- #}
+                        <fieldset class="mb-3 mode-field" id="field-precision">
+                            
+                            {{ form.precision.label_tag }}
+                            {{ form.precision }}
+                            {% if form.precision.help_text %}
+                                <small class="form-text text-muted">{{ form.precision.help_text }}</small>
+                            {% endif %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100">Convert</button>
+
+                        <a href="{% url 'projects:radio_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-0">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to Radio Hobbyist Toolkit
+                        </a>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if result %}
+
+                {# --- Error --- #}
+                {% if result.error %}
+                <div class="alert alert-warning shadow-sm text-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ result.error }}
+                </div>
+
+                {% else %}
+
+                {# --- Grid → Coordinates Result --- #}
+                {% if conversion_mode == "grid_to_coords" %}
+                <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                    <h4 class="alert-heading text-center mb-1">
+                        <span class="font-monospace fs-3">{{ result.grid }}</span>
+                    </h4>
+                    <p class="text-center text-muted mb-3">
+                        {{ result.precision }} — {{ result.precision_desc }}
+                    </p>
+                    <hr>
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted">Latitude</small><br>
+                            <span class="fs-6 fw-bold">{{ result.lat_display }}</span><br>
+                            <small class="text-muted">({{ result.latitude }})</small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted">Longitude</small><br>
+                            <span class="fs-6 fw-bold">{{ result.lon_display }}</span><br>
+                            <small class="text-muted">({{ result.longitude }})</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center mb-2">
+                        <small class="text-uppercase text-muted d-block mb-1">Bounding Box</small>
+                        <small class="text-muted">
+                            {{ result.bbox.lat_min }}° to {{ result.bbox.lat_max }}° N &nbsp;/&nbsp;
+                            {{ result.bbox.lon_min }}° to {{ result.bbox.lon_max }}° E
+                        </small>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ result.latitude }},{{ result.longitude }}"
+                           target="_blank" rel="noopener"
+                           class="btn btn-sm btn-secondary">
+                            <i class="bi bi-map-fill me-1"></i>View on Google Maps
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# --- Coordinates / ZIP → Grid Result --- #}
+                {% if conversion_mode == "coords_to_grid" or conversion_mode == "zip_to_grid" %}
+                <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                    <h4 class="alert-heading text-center mb-1">
+                        <span class="font-monospace fs-3">{{ result.grid }}</span>
+                    </h4>
+                    {% if result.zip_code %}
+                    <p class="text-center text-muted mb-3">ZIP {{ result.zip_code }}</p>
+                    {% endif %}
+                    <hr>
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted">Latitude</small><br>
+                            <span class="fs-6 fw-bold">{{ result.lat_display }}</span>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-uppercase text-muted">Longitude</small><br>
+                            <span class="fs-6 fw-bold">{{ result.lon_display }}</span>
+                        </div>
+                    </div>
+
+                    {# Show all precision levels when available #}
+                    {% if result.grid_4 or result.grid_6 or result.grid_8 %}
+                    <hr>
+                    <div class="text-center">
+                        <small class="text-uppercase text-muted d-block mb-2">All Precision Levels</small>
+                        {% if result.grid_4 %}
+                            <span class="badge bg-secondary font-monospace fs-6 me-1">{{ result.grid_4 }}</span>
+                        {% endif %}
+                        {% if result.grid_6 %}
+                            <span class="badge bg-primary font-monospace fs-6 me-1">{{ result.grid_6 }}</span>
+                        {% endif %}
+                        {% if result.grid_8 %}
+                            <span class="badge bg-info text-dark font-monospace fs-6 me-1">{{ result.grid_8 }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center mt-3">
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ result.latitude }},{{ result.longitude }}"
+                           target="_blank" rel="noopener"
+                           class="btn btn-sm btn-secondary">
+                            <i class="bi bi-map-fill me-1"></i>View on Google Maps
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% endif %}{# end error check #}
+            {% endif %}{# end result #}
+
+        </div>
+    </div>
+
+    {# --- Precision Reference Table --- #}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Grid Square Precision Levels</h3>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Characters</th>
+                            <th>Example</th>
+                            <th>Lon Resolution</th>
+                            <th>Lat Resolution</th>
+                            <th>Approx. Area</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in precision_table %}
+                        <tr>
+                            <td>{{ row.characters }}</td>
+                            <td class="font-monospace">{{ row.example }}</td>
+                            <td>{{ row.lon_resolution }}</td>
+                            <td>{{ row.lat_resolution }}</td>
+                            <td>{{ row.approx_area }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <h3 class="h5 mb-3 text-muted">Understanding the Maidenhead Locator System</h3>
+            <p class="small text-muted mb-2">
+                <strong>What is a grid square?</strong> The Maidenhead Locator System is a geographic coordinate encoding used by amateur radio operators worldwide. It divides the Earth's surface into a hierarchical grid of progressively smaller rectangles, each identified by an alternating sequence of letters and digits. The most common format is six characters (e.g. EN53dj), which identifies a roughly 4.6 km × 4.6 km area.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>VHF/UHF contesting:</strong> Grid squares are the multiplier in ARRL VHF/UHF contests — working a station in a new grid earns bonus points. Contesting rovers drive from grid to grid to give out rare multipliers, making the grid system central to VHF contest strategy.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>POTA, SOTA, and portable ops:</strong> Parks on the Air (POTA) and Summits on the Air (SOTA) activators log their grid square as part of every contact. An 8-character grid (extended precision) pins your location to within ~460 meters, which is usually sufficient for portable QTH logging.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Satellite contacts:</strong> Grid squares are required for satellite QSOs. Knowing your exact grid square helps other operators calculate antenna aiming and Doppler correction.
+            </p>
+            <p class="small text-muted">
+                <strong>Tip:</strong> Use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a> to see the grid square registered to any US call sign, and the <a href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a> to verify your operating privileges.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+{# --- Mode toggle: show/hide fields based on selected conversion direction --- #}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const radios = document.querySelectorAll('input[name="conversion_mode"]');
+        const gridField = document.getElementById("field-grid");
+        const coordField = document.getElementById("field-coords");
+        const zipField = document.getElementById("field-zip");
+        const precisionField = document.getElementById("field-precision");
+
+        function toggleFields() {
+            const mode = document.querySelector('input[name="conversion_mode"]:checked');
+            if (!mode) return;
+
+            const v = mode.value;
+            gridField.style.display      = (v === "grid_to_coords") ? "" : "none";
+            coordField.style.display     = (v === "coords_to_grid") ? "" : "none";
+            zipField.style.display       = (v === "zip_to_grid")    ? "" : "none";
+            precisionField.style.display = (v !== "grid_to_coords") ? "" : "none";
+        }
+
+        radios.forEach(function(r) {
+            r.addEventListener("change", toggleFields);
+        });
+
+        toggleFields();
+    });
+</script>
+
+    {% if result and not result.error %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}
