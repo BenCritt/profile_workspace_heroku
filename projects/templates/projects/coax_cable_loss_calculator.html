@@ -38,7 +38,7 @@
 
                         {# --- Cable Type --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Cable Selection</legend>
+
                             {{ form.cable_type.label_tag }}
                             {{ form.cable_type }}
                             {% if form.cable_type.help_text %}
@@ -51,7 +51,7 @@
 
                         {# --- Frequency --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Frequency</legend>
+
                             {{ form.frequency_mhz.label_tag }}
                             {{ form.frequency_mhz }}
                             {% if form.frequency_mhz.help_text %}
@@ -64,7 +64,7 @@
 
                         {# --- Cable Length --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Cable Length</legend>
+
                             <div class="row">
                                 <div class="col-7">
                                     {{ form.length_value.label_tag }}
@@ -85,7 +85,7 @@
 
                         {# --- Transmitter Power (Optional) --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Power (Optional)</legend>
+
                             {{ form.power_watts.label_tag }}
                             {{ form.power_watts }}
                             {% if form.power_watts.help_text %}
@@ -98,7 +98,7 @@
 
                         {# --- SWR (Optional) --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">SWR (Optional)</legend>
+
                             {{ form.swr.label_tag }}
                             {{ form.swr }}
                             {% if form.swr.help_text %}

@@ -62,7 +62,7 @@
 
                         {# --- Antenna Gain --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Antenna</legend>
+
                             <div class="row">
                                 <div class="col-7">
                                     {{ form.gain_value.label_tag }}
@@ -83,7 +83,7 @@
 
                         {# --- Distance --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Distance</legend>
+
                             <div class="row">
                                 <div class="col-7">
                                     {{ form.distance_value.label_tag }}
@@ -104,7 +104,7 @@
 
                         {# --- Mode / Duty Cycle --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Transmission Mode</legend>
+
                             {{ form.mode.label_tag }}
                             {{ form.mode }}
                             {% if form.mode.help_text %}
@@ -128,7 +128,7 @@
 
                         {# --- Feed Line Loss (Optional) --- #}
                         <fieldset class="mb-3">
-                            <legend class="h6 fw-bold text-muted mb-3">Feed Line Loss (Optional)</legend>
+
                             {{ form.feed_line_loss_db.label_tag }}
                             {{ form.feed_line_loss_db }}
                             {% if form.feed_line_loss_db.help_text %}
