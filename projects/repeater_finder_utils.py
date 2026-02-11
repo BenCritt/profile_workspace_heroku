@@ -40,7 +40,7 @@ REPEATERBOOK_HEADERS = {
 }
 
 # CHANGED: Increased delay to 5.0s to mimic human browsing and avoid 429 blocks.
-REPEATERBOOK_NORMAL_DELAY = 5.0 
+REPEATERBOOK_NORMAL_DELAY = 7.0 
 
 # CHANGED: Increased backoff to 60s (max recommended) to clear penalty box.
 REPEATERBOOK_BACKOFF_DELAY = 60.0
@@ -145,8 +145,8 @@ def get_route_polyline(origin_zip, dest_zip, timeout=10):
     Fetch the driving route between two US ZIP codes or addresses.
     """
     params = {
-        "origin": origin_zip,
-        "destination": dest_zip,
+        "origin": f"{origin_zip} USA",
+        "destination": f"{dest_zip} USA",
         "mode": "driving",
         "units": "imperial",
         "key": GOOGLE_MAPS_API_KEY, 
