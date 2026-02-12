@@ -554,10 +554,6 @@ def view_404(request, exception):
 
 
 # This is the code for my homepage.  It's set in URL paths to the root of my website.
-# Force memory trim after work.
-@trim_memory_after
-# Disallow caching to prevent CSRF token errors.
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def home(request):
     return render(request, "projects/home.html")
 
