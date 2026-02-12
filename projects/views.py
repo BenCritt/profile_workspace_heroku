@@ -994,6 +994,30 @@ def all_projects(request):
             "url_name": "projects:coax_cable_loss_calculator",
             "image": "coax-cable-loss-calculator.webp",
             "description": "Calculate feed line attenuation, SWR mismatch loss, and power delivered to the antenna for RG-58, RG-213, LMR-400, and more."
+        },
+        {
+            "title": "Subnet / CIDR Calculator",
+            "url_name": "projects:subnet_calculator",
+            "image": "subnet-calculator.webp",
+            "description": "Calculate network ranges, broadcast addresses, and wildcard masks. Simply enter an IP and CIDR (e.g., /24) to get a breakdown of usable hosts, binary netmasks, and IP classes."
+        },
+        {
+            "title": "SPF, DKIM & DMARC Validator",
+            "url_name": "projects:email_auth_validator",
+            "image": "email-auth-validator.webp",
+            "description": "Verify your email security configuration. Check SPF records for authorized senders, DMARC policies for compliance instructions, and DKIM public keys to ensure your emails are properly signed."
+        },
+        {
+            "title": "WHOIS Lookup Tool",
+            "url_name": "projects:whois_lookup",
+            "image": "whois-lookup.webp",
+            "description": "Perform domain registration lookups to find ownership details, expiration dates, registrars, and nameservers. Includes a safe timeout to ensure fast performance."
+        },
+        {
+            "title": "HTTP Header Inspector",
+            "url_name": "projects:http_header_inspector",
+            "image": "http-header-inspector.webp",
+            "description": "Inspect the HTTP response headers of any website. Reveal server software, caching policies, cookies, and security headers like HSTS and CSP."
         }
     ]
     
@@ -2035,3 +2059,89 @@ def coax_cable_loss_calculator(request):
         "examples": EXAMPLE_SCENARIOS,
     }
     return render(request, "projects/coax_cable_loss_calculator.html", context)
+
+# Subnet Calculator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def subnet_calculator(request):
+    from .forms import SubnetCalculatorForm
+    from .subnet_calculator_utils import calculate_subnet_details
+
+    form = SubnetCalculatorForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        ip = form.cleaned_data["ip_address"]
+        cidr = form.cleaned_data["cidr"]
+        
+        results, error = calculate_subnet_details(ip, cidr)
+        
+        if error:
+            form.add_error(None, error)
+        else:
+            context["results"] = results
+
+    return render(request, "projects/subnet_calculator.html", context)
+
+# SPF/DKIM/DMARC Validator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def email_auth_validator(request):
+    from .forms import EmailAuthForm
+    from .email_auth_utils import validate_email_auth
+
+    form = EmailAuthForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        domain = form.cleaned_data["domain"]
+        selector = form.cleaned_data["dkim_selector"]
+        
+        context["results"] = validate_email_auth(domain, selector)
+        context["domain"] = domain
+
+    return render(request, "projects/email_auth_validator.html", context)
+
+# WHOIS Lookup Tool
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def whois_lookup(request):
+    from .forms import WhoisForm
+    from .whois_utils import perform_whois_lookup
+
+    form = WhoisForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        domain = form.cleaned_data["domain"]
+        results = perform_whois_lookup(domain)
+        
+        if "error" in results:
+            context["error_message"] = results["error"]
+        else:
+            context["results"] = results
+            context["domain"] = domain
+
+    return render(request, "projects/whois_lookup.html", context)
+
+# HTTP Header Inspector
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def http_header_inspector(request):
+    from .forms import HttpHeaderForm
+    from .http_headers_utils import fetch_http_headers
+
+    form = HttpHeaderForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        url = form.cleaned_data["url"]
+        results = fetch_http_headers(url)
+        
+        if "error" in results:
+            context["error_message"] = results["error"]
+        else:
+            context["results"] = results
+            context["target_url"] = url
+
+    return render(request, "projects/http_header_inspector.html", context)

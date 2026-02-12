@@ -2620,3 +2620,115 @@ class CoaxCableLossForm(forms.Form):
             "max_value": "SWR cannot exceed 20.0.",
         },
     )
+
+# --- Subnet Calculator ---
+class SubnetCalculatorForm(forms.Form):
+    # Generate choices from /32 down to /0
+    CIDR_CHOICES = [
+        (i, f"/{i}  (Mask: {ipaddress.IPv4Network(f'0.0.0.0/{i}').netmask})") 
+        for i in range(32, -1, -1)
+    ]
+
+    ip_address = forms.CharField(
+        label="IP Address",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "192.168.1.5",
+            "autofocus": "autofocus"
+        })
+    )
+    cidr = forms.ChoiceField(
+        label="Subnet Mask (CIDR)",
+        choices=CIDR_CHOICES,
+        initial=24,
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+    def clean_ip_address(self):
+        ip = self.cleaned_data["ip_address"].strip()
+        try:
+            ipaddress.ip_address(ip)
+        except ValueError:
+            raise forms.ValidationError("Please enter a valid IP address (IPv4 or IPv6).")
+        return ip
+    
+# --- SPF/DKIM/DMARC Validator ---
+class EmailAuthForm(forms.Form):
+    domain = forms.CharField(
+        label="Domain Name",
+        max_length=253,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "bencritt.net",
+            "autofocus": "autofocus"
+        })
+    )
+    dkim_selector = forms.CharField(
+        label="DKIM Selector (Optional)",
+        required=False,
+        max_length=63,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "google, default, k1, etc."
+        }),
+        help_text="Enter a selector (e.g., 'google') to validate a specific DKIM key."
+    )
+
+    def clean_domain(self):
+        # Reuse your existing normalize function if available, or basic strip
+        raw = self.cleaned_data["domain"].lower().strip()
+        # Strip protocols if user pasted a URL
+        if "://" in raw:
+            try:
+                raw = urlparse(raw).hostname or raw
+            except:
+                pass
+        return raw.strip("/")
+
+# --- WHOIS Lookup ---
+class WhoisForm(forms.Form):
+    domain = forms.CharField(
+        label="Domain Name",
+        max_length=253,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "bencritt.net",
+            "autofocus": "autofocus"
+        })
+    )
+
+    def clean_domain(self):
+        raw = self.cleaned_data["domain"].lower().strip()
+        # Strip protocols if user pasted a URL
+        if "://" in raw:
+            try:
+                raw = urlparse(raw).hostname or raw
+            except:
+                pass
+        return raw.strip("/")
+    
+# --- HTTP Header Inspector ---
+class HttpHeaderForm(forms.Form):
+    url = forms.CharField(
+        label="Enter URL",
+        max_length=500,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "bencritt.net",
+            "autofocus": "autofocus"
+        })
+    )
+
+    def clean_url(self):
+        url = self.cleaned_data["url"].strip()
+        # Basic cleanup: if user types "google.com", we assume https://
+        if not url.startswith(('http://', 'https://')):
+            url = f"https://{url}"
+        
+        validator = URLValidator(schemes=['http', 'https'])
+        try:
+            validator(url)
+        except ValidationError:
+            raise forms.ValidationError("Please enter a valid URL (e.g. https://example.com).")
+        
+        return url

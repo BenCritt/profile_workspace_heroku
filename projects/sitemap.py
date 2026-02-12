@@ -70,6 +70,12 @@ class StaticViewSitemap(Sitemap):
             "projects:repeater_finder",
             "projects:antenna_calculator",
             "projects:grid_square_converter",
+            "projects:rf_exposure_calculator",
+            "projects:coax_cable_loss_calculator",
+            "projects:subnet_calculator",
+            "projects:email_auth_validator",
+            "projects:whois_lookup",
+            "projects:http_header_inspector",
         ]
 
     def location(self, item):

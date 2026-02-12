@@ -1,0 +1,135 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/subnet_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/subnet_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/subnet-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/subnet_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Subnet Calculator & CIDR Tool | Network Range & Mask{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">Subnet / CIDR Calculator</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label for="{{ form.ip_address.id_for_label }}" class="form-label">IP Address</label>
+                                {{ form.ip_address }}
+                                {% if form.ip_address.errors %}
+                                    <div class="text-danger small">{{ form.ip_address.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5">
+                                <label for="{{ form.cidr.id_for_label }}" class="form-label">Subnet Mask</label>
+                                {{ form.cidr }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary w-100">Calculate Subnet</button>
+                                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary mt-2 w-100">Go to All IT Tools</a>
+                            </div>
+                        </div>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mt-3">{{ form.non_field_errors.0 }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div id="results-section" class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">Results: {{ results.network_address }}/{{ results.cidr_notation|slice:"-2:" }}</h2>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 35%;">CIDR Notation</th>
+                                    <td>{{ results.cidr_notation }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Netmask</th>
+                                    <td>{{ results.netmask }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Wildcard Mask</th>
+                                    <td>{{ results.wildcard_mask }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Network Address</th>
+                                    <td>{{ results.network_address }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Broadcast Address</th>
+                                    <td>{{ results.broadcast_address }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Usable Host Range</th>
+                                    <td>{{ results.host_range_start }} &nbsp;—&nbsp; {{ results.host_range_end }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Usable Hosts</th>
+                                    <td class="fw-bold">{{ results.usable_hosts }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Binary Netmask</th>
+                                    <td class="font-monospace small">{{ results.binary_netmask }}</td>
+                                </tr>
+                                <tr>
+                                    <th>IP Class</th>
+                                    <td>{{ results.class }}</td>
+                                </tr>
+                                <tr>
+                                    <th>IP Type</th>
+                                    <td>
+                                        {% if results.is_private %}
+                                            <span class="badge bg-warning text-dark">Private Network</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Public Internet</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

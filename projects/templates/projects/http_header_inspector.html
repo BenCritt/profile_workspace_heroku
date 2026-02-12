@@ -1,0 +1,108 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/http_header_inspector_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/http_header_inspector_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/http-header-inspector/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/http_header_inspector.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}HTTP Header Inspector | View Response Headers{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">HTTP Header Inspector</h1>
+            
+            <div class="card shadow-sm mb-5">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <label for="{{ form.url.id_for_label }}" class="form-label">Target URL</label>
+                                {{ form.url }}
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Inspect</button>
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">{{ form.errors.url.0 }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+                <div class="alert alert-warning shadow-sm">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error_message }}
+                </div>
+            {% endif %}
+
+            {% if results %}
+            <div id="results-section" class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center
+                    {% if results.status_code >= 200 and results.status_code < 300 %}bg-success
+                    {% elif results.status_code >= 300 and results.status_code < 400 %}bg-info
+                    {% elif results.status_code >= 400 %}bg-danger{% endif %} text-white">
+                    <h2 class="h5 mb-0">
+                        {{ results.status_code }} {{ results.reason }}
+                    </h2>
+                    <span class="badge bg-light text-dark">{{ results.protocol }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 35%;">Header Name</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in results.headers.items %}
+                                <tr>
+                                    <td class="font-monospace small text-primary fw-bold">{{ key }}</td>
+                                    <td class="font-monospace small text-break">{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted small">
+                    Resolved URL: {{ results.final_url }}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

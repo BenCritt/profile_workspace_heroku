@@ -1,0 +1,138 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/email_auth_validator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/email_auth_validator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/email-auth-validator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/email_auth_validator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}SPF, DKIM, and DMARC Validator | Email Security Check{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">SPF, DKIM & DMARC Validator</h1>
+            
+            <div class="card shadow-sm mb-5">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-7">
+                                <label for="{{ form.domain.id_for_label }}" class="form-label">Domain Name</label>
+                                {{ form.domain }}
+                            </div>
+                            <div class="col-md-5">
+                                <label for="{{ form.dkim_selector.id_for_label }}" class="form-label">DKIM Selector <small class="text-muted">(Optional)</small></label>
+                                {{ form.dkim_selector }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary w-100">Check Records</button>
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">{{ form.errors }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+                <div id="results-section" class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if results.spf.status == 'found' %}bg-success text-white{% else %}bg-secondary text-white{% endif %}">
+                        <h2 class="h5 mb-0">SPF Record (Sender Policy Framework)</h2>
+                        {% if results.spf.status == 'found' %}
+                            <span class="badge bg-light text-success">{{ results.spf.analysis }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">Missing</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if results.spf.status == 'found' %}
+                            <p class="mb-2"><strong>Record Found:</strong></p>
+                            <div class="p-2 bg-light text-dark border rounded mb-3 font-monospace text-break">{{ results.spf.record }}</div>
+                            <p class="mb-0 text-muted"><i class="bi bi-info-circle-fill me-1"></i> {{ results.spf.details }}</p>
+                        {% else %}
+                            <p class="text-danger mb-0">{{ results.spf.message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if results.dmarc.status == 'found' %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}">
+                        <h2 class="h5 mb-0">DMARC Record</h2>
+                        {% if results.dmarc.status == 'found' %}
+                            <span class="badge bg-light text-primary">{{ results.dmarc.analysis }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">Missing</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if results.dmarc.status == 'found' %}
+                            <p class="mb-2"><strong>Record Found (_dmarc.{{ domain }}):</strong></p>
+                            <div class="p-2 bg-light text-dark border rounded mb-3 font-monospace text-break">{{ results.dmarc.record }}</div>
+                            <p class="mb-0 text-muted"><i class="bi bi-shield-check me-1"></i> {{ results.dmarc.details }}</p>
+                        {% else %}
+                            <p class="text-danger mb-0">{{ results.dmarc.message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if results.dkim.status != 'skipped' %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if results.dkim.status == 'found' %}bg-info text-dark{% else %}bg-secondary text-white{% endif %}">
+                        <h2 class="h5 mb-0">DKIM Record (Selector: {{ form.dkim_selector.value }})</h2>
+                        {% if results.dkim.status == 'found' %}
+                            <span class="badge bg-light text-dark">{{ results.dkim.analysis }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">Not Found</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if results.dkim.status == 'found' %}
+                            <p class="mb-2"><strong>Record Found ({{ results.dkim.host }}):</strong></p>
+                            <div class="p-2 bg-light text-dark border rounded mb-3 font-monospace text-break" style="max-height: 100px; overflow-y: auto;">
+                                {{ results.dkim.record }}
+                            </div>
+                            <p class="mb-0 text-muted"><i class="bi bi-key-fill me-1"></i> {{ results.dkim.details }}</p>
+                        {% else %}
+                            <p class="text-danger mb-0">{{ results.dkim.message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

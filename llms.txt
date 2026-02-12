@@ -62,6 +62,10 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [DNS Lookup Tool](https://www.bencritt.net/projects/dns-lookup/) — Query A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, and CAA records.
 * [IP Address Lookup](https://www.bencritt.net/projects/ip-tool/) — Check IPv4/IPv6 geolocation, ISP details, and reverse DNS (PTR) status.
 * [SSL Verification](https://www.bencritt.net/projects/ssl-check/) — Inspect certificate chains, issuers, expiration dates, and validity.
+* [Subnet / CIDR Calculator](https://www.bencritt.net/projects/subnet-calculator/) — Calculate IPv4 network ranges, broadcast addresses, and wildcard masks using CIDR notation.
+* [SPF, DKIM & DMARC Validator](https://www.bencritt.net/projects/email-auth-validator/) — Verify email authentication records including SPF mechanisms, DMARC policies, and DKIM keys.
+* [WHOIS Lookup Tool](https://www.bencritt.net/projects/whois-lookup/) — Retrieve domain registration details including registrar, expiration dates, and nameservers.
+* [HTTP Header Inspector](https://www.bencritt.net/projects/http-header-inspector/) — Inspect HTTP response headers to reveal server software, caching policies, and security headers.
 
 ### Glass Art & Kiln Tools
 * [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver).
@@ -99,4 +103,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-10_
+_Last Updated: 2026-02-11_

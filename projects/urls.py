@@ -126,4 +126,8 @@ urlpatterns = [
     path("projects/grid-square-converter/", views.grid_square_converter, name="grid_square_converter"),
     path("projects/rf-exposure-calculator/", views.rf_exposure_calculator, name="rf_exposure_calculator"),
     path("projects/coax-cable-loss-calculator/", views.coax_cable_loss_calculator, name="coax_cable_loss_calculator"),
+    path("projects/subnet-calculator/", views.subnet_calculator, name="subnet_calculator"),
+    path("projects/email-auth-validator/", views.email_auth_validator, name="email_auth_validator"),
+    path("projects/whois-lookup/", views.whois_lookup, name="whois_lookup"),
+    path("projects/http-header-inspector/", views.http_header_inspector, name="http_header_inspector"),
 ]
