@@ -17,7 +17,7 @@ fonttools==4.61.0
 kiwisolver==1.4.8
 matplotlib==3.10.0
 numpy==2.2.3
-pillow==12.1.1
+pillow==11.1.0
 pyparsing==3.2.1
 python-dateutil==2.9.0
 six==1.17.0
@@ -33,8 +33,8 @@ textstat==0.7.5
 pyphen==0.17.2
 dnspython==2.7.0
 python-whois==0.9.5
-pyOpenSSL==25.3.0
-cryptography==46.0.5
+pyOpenSSL==25.0.0
+cryptography==44.0.1
 plotly==5.24.1
 reportlab==4.3.1
 lxml==5.3.1
@@ -50,4 +50,3 @@ tldextract==5.1.2
 webencodings==0.5.1
 rich==13.7.1
 playwright==1.57.0
-cffi==2.0.0
