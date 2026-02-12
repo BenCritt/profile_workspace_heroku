@@ -51,4 +51,3 @@ webencodings==0.5.1
 rich==13.7.1
 playwright==1.57.0
 cffi==2.0.0
-timezonefinder==8.2.1
