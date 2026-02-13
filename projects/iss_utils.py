@@ -2,8 +2,11 @@
 from django.http import JsonResponse
 from django.core.cache import cache
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 import gc, ctypes
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------- Memory helper ----------------------------
@@ -19,18 +22,20 @@ def _trim_memory_safely() -> None:
 
 # ---------------------------- Region detection ----------------------------
 
-def detect_region(latitude: float, longitude: float) -> str:
+# Cache the region result for 30 seconds.  The ISS moves ~230 km in that
+# window — enough to cross a coastline in the worst case, but totally
+# acceptable for a live tracker UI.  This drops Nominatim calls from
+# "every poll" to roughly 2/minute, well within OSM's usage policy.
+_REGION_CACHE_KEY = "iss_current_region"
+_REGION_CACHE_TTL = 30  # seconds
+
+
+def _reverse_geocode(latitude: float, longitude: float) -> str | None:
     """
-    Detect the region (land or water) based on latitude and longitude.
-    Recognizes smaller bodies of water like seas, lakes, and gulfs.
-    NOTE: keeps the 'as water_bodies' alias to match your working import.
+    Attempt Nominatim reverse geocode.  Returns a region name string
+    on success, or None if no land result / service unavailable.
     """
     try:
-        # Custom mapping for known water bodies.
-        # (Leave alias as-is per your comment: it works reliably this way.)
-        from .water_bodies import water_bodies as water_bodies
-
-        # First try reverse geocoding for a land location
         geolocator = Nominatim(
             user_agent="ISS Tracker by Ben Crittenden (+https://www.bencritt.net)"
         )
@@ -41,23 +46,71 @@ def detect_region(latitude: float, longitude: float) -> str:
             address = location.raw.get("address", {})
             if "country" in address:
                 return address["country"]
-            elif "state" in address:
+            if "state" in address:
                 return address["state"]
-            elif "city" in address:
+            if "city" in address:
                 return address["city"]
-
-        # Otherwise see if we’re over a known water body (bounding boxes)
-        for wb in water_bodies:
-            if (wb["latitude_range"][0] <= latitude <= wb["latitude_range"][1] and
-                wb["longitude_range"][0] <= longitude <= wb["longitude_range"][1]):
-                return wb["name"]
-
-        return "Unrecognized Region"
-
     except GeocoderTimedOut:
-        return "Geolocation Timeout"
+        logger.debug("Nominatim timed out for (%s, %s); falling back to bounding boxes.", latitude, longitude)
+    except GeocoderServiceError as e:
+        logger.warning("Nominatim service error for (%s, %s): %s", latitude, longitude, e)
     except Exception as e:
-        return f"Error: {e}"
+        logger.warning("Unexpected geocoder error for (%s, %s): %s", latitude, longitude, e)
+
+    return None
+
+
+def _match_water_body(latitude: float, longitude: float) -> str | None:
+    """
+    Walk the bounding-box list (sorted smallest-area-first) and return
+    the first matching water body name, or None.
+    """
+    from .water_bodies import water_bodies
+
+    for wb in water_bodies:
+        if (wb["latitude_range"][0] <= latitude <= wb["latitude_range"][1] and
+                wb["longitude_range"][0] <= longitude <= wb["longitude_range"][1]):
+            return wb["name"]
+
+    return None
+
+
+def detect_region(latitude: float, longitude: float) -> str:
+    """
+    Detect the region (land or water) for a lat/lon coordinate.
+
+    Strategy:
+      1. Check the short-lived region cache (30 s TTL).  If the ISS
+         hasn't moved far, reuse the previous result without hitting
+         Nominatim at all.
+      2. Nominatim reverse geocode (land result -> country/state/city).
+      3. If Nominatim returns nothing or fails, fall through to the
+         bounding-box water-body lookup.
+      4. If neither matches, return 'Unrecognized Region'.
+
+    Every successful result is cached so subsequent polls within the
+    TTL window skip the network call entirely.
+    """
+    # Step 0: return cached result if still fresh
+    cached = cache.get(_REGION_CACHE_KEY)
+    if cached:
+        return cached
+
+    # Step 1: try Nominatim (returns None on any failure)
+    region = _reverse_geocode(latitude, longitude)
+
+    # Step 2: bounding-box water-body lookup
+    if not region:
+        region = _match_water_body(latitude, longitude)
+
+    # Step 3: nothing matched
+    if not region:
+        region = "Unrecognized Region"
+
+    # Cache the result regardless of source
+    cache.set(_REGION_CACHE_KEY, region, timeout=_REGION_CACHE_TTL)
+
+    return region
 
 
 # ---------------------------- TLE helper ----------------------------
