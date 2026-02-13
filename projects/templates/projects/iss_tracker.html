@@ -126,8 +126,8 @@
         document.addEventListener('DOMContentLoaded', () => {
                     // Only run if the table cells exist
                     if(document.getElementById('latitude')) {
-                        updateCurrentData(); // <--- Add this line to run immediately
-                        setInterval(updateCurrentData, 60000);
+                        updateCurrentData();
+                        setInterval(updateCurrentData, 10000); // 10 seconds
                     }
                 });
     })();

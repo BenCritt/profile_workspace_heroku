@@ -20,6 +20,22 @@ def _trim_memory_safely() -> None:
         pass
 
 
+# ---------------------------- TimezoneFinder singleton -----------------
+
+# Constructed once at first use, then reused for every subsequent call.
+# in_memory=False keeps the data files on disk, avoiding a ~54 MB heap
+# cost from the full timezones-with-oceans dataset in 8.x.
+_tf_instance = None
+
+def _get_timezone_finder():
+    """Return a cached TimezoneFinder instance (lazy singleton)."""
+    global _tf_instance
+    if _tf_instance is None:
+        from timezonefinder import TimezoneFinder
+        _tf_instance = TimezoneFinder(in_memory=False)
+    return _tf_instance
+
+
 # ---------------------------- Region detection ----------------------------
 
 # Cache the region result for 30 seconds.  The ISS moves ~230 km in that
@@ -27,7 +43,32 @@ def _trim_memory_safely() -> None:
 # acceptable for a live tracker UI.  This drops Nominatim calls from
 # "every poll" to roughly 2/minute, well within OSM's usage policy.
 _REGION_CACHE_KEY = "iss_current_region"
-_REGION_CACHE_TTL = 30  # seconds
+_REGION_CACHE_TTL = 10  # seconds
+_NOMINATIM_BACKOFF_KEY = "nominatim_backoff"
+
+
+def _is_over_land(latitude: float, longitude: float) -> bool:
+    """
+    Fast, offline land/water check using timezonefinder 8.x.
+
+    timezone_at_land() checks ONLY land timezone polygons:
+      - Returns an IANA timezone string  -> coordinate is over land.
+      - Returns None                     -> coordinate is over water.
+
+    NOTE: timezone_at() (without '_land') uses the full ocean dataset
+    in 8.x and will NEVER return None, making it useless as a
+    land/water discriminator.
+    """
+    try:
+        tf = _get_timezone_finder()
+        return tf.timezone_at_land(lng=longitude, lat=latitude) is not None
+    except Exception as e:
+        # If timezonefinder fails for any reason, assume land so
+        # Nominatim gets a chance to resolve it.  Worst case: one
+        # extra Nominatim call that returns nothing, then we fall
+        # through to water_bodies anyway.
+        logger.warning("timezonefinder error for (%s, %s): %s", latitude, longitude, e)
+        return True
 
 
 def _reverse_geocode(latitude: float, longitude: float) -> str | None:
@@ -35,6 +76,10 @@ def _reverse_geocode(latitude: float, longitude: float) -> str | None:
     Attempt Nominatim reverse geocode.  Returns a region name string
     on success, or None if no land result / service unavailable.
     """
+    # Skip Nominatim entirely during a backoff window
+    if cache.get(_NOMINATIM_BACKOFF_KEY):
+        return None
+
     try:
         geolocator = Nominatim(
             user_agent="ISS Tracker by Ben Crittenden (+https://www.bencritt.net)"
@@ -50,12 +95,15 @@ def _reverse_geocode(latitude: float, longitude: float) -> str | None:
                 return address["state"]
             if "city" in address:
                 return address["city"]
-    except GeocoderTimedOut:
-        logger.debug("Nominatim timed out for (%s, %s); falling back to bounding boxes.", latitude, longitude)
-    except GeocoderServiceError as e:
-        logger.warning("Nominatim service error for (%s, %s): %s", latitude, longitude, e)
+
+    except (GeocoderTimedOut, GeocoderServiceError) as e:
+        logger.warning("Nominatim error for (%s, %s): %s. Backing off for 5 mins.", latitude, longitude, e)
+        cache.set(_NOMINATIM_BACKOFF_KEY, True, timeout=300)
+        return None
+
     except Exception as e:
         logger.warning("Unexpected geocoder error for (%s, %s): %s", latitude, longitude, e)
+        return None
 
     return None
 
@@ -80,26 +128,29 @@ def detect_region(latitude: float, longitude: float) -> str:
     Detect the region (land or water) for a lat/lon coordinate.
 
     Strategy:
-      1. Check the short-lived region cache (30 s TTL).  If the ISS
-         hasn't moved far, reuse the previous result without hitting
-         Nominatim at all.
-      2. Nominatim reverse geocode (land result -> country/state/city).
-      3. If Nominatim returns nothing or fails, fall through to the
-         bounding-box water-body lookup.
-      4. If neither matches, return 'Unrecognized Region'.
-
-    Every successful result is cached so subsequent polls within the
-    TTL window skip the network call entirely.
+      1. Check the short-lived region cache (30 s TTL).
+      2. Use timezonefinder's timezone_at_land() as a fast, offline
+         land/water discriminator (~microseconds, no network).
+         - Over water (~70% of ISS orbit): skip Nominatim entirely,
+           resolve via water_bodies bounding boxes.
+         - Over land (~30%): call Nominatim for country/state/city,
+           with water_bodies as a fallback if Nominatim fails.
+      3. Cache the result so subsequent polls within the TTL window
+         skip all lookups entirely.
     """
     # Step 0: return cached result if still fresh
     cached = cache.get(_REGION_CACHE_KEY)
     if cached:
         return cached
 
-    # Step 1: try Nominatim (returns None on any failure)
-    region = _reverse_geocode(latitude, longitude)
+    region = None
 
-    # Step 2: bounding-box water-body lookup
+    # Step 1: fast land/water gate
+    if _is_over_land(latitude, longitude):
+        # Over land — ask Nominatim for the country name
+        region = _reverse_geocode(latitude, longitude)
+
+    # Step 2: water_bodies fallback (handles ocean + Nominatim failures)
     if not region:
         region = _match_water_body(latitude, longitude)
 
