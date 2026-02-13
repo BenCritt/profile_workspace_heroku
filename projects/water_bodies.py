@@ -614,25 +614,29 @@ water_bodies = [
         "latitude_range": (-60.0, 0.0),
         "longitude_range": (100.0, 180.0),
     },
+    # Extended East to -80 to cover Central America Pacific coast
     {
         "name": "North Pacific Ocean",
         "latitude_range": (0.0, 66.5),
-        "longitude_range": (-180.0, -100.0),
+        "longitude_range": (-180.0, -80.0),
     },
+    # Fixed: Moved boundary to -67 (Cape Horn)
     {
         "name": "South Pacific Ocean",
         "latitude_range": (-66.5, 0.0),
-        "longitude_range": (-180.0, -100.0),
+        "longitude_range": (-180.0, -67.0),
     },
+    # Extended West to -80 (starts at Florida/Panama)
     {
         "name": "North Atlantic Ocean",
         "latitude_range": (0.0, 66.5),
-        "longitude_range": (-100.0, 20.0),
+        "longitude_range": (-80.0, 20.0),
     },
+    # Fixed: Moved boundary to -67 (Cape Horn)
     {
         "name": "South Atlantic Ocean",
         "latitude_range": (-66.5, 0.0),
-        "longitude_range": (-100.0, 20.0),
+        "longitude_range": (-67.0, 20.0),
     },
     {
         "name": "Indian Ocean",
