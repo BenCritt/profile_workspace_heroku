@@ -42,7 +42,7 @@ skyfield==1.50
 soupsieve==2.6
 sqlparse==0.5.3
 textstat==0.7.5
-timezonefinder==6.5.8
+timezonefinder==8.2.1
 tinycss2==1.2.1
 tldextract==5.1.2
 typing_extensions==4.12.2
