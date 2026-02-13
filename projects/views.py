@@ -379,7 +379,7 @@ def iss_tracker(request):
             "region": region,
         }
 
-        # Lite mode keeps data files off-heap and on disk
+        # Lite mode keeps shapefiles off-heap and on disk
         tf = TimezoneFinder(in_memory=False)
         tzname = tf.timezone_at(lat=lat, lng=lon) or "UTC"
         local_tz = ZoneInfo(tzname)
