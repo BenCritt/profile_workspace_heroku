@@ -37,6 +37,7 @@ qrcode==8.0
 reportlab==4.4.10
 requests==2.32.4
 rich==13.7.1
+setuptools==82.0.0
 six==1.17.0
 skyfield==1.50
 soupsieve==2.6

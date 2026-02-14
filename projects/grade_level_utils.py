@@ -1,5 +1,9 @@
 import re
-import textstat
+
+try:
+    import textstat
+except (ImportError, ModuleNotFoundError):
+    textstat = None
 
 def _sanitize_for_readability(s: str) -> str:
     """Normalize punctuation and whitespace."""
@@ -75,20 +79,33 @@ def calculate_grade_levels(input_text):
     clean_text = _sanitize_for_readability(input_text)
     
     # Calculate scores (Try textstat first, fallback to manual _metrics)
-    try:
-        results = {
-            "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
-            "gunning_fog_index":          textstat.gunning_fog_index(clean_text),
-            "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
-        }
-    except (KeyError, Exception):
-        # Fallback for dictionary misses or other errors
+    if textstat is not None:
+        try:
+            results = {
+                "flesch_kincaid_grade": textstat.flesch_kincaid_grade(clean_text),
+                "gunning_fog_index":    textstat.gunning_fog_index(clean_text),
+                "coleman_liau_index":   textstat.coleman_liau_index(clean_text),
+            }
+        except (KeyError, Exception):
+            fk, fog, cli = _metrics(clean_text)
+            results = {
+                "flesch_kincaid_grade": fk,
+                "gunning_fog_index":    fog,
+                "coleman_liau_index":   cli,
+            }
+    else:
         fk, fog, cli = _metrics(clean_text)
         results = {
             "flesch_kincaid_grade": fk,
-            "gunning_fog_index":          fog,
+            "gunning_fog_index":    fog,
             "coleman_liau_index":   cli,
         }
+
+    if textstat is not None and hasattr(textstat, "set_lang"):
+        try:
+            textstat.set_lang("en_US")
+        except Exception:
+            pass
 
     # Calculate averages
     results["average_score"] = round(
