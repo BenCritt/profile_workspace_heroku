@@ -1,3 +1,10 @@
+/* CRITICAL FIX: Prevent infinite resize loops */
+html.embedded, html.embedded body {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
 /* Layout container for the Cookie Audit tool */
 .cookie-audit-layout {
     max-width: 900px;

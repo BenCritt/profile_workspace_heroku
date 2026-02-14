@@ -1,0 +1,14 @@
+/* CRITICAL FIX: Override base.html layout when inside an iframe */
+html.embedded, html.embedded body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+html.embedded main {
+    flex-grow: 0 !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+html.embedded header, html.embedded footer {
+    display: none !important;
+}

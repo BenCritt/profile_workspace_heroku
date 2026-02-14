@@ -1,3 +1,10 @@
+/* CRITICAL FIX: Prevent infinite resize loops */
+html.embedded, html.embedded body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
 /* Container for the SEO form and results */
 .seo-tool-container {
     max-width: 600px;

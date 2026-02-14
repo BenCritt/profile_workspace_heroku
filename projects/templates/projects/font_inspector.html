@@ -251,9 +251,28 @@
   </div>
 
 </div>
+
+{# ── Inline JS: Iframe Resize ────────────────────────────────────── #}
 <script>
-  if (window.self !== window.top) {
-    document.documentElement.classList.add("embedded");
-  }
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.self !== window.top) {
+        // 1. Add class to kill min-height
+        document.documentElement.classList.add("embedded");
+        
+        // 2. Send Height to Parent
+        const sendHeight = () => {
+            const h = document.documentElement.scrollHeight;
+            if (h !== sendHeight._last) {
+                sendHeight._last = h;
+                window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+            }
+        };
+        sendHeight._last = 0;
+
+        window.addEventListener('load', sendHeight);
+        window.addEventListener('resize', sendHeight);
+        new ResizeObserver(sendHeight).observe(document.body);
+    }
+});
 </script>
 {% endblock content %}

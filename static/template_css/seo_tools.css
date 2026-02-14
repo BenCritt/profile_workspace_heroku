@@ -1,20 +1,26 @@
-/* Specific styles for the tool iframes */
-.tool-iframe {
-  width: 100%;
-  height: 75vh;        /* fills most of the viewport */
-  min-height: 700px;   /* prevents tiny iframes on desktop */
-  border: 0;
-  display: block;
-  overflow: auto;      /* default: allow iframe scrolling */
+/* ── Tool Cards (Link-only cards at the top) ──────────────── */
+.tool-card {
+    width: 300px;      /* Standard width for the top link cards */
+    max-width: 100%;
 }
 
-/* Cookie Audit only: prevent double scrollbars */
-.tool-iframe--no-scroll {
-  overflow: hidden;
+/* ── Iframe Wrappers (Cards containing tools) ─────────────── */
+.iframe-card-wrapper {
+    width: 100%;
+    max-width: 450px;  /* Wider than link cards to fit tool UIs */
 }
-    
-/* Ensure cards behave responsibly on mobile without extra media queries */
-.tool-card {
-  width: 100%;
-  max-width: 450px;
+
+/* ── Iframe Styling ───────────────────────────────────────── */
+.iframe-card-wrapper iframe {
+    width: 100%;
+    height: auto;
+    min-height: 500px; /* Minimum start height */
+    border: none;
+}
+
+/* ── Mobile Overrides ─────────────────────────────────────── */
+@media (max-width: 600px) {
+    .tool-card {
+        width: 100%;
+    }
 }

@@ -1,0 +1,6 @@
+/* CRITICAL FIX: Prevent infinite resize loops */
+html.embedded, html.embedded body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important; /* Let parent handle scrolling */
+}

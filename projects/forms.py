@@ -2732,3 +2732,178 @@ class HttpHeaderForm(forms.Form):
             raise forms.ValidationError("Please enter a valid URL (e.g. https://example.com).")
         
         return url
+    
+# --- Redirect Chain Checker ---
+class RedirectCheckerForm(forms.Form):
+    """
+    Form for the Redirect Chain Checker tool.
+    Accepts a URL and follows its full redirect chain.
+    """
+
+    url = forms.CharField(
+        label="Enter URL",
+        max_length=2048,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "bencrittenden.com",
+                "autofocus": True,
+                "id": "id_url",
+            }
+        ),
+    )
+
+    def clean_url(self):
+        """
+        Normalize the URL input:
+        - Strip whitespace.
+        - Prepend https:// if no scheme is provided.
+        - Reject non-HTTP(S) schemes.
+        - Reject URLs without a valid hostname.
+        """
+        url = self.cleaned_data["url"].strip()
+
+        # If the user didn't include a scheme, default to https.
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+
+        parsed = urlparse(url)
+
+        # Only allow http and https schemes.
+        if parsed.scheme not in ("http", "https"):
+            raise forms.ValidationError(
+                "Only HTTP and HTTPS URLs are supported."
+            )
+
+        # Ensure there's actually a hostname.
+        if not parsed.hostname:
+            raise forms.ValidationError(
+                "Please enter a valid URL with a hostname (e.g., example.com)."
+            )
+
+        return url
+    
+# --- JSON-LD Validator ---
+class JsonLdValidatorForm(forms.Form):
+    """
+    Form for the Structured Data / JSON-LD Validator.
+    Accepts a URL to fetch and extract JSON-LD blocks from.
+    """
+    url = forms.CharField(
+        label="Page URL",
+        max_length=2048,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "bencritt.net/projects/seo-tools/",
+                "autofocus": True,
+                "id": "id_url",
+            }
+        ),
+    )
+
+    def clean_url(self):
+        """
+        Normalize the URL input:
+        - Strip whitespace.
+        - Prepend https:// if no scheme is provided.
+        - Reject non-HTTP(S) schemes.
+        - Reject URLs without a valid hostname.
+        """
+        url = self.cleaned_data["url"].strip()
+
+        # If the user didn't include a scheme, default to https.
+        if not url.startswith(("http://", "https://")):
+            url = "https://" + url
+
+        parsed = urlparse(url)
+
+        if parsed.scheme not in ("http", "https"):
+            raise forms.ValidationError(
+                "Only HTTP and HTTPS URLs are supported."
+            )
+
+        if not parsed.hostname:
+            raise forms.ValidationError(
+                "Please enter a valid URL with a hostname (e.g., example.com)."
+            )
+
+        return url
+    
+# --- Robots Analyzer ---
+class RobotsAnalyzerForm(forms.Form):
+    """
+    Form for the Robots.txt Analyzer.
+    Accepts a domain to fetch robots.txt from, and an optional path
+    to test against the parsed rules.
+    """
+
+    domain = forms.CharField(
+        label="Domain",
+        max_length=253,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "bencritt.net",
+                "autofocus": True,
+                "id": "id_domain",
+            }
+        ),
+    )
+
+    test_path = forms.CharField(
+        label="Test Path",
+        max_length=2048,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "/private/page or /images/photo.jpg",
+                "id": "id_test_path",
+            }
+        ),
+    )
+
+    def clean_domain(self):
+        """
+        Normalize domain input:
+        - Strip whitespace.
+        - Strip any scheme and path so we get a bare hostname.
+        - Basic hostname validation.
+        """
+        raw = self.cleaned_data["domain"].strip()
+
+        # If the user pasted a full URL, extract just the hostname.
+        if raw.startswith(("http://", "https://")):
+            parsed = urlparse(raw)
+            raw = parsed.hostname or ""
+
+        # Strip trailing slashes / paths if someone typed "example.com/page".
+        raw = raw.split("/")[0].strip().lower()
+
+        if not raw:
+            raise forms.ValidationError(
+                "Please enter a valid domain (e.g., example.com)."
+            )
+
+        # Very lightweight hostname check.
+        hostname_re = re.compile(
+            r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.[A-Za-z0-9-]{1,63})*\.[A-Za-z]{2,}$"
+        )
+        if not hostname_re.match(raw):
+            raise forms.ValidationError(
+                f"\"{raw}\" does not look like a valid domain name."
+            )
+
+        return raw
+
+    def clean_test_path(self):
+        """
+        Normalize the optional test path:
+        - Strip whitespace.
+        - Ensure it starts with /.
+        """
+        path = self.cleaned_data.get("test_path", "").strip()
+        if path and not path.startswith("/"):
+            path = "/" + path
+        return path

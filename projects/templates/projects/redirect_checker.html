@@ -1,0 +1,273 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/redirect_checker_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/redirect_checker_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/redirect-checker/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/redirect_checker.css' %}" rel="stylesheet">
+    
+{% endblock page_stylesheets %}
+
+{% block title %}Redirect Chain Checker | Trace HTTP Redirect Paths{% endblock %}
+
+{% block meta_description %}Free redirect chain checker. Follow any URL through its full 301/302/307/308 redirect chain. Detect loops, long chains, mixed redirect types, and slow hops.{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center">
+
+    <h1 class="mb-4 text-center">Redirect Chain Checker</h1>
+    
+    <div class="w-100" style="max-width: 900px;">
+        <p class="text-center mb-4">
+            Enter a URL to trace its full redirect chain. Detect loops, mixed redirect types, and analyze hop latency.
+        </p>
+
+        {# ── Input Form ────────────────────────────────────────────────── #}
+        <div class="card shadow-sm mb-5">
+            <div class="card-body">
+                <form method="post" id="redirect-form">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12">
+                            <label for="{{ form.url.id_for_label }}" class="form-label">{{ form.url.label }}</label>
+                            {{ form.url }}
+                            <div class="form-text text-muted mt-2">
+                                A scheme (http:// or https://) will be added automatically if omitted.
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100" id="submit-btn">
+                                Trace Redirects
+                            </button>
+                            <p class="mt-3 text-center">
+                                <a href="{% url 'projects:seo_tools' %}" class="btn btn-secondary w-100 mt-2">
+                                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to All SEO Tools
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    {% if form.url.errors %}
+                        {% for error in form.url.errors %}
+                            <div class="alert alert-danger mt-3">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        {# ── Results ───────────────────────────────────────────────────── #}
+        {% if result %}
+            <div id="results-section" class="card mb-4
+                {% if result.chain_type == 'clean' %}border-success
+                {% elif result.chain_type == 'warnings' %}border-warning
+                {% else %}border-danger{% endif %}">
+                <div class="card-body">
+                    <h2 class="card-title h5">
+                        {% if result.chain_type == "clean" %}
+                            <span class="text-success">&#10003;</span> Clean Chain
+                        {% elif result.chain_type == "warnings" %}
+                            <span class="text-warning">&#9888;</span> Chain with Warnings
+                        {% else %}
+                            <span class="text-danger">&#10007;</span> Chain Errors Detected
+                        {% endif %}
+                    </h2>
+                    <p class="mb-1">
+                        <strong>Redirects:</strong> {{ result.total_hops }}
+                        &nbsp;|&nbsp;
+                        <strong>Total Time:</strong> {{ result.total_time }}s
+                        &nbsp;|&nbsp;
+                        <strong>Final URL:</strong>
+                        <a href="{{ result.final_url }}" target="_blank" rel="noopener noreferrer"
+                           class="text-break">{{ result.final_url }}</a>
+                    </p>
+                </div>
+            </div>
+
+            {% if result.issues %}
+            <div class="mb-4">
+                <h2 class="h5">Issues Detected</h2>
+                {% for issue in result.issues %}
+                    <div class="alert
+                        {% if 'loop' in issue|lower or 'exceeded' in issue|lower %}
+                            alert-danger
+                        {% else %}
+                            alert-warning
+                        {% endif %} py-2 mb-2" role="alert">
+                        {{ issue }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="table-responsive d-none d-md-block mb-4">
+                <table class="table table-dark table-bordered table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">Hop</th>
+                            <th style="width: 10%;">Status</th>
+                            <th>URL</th>
+                            <th style="width: 10%;">Time</th>
+                            <th style="width: 14%;">Server</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hop in result.hops %}
+                        <tr>
+                            <td class="text-center">{{ hop.hop_number }}</td>
+                            <td class="text-center">
+                                {% if hop.error %}
+                                    <span class="badge bg-danger">Error</span>
+                                {% elif hop.is_final %}
+                                    <span class="badge bg-success">{{ hop.status_code }}</span>
+                                {% elif hop.status_code == 301 or hop.status_code == 308 %}
+                                    <span class="badge bg-info text-dark">{{ hop.status_code }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ hop.status_code }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-break" style="word-break: break-all;">
+                                <a href="{{ hop.url }}" target="_blank"
+                                   rel="noopener noreferrer">{{ hop.url }}</a>
+                                {% if hop.error %}
+                                    <br><small class="text-danger">{{ hop.error }}</small>
+                                {% endif %}
+                                {% if hop.location %}
+                                    <br><small class="text-muted">
+                                        &#8594; {{ hop.location }}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if hop.response_time %}
+                                    {{ hop.response_time }}s
+                                {% else %}
+                                    &mdash;
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if hop.server %}
+                                    {{ hop.server }}
+                                {% else %}
+                                    &mdash;
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-md-none mb-4">
+                {% for hop in result.hops %}
+                <div class="card bg-dark border-secondary mb-2">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>Hop {{ hop.hop_number }}</strong>
+                            <span>
+                                {% if hop.error %}
+                                    <span class="badge bg-danger">Error</span>
+                                {% elif hop.is_final %}
+                                    <span class="badge bg-success">{{ hop.status_code }}</span>
+                                {% elif hop.status_code == 301 or hop.status_code == 308 %}
+                                    <span class="badge bg-info text-dark">{{ hop.status_code }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ hop.status_code }}</span>
+                                {% endif %}
+                                &nbsp;
+                                {% if hop.response_time %}{{ hop.response_time }}s{% endif %}
+                            </span>
+                        </div>
+                        <div class="text-break" style="word-break: break-all;">
+                            <small>
+                                <a href="{{ hop.url }}" target="_blank"
+                                   rel="noopener noreferrer">{{ hop.url }}</a>
+                            </small>
+                        </div>
+                        {% if hop.error %}
+                            <small class="text-danger">{{ hop.error }}</small>
+                        {% endif %}
+                        {% if hop.location %}
+                            <div class="text-muted mt-1" style="word-break: break-all;">
+                                <small>&#8594; {{ hop.location }}</small>
+                            </div>
+                        {% endif %}
+                        {% if hop.server %}
+                            <div class="text-muted"><small>Server: {{ hop.server }}</small></div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+
+{# ── Inline JS: spinner on submit ────────────────────────────────── #}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("redirect-form");
+        var btn = document.getElementById("submit-btn");
+
+        if (form && btn) {
+            form.addEventListener("submit", function () {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" ' +
+                    'role="status" aria-hidden="true"></span> Tracing\u2026';
+            });
+        }
+    });
+</script>
+
+{# ── Inline JS: Auto-scroll + Iframe Resize ──────────────────────── #}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 1. Auto-scroll (ONLY if NOT in iframe)
+        if (window.self === window.top) {
+            var resultsDiv = document.getElementById("results-section");
+            if (resultsDiv) {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // 2. Send Height to Parent (ONLY if IN iframe)
+        if (window.self !== window.top) {
+            // Add class to kill min-height: 100vh
+            document.documentElement.classList.add('embedded');
+
+            let lastHeight = 0;
+            const sendHeight = () => {
+                const h = document.documentElement.scrollHeight;
+                if (h !== lastHeight) {
+                    lastHeight = h;
+                    window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+                }
+            };
+
+            window.addEventListener('load', sendHeight);
+            window.addEventListener('resize', sendHeight);
+            new ResizeObserver(sendHeight).observe(document.body);
+        }
+    });
+</script>
+
+{% endblock %}

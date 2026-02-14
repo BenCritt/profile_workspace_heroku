@@ -709,6 +709,56 @@
         "Analyze security headers (HSTS, CSP, X-Frame-Options).",
         "Check caching policies (Cache-Control, Expires)."
       ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Structured Data / JSON-LD Validator",
+      "description": "Extract and validate JSON-LD structured data from any web page. Check for valid JSON syntax, required and recommended schema.org properties, and SEO best practices.",
+      "applicationCategory": "SEO Tool",
+      "url": "https://www.bencritt.net/projects/jsonld-validator/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/jsonld-validator.webp",
+      "featureList": [
+        "Extract all JSON-LD blocks from any public URL.",
+        "Validate JSON syntax with line and column error reporting.",
+        "Check required and recommended schema.org properties per @type.",
+        "Handle @graph arrays with inherited @context resolution.",
+        "Flag http vs https @context, missing @id, and other SEO issues.",
+        "Pretty-print parsed JSON-LD for easy review."
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Redirect Chain Checker",
+      "description": "Trace HTTP redirect chains hop-by-hop. Detects redirect loops, identifies temporary vs. permanent redirects (301/302/307/308), and analyzes chain latency for SEO health.",
+      "applicationCategory": "SEO Tool",
+      "url": "https://www.bencritt.net/projects/redirect-checker/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/redirect-checker.webp",
+      "featureList": [
+        "Trace full redirect paths (301, 302, 303, 307, 308)",
+        "Detect redirect loops and runaway chains",
+        "Analyze hop-by-hop latency and server headers",
+        "Identify mixed redirect types (permanent vs. temporary)"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Robots.txt Analyzer",
+      "description": "Parse and validate robots.txt files. Check syntax, analyze crawl rules per user-agent, and test URL paths against specific bot permissions.",
+      "applicationCategory": "SEO Tool",
+      "url": "https://www.bencritt.net/projects/robots-analyzer/",
+      "creator": { "@type": "Person", "name": "Ben Crittenden" },
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/robots-analyzer.webp",
+      "featureList": [
+        "Parse robots.txt files for syntax errors",
+        "Test specific paths against Allow/Disallow rules",
+        "Analyze user-agent groups and crawl delays",
+        "Detect and list sitemap references"
+      ]
     }
   ]
 }

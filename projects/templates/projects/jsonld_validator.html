@@ -1,0 +1,292 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/jsonld_validator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/jsonld_validator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/jsonld-validator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/jsonld_validator.css' %}" rel="stylesheet">
+
+{% endblock page_stylesheets %}
+
+{% block title %}Structured Data / JSON-LD Validator | Schema.org Checker{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">Structured Data / JSON-LD Validator</h1>
+
+            {# ── Input Form ──────────────────────────────────────────── #}
+            <div class="card shadow-sm mb-5">
+                <div class="card-body">
+                    <form method="post" id="jsonld-form">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12">
+                                <label for="{{ form.url.id_for_label }}" class="form-label">Page URL</label>
+                                {{ form.url }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary w-100" id="submit-btn">
+                                    Validate Structured Data
+                                </button>
+                                <p class="mt-3 text-center">
+                                    <a href="{% url 'projects:seo_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-2">
+                                        <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to All SEO Tools
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">{{ form.errors }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            {# ── Results ─────────────────────────────────────────────── #}
+            {% if result %}
+
+                {# ── Fetch Error ─────────────────────────────────────── #}
+                {% if result.fetch_error %}
+                <div id="results-section" class="card shadow-sm mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h2 class="h5 mb-0">Fetch Error</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger mb-0">{{ result.fetch_error }}</p>
+                    </div>
+                </div>
+
+                {% else %}
+
+                {# ── Summary Banner ──────────────────────────────────── #}
+                <div id="results-section" class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if result.overall == 'pass' %}bg-success text-white
+                        {% elif result.overall == 'warnings' %}bg-warning text-dark
+                        {% else %}bg-danger text-white{% endif %}">
+                        <h2 class="h5 mb-0">
+                            {% if result.overall == "pass" %}
+                                &#10003; All Checks Passed
+                            {% elif result.overall == "warnings" %}
+                                &#9888; Passed with Warnings
+                            {% else %}
+                                &#10007; Errors Detected
+                            {% endif %}
+                        </h2>
+                        <span>
+                            {% if result.overall == "pass" %}
+                                <span class="badge bg-light text-success">Clean</span>
+                            {% elif result.overall == "warnings" %}
+                                <span class="badge bg-light text-warning">{{ result.warning_count }} Warning{{ result.warning_count|pluralize }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-danger">{{ result.error_count }} Error{{ result.error_count|pluralize }}</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1">
+                            <strong>URL:</strong>
+                            <a href="{{ result.url }}" target="_blank" rel="noopener noreferrer" class="text-break">{{ result.url }}</a>
+                        </p>
+                        <p class="mb-1">
+                            <strong>HTTP Status:</strong> {{ result.status_code }}
+                            &nbsp;|&nbsp;
+                            <strong>Fetch Time:</strong> {{ result.fetch_time }}s
+                        </p>
+                        <p class="mb-0">
+                            <strong>JSON-LD Blocks:</strong> {{ result.block_count }}
+                            &nbsp;|&nbsp;
+                            <strong>Entities:</strong> {{ result.entity_count }}
+                            &nbsp;|&nbsp;
+                            <strong>Errors:</strong> {{ result.error_count }}
+                            &nbsp;|&nbsp;
+                            <strong>Warnings:</strong> {{ result.warning_count }}
+                        </p>
+                    </div>
+                </div>
+
+                {# ── No JSON-LD found ────────────────────────────────── #}
+                {% if result.block_count == 0 %}
+                <div class="alert alert-warning" role="alert">
+                    No <code>&lt;script type="application/ld+json"&gt;</code> blocks were found on this page.
+                </div>
+                {% endif %}
+
+                {# ── Per-Block Results ───────────────────────────────── #}
+                {% for block in result.blocks %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if block.error_count > 0 %}bg-danger text-white
+                        {% elif block.warning_count > 0 %}bg-warning text-dark
+                        {% else %}bg-success text-white{% endif %}">
+                        <h2 class="h5 mb-0">Block {{ block.block_number }}</h2>
+                        <span>
+                            {% if block.parse_error %}
+                                <span class="badge bg-light text-danger">Parse Error</span>
+                            {% elif block.error_count > 0 %}
+                                <span class="badge bg-light text-danger">{{ block.error_count }} Error{{ block.error_count|pluralize }}</span>
+                            {% elif block.warning_count > 0 %}
+                                <span class="badge bg-light text-warning">{{ block.warning_count }} Warning{{ block.warning_count|pluralize }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-success">Valid</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+
+                        {# ── JSON Parse Error ────────────────────────── #}
+                        {% if block.parse_error %}
+                            <div class="alert alert-danger py-2 mb-3" role="alert">
+                                {{ block.parse_error }}
+                            </div>
+                            <p class="mb-1"><strong>Raw content:</strong></p>
+                            <div class="p-2 bg-light text-dark border rounded font-monospace text-break" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem;">{{ block.raw }}</div>
+
+                        {% else %}
+
+                            {# ── Entity Cards ───────────────────────── #}
+                            {% for entity in block.entities %}
+                            <div class="border rounded p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
+                                    <div>
+                                        <strong class="me-2">@type:</strong>
+                                        <code>{{ entity.type }}</code>
+                                        {% if entity.name %}
+                                            <span class="text-muted ms-2">({{ entity.name }})</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if entity.id %}
+                                        <small class="text-muted text-break">@id: {{ entity.id }}</small>
+                                    {% endif %}
+                                </div>
+
+                                {# ── Errors ──────────────────────────── #}
+                                {% if entity.errors %}
+                                    {% for err in entity.errors %}
+                                        <div class="alert alert-danger py-1 px-2 mb-1" role="alert">
+                                            <small>{{ err }}</small>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {# ── Warnings ────────────────────────── #}
+                                {% if entity.warnings %}
+                                    {% for warn in entity.warnings %}
+                                        <div class="alert alert-warning py-1 px-2 mb-1" role="alert">
+                                            <small>{{ warn }}</small>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {# ── Property Checklist ──────────────── #}
+                                {% if entity.properties %}
+                                    <div class="mt-2">
+                                        <small class="text-muted"><strong>Property Check:</strong></small>
+                                        <div class="d-flex flex-wrap gap-2 mt-1">
+                                            {% for prop in entity.properties %}
+                                                {% if prop.status == "present" %}
+                                                    <span class="badge bg-success">&#10003; {{ prop.key }}</span>
+                                                {% elif prop.status == "missing_required" %}
+                                                    <span class="badge bg-danger">&#10007; {{ prop.key }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">&#9888; {{ prop.key }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                {# ── No errors or warnings ───────────── #}
+                                {% if not entity.errors and not entity.warnings %}
+                                    <div class="mt-2">
+                                        <small class="text-success">&#10003; No validation errors detected.</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+
+                            {# ── Collapsible Pretty-Printed JSON ─────── #}
+                            <div class="mt-2">
+                                <a class="btn btn-sm btn-secondary"
+                                   data-bs-toggle="collapse"
+                                   href="#block-json-{{ block.block_number }}"
+                                   role="button"
+                                   aria-expanded="false"
+                                   aria-controls="block-json-{{ block.block_number }}">
+                                    View Parsed JSON
+                                </a>
+                                <div class="collapse mt-2" id="block-json-{{ block.block_number }}">
+                                    <div class="p-2 bg-light text-dark border rounded font-monospace text-break"
+                                         style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem;">{{ block.parsed }}</div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% endif %}{# end fetch_error else #}
+            {% endif %}{# end result #}
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+{# ── Inline JS: spinner + scroll + resize ────────────────────────── #}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Spinner on submit
+        var form = document.getElementById("jsonld-form");
+        var btn = document.getElementById("submit-btn");
+        if (form && btn) {
+            form.addEventListener("submit", function () {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" ' +
+                    'role="status" aria-hidden="true"></span> Validating\u2026';
+            });
+        }
+        
+        // Auto-scroll (ONLY if NOT in iframe)
+        if (window.self === window.top) {
+            var resultsDiv = document.getElementById("results-section");
+            if (resultsDiv) {
+                resultsDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+
+        // Send Height to Parent (ONLY if IN iframe)
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('embedded');
+
+            let lastHeight = 0;
+            const sendHeight = () => {
+                const h = document.documentElement.scrollHeight;
+                if (h !== lastHeight) {
+                    lastHeight = h;
+                    window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+                }
+            };
+            window.addEventListener('load', sendHeight);
+            window.addEventListener('resize', sendHeight);
+            new ResizeObserver(sendHeight).observe(document.body);
+        }
+    });
+</script>
+{% endblock content %}

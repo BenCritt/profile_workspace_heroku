@@ -1,3 +1,10 @@
+/* CRITICAL FIX: Prevent infinite resize loops */
+html.embedded, html.embedded body {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
 /* Add specific height for the progress bar */
 .font-progress-wrapper {
     height: 18px;

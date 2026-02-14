@@ -1014,6 +1014,24 @@ def all_projects(request):
             "url_name": "projects:http_header_inspector",
             "image": "http-header-inspector.webp",
             "description": "Inspect the HTTP response headers of any website. Reveal server software, caching policies, cookies, and security headers like HSTS and CSP."
+        },
+        {
+            "title": "Redirect Chain Checker",
+            "url_name": "projects:redirect_checker",
+            "image": "redirect-checker.webp",
+            "description": "Trace the full path of HTTP redirects for any URL. Detect redirect loops, identify temporary vs. permanent redirects (301, 302, 307, 308), and analyze hop-by-hop latency and server headers."
+        },
+        {
+            "title": "Structured Data / JSON-LD Validator",
+            "url_name": "projects:jsonld_validator",
+            "image": "jsonld-validator.webp",
+            "description": "Enter any URL to extract and validate its JSON-LD structured data. Checks for valid JSON syntax, required and recommended schema.org properties, and common SEO issues."
+        },
+        {
+            "title": "Robots.txt Analyzer",
+            "url_name": "projects:robots_analyzer",
+            "image": "robots-analyzer.webp",
+            "description": "Fetch and parse any domain's robots.txt file. View user-agent groups, allow/disallow rules, sitemap references, and crawl-delay directives. Optionally test a specific path to see which bots can access it."
         }
     ]
     
@@ -2141,3 +2159,91 @@ def http_header_inspector(request):
             context["target_url"] = url
 
     return render(request, "projects/http_header_inspector.html", context)
+
+# Redirect Chain Checker
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def redirect_checker_view(request):
+    from .forms import RedirectCheckerForm
+    from .redirect_checker_utils import trace_redirects
+    """
+    GET : Display the empty Redirect Chain Checker form.
+    POST: Validate the URL, trace the redirect chain, render results.
+    """
+    form = RedirectCheckerForm()
+    result = None
+
+    if request.method == "POST":
+        form = RedirectCheckerForm(request.POST)
+
+        if form.is_valid():
+            url = form.cleaned_data["url"]
+            result = trace_redirects(url)
+
+    return render(
+        request,
+        "projects/redirect_checker.html",
+        {
+            "form": form,
+            "result": result,
+        },
+    )
+
+# JSON-LD Validator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def jsonld_validator_view(request):
+    from .forms import JsonLdValidatorForm
+    from .jsonld_validator_vutils import validate_jsonld
+    """
+    GET : Display the empty JSON-LD Validator form.
+    POST: Validate the URL, extract and validate JSON-LD, render results.
+    """
+    form = JsonLdValidatorForm()
+    result = None
+
+    if request.method == "POST":
+        form = JsonLdValidatorForm(request.POST)
+
+        if form.is_valid():
+            url = form.cleaned_data["url"]
+            result = validate_jsonld(url)
+
+    return render(
+        request,
+        "projects/jsonld_validator.html",
+        {
+            "form": form,
+            "result": result,
+        },
+    )
+
+# Robots Analyzer
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def robots_analyzer_view(request):
+    from .forms import RobotsAnalyzerForm
+    from .robots_analyzer_utils import analyze_robots
+    """
+    GET : Display the empty Robots.txt Analyzer form.
+    POST: Validate the domain, fetch and analyze robots.txt, render results.
+    """
+    form = RobotsAnalyzerForm()
+    result = None
+
+    if request.method == "POST":
+        form = RobotsAnalyzerForm(request.POST)
+
+        if form.is_valid():
+            domain = form.cleaned_data["domain"]
+            test_path = form.cleaned_data.get("test_path", "")
+            result = analyze_robots(domain, test_path)
+
+    return render(
+        request,
+        "projects/robots_analyzer.html",
+        {
+            "form": form,
+            "result": result,
+        },
+    )

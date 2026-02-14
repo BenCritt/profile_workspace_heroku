@@ -245,5 +245,26 @@
         }
     })();
     </script>
+
+    {# ── Iframe Resize ──────────────────────────────────────── #}
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('embedded');
+
+            let lastHeight = 0;
+            const sendHeight = () => {
+                const h = document.documentElement.scrollHeight;
+                if (h !== lastHeight) {
+                    lastHeight = h;
+                    window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+                }
+            };
+            window.addEventListener('load', sendHeight);
+            window.addEventListener('resize', sendHeight);
+            new ResizeObserver(sendHeight).observe(document.body);
+        }
+    });
+    </script>
 </div>
 {% endblock content %}

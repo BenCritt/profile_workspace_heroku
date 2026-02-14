@@ -18,13 +18,15 @@
     <link href="{% static 'template_css/seo_tools.css' %}" rel="stylesheet">
 {% endblock page_stylesheets %}
 
-{% block title %}SEO Professional Toolkit | SEO Head Checker, Font Inspector, and Cookie Audit{% endblock title %}
+{% block title %}SEO Professional Toolkit | SEO Head Checker, Redirect Tracer, and More{% endblock title %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <div class="text-center">
         <h1 class="mb-4">SEO Professional Toolkit</h1>
+        <p class="lead text-muted mb-5">Free utilities for Digital Marketing and SEO Professionals.</p>
         
+        {# --- Standard Link Cards (Width: 300px) --- #}
         <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
 
             <div class="card tool-card shadow-sm">
@@ -33,6 +35,15 @@
                     <img src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it.</p>
                     <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary mt-2">Use SEO Head Checker</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Redirect Chain Checker</h2>
+                    <img src="{% static 'img/all-projects/redirect-checker.webp' %}" alt="Redirect Chain Checker" class="img-fluid rounded my-3">
+                    <p class="card-text">Trace the full path of HTTP redirects for any URL. Detect loops, identify temporary vs. permanent redirects, and analyze hop-by-hop latency.</p>
+                    <a href="{% url 'projects:redirect_checker' %}" class="btn btn-primary mt-2">Use Redirect Checker</a>
                 </div>
             </div>
 
@@ -54,24 +65,56 @@
                 </div>
             </div>
 
-        </div>  
-        
-        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Structured Data / JSON-LD Validator</h2>
+                    <img src="{% static 'img/all-projects/jsonld-validator.webp' %}" alt="Structured Data / JSON-LD Validator" class="img-fluid rounded my-3">                
+                    <p class="card-text">Enter any URL to extract and validate its JSON-LD structured data. Checks for valid JSON syntax, required and recommended schema.org properties, and common SEO issues.</p>
+                    <a href="{% url 'projects:jsonld_validator' %}" class="btn btn-primary mt-2">Use JSON-LD Validator</a>
+                </div>
+            </div>
 
             <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Robots.txt Analyzer</h2>
+                    <img src="{% static 'img/all-projects/robots-analyzer.webp' %}" alt="Robots.txt Analyzer" class="img-fluid rounded my-3">
+                    <p class="card-text">Enter any domain to fetch and parse its robots.txt. View user-agent groups, allow/disallow rules, sitemap references, and optionally test a specific path.</p>
+                    <a href="{% url 'projects:robots_analyzer' %}" class="btn btn-primary mt-2">Use Robots Analyzer</a>
+                </div>
+            </div>
+
+        </div>  
+        
+        {# --- Iframe Preview Cards (Width: 450px) --- #}
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
                     <iframe 
                         src="{% url 'projects:seo_head_checker' %}" 
                         class="tool-iframe" 
                         title="SEO Head Checker"
                         loading="lazy"
-                        scrolling="no">
+                        scrolling="yes">
                     </iframe>
                     <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-secondary mt-3">Open SEO Head Checker Page</a>
                 </div>
             </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:redirect_checker' %}" 
+                        class="tool-iframe" 
+                        title="Redirect Chain Checker"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:redirect_checker' %}" class="btn btn-secondary mt-3">Open Redirect Checker Page</a>
+                </div>
+            </div>
         
-            <div class="card tool-card shadow-sm">
+            <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:font_inspector' %}"
@@ -84,19 +127,65 @@
                 </div>
             </div>
         
-            <div class="card tool-card shadow-sm">
+            <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
                     <iframe
                         src="{% url 'projects:cookie_audit' %}"
                         class="tool-iframe tool-iframe--no-scroll"
                         title="Cookie Audit"
                         loading="lazy"
-                        scrolling="no">
+                        scrolling="yes">
                     </iframe>
                     <a href="{% url 'projects:cookie_audit' %}" class="btn btn-secondary mt-3">Open Cookie Audit Page</a>
                 </div>
             </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:jsonld_validator' %}"
+                        class="tool-iframe"
+                        title="Structured Data / JSON-LD Validator"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:jsonld_validator' %}" class="btn btn-secondary mt-3">Open JSON-LD Validator Page</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:robots_analyzer' %}"
+                        class="tool-iframe"
+                        title="Robots.txt Analyzer"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:robots_analyzer' %}" class="btn btn-secondary mt-3">Open Robots Analyzer Page</a>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+{# ── Parent Listener for Iframe Resize Messages ────────────────────────── #}
+<script>
+    // Listen for resize messages from the child iframes
+    window.addEventListener('message', function(e) {
+        // Ensure the message type is what we expect
+        if (e.data.type === 'setHeight' && e.data.height) {
+            const iframes = document.querySelectorAll('iframe');
+            // Find which iframe sent the message
+            for (let i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === e.source) {
+                    // Update that specific iframe's height
+                    iframes[i].style.height = e.data.height + 'px';
+                    break;
+                }
+            }
+        }
+    });
+</script>
 {% endblock content %}

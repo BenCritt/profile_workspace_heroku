@@ -1,0 +1,309 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/robots_analyzer_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/robots_analyzer_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/robots-analyzer/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/robots_analyzer.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Robots.txt Analyzer | Parse & Validate Crawl Rules{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-4">Robots.txt Analyzer</h1>
+
+            {# ── Input Form ──────────────────────────────────────────── #}
+            <div class="card shadow-sm mb-5">
+                <div class="card-body">
+                    <form method="post" id="robots-form">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12">
+                                <label for="{{ form.domain.id_for_label }}" class="form-label">Domain Name</label>
+                                {{ form.domain }}
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.test_path.id_for_label }}" class="form-label">Test Path <small class="text-muted">(Optional)</small></label>
+                                {{ form.test_path }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary w-100" id="submit-btn">
+                                    Analyze robots.txt
+                                </button>
+                                <p class="mt-3 text-center">
+                                    <a href="{% url 'projects:seo_tools' %}" id="hub-link" class="btn btn-secondary w-100 mt-2">
+                                        <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to All SEO Tools
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">{{ form.errors }}</div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            {# ── Results ─────────────────────────────────────────────── #}
+            {% if result %}
+
+                {# ── Fetch Error ─────────────────────────────────────── #}
+                {% if result.fetch_error %}
+                <div id="results-section" class="card shadow-sm mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h2 class="h5 mb-0">Fetch Error</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger mb-1">{{ result.fetch_error }}</p>
+                        <p class="text-muted mb-0">
+                            <small>Attempted: <a href="{{ result.robots_url }}" target="_blank" rel="noopener noreferrer">{{ result.robots_url }}</a></small>
+                        </p>
+                    </div>
+                </div>
+
+                {% else %}
+
+                {# ── Summary Banner ──────────────────────────────────── #}
+                <div id="results-section" class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if result.overall == 'pass' %}bg-success text-white
+                        {% elif result.overall == 'warnings' %}bg-warning text-dark
+                        {% else %}bg-danger text-white{% endif %}">
+                        <h2 class="h5 mb-0">
+                            {% if result.overall == "pass" %}
+                                &#10003; No Issues Found
+                            {% elif result.overall == "warnings" %}
+                                &#9888; Passed with Warnings
+                            {% else %}
+                                &#10007; Issues Detected
+                            {% endif %}
+                        </h2>
+                        <span>
+                            {% if result.overall == "pass" %}
+                                <span class="badge bg-light text-success">Clean</span>
+                            {% elif result.overall == "warnings" %}
+                                <span class="badge bg-light text-warning">Warnings</span>
+                            {% else %}
+                                <span class="badge bg-light text-danger">Errors</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1">
+                            <strong>URL:</strong>
+                            <a href="{{ result.robots_url }}" target="_blank" rel="noopener noreferrer" class="text-break">{{ result.robots_url }}</a>
+                        </p>
+                        <p class="mb-1">
+                            <strong>HTTP Status:</strong> {{ result.status_code }}
+                            &nbsp;|&nbsp;
+                            <strong>Fetch Time:</strong> {{ result.fetch_time }}s
+                            &nbsp;|&nbsp;
+                            <strong>Lines:</strong> {{ result.line_count }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>User-agent Groups:</strong> {{ result.groups|length }}
+                            &nbsp;|&nbsp;
+                            <strong>Sitemaps:</strong> {{ result.sitemaps|length }}
+                        </p>
+                    </div>
+                </div>
+
+                {# ── Issues ──────────────────────────────────────────── #}
+                {% if result.issues %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h2 class="h5 mb-0">Issues &amp; Observations ({{ result.issues|length }})</h2>
+                    </div>
+                    <div class="card-body py-2">
+                        {% for issue in result.issues %}
+                            <div class="alert
+                                {% if issue.severity == 'error' %}alert-danger
+                                {% elif issue.severity == 'warning' %}alert-warning
+                                {% else %}alert-info{% endif %} py-2 mb-2" role="alert">
+                                <small>{{ issue.message }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── Sitemaps ────────────────────────────────────────── #}
+                {% if result.sitemaps %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-dark d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">Sitemap References</h2>
+                        <span class="badge bg-light text-dark">{{ result.sitemaps|length }}</span>
+                    </div>
+                    <div class="card-body py-2">
+                        {% for sm in result.sitemaps %}
+                            <div class="py-1 text-break" style="word-break: break-all;">
+                                <small>
+                                    <a href="{{ sm }}" target="_blank" rel="noopener noreferrer">{{ sm }}</a>
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── User-agent Groups ───────────────────────────────── #}
+                {% if result.groups %}
+                <h2 class="h5 mb-3">User-agent Groups</h2>
+                {% for group in result.groups %}
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                        {% if '*' in group.user_agents %}bg-primary text-white
+                        {% else %}bg-dark text-white{% endif %}">
+                        <h3 class="h6 mb-0">
+                            User-agent: {{ group.user_agents|join:", " }}
+                        </h3>
+                        <span>
+                            <span class="badge bg-light text-dark">{{ group.rules|length }} rule{{ group.rules|length|pluralize }}</span>
+                            {% if group.crawl_delay is not None %}
+                                <span class="badge bg-warning text-dark ms-1">Crawl-delay: {{ group.crawl_delay }}s</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body py-2">
+                        {% if group.rules %}
+                            {% for rule in group.rules %}
+                                <div class="py-1 d-flex align-items-start gap-2">
+                                    {% if rule.directive == "allow" %}
+                                        <span class="badge bg-success mt-1" style="min-width: 70px;">Allow</span>
+                                    {% else %}
+                                        <span class="badge bg-danger mt-1" style="min-width: 70px;">Disallow</span>
+                                    {% endif %}
+                                    <code class="text-break">{% if rule.path %}{{ rule.path }}{% else %}<em class="text-muted">(empty)</em>{% endif %}</code>
+                                    <small class="text-muted ms-auto text-nowrap">line {{ rule.line }}</small>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-muted">No rules in this group (empty block).</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {# ── Path Test Results ───────────────────────────────── #}
+                {% if result.path_tests %}
+                <div class="card shadow-sm mb-4 mt-4">
+                    <div class="card-header bg-dark text-white">
+                        <h2 class="h5 mb-0">Path Test: <code class="text-white">{{ form.test_path.value }}</code></h2>
+                    </div>
+                    <div class="card-body py-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-bordered table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Bot</th>
+                                        <th style="width: 110px;">Result</th>
+                                        <th>Matching Rule</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for test in result.path_tests %}
+                                    <tr>
+                                        <td><code>{{ test.bot }}</code></td>
+                                        <td class="text-center">
+                                            {% if test.result == "allowed" %}
+                                                <span class="badge bg-success">Allowed</span>
+                                            {% elif test.result == "disallowed" %}
+                                                <span class="badge bg-danger">Blocked</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">No Match</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ test.reason }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── Collapsible Raw robots.txt ──────────────────────── #}
+                {% if result.raw_text %}
+                <div class="mt-3 mb-4">
+                    <a class="btn btn-sm btn-secondary"
+                       data-bs-toggle="collapse"
+                       href="#raw-robots"
+                       role="button"
+                       aria-expanded="false"
+                       aria-controls="raw-robots">
+                        View Raw robots.txt
+                    </a>
+                    <div class="collapse mt-2" id="raw-robots">
+                        <div class="p-2 bg-light text-dark border rounded font-monospace text-break"
+                             style="max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem;">{{ result.raw_text }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% endif %}{# end fetch_error else #}
+            {% endif %}{# end result #}
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+{# ── Inline JS: spinner + scroll + resize ────────────────────────── #}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Spinner on submit
+        var form = document.getElementById("robots-form");
+        var btn = document.getElementById("submit-btn");
+        if (form && btn) {
+            form.addEventListener("submit", function () {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" ' +
+                    'role="status" aria-hidden="true"></span> Analyzing\u2026';
+            });
+        }
+        
+        // Auto-scroll (ONLY if NOT in iframe)
+        if (window.self === window.top) {
+            var resultsDiv = document.getElementById("results-section");
+            if (resultsDiv) {
+                resultsDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+
+        // Send Height to Parent (ONLY if IN iframe)
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('embedded');
+
+            let lastHeight = 0;
+            const sendHeight = () => {
+                const h = document.documentElement.scrollHeight;
+                if (h !== lastHeight) {
+                    lastHeight = h;
+                    window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+                }
+            };
+            window.addEventListener('load', sendHeight);
+            window.addEventListener('resize', sendHeight);
+            new ResizeObserver(sendHeight).observe(document.body);
+        }
+    });
+</script>
+{% endblock content %}
