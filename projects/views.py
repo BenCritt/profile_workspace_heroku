@@ -1032,6 +1032,12 @@ def all_projects(request):
             "url_name": "projects:robots_analyzer",
             "image": "robots-analyzer.webp",
             "description": "Fetch and parse any domain's robots.txt file. View user-agent groups, allow/disallow rules, sitemap references, and crawl-delay directives. Optionally test a specific path to see which bots can access it."
+        },
+        {
+            "title": "Satellite Pass Predictor",
+            "url_name": "projects:satellite_pass_predictor",
+            "image": "satellite-pass-predictor.webp",
+            "description": "Predict upcoming visible passes for 25+ satellites, including the ISS, Hubble, Landsat, and amateur radio transponders. Calculates rise/set times in your local timezone."
         }
     ]
     
@@ -2247,3 +2253,53 @@ def robots_analyzer_view(request):
             "result": result,
         },
     )
+
+# Space & Astronomy Toolkit Hub Page
+@trim_memory_after
+@ensure_csrf_cookie
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def space_and_astronomy(request):
+    return render(request, "projects/space_and_astronomy.html")
+
+# Satellite Pass Predictor
+# Force memory trim after work.
+@trim_memory_after
+# Disallow caching to prevent CSRF token errors.
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def satellite_pass_predictor(request):
+    from .forms import SatellitePassForm
+    from .satellite_pass_predictor_utils import predict_passes, get_satellite_groups
+    from .utils import get_coordinates
+    """
+    GET  → Render the empty form + satellite catalog reference.
+    POST → Validate, predict passes, render results.
+    """
+    form = SatellitePassForm()
+    result = None
+    error = None
+
+    if request.method == "POST":
+        form = SatellitePassForm(request.POST)
+        if form.is_valid():
+            satellite_name = form.cleaned_data["satellite"]
+            zip_code = form.cleaned_data["zip_code"]
+
+            coords = get_coordinates(zip_code)
+            if not coords:
+                error = (
+                    "Could not determine coordinates for that ZIP code. "
+                    "This is a Google Maps Platform API error."
+                )
+            else:
+                lat, lon = coords
+                result = predict_passes(satellite_name, lat, lon)
+                if result.get("error"):
+                    error = result["error"]
+
+    context = {
+        "form": form,
+        "result": result,
+        "error": error,
+        "satellite_groups": get_satellite_groups(),
+    }
+    return render(request, "projects/satellite_pass_predictor.html", context)

@@ -1,0 +1,102 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": "https://www.bencritt.net/projects/space-and-astronomy/#webpage",
+      "name": "Space & Astronomy Toolkit",
+      "description": "Free utilities for satellite tracking, pass prediction, and space observation. Includes the ISS Tracker and Satellite Pass Predictor.",
+      "url": "https://www.bencritt.net/projects/space-and-astronomy/",
+      "inLanguage": "en-US",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.bencritt.net/#website",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "about": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "@id": "https://www.bencritt.net/projects/space-and-astronomy/#primaryimage",
+        "url": "https://www.bencritt.net/static/img/hubs/space-and-astronomy-toolkit.webp",
+        "caption": "Space & Astronomy Toolkit"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "Space & Astronomy Tools",
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" } },
+          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" } }
+        ]
+      },
+      "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" },
+        { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/iss-tracker/#app",
+      "name": "ISS Tracker",
+      "description": "Monitor the International Space Station in real-time. View current latitude, longitude, altitude, velocity, and regional position. Project upcoming ISS pass times over your location with precise local time and positional information.",
+      "url": "https://www.bencritt.net/projects/iss-tracker/",
+      "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/iss-tracker.webp",
+      "creator": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
+        "Tracks upcoming ISS pass times with precise local time and positional information.",
+        "Region detection for both land and ocean coverage.",
+        "Web-based application accessible from any internet-connected device."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app",
+      "name": "Satellite Pass Predictor",
+      "description": "Predict upcoming visible passes for amateur radio satellites, weather satellites, science missions, and space stations over any US location. Enter a ZIP code and choose a satellite to see rise, culmination, and set times in your local timezone.",
+      "url": "https://www.bencritt.net/projects/satellite-pass-predictor/",
+      "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "image": "https://www.bencritt.net/static/img/all-projects/satellite-pass-predictor.webp",
+      "creator": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Predict satellite passes for 20+ satellites across four categories.",
+        "Rise, culmination, and set times in the observer's local timezone.",
+        "Amateur radio satellites: SO-50, AO-91, CAS-4A, CAS-4B, TEVEL, IO-117, PO-101.",
+        "Weather satellites: NOAA 15, NOAA 18, NOAA 19, METEOR-M2 3.",
+        "Science satellites: Hubble, Terra, Aqua, Landsat 8, Landsat 9, Suomi NPP.",
+        "Space stations: ISS (ZARYA) and CSS (TIANHE / Tiangong).",
+        "TLE data sourced from Celestrak with aggressive caching."
+      ]
+    }
+  ]
+}
+</script>

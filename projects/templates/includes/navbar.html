@@ -134,6 +134,21 @@
                 </ul>
               </li>
 
+              <!-- Space and Astronomy dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:space_and_astronomy' %}" id="spaceAstronomyDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Space & Astronomy Toolkit
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="spaceAstronomyDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>  
+                  <li><a class="dropdown-item" href="{% url 'projects:satellite_pass_predictor' %}">Satellite Pass Predictor</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:space_and_astronomy' %}">View All Space and Astronomy Tools</a></li>
+                  
+                </ul>
+              </li>
+
               <!-- More Tools dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="moreToolsDropdown"
@@ -142,8 +157,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:monte_carlo_simulator' %}">Monte Carlo Simulator</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:grade_level_analyzer' %}">Grade Level Text Analyzer</a></li>
-                  <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>                  
+                  <li><a class="dropdown-item" href="{% url 'projects:grade_level_analyzer' %}">Grade Level Text Analyzer</a></li>                                  
                   <li><a class="dropdown-item" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:qr_code_generator' %}">QR Code Generator</a></li>
                 </ul>

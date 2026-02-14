@@ -2907,3 +2907,41 @@ class RobotsAnalyzerForm(forms.Form):
         if path and not path.startswith("/"):
             path = "/" + path
         return path
+    
+# --- Satellite Pass Predictor ---
+class SatellitePassForm(forms.Form):
+    """
+    Accepts a satellite selection and a US ZIP code.
+    Reuses the same pyzipcode validation pattern as WeatherForm.
+    """
+    satellite = forms.ChoiceField(
+        label="Select Satellite",
+        choices=[],  # Populated in __init__ to avoid top-level import.
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+    zip_code = forms.CharField(
+        label="ZIP Code",
+        max_length=5,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "53190",
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Deferred import keeps the catalog out of module-load time.
+        from .satellite_pass_predictor_utils import SATELLITE_CHOICES
+        self.fields["satellite"].choices = SATELLITE_CHOICES
+
+    def clean_zip_code(self):
+        zip_code = self.cleaned_data["zip_code"]
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise ValidationError(
+                "You've made an invalid submission. Please enter a valid US ZIP code."
+            )
+        return zip_code

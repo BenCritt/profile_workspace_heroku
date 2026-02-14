@@ -401,4 +401,12 @@ urlpatterns = [
         views.robots_analyzer_view,
         name="robots_analyzer",
     ),
+    path("projects/space-and-astronomy/",
+         views.space_and_astronomy,
+         name="space_and_astronomy",
+    ),
+    path("projects/satellite-pass-predictor/",
+         views.satellite_pass_predictor,
+         name="satellite_pass_predictor",
+    ),
 ]

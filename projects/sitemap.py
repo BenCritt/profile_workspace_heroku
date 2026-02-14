@@ -79,6 +79,8 @@ class StaticViewSitemap(Sitemap):
             "projects:redirect_checker",
             "projects:jsonld_validator",
             "projects:robots_analyzer",
+            "projects:space_and_astronomy",
+            "projects:satellite_pass_predictor",
         ]
 
     def location(self, item):

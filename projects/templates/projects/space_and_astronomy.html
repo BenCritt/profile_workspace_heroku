@@ -1,0 +1,85 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/space_and_astronomy_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/space_and_astronomy_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/space-and-astronomy/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/space_and_astronomy.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Space & Astronomy Toolkit | Satellite Tracking & Pass Prediction Tools{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center">
+        <h1 class="mb-4">Space & Astronomy Toolkit</h1>
+        <p class="lead text-muted mb-5">Free utilities for satellite tracking, pass prediction, and space observation.</p>
+
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">ISS Tracker</h2>
+                    <img src="{% static 'img/all-projects/iss-tracker.webp' %}" alt="ISS Tracker" class="img-fluid rounded my-3">
+                    <p class="card-text small">Monitor the International Space Station in real-time. View current latitude, longitude, altitude, velocity, and regional position. Project upcoming pass times over your location.</p>
+                    <a href="{% url 'projects:iss_tracker' %}" class="btn btn-primary mt-2">Open Tracker</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Satellite Pass Predictor</h2>
+                    <img src="{% static 'img/all-projects/satellite-pass-predictor.webp' %}" alt="Satellite Pass Predictor" class="img-fluid rounded my-3">
+                    <p class="card-text small">Predict upcoming visible passes for amateur radio satellites, weather satellites, science missions, and space stations. See rise, culmination, and set times in your local timezone.</p>
+                    <a href="{% url 'projects:satellite_pass_predictor' %}" class="btn btn-primary mt-2">Open Predictor</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:iss_tracker' %}" title="ISS Tracker" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:iss_tracker' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:satellite_pass_predictor' %}" title="Satellite Pass Predictor" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:satellite_pass_predictor' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Listen for resize messages from the child iframes.
+    window.addEventListener('message', function(e) {
+        if (e.data.type === 'setHeight' && e.data.height) {
+            const iframes = document.querySelectorAll('iframe');
+            for (let i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === e.source) {
+                    iframes[i].style.height = e.data.height + 'px';
+                    break;
+                }
+            }
+        }
+    });
+</script>
+{% endblock content %}

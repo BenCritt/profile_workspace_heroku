@@ -11,6 +11,11 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("satellite_pass_predictor", "satellite-pass-predictor"),
+    ("space_and_astronomy", "space-and-astronomy"),
+    ("robots_analyzer", "robots-analyzer"),
+    ("jsonld_validator", "jsonld-validator"),
+    ("redirect_checker", "redirect-checker"),
     ("coax_cable_loss_calculator", "coax-cable-loss-calculator"),
     ("rf_exposure_calculator", "rf-exposure-calculator"),
     ("grid_square_converter", "grid-square-converter"),
