@@ -27,13 +27,12 @@
 
               <!-- single-link items -->
               <li class="nav-item"><a class="nav-link" href="{% url 'projects:all_projects' %}">All Projects</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'projects:weather' %}">Weather Forecast</a></li>
 
               <!-- Glass Artist Toolkit dropdown -->
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:glass_artist_toolkit' %}" id="glassToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Glass Artist Toolkit
+                  Glass Artist
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="glassToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:kiln_schedule_generator' %}">Kiln Firing Schedule Generator</a></li>
@@ -54,7 +53,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:freight_tools' %}" id="freightToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Freight Professional Toolkit
+                  Freight Professional
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="freightToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
@@ -80,7 +79,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:it_tools' %}" id="itToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  IT Professional Toolkit
+                  IT Professional
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:ssl_check' %}">SSL Verification Tool</a></li>
@@ -99,7 +98,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:seo_tools' %}" id="seoToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  SEO Professional Toolkit
+                  SEO Professional
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:font_inspector' %}">Font Inspector</a></li>
@@ -118,7 +117,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:radio_tools' %}" id="radioToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Radio Hobbyist Toolkit
+                  Radio Hobbyist
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="radioToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:repeater_finder' %}">Repeater Finder</a></li>
@@ -138,7 +137,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:space_and_astronomy' %}" id="spaceAstronomyDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Space & Astronomy Toolkit
+                  Space & Astronomy
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="spaceAstronomyDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>  
@@ -156,6 +155,7 @@
                   More Tools
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:weather' %}">Weather Forecast</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:monte_carlo_simulator' %}">Monte Carlo Simulator</a></li>
                   <li><a class="dropdown-item" href="{% url 'projects:grade_level_analyzer' %}">Grade Level Text Analyzer</a></li>                                  
                   <li><a class="dropdown-item" href="{% url 'projects:xml_splitter' %}">XML Splitter</a></li>
