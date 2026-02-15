@@ -125,6 +125,13 @@ SATELLITE_CATALOG = [
         "group": "Amateur Radio",
         "description": "Launched 1974. Semi-operational linear transponder.",
     },
+    {
+        "name": "JY1SAT (JO-97)",
+        "norad_id": 43803,
+        "celestrak_group": "amateur",
+        "group": "Amateur Radio",
+        "description": "Jordanian FM transponder satellite. 145.855 MHz up / 435.170 MHz down.",
+    },
     # ── Weather Satellites ────────────────────────────────────────────
     {
         "name": "NOAA 15",
@@ -239,6 +246,13 @@ SATELLITE_CATALOG = [
         "celestrak_group": "ajisai",  # Individual Source
         "group": "Science",
         "description": "Experimental Geodetic Satellite.",
+    },
+    {
+        "name": "IXPE",
+        "norad_id": 49954,
+        "celestrak_group": "science",
+        "group": "Science",
+        "description": "NASA X-ray Polarimetry Explorer (launched 2021).",
     },
 ]
 
