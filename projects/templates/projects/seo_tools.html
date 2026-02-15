@@ -21,7 +21,7 @@
 {% block title %}SEO Professional Toolkit | SEO Head Checker, Redirect Tracer, and More{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-gtm-hub="SEO Tools">
     <div class="text-center">
         <h1 class="mb-4">SEO Professional Toolkit</h1>
         <p class="lead text-muted mb-5">Free utilities for Digital Marketing and SEO Professionals.</p>
@@ -34,7 +34,8 @@
                     <h2 class="card-title h4">SEO Head Checker</h2>
                     <img src="{% static 'img/all-projects/seo-head-checker.webp' %}" alt="SEO Head Checker Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. You'll see progress update below. Once the green "Download SEO Report" button appears, click it.</p>
-                    <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary mt-2">Use SEO Head Checker</a>
+                    <a href="{% url 'projects:seo_head_checker' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="SEO Head Checker">Use SEO Head Checker</a>
                 </div>
             </div>
 
@@ -43,7 +44,8 @@
                     <h2 class="card-title h4">Redirect Chain Checker</h2>
                     <img src="{% static 'img/all-projects/redirect-checker.webp' %}" alt="Redirect Chain Checker" class="img-fluid rounded my-3">
                     <p class="card-text">Trace the full path of HTTP redirects for any URL. Detect loops, identify temporary vs. permanent redirects, and analyze hop-by-hop latency.</p>
-                    <a href="{% url 'projects:redirect_checker' %}" class="btn btn-primary mt-2">Use Redirect Checker</a>
+                    <a href="{% url 'projects:redirect_checker' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Redirect Chain Checker">Use Redirect Checker</a>
                 </div>
             </div>
 
@@ -52,7 +54,8 @@
                     <h2 class="card-title h4">Font Inspector</h2>
                     <img src="{% static 'img/all-projects/font-inspector.webp' %}" alt="Font Inspector" class="img-fluid rounded my-3">
                     <p class="card-text">Use the Font Inspector to analyze and inspect fonts on any web page. Identify font families, weights, and styles used on a page.</p>
-                    <a href="{% url 'projects:font_inspector' %}" class="btn btn-primary mt-2">Use Font Inspector</a>
+                    <a href="{% url 'projects:font_inspector' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Font Inspector">Use Font Inspector</a>
                 </div>
             </div>
 
@@ -61,7 +64,8 @@
                     <h2 class="card-title h4">Cookie Audit</h2>
                     <img src="{% static 'img/all-projects/cookie-audit.webp' %}" alt="Cookie Audit Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Use the Cookie Audit tool to analyze and inspect cookies on any web page. Identify cookie names, domains, paths, and security attributes used on a page.</p>
-                    <a href="{% url 'projects:cookie_audit' %}" class="btn btn-primary mt-2">Use Cookie Audit</a>
+                    <a href="{% url 'projects:cookie_audit' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Cookie Audit">Use Cookie Audit</a>
                 </div>
             </div>
 
@@ -70,7 +74,8 @@
                     <h2 class="card-title h4">Structured Data / JSON-LD Validator</h2>
                     <img src="{% static 'img/all-projects/jsonld-validator.webp' %}" alt="Structured Data / JSON-LD Validator" class="img-fluid rounded my-3">                
                     <p class="card-text">Enter any URL to extract and validate its JSON-LD structured data. Checks for valid JSON syntax, required and recommended schema.org properties, and common SEO issues.</p>
-                    <a href="{% url 'projects:jsonld_validator' %}" class="btn btn-primary mt-2">Use JSON-LD Validator</a>
+                    <a href="{% url 'projects:jsonld_validator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="JSON-LD Validator">Use JSON-LD Validator</a>
                 </div>
             </div>
 
@@ -79,7 +84,8 @@
                     <h2 class="card-title h4">Robots.txt Analyzer</h2>
                     <img src="{% static 'img/all-projects/robots-analyzer.webp' %}" alt="Robots.txt Analyzer" class="img-fluid rounded my-3">
                     <p class="card-text">Enter any domain to fetch and parse its robots.txt. View user-agent groups, allow/disallow rules, sitemap references, and optionally test a specific path.</p>
-                    <a href="{% url 'projects:robots_analyzer' %}" class="btn btn-primary mt-2">Use Robots Analyzer</a>
+                    <a href="{% url 'projects:robots_analyzer' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Robots.txt Analyzer">Use Robots Analyzer</a>
                 </div>
             </div>
 
@@ -170,7 +176,7 @@
     </div>
 </div>
 
-{# ── Parent Listener for Iframe Resize Messages ────────────────────────── #}
+{# ── Parent Listener for Iframe Resize Messages ────────────────────────────── #}
 <script>
     // Listen for resize messages from the child iframes
     window.addEventListener('message', function(e) {

@@ -21,7 +21,7 @@
 {% block title %}Radio Hobbyist Toolkit | Ham Radio & Amateur Radio Utilities{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-gtm-hub="Radio Tools">
     <div class="text-center">
         <h1 class="mb-4">Radio Hobbyist Toolkit</h1>
         <p class="lead text-muted mb-5">Free utilities for Ham Radio Operators, Shortwave Listeners, and Radio Enthusiasts.</p>
@@ -33,7 +33,8 @@
                     <h2 class="card-title h4">Repeater Finder</h2>
                     <img src="{% static 'img/all-projects/repeater-finder.webp' %}" alt="Repeater Finder" class="img-fluid rounded my-3">                
                     <p class="card-text small">Find open VHF and UHF repeaters along your driving route. Enter origin and destination to see frequencies, offsets, and tones sorted by mile marker.</p>
-                    <a href="{% url 'projects:repeater_finder' %}" class="btn btn-primary mt-2">Open Finder</a>
+                    <a href="{% url 'projects:repeater_finder' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Repeater Finder">Open Finder</a>
                 </div>
             </div>
 
@@ -42,7 +43,8 @@
                     <h2 class="card-title h4">Ham Radio Call Sign Lookup</h2>
                     <img src="{% static 'img/all-projects/ham-radio-call-sign-lookup.webp' %}" alt="Ham Radio Call Sign Lookup" class="img-fluid rounded my-3">                
                     <p class="card-text small">Search any US amateur radio call sign and view license class, grid square, expiration date, FRN, and trustee details.</p>
-                    <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="btn btn-primary mt-2">Open Lookup</a>
+                    <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Call Sign Lookup">Open Lookup</a>
                 </div>
             </div>
 
@@ -51,7 +53,8 @@
                     <h2 class="card-title h4">Band Plan Checker</h2>
                     <img src="{% static 'img/all-projects/band-plan-checker.webp' %}" alt="Band Plan Checker" class="img-fluid rounded my-3">                
                     <p class="card-text small">Enter any frequency to see which US amateur band it falls in, what modes are permitted, and whether your license class can transmit.</p>
-                    <a href="{% url 'projects:band_plan_checker' %}" class="btn btn-primary mt-2">Open Checker</a>
+                    <a href="{% url 'projects:band_plan_checker' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Band Plan Checker">Open Checker</a>
                 </div>
             </div>
 
@@ -64,7 +67,8 @@
                     verticals, EFHW, J-poles, ground planes, loops, and ⅝-wave
                     verticals in feet and meters.</p>
                     <a href="{% url 'projects:antenna_calculator' %}"
-                    class="btn btn-primary mt-2">Open Calculator</a>
+                        class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Antenna Length Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -77,7 +81,8 @@
                     and coordinates at 4, 6, or 8 character precision, or find the
                     grid for any US ZIP code.</p>
                     <a href="{% url 'projects:grid_square_converter' %}"
-                    class="btn btn-primary mt-2">Open Converter</a>
+                        class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Grid Square Converter">Open Converter</a>
                 </div>
             </div>
 
@@ -90,18 +95,20 @@
                 Permissible Exposure (MPE) limits per OET Bulletin 65.
                 Required by FCC Part 97.13(c)(1) for all amateur stations.</p>
                     <a href="{% url 'projects:rf_exposure_calculator' %}"
-                    class="btn btn-primary mt-2">Open Calculator</a>
+                        class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="RF Exposure Calculator">Open Calculator</a>
                 </div>
             </div>
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title h4">RF Exposure Calculator</h2>
+                    <h2 class="card-title h4">Coax Cable Loss Calculator</h2>
                     <img src="{% static 'img/all-projects/coax-cable-loss-calculator.webp' %}"
                         alt="Coax Cable Loss Calculator" class="img-fluid rounded my-3">
                     <p class="card-text small">Calculate feed line attenuation, SWR mismatch loss, and power delivered to the antenna for RG-58, RG-213, LMR-400, and more.</p>
                     <a href="{% url 'projects:coax_cable_loss_calculator' %}"
-                    class="btn btn-primary mt-2">Open Calculator</a>
+                        class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Coax Cable Loss Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -163,7 +170,7 @@
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
                     <iframe src="{% url 'projects:coax_cable_loss_calculator' %}"
-                            title="RF Exposure Calculator" loading="lazy"
+                            title="Coax Cable Loss Calculator" loading="lazy"
                             scrolling="yes"></iframe>
                     <a href="{% url 'projects:coax_cable_loss_calculator' %}"
                     class="btn btn-secondary mt-3">Full Page View</a>

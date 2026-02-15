@@ -28,7 +28,7 @@
     <div class="w-100 qr-form-container">
         <p class="text-center mb-4">Enter your URL or other text below.</p>
         
-        <form method="POST" class="d-flex flex-column gap-3">
+        <form method="POST" class="d-flex flex-column gap-3" data-gtm-tool="QR Code Generator" data-gtm-category="General">
             {% csrf_token %} 
             
             {% if form.non_field_errors %}

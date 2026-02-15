@@ -39,7 +39,7 @@
                     Temperature Converter
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" data-gtm-tool="Kiln Temp Converter" data-gtm-category="Glass Artist Tools">
                         {% csrf_token %}
                         {{ convert_form.action }}
                         
@@ -75,7 +75,7 @@
                     <p class="card-text small text-muted mb-3">
                         How long will it take to go from Start to Target at a specific Rate?
                     </p>
-                    <form method="post">
+                    <form method="post" data-gtm-tool="Kiln Duration Calculator" data-gtm-category="Glass Artist Tools">
                         {% csrf_token %}
                         {{ ramp_form.action }}
 

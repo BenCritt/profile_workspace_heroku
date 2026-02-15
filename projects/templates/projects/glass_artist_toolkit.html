@@ -21,7 +21,7 @@
 {% block title %}Glass Artist Toolkit | Kiln Schedules, Cost Estimators, Calculators, and More{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-gtm-hub="Glass Artist Tools">
     <div class="text-center">
         <h1 class="mb-4">Glass Artist Toolkit</h1>
         <p class="lead text-muted mb-5">Free utilities for Fused Glass, Stained Glass, and Kiln Casting.</p>
@@ -33,7 +33,8 @@
                     <h2 class="card-title h4">Kiln Schedule Generator</h2>
                     <img src="{% static 'img/all-projects/kiln-schedule.webp' %}" alt="Kiln Schedule Generator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Generate safe firing schedules for Bullseye (90) and System 96 glass. Automatically adjusts rates for project thickness to prevent thermal shock.</p>
-                    <a href="{% url 'projects:kiln_schedule_generator' %}" class="btn btn-primary mt-2">Open Generator</a>
+                    <a href="{% url 'projects:kiln_schedule_generator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Kiln Schedule Generator">Open Generator</a>
                 </div>
             </div>
 
@@ -42,7 +43,8 @@
                     <h2 class="card-title h4">Glass Volume Calculator</h2>
                     <img src="{% static 'img/all-projects/glass-calc.webp' %}" alt="Glass Volume Calculator" class="img-fluid rounded my-3">
                     <p class="card-text small">Calculate the exact grams of glass needed for pot melts, casting molds, or thick slabs using standard density (2.5g/cm³).</p>
-                    <a href="{% url 'projects:glass_volume_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:glass_volume_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Glass Volume Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -51,7 +53,8 @@
                     <h2 class="card-title h4">Stained Glass Cost Estimator</h2>
                     <img src="{% static 'img/all-projects/stained-glass-calc.webp' %}" alt="Cost Estimator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Price your art confidently. Calculates materials, overhead (solder/foil), and labor based on piece count and square footage.</p>
-                    <a href="{% url 'projects:stained_glass_cost_estimator' %}" class="btn btn-primary mt-2">Open Estimator</a>
+                    <a href="{% url 'projects:stained_glass_cost_estimator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Stained Glass Cost Estimator">Open Estimator</a>
                 </div>
             </div>
 
@@ -60,7 +63,8 @@
                     <h2 class="card-title h4">Materials Calculator</h2>
                     <img src="{% static 'img/all-projects/glass-materials.webp' %}" alt="Materials Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Stop guessing inventory. Estimate total linear footage of foil or lead came and solder requirements.</p>
-                    <a href="{% url 'projects:stained_glass_materials' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:stained_glass_materials' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Stained Glass Materials Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -69,7 +73,8 @@
                     <h2 class="card-title h4">Lampwork Calculator</h2>
                     <img src="{% static 'img/all-projects/lampwork-glass-calculator.webp' %}" alt="Lampwork Glass Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter.</p>
-                    <a href="{% url 'projects:lampwork_materials' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:lampwork_materials' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Lampwork Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -78,7 +83,8 @@
                     <h2 class="card-title h4">Kiln Controller Utilities</h2>
                     <img src="{% static 'img/all-projects/kiln-utils.webp' %}" alt="Kiln Utilities" class="img-fluid rounded my-3">                
                     <p class="card-text small">Quick math for the kiln studio. Convert temperatures and calculate segment durations based on ramp rates.</p>
-                    <a href="{% url 'projects:kiln_controller_utils' %}" class="btn btn-primary mt-2">Open Utils</a>
+                    <a href="{% url 'projects:kiln_controller_utils' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Kiln Controller Utilities">Open Utils</a>
                 </div>
             </div>
 
@@ -87,7 +93,8 @@
                     <h2 class="card-title h4">Reaction Checker</h2>
                     <img src="{% static 'img/all-projects/glass-reaction-checker.webp' %}" alt="Glass Reaction Checker" class="img-fluid rounded my-3">                
                     <p class="card-text small">Check for chemical reactions between glass families (Sulfur, Copper, Lead, Silver) to prevent dark lines and discoloration.</p>
-                    <a href="{% url 'projects:glass_reaction_checker' %}" class="btn btn-primary mt-2">Open Checker</a>
+                    <a href="{% url 'projects:glass_reaction_checker' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Glass Reaction Checker">Open Checker</a>
                 </div>
             </div>
 
@@ -96,7 +103,8 @@
                     <h2 class="card-title h4">Enamel/Frit Mixer</h2>
                     <img src="{% static 'img/all-projects/frit-mixing-calculator.webp' %}" alt="Frit Mixing Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate the exact medium-to-powder ratio for mixing glass enamels based on your application style.</p>
-                    <a href="{% url 'projects:frit_mixing_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:frit_mixing_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Frit Mixing Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -105,7 +113,8 @@
                     <h2 class="card-title h4">Circle Cutter Settings</h2>
                     <img src="{% static 'img/all-projects/circle-cutter-calculator.webp' %}" alt="Circle Cutter Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate the exact gauge setting for your glass cutter by factoring in tool offset and grinding allowances.</p>
-                    <a href="{% url 'projects:circle_cutter_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:circle_cutter_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Circle Cutter Calculator">Open Calculator</a>
                 </div>
             </div>
 

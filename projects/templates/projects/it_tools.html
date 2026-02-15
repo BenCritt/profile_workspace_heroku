@@ -21,7 +21,7 @@
 {% block title %}IT Professional Toolkit | SSL Verification, IP Address Lookup, DNS Lookup{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-gtm-hub="IT Tools">
     <div class="text-center">
         <h1 class="mb-4">IT Professional Toolkit</h1>
         
@@ -32,7 +32,9 @@
                     <h2 class="h4 card-title">SSL Verification Tool</h2>
                     <img src="{% static 'img/all-projects/ssl-check.webp' %}" alt="SSL Verification Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Quickly verify the SSL certificate of any website with the SSL Verification Tool. Check SSL details, including certificate issuer, expiration dates, and validity for secure browsing.</p>
-                    <a href="{% url 'projects:ssl_check' %}" class="btn btn-primary mt-2">Use SSL Tool</a>
+                    <a href="{% url 'projects:ssl_check' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="SSL Verification Tool">Use SSL Tool
+                    </a>
                 </div>
             </div>
 
@@ -41,7 +43,8 @@
                     <h2 class="h4 card-title">IP Address Lookup Tool</h2>
                     <img src="{% static 'img/all-projects/ip-tool.webp' %}" alt="IP Address Lookup Tool" class="img-fluid rounded my-3">
                     <p class="card-text">Use the IP Address Lookup Tool to perform reverse DNS lookups, retrieve PTR records, geolocation data, and blacklist status for any IP address. Access detailed network diagnostics with ease.</p>
-                    <a href="{% url 'projects:ip_tool' %}" class="btn btn-primary mt-2">Use IP Address Lookup Tool</a>
+                    <a href="{% url 'projects:ip_tool' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="IP Address Lookup Tool">Use IP Address Lookup Tool</a>
                 </div>
             </div>
 
@@ -50,7 +53,8 @@
                     <h2 class="h4 card-title">DNS Lookup Tool</h2>
                     <img src="{% static 'img/all-projects/dns-lookup.webp' %}" alt="DNS Lookup Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Use the DNS Lookup Tool to perform DNS lookups and retrieve various DNS records, such as A, MX, NS, CNAME, TXT, SOA, SRV, and CAA Records. It's essential for domain management and network troubleshooting.</p>
-                    <a href="{% url 'projects:dns_tool' %}" class="btn btn-primary mt-2">Use DNS Lookup Tool</a>
+                    <a href="{% url 'projects:dns_tool' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="DNS Lookup Tool">Use DNS Lookup Tool</a>
                 </div>
             </div>
 
@@ -59,7 +63,8 @@
                     <h2 class="h4 card-title">Subnet Calculator</h2>
                     <img src="{% static 'img/all-projects/subnet-calculator.webp' %}" alt="Subnet Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text">Easily calculate network ranges, broadcast addresses, and wildcard masks using CIDR notation. Essential for network planning and configuration.</p>
-                    <a href="{% url 'projects:subnet_calculator' %}" class="btn btn-primary mt-2">Use Subnet Calculator</a>
+                    <a href="{% url 'projects:subnet_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Subnet Calculator">Use Subnet Calculator</a>
                 </div>
             </div>
 
@@ -68,7 +73,8 @@
                     <h2 class="h4 card-title">SPF/DKIM/DMARC Validator</h2>
                     <img src="{% static 'img/all-projects/email-auth-validator.webp' %}" alt="Email Auth Validator" class="img-fluid rounded my-3">                
                     <p class="card-text">Secure your email infrastructure. Validate SPF records, check DMARC policies, and verify DKIM public keys to improve deliverability and prevent spoofing.</p>
-                    <a href="{% url 'projects:email_auth_validator' %}" class="btn btn-primary mt-2">Check Email Auth</a>
+                    <a href="{% url 'projects:email_auth_validator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Email Auth Validator">Check Email Auth</a>
                 </div>
             </div>
 
@@ -77,7 +83,8 @@
                     <h2 class="h4 card-title">WHOIS Lookup Tool</h2>
                     <img src="{% static 'img/all-projects/whois-lookup.webp' %}" alt="WHOIS Lookup Tool" class="img-fluid rounded my-3">                
                     <p class="card-text">Retrieve domain registration details including registrar, expiration dates, name servers, and contact information. Features a built-in timeout to ensure reliability.</p>
-                    <a href="{% url 'projects:whois_lookup' %}" class="btn btn-primary mt-2">Use WHOIS Tool</a>
+                    <a href="{% url 'projects:whois_lookup' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="WHOIS Lookup Tool">Use WHOIS Tool</a>
                 </div>
             </div>
 
@@ -86,7 +93,8 @@
                     <h2 class="h4 card-title">HTTP Header Inspector</h2>
                     <img src="{% static 'img/all-projects/http-header-inspector.webp' %}" alt="HTTP Header Inspector" class="img-fluid rounded my-3">                
                     <p class="card-text">View the raw HTTP response headers for any URL. Analyze status codes, server software, caching policies, and security headers.</p>
-                    <a href="{% url 'projects:http_header_inspector' %}" class="btn btn-primary mt-2">Inspect Headers</a>
+                    <a href="{% url 'projects:http_header_inspector' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="HTTP Header Inspector">Inspect Headers</a>
                 </div>
             </div>
 

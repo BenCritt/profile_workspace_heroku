@@ -26,7 +26,7 @@
     <h1 class="mb-4">Grade Level Text Analyzer</h1>
     
     <div class="w-100 analyzer-container">
-        <form action="{% url 'projects:grade_level_analyzer' %}" method="post" class="d-flex flex-column gap-3">
+        <form action="{% url 'projects:grade_level_analyzer' %}" method="post" class="d-flex flex-column gap-3" data-gtm-tool="Grade Level Analyzer" data-gtm-category="General">
             {% csrf_token %} 
             
             <div class="mb-3">

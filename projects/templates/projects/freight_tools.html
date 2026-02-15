@@ -21,7 +21,7 @@
 {% block title %}Freight Professional Toolkit | Logistics & Brokerage Utilities{% endblock title %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-gtm-hub="Freight Tools">
     <div class="text-center">
         <h1 class="mb-4">Freight Professional Toolkit</h1>
         <p class="lead text-muted mb-5">Free utilities for Freight Brokers, Logistics Managers, and Drivers.</p>
@@ -33,7 +33,8 @@
                     <h2 class="card-title h4">Carrier Safety Reporter</h2>
                     <img src="{% static 'img/all-projects/freight-safety.webp' %}" alt="Freight Carrier Safety Reporter" class="img-fluid rounded my-3">                
                     <p class="card-text small">Retrieve USDOT carrier safety ratings, crash statistics, and inspection data directly from the FMCSA.</p>
-                    <a href="{% url 'projects:freight_safety' %}" class="btn btn-primary mt-2">Open Reporter</a>
+                    <a href="{% url 'projects:freight_safety' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Carrier Safety Reporter">Open Reporter</a>
                 </div>
             </div>
 
@@ -42,7 +43,8 @@
                     <h2 class="card-title h4">Partial Rate Calculator</h2>
                     <img src="{% static 'img/all-projects/partial-rate-calculator.webp' %}" alt="Freight Partial Rate Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate Volume LTL / Partial rates based on trailer utilization, exact road miles, and broker margins.</p>
-                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:partial_rate_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Partial Rate Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -51,7 +53,8 @@
                     <h2 class="card-title h4">Deadhead Mileage & Cost</h2>
                     <img src="{% static 'img/all-projects/deadhead-calculator.webp' %}" alt="Deadhead Mileage Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate the true cost of repositioning empty equipment and evaluate load profitability after factoring in deadhead miles.</p>
-                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:deadhead_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Deadhead Mileage Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -60,7 +63,8 @@
                     <h2 class="card-title h4">Multi-Stop Route Mileage Splitter</h2>
                     <img src="{% static 'img/all-projects/multi-stop-mileage-splitter.webp' %}" alt="Multi-Stop Route Mileage Splitter" class="img-fluid rounded my-3">
                     <p class="card-text small">Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles, with optional stop-off charges.</p>
-                    <a href="{% url 'projects:multi_stop_splitter' %}" class="btn btn-primary mt-2">Open Splitter</a>
+                    <a href="{% url 'projects:multi_stop_splitter' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Multi-Stop Mileage Splitter">Open Splitter</a>
                 </div>
             </div>
 
@@ -69,7 +73,8 @@
                     <h2 class="card-title h4">Freight Lane Rate Analyzer</h2>
                     <img src="{% static 'img/all-projects/freight-lane-rate-analyzer.webp' %}" alt="Freight Lane Rate-Per-Mile Analyzer" class="img-fluid rounded my-3">
                     <p class="card-text small">Analyze any quoted freight rate against exact Google Maps road miles with optional FSC and margin analysis.</p>
-                    <a href="{% url 'projects:lane_rate_analyzer' %}" class="btn btn-primary mt-2">Open Analyzer</a>
+                    <a href="{% url 'projects:lane_rate_analyzer' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Lane Rate Analyzer">Open Analyzer</a>
                 </div>
             </div>
 
@@ -78,7 +83,8 @@
                     <h2 class="card-title h4">Margin & Gross Profit Calculator</h2>
                     <img src="{% static 'img/all-projects/freight-margin-calculator.webp' %}" alt="Freight Margin & Gross Profit Calculator" class="img-fluid rounded my-3">
                     <p class="card-text small">Calculate brokerage gross profit and margin with optional FSC, accessorial, and per-mile breakdowns.</p>
-                    <a href="{% url 'projects:freight_margin_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:freight_margin_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Freight Margin Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -87,7 +93,8 @@
                     <h2 class="card-title h4">Freight Class Calculator</h2>
                     <img src="{% static 'img/all-projects/freight-class-calculator.webp' %}" alt="Freight Class Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Avoid re-bills by calculating density (PCF) and estimating the correct NMFC Freight Class for LTL shipments.</p>
-                    <a href="{% url 'projects:freight_class_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:freight_class_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Freight Class Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -96,7 +103,8 @@
                     <h2 class="card-title h4">Linear Foot Visualizer</h2>
                     <img src="{% static 'img/all-projects/linear-foot-calculator.webp' %}" alt="Linear Foot Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate trailer space required and avoid "Linear Foot Rule" carrier penalties by verifying density limits.</p>
-                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:linear_foot_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Linear Foot Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -105,7 +113,8 @@
                     <h2 class="card-title h4">Fuel Surcharge (FSC)</h2>
                     <img src="{% static 'img/all-projects/fuel-surcharge-calculator.webp' %}" alt="Fuel Surcharge Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate fair fuel surcharges based on current diesel prices, base pegs, and trip miles.</p>
-                    <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Fuel Surcharge Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -114,7 +123,8 @@
                     <h2 class="card-title h4">HOS Trip Planner</h2>
                     <img src="{% static 'img/all-projects/hos-trip-planner.webp' %}" alt="HOS Trip Planner" class="img-fluid rounded my-3">                
                     <p class="card-text small">Plan realistic ETAs compliant with FMCSA Hours of Service rules (11hr drive / 10hr reset).</p>
-                    <a href="{% url 'projects:hos_trip_planner' %}" class="btn btn-primary mt-2">Open Planner</a>
+                    <a href="{% url 'projects:hos_trip_planner' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="HOS Trip Planner">Open Planner</a>
                 </div>
             </div>
 
@@ -123,7 +133,8 @@
                     <h2 class="card-title h4">FMCSA Tie-Down Calculator</h2>
                     <img src="{% static 'img/all-projects/tie-down-calculator.webp' %}" alt="FMCSA Tie-Down Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Stay compliant. Calculate the minimum number of tie-downs required based on cargo weight, length, and Working Load Limit (WLL).</p>
-                    <a href="{% url 'projects:tie_down_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:tie_down_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Tie-Down Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -132,7 +143,8 @@
                     <h2 class="card-title h4">Cost Per Mile (CPM)</h2>
                     <img src="{% static 'img/all-projects/cost-per-mile-calculator.webp' %}" alt="Cost Per Mile Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate your true break-even rate per mile by factoring in truck payments, insurance, fuel, and driver pay.</p>
-                    <a href="{% url 'projects:cost_per_mile_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:cost_per_mile_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Cost Per Mile Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -141,7 +153,8 @@
                     <h2 class="card-title h4">Detention Layover Fee Calculator</h2>
                     <img src="{% static 'img/all-projects/detention-layover-fee-calculator.webp' %}" alt="Detention Fee Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Stop arguing over waiting time. Calculate exact billable detention hours and fees by factoring in your contracted free time.</p>
-                    <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Detention Layover Fee Calculator">Open Calculator</a>
                 </div>
             </div>
 
@@ -150,7 +163,8 @@
                     <h2 class="card-title h4">Warehouse Storage Estimator</h2>
                     <img src="{% static 'img/all-projects/warehouse-storage-calculator.webp' %}" alt="Warehouse Storage Estimator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Calculate the exact maximum pallet capacity for any warehouse footprint. Finds the best orientation to maximize space.</p>
-                    <a href="{% url 'projects:warehouse_storage_calculator' %}" class="btn btn-primary mt-2">Open Calculator</a>
+                    <a href="{% url 'projects:warehouse_storage_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Warehouse Storage Estimator">Open Calculator</a>
                 </div>
             </div>
 

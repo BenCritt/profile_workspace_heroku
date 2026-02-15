@@ -32,7 +32,7 @@
             </div>
         {% endif %}
 
-        <form action="{% url 'projects:dns_tool' %}" method="post" class="d-flex flex-column gap-3">
+        <form action="{% url 'projects:dns_tool' %}" method="post" class="d-flex flex-column gap-3" data-gtm-tool="DNS Lookup Tool" data-gtm-category="IT Tools">
             {% csrf_token %} 
             
             <div class="mb-3">

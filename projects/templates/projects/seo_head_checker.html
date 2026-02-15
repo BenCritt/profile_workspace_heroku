@@ -32,7 +32,8 @@
             <p class="text-muted">Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. Progress will update below. Once complete, click the green "Download" button.</p>
         </section>
 
-        <form method="POST" id="sitemap-form" class="mb-4 d-grid gap-3" onsubmit="return false;">
+        <form method="POST" id="sitemap-form" class="mb-4 d-grid gap-3" onsubmit="return false;"
+            data-gtm-tool="SEO Head Checker" data-gtm-category="SEO Tools">
             {% csrf_token %}
             
             <div>
@@ -54,10 +55,13 @@
             Ready to start.
         </div>
 
-        <a id="download_link" 
-           class="btn btn-success w-100 mb-4 d-none" 
-           href="#" 
-           aria-label="Download the generated SEO report">
+        <a id="download_link"
+        class="btn btn-success w-100 mb-4 d-none"
+        href="#"
+        data-gtm-download="csv"
+        data-gtm-tool="SEO Head Checker"
+        data-gtm-category="SEO Tools"
+        aria-label="Download the generated SEO report">
             Download SEO Report
         </a>
 
@@ -87,6 +91,8 @@
         }
 
         async function startProcessing() {
+            // GTM Event Tracking
+            if (window.gtmTrack) window.gtmTrack.scanStart("SEO Head Checker", "SEO Tools");
             if (downloadLink) {
                 downloadLink.classList.add('d-none');
                 downloadLink.removeAttribute("href");
@@ -150,9 +156,12 @@
                     setStatus("Position in queue: " + (data.queue_position || "Pending"), "alert-warning");
                 } else if (data.status === "processing") {
                     setStatus(`Processing: ${data.progress || 0}%`, "alert-info");
-                } else if (data.status === "completed") {
+                } else if (data.status === "completed") {                    
                     clearInterval(interval);
                     setStatus("Processing completed! 100%", "alert-success");
+                    // GTM Event Tracking
+                    if (window.gtmTrack) window.gtmTrack.scanComplete("SEO Head Checker", "SEO Tools");
+
                     if (downloadLink) {
                         downloadLink.href = `/download_task_file/${taskId}/`;
                         downloadLink.classList.remove('d-none');

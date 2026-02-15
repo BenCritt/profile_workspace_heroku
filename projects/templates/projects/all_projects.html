@@ -21,7 +21,7 @@
 {% block title %}All Projects | Glass Art, IT, SEO, Freight, and More{% endblock title %}
 
 {% block content %}
-<div class="py-5">
+<div class="py-5" data-gtm-hub="All Projects">
     
     <div class="container">
         <h1 class="text-center mb-5">Ben Crittenden's Projects</h1>
@@ -36,23 +36,28 @@
                 </p>
 
                 <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
-                    <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="Glass Artist Toolkit">
                         🎨 Glass Artist Toolkit
                     </a>
-                    <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="Freight Professional Toolkit">
                         🚚 Freight Professional Toolkit
                     </a>
-                    <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="IT Professional Toolkit">
                         💻 IT Professional Toolkit
                     </a>
-                    <a href="{% url 'projects:seo_tools' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:seo_tools' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="SEO Professional Toolkit">
                         🔍 SEO Professional Toolkit
                     </a>
-                    </a>
-                    <a href="{% url 'projects:radio_tools' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:radio_tools' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="Radio Hobbyist Toolkit">
                         📻 Radio Hobbyist Toolkit
                     </a>
-                    <a href="{% url 'projects:space_and_astronomy' %}" class="btn btn-secondary rounded-pill px-4">
+                    <a href="{% url 'projects:space_and_astronomy' %}" class="btn btn-secondary rounded-pill px-4"
+                        data-gtm-hub-tool="Space and Astronomy Toolkit">
                         🔭 Space & Astronomy Toolkit
                     </a>
                 </div>
@@ -96,7 +101,8 @@
                     <p class="lead fw-normal text-muted mb-4">
                         {{ project.description }}
                     </p>
-                    <a href="{% url project.url_name %}" class="btn btn-primary rounded-pill px-4">
+                    <a href="{% url project.url_name %}" class="btn btn-primary rounded-pill px-4"
+                        data-gtm-hub-tool="{{ project.title }}">
                         Open Tool
                     </a>
                 </div>

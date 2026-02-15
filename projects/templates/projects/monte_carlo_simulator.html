@@ -50,7 +50,7 @@
     <h1 class="mb-4">Monte Carlo Simulator</h1>
     
     <div class="w-100 simulator-container">
-        <form method="post" action="{% url 'projects:monte_carlo_simulator' %}" class="d-flex flex-column gap-3">
+        <form method="post" action="{% url 'projects:monte_carlo_simulator' %}" class="d-flex flex-column gap-3" data-gtm-tool="Monte Carlo Simulator" data-gtm-category="General">
             {% csrf_token %} 
             
             {% if form.non_field_errors %}

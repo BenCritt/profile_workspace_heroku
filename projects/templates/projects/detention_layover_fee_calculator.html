@@ -31,7 +31,7 @@
             
             <div class="card shadow-sm mb-4">
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" data-gtm-tool="Detention/Layover Fee Calculator" data-gtm-category="Freight Tools">
                         {% csrf_token %}
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>

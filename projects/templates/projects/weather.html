@@ -32,7 +32,7 @@
         {% endif %}
           
         <div class="container u-container-narrow mb-5">
-            <form action="{% url 'projects:weather' %}" method="post" class="d-flex flex-column gap-3">
+            <form action="{% url 'projects:weather' %}" method="post" class="d-flex flex-column gap-3" data-gtm-tool="Weather Forecast" data-gtm-category="General">
                 {% csrf_token %} 
                 
                 {{ form.as_p }}
