@@ -57,6 +57,9 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Cookie Audit](https://www.bencritt.net/projects/cookie-audit/) — Analyze public pages for cookie attributes (expiration, HttpOnly, Secure, SameSite).
 * [Font Inspector](https://www.bencritt.net/projects/font-inspector/) — Detect loaded fonts, their sources (Google/Adobe/Local), and licensing requirements.
 * [XML Splitter](https://www.bencritt.net/projects/xml-splitter/) — Split multi-object XML files into individual well-formed XML files (downloadable ZIP).
+* [Structured Data / JSON-LD Validator](https://www.bencritt.net/projects/jsonld-validator/) — Extract and validate JSON-LD structured data, checking for syntax errors and schema.org compliance.
+* [Redirect Chain Checker](https://www.bencritt.net/projects/redirect-checker/) — Trace HTTP redirect chains (301/302/307/308) to detect loops and analyze latency.
+* [Robots.txt Analyzer](https://www.bencritt.net/projects/robots-analyzer/) — Parse robots.txt files to validate syntax and test URL paths against bot permissions.
 
 ### Network & Infrastructure
 * [DNS Lookup Tool](https://www.bencritt.net/projects/dns-lookup/) — Query A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, and CAA records.
@@ -92,6 +95,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [QR Code Generator](https://www.bencritt.net/projects/qr-code-generator/) — Create downloadable PNG QR codes for text or URLs.
 * [Monte Carlo Simulator](https://www.bencritt.net/projects/monte-carlo-simulator/) — Perform probability simulations with dual data ranges and PDF export.
 * [ISS Tracker](https://www.bencritt.net/projects/iss-tracker/) — Track the International Space Station's real-time position and next pass by ZIP code.
+* [Satellite Pass Predictor](https://www.bencritt.net/projects/satellite-pass-predictor/) — Predict upcoming visible passes for 25+ satellites (ISS, Hubble, Landsat) in your local timezone.
 * [Weather Forecast](https://www.bencritt.net/projects/weather/) — Check current conditions and daily forecasts using Google Maps & OpenWeatherMap APIs.
 
 ---
@@ -103,4 +107,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-11_
+_Last Updated: 2026-02-14_
