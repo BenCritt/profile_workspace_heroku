@@ -663,8 +663,8 @@ def monte_carlo_simulator(request):
 def weather(request):
     import requests
     from .forms import WeatherForm
-    from .utils import get_coordinates
-    from .weather_utils import get_city_and_state, parse_weather_data
+    from .utils import get_location_data
+    from .weather_utils import parse_weather_data
 
     # Initialize form
     form = WeatherForm(request.POST or None)
@@ -675,36 +675,39 @@ def weather(request):
         # use cleaned_data for safety
         zip_code = form.cleaned_data["zip_code"]
 
-        # 1. Get Coordinates
-        coordinates = get_coordinates(zip_code)
-        
-        if not coordinates:
+        # 1. Get Coordinates + City/State in a SINGLE Geocoding API call.
+        #    Previously this was two separate calls: get_coordinates() and
+        #    get_city_and_state(). Consolidated to cut Geocoding usage in half.
+        location = get_location_data(zip_code)
+
+        if not location:
             context["error_message"] = (
                 "The ZIP code you entered is valid, but the server was unable to find coordinates for it. "
                 "This is a Google Maps Platform API error and not a problem with my code."
             )
             return render(request, "projects/weather.html", context)
 
-        # 2. Get Location Names
-        city_name, state_name = get_city_and_state(zip_code)
-        latitude, longitude = coordinates
-        
-        # 3. Fetch Weather Data safely
+        latitude = location["lat"]
+        longitude = location["lng"]
+        city_name = location["city"]
+        state_name = location["state"]
+
+        # 2. Fetch Weather Data safely
         API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
         API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
 
         try:
             response = requests.get(API_URL, timeout=5)
-            response.raise_for_status() # Raises error for 404/500 codes
-            
+            response.raise_for_status()  # Raises error for 404/500 codes
+
             # Offload parsing logic to utils
             weather_data = parse_weather_data(response.json())
-            
+
             # Merge results into context
             context.update({
                 "city_name": city_name,
                 "state_name": state_name,
-                **weather_data # Unpacks 'current_weather_report' and 'daily_forecast'
+                **weather_data  # Unpacks 'current_weather_report' and 'daily_forecast'
             })
 
         except requests.RequestException:

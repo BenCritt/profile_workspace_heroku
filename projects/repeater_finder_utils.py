@@ -67,7 +67,7 @@ DEFAULT_SEARCH_RADIUS_MI = 30
 DEFAULT_SAMPLE_INTERVAL_MI = 55
 
 # Maximum sample points (safety cap for very long routes).
-MAX_SAMPLE_POINTS = 30
+MAX_SAMPLE_POINTS = 100
 
 # Cache timeout for task results (1 hour)
 CACHE_TIMEOUT = 3600
@@ -143,7 +143,17 @@ def _update_task(task_id, **kwargs):
 def get_route_polyline(origin_zip, dest_zip, timeout=10):
     """
     Fetch the driving route between two US ZIP codes or addresses.
+
+    Results are cached for 4 hours. The route polyline between two
+    ZIP codes is effectively static, and users often re-run the same
+    route with different band/radius filters.
     """
+    # Check the cache first.
+    cache_key = f"route_poly_{origin_zip}_{dest_zip}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     params = {
         "origin": f"{origin_zip} USA",
         "destination": f"{dest_zip} USA",
@@ -169,7 +179,7 @@ def get_route_polyline(origin_zip, dest_zip, timeout=10):
     route = data["routes"][0]
     leg = route["legs"][0]
 
-    return {
+    result = {
         "polyline": route["overview_polyline"]["points"],
         "distance_miles": round(leg["distance"]["value"] / 1609.344, 1),
         "duration_text": leg["duration"]["text"],
@@ -177,6 +187,10 @@ def get_route_polyline(origin_zip, dest_zip, timeout=10):
         "origin_addr": leg.get("start_address", origin_zip),
         "dest_addr": leg.get("end_address", dest_zip),
     }
+
+    # Cache the successful result for 4 hours.
+    cache.set(cache_key, result, 14400)
+    return result
 
 
 # ---------------------------------------------------------------------------
