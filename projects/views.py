@@ -311,7 +311,7 @@ def iss_tracker(request):
     Memory-optimized: lazy heavy imports, lite TZ finder, cleanup.
     """
     from .iss_utils import detect_region
-    from .utils import get_coordinates
+    from .zip_data import local_get_coordinates as get_coordinates
     from django.core.cache import cache
     from datetime import timedelta
     from .forms import WeatherForm
@@ -663,7 +663,7 @@ def monte_carlo_simulator(request):
 def weather(request):
     import requests
     from .forms import WeatherForm
-    from .utils import get_location_data
+    from .zip_data import local_get_location_data as get_location_data
     from .weather_utils import parse_weather_data
 
     # Initialize form
@@ -689,10 +689,10 @@ def weather(request):
 
         latitude = location["lat"]
         longitude = location["lng"]
-        city_name = location["city"]
-        state_name = location["state"]
+        city_name = location["city"] or "Unknown City"
+        state_name = location["state"] or ""
 
-        # 2. Fetch Weather Data safely
+        # 2. Fetch Weather Data        
         API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
         API_URL = f"https://api.openweathermap.org/data/3.0/onecall?lat={latitude}&lon={longitude}&appid={API_KEY_WEATHER}&units=imperial"
 
@@ -1980,7 +1980,7 @@ def grid_square_converter(request):
         zip_to_grid,
         PRECISION_TABLE,
     )
-    from .utils import get_coordinates
+    from .zip_data import local_get_coordinates as get_coordinates
     """
     GET  → Empty form + precision reference table.
     POST → Validate, run the selected conversion, render results.
@@ -2272,7 +2272,7 @@ def space_and_astronomy(request):
 def satellite_pass_predictor(request):
     from .forms import SatellitePassForm
     from .satellite_pass_predictor_utils import predict_passes, get_satellite_groups
-    from .utils import get_coordinates
+    from .zip_data import local_get_coordinates as get_coordinates
     """
     GET  → Render the empty form + satellite catalog reference.
     POST → Validate, predict passes, render results.

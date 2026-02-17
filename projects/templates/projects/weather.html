@@ -41,8 +41,8 @@
             </form>
         </div>
           
-        {% if city_name and state_name %}
-            <h2 class="mb-4">Weather Forecast for {{ city_name }}, {{ state_name }}</h2>
+        {% if city_name %}
+            <h2 class="mb-4">Weather Forecast for {{ city_name }}{% if state_name %}, {{ state_name }}{% endif %}</h2>
             
             <div class="container u-container-narrow w-100">
                 

@@ -5,7 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 # Provides access to ZIP code data for validation in the WeatherForm, ensuring users input valid ZIP codes.
-from pyzipcode import ZipCodeDatabase
+from .zip_data import _load_dataset
 
 # Provides built-in validation for form fields:
 from django.core.validators import (
@@ -290,7 +290,7 @@ class MonteCarloForm(forms.Form):
 
 
 # --- Weather Forecast ---
-zdb = ZipCodeDatabase()
+zdb = _load_dataset()
 
 class WeatherForm(forms.Form):
     zip_code = forms.CharField(
@@ -2912,7 +2912,7 @@ class RobotsAnalyzerForm(forms.Form):
 class SatellitePassForm(forms.Form):
     """
     Accepts a satellite selection and a US ZIP code.
-    Reuses the same pyzipcode validation pattern as WeatherForm.
+    Reuses the same us_zip_data.json validation pattern as WeatherForm.
     """
     satellite = forms.ChoiceField(
         label="Select Satellite",
