@@ -81,6 +81,9 @@ class StaticViewSitemap(Sitemap):
             "projects:robots_analyzer",
             "projects:space_and_astronomy",
             "projects:satellite_pass_predictor",
+            "projects:ai_api_cost_estimator",
+            "projects:timestamp_converter",
+            "projects:cron_builder",
         ]
 
     def location(self, item):

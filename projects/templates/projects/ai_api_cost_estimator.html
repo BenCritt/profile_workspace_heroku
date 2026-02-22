@@ -1,0 +1,170 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/ai-api-token-cost-estimator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/ai-api-token-cost-estimator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/ai-token-cost-estimator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/ai-api-token-cost-estimator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}AI Token & API Cost Estimator | OpenAI, Anthropic, Gemini{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <h1 class="text-center mb-4"><i class="bi bi-cpu me-2"></i>AI Token & API Cost Estimator</h1>
+            <p class="text-muted text-center mb-5">
+                Paste your raw text, code snippets, or system prompts below and select your intended task. This tool will calculate the exact input token count and estimate your total costs (input + output) across leading models from OpenAI, Anthropic, and Google. There is a 5 million character (~1.25M tokens) submission limit.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="AI Token & API Cost Estimator" data-gtm-category="IT Tools">
+                        {% csrf_token %}
+
+                        <fieldset class="mb-3">
+                            {{ form.input_text.label_tag }}
+                            {{ form.input_text }}
+                            {% for error in form.input_text.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        <fieldset class="mb-3">
+                            {{ form.task_type.label_tag }}
+                            {{ form.task_type }}
+                            {% if form.task_type.help_text %}
+                                <div class="form-text">{{ form.task_type.help_text }}</div>
+                            {% endif %}
+                            {% for error in form.task_type.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Tokens & Cost</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if estimation_error %}
+            <div class="alert alert-danger shadow-sm mt-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ estimation_error }}
+            </div>
+            {% endif %}
+
+            {% if results %}
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading text-center mb-3">Analysis Results</h4>
+                
+                <div class="row text-center mb-4">
+                    <div class="col-4 border-end">
+                        <small class="text-uppercase text-muted">Input Characters</small><br>
+                        <span class="fs-4 fw-bold">{{ results.character_count }}</span>
+                    </div>
+                    <div class="col-4 border-end">
+                        <small class="text-uppercase text-muted">Input Tokens</small><br>
+                        <span class="fs-4 fw-bold">{{ results.token_count }}</span><br>
+                        <small class="text-muted" style="font-size: 0.7rem;">via {{ results.calculation_method }}</small>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Est. Output Tokens</small><br>
+                        <span class="fs-4 fw-bold">{{ results.output_tokens }}</span><br>
+                        <small class="text-muted" style="font-size: 0.7rem;">{{ results.task_label }}</small>
+                    </div>
+                </div>
+
+                <hr>
+                
+                <h5 class="text-center mb-3">Estimated Total Cost by Model</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless align-middle mb-0">
+                        <thead>
+                            <tr class="border-bottom">
+                                <th class="text-muted small text-uppercase">Model</th>
+                                <th class="text-muted small text-uppercase text-end">Rate per 1M Tokens (In / Out)</th>
+                                <th class="text-muted small text-uppercase text-end">Input Cost</th>
+                                <th class="text-muted small text-uppercase text-end">Output Cost</th>
+                                <th class="text-muted small text-uppercase text-end">Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in results.models %}
+                            <tr>
+                                <td>
+                                    <strong>{{ model.name }}</strong><br>
+                                    <a href="{{ model.pricing_url }}" target="_blank" rel="noopener noreferrer"
+                                       class="text-muted" style="font-size: 0.7rem;">
+                                        {{ model.provider }} pricing ↗
+                                    </a>
+                                </td>
+                                <td class="text-end text-muted small" style="font-size: 0.75rem;">{{ model.in_rate_display }} / {{ model.out_rate_display }}</td>
+                                <td class="text-end">{{ model.in_cost_display }}</td>
+                                <td class="text-end">{{ model.out_cost_display }}</td>
+                                <td class="text-end fw-bold text-success">{{ model.total_cost_display }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row justify-content-center mt-5">
+                <div class="col-12">
+                    <h3 class="h5 mb-3 text-muted">How Tokenization Works</h3>
+                    <p class="small text-muted mb-2">
+                        <strong>What is a token?</strong> Large Language Models process text in chunks called tokens. A token can be an entire word, a syllable, or just a single character. A useful rule of thumb for standard English text: one token is roughly 4 characters, or about 0.75 words.
+                    </p>
+                    <p class="small text-muted mb-2">
+                        <strong>Why do costs vary?</strong> Different providers use distinct model architectures and pricing strategies based on the compute required. Frontier reasoning models like Claude Opus 4.6 and GPT-5.2 carry a premium over standard models like Claude Sonnet 4.6 or Gemini 3.1 Pro, which are optimized for everyday throughput at lower cost.
+                    </p>
+                    <p class="small text-muted mb-2">
+                        <strong>How are output tokens estimated?</strong> This tool estimates output tokens based on the task type you select — for example, summarization targets ~15% of your input length, while translation targets ~100%. These are heuristics, not guarantees. Actual output length depends on your prompt wording, the model's behavior, and any <code>max_tokens</code> limits you set in your API call.
+                    </p>
+                    <p class="small text-muted mb-2">
+                        <strong>Tokenizer note:</strong> Token counts are calculated using OpenAI's <code>cl100k_base</code> encoding via the tiktoken library. This is a close approximation for GPT-5.2 and a reasonable heuristic for Anthropic and Google models, which use their own internal tokenizers. Counts may vary by a few percent across providers on the same input.
+                    </p>
+                    {% if results %}
+                    <p class="small text-muted mb-0">
+                        <em>Pricing last verified: {{ results.pricing_last_verified }}. Always confirm rates at each provider's official pricing page before making cost projections.</em>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-5 text-center">
+                {% include 'includes/attribution.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if results %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const resultsDiv = document.getElementById("results-section");
+        if (resultsDiv) {
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>
+{% endif %}
+{% endblock content %}

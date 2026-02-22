@@ -1041,6 +1041,24 @@ def all_projects(request):
             "url_name": "projects:satellite_pass_predictor",
             "image": "satellite-pass-predictor.webp",
             "description": "Predict upcoming visible passes for 25+ satellites, including the ISS, Hubble, Landsat, and amateur radio transponders. Calculates rise/set times in your local timezone."
+        },
+        {
+            "title": "AI Token & API Cost Estimator",
+            "url_name": "projects:ai_api_cost_estimator",
+            "image": "ai-api-cost-estimator.webp",
+            "description": "Paste any text, prompt, or code snippet to calculate its exact token count and compare API costs across leading models — including GPT-5.2, Claude Sonnet/Opus 4.6, and Gemini 3.1 Pro. Estimates both input and output costs based on your selected task type."
+        },
+        {
+            "title": "Cron Expression Builder & Parser",
+            "url_name": "projects:cron_builder",
+            "image": "cron-builder.webp",
+            "description": "Validate any 5-field cron expression and get a plain-English description of its schedule. Preview the next N run times in any timezone, explore a one-click preset library, and review a field-by-field breakdown with valid ranges."
+        },
+        {
+            "title": "Unix Timestamp Converter",
+            "url_name": "projects:timestamp_converter",
+            "image": "unix-timestamp-converter.webp",
+            "description": "Convert Unix epoch timestamps to human-readable datetimes — and back. Auto-detects seconds vs. milliseconds, shows results across all major timezones, outputs ISO 8601 format, and includes a live epoch ticker."
         }
     ]
     
@@ -2306,3 +2324,242 @@ def satellite_pass_predictor(request):
         "satellite_groups": get_satellite_groups(),
     }
     return render(request, "projects/satellite_pass_predictor.html", context)
+
+# AI Token & API Cost Estimator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def ai_api_cost_estimator(request):
+    from .forms import AITokenCostForm
+    from .ai_api_cost_estimator_utils import estimate_tokens_and_cost
+    
+    form = AITokenCostForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        input_text = form.cleaned_data["input_text"]
+        task_type = form.cleaned_data["task_type"]
+        
+        context["results"] = estimate_tokens_and_cost(input_text, task_type)
+
+    return render(request, "projects/ai_api_cost_estimator.html", context)
+
+# Cron Expression Builder & Validator
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def cron_builder(request):
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    from .forms import CronBuilderForm
+    from .cron_builder_utils import (
+        COMMON_TIMEZONES,
+        PRESETS,
+        DEFAULT_RUNS,
+        CRONITER_AVAILABLE,
+        get_cron_description,
+        generate_next_runs,
+        build_field_breakdown,
+        validate_cron_expression,
+    )
+
+    """
+    GET  → render the empty builder with preset library and blank form.
+    POST → validate, parse, and return description + next-run schedule.
+    """
+    base_context = {
+        "timezones":          COMMON_TIMEZONES,
+        "presets":            PRESETS,
+        "num_runs":           DEFAULT_RUNS,
+        "tz_selected":        "America/Chicago",
+        "croniter_available": CRONITER_AVAILABLE,
+    }
+
+    if not CRONITER_AVAILABLE:
+        base_context["library_error"] = (
+            "The 'croniter' library is not installed. "
+            "Add croniter>=1.4.1 to requirements.txt and redeploy."
+        )
+        return render(request, "projects/cron_builder.html", base_context)
+
+    form = CronBuilderForm(request.POST or None,
+                           initial={"tz_select": "America/Chicago",
+                                    "num_runs": DEFAULT_RUNS})
+
+    base_context["form"] = form
+
+    if request.method != "POST":
+        return render(request, "projects/cron_builder.html", base_context)
+
+    if not form.is_valid():
+        # Django form validation caught something (e.g. non-numeric num_runs).
+        return render(request, "projects/cron_builder.html", base_context)
+
+    # ── Validated data ────────────────────────────────────────────────────────
+    expression = form.cleaned_data["cron_expression"]
+    tz_str     = form.cleaned_data["tz_select"]
+    num_runs   = form.cleaned_data["num_runs"]
+
+    base_context["expression"] = expression
+    base_context["tz_selected"] = tz_str
+    base_context["num_runs"]    = num_runs
+
+    # ── Cron syntax validation ────────────────────────────────────────────────
+    is_valid, error_msg = validate_cron_expression(expression)
+    if not is_valid:
+        base_context["error"] = error_msg
+        return render(request, "projects/cron_builder.html", base_context)
+
+    # ── Timezone lookup ───────────────────────────────────────────────────────
+    try:
+        tz = ZoneInfo(tz_str)
+    except (ZoneInfoNotFoundError, KeyError):
+        base_context["error"] = f"Unknown timezone: '{tz_str}'. Please select from the list."
+        return render(request, "projects/cron_builder.html", base_context)
+
+    # ── Build outputs ─────────────────────────────────────────────────────────
+    try:
+        description     = get_cron_description(expression)
+        next_runs       = generate_next_runs(expression, tz, num_runs)
+        field_breakdown = build_field_breakdown(expression)
+    except Exception as exc:
+        base_context["error"] = f"Unexpected error while processing expression: {exc}"
+        return render(request, "projects/cron_builder.html", base_context)
+
+    if not next_runs:
+        base_context["warning"] = (
+            "No upcoming runs were found for this expression. "
+            "It may reference dates that have already passed or are unreachable."
+        )
+
+    base_context.update({
+        "description":     description,
+        "next_runs":       next_runs,
+        "field_breakdown": field_breakdown,
+    })
+
+    return render(request, "projects/cron_builder.html", base_context)
+
+# Timestamp Converter (Epoch ↔ Human)
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def timestamp_converter(request):
+    import datetime
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    from .forms import EpochToHumanForm, HumanToEpochForm
+    from .timestamp_converter_utils import (
+        COMMON_TIMEZONES,
+        safe_epoch_to_dt,
+        build_tz_table,
+        relative_time,
+        get_current_epoch,
+    )
+    """
+    GET  → render the empty form, pre-populated with the current epoch.
+    POST → process either epoch→human or human→epoch conversion.
+    """
+    current_epoch, current_epoch_ms = get_current_epoch()
+
+    context = {
+        "timezones":        COMMON_TIMEZONES,
+        "current_epoch":    current_epoch,
+        "current_epoch_ms": current_epoch_ms,
+        "mode":             "epoch_to_human",   # default tab
+        "tz_selected":      "America/Chicago",
+    }
+
+    if request.method != "POST":
+        context["form_epoch"]  = EpochToHumanForm()
+        context["form_human"]  = HumanToEpochForm(
+            initial={"tz_select": "America/Chicago"}
+        )
+        return render(request, "projects/timestamp_converter.html", context)
+
+    mode = request.POST.get("mode", "epoch_to_human")
+    context["mode"] = mode
+
+    # ── Mode A: Epoch → Human ─────────────────────────────────────────────────
+    if mode == "epoch_to_human":
+        form = EpochToHumanForm(request.POST)
+        context["form_epoch"] = form
+        context["form_human"] = HumanToEpochForm(
+            initial={"tz_select": "America/Chicago"}
+        )
+
+        if not form.is_valid():
+            # Expose the first field error as a top-level page error for the template.
+            context["error"] = form.errors.get("epoch_input", ["Invalid input."])[0]
+            return render(request, "projects/timestamp_converter.html", context)
+
+        raw = form.cleaned_data["epoch_input"]
+        context["epoch_input"] = raw
+
+        try:
+            dt_utc, epoch_clean = safe_epoch_to_dt(raw)
+        except ValueError as exc:
+            context["error"] = str(exc)
+            return render(request, "projects/timestamp_converter.html", context)
+
+        context.update({
+            "epoch_clean": int(epoch_clean),
+            "epoch_ms":    int(epoch_clean * 1000),
+            "iso8601_utc": dt_utc.isoformat(),
+            "relative":    relative_time(epoch_clean),
+            "tz_table":    build_tz_table(dt_utc, COMMON_TIMEZONES),
+        })
+
+    # ── Mode B: Human → Epoch ─────────────────────────────────────────────────
+    elif mode == "human_to_epoch":
+        form = HumanToEpochForm(request.POST)
+        context["form_epoch"] = EpochToHumanForm()
+        context["form_human"] = form
+
+        tz_str = request.POST.get("tz_select", "America/Chicago").strip()
+        context["tz_selected"] = tz_str
+
+        if not form.is_valid():
+            # Surface first error as page-level error.
+            for field_errors in form.errors.values():
+                context["error"] = field_errors[0]
+                break
+            return render(request, "projects/timestamp_converter.html", context)
+
+        # Validated and normalised values from the form.
+        date_obj   = form.cleaned_data["date_input"]    # datetime.date
+        time_str   = form.cleaned_data["time_input"]    # "HH:MM:SS"
+        tz_str     = form.cleaned_data["tz_select"]
+
+        context["date_input"]  = date_obj.strftime("%Y-%m-%d")
+        context["time_input"]  = time_str[:5]           # trim back to HH:MM for the input
+        context["tz_selected"] = tz_str
+
+        try:
+            tz = ZoneInfo(tz_str)
+        except (ZoneInfoNotFoundError, KeyError):
+            context["error"] = f"Unknown timezone: '{tz_str}'."
+            return render(request, "projects/timestamp_converter.html", context)
+
+        try:
+            dt_naive = datetime.datetime.strptime(
+                f"{date_obj.strftime('%Y-%m-%d')} {time_str}", "%Y-%m-%d %H:%M:%S"
+            )
+        except ValueError:
+            context["error"] = (
+                "Could not parse date/time. "
+                "Expected YYYY-MM-DD and HH:MM or HH:MM:SS."
+            )
+            return render(request, "projects/timestamp_converter.html", context)
+
+        dt_aware     = dt_naive.replace(tzinfo=tz)
+        epoch_result = int(dt_aware.timestamp())
+        dt_utc       = dt_aware.astimezone(ZoneInfo("UTC"))
+
+        context.update({
+            "epoch_result": epoch_result,
+            "epoch_ms":     epoch_result * 1000,
+            "iso8601_utc":  dt_utc.isoformat(),
+            "relative":     relative_time(epoch_result),
+            "tz_table":     build_tz_table(dt_utc, COMMON_TIMEZONES),
+        })
+
+    else:
+        context["error"] = "Invalid mode. Please use the form buttons."
+
+    return render(request, "projects/timestamp_converter.html", context)

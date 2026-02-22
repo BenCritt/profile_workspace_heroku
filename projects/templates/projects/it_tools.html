@@ -98,6 +98,28 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 card-title">Cron Expression Builder</h2>
+                    <img src="{% static 'img/all-projects/cron-builder.webp' %}" alt="Cron Expression Builder" class="img-fluid rounded my-3">
+                    <p class="card-text">Validate any 5-field cron expression, get a plain-English description of its schedule, and preview the next run times in your timezone. Includes a preset library and field-by-field breakdown.</p>
+                    <a href="{% url 'projects:cron_builder' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Cron Expression Builder">Use Cron Builder
+                    </a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 card-title">Unix Timestamp Converter</h2>
+                    <img src="{% static 'img/all-projects/unix-timestamp-converter.webp' %}" alt="Unix Timestamp Converter" class="img-fluid rounded my-3">
+                    <p class="card-text">Convert between Unix epoch timestamps and human-readable datetimes in either direction. Auto-detects seconds vs. milliseconds, shows results in all major timezones, and includes a live epoch ticker.</p>
+                    <a href="{% url 'projects:timestamp_converter' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Unix Timestamp Converter">Use Timestamp Converter
+                    </a>
+                </div>
+            </div>
+
         </div>  
         
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
@@ -183,6 +205,30 @@
                         loading="lazy">
                     </iframe>
                     <a href="{% url 'projects:http_header_inspector' %}" class="btn btn-secondary mt-3">Open Inspector</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:cron_builder' %}"
+                        scrolling="no"
+                        title="Cron Expression Builder"
+                        loading="lazy">
+                    </iframe>
+                    <a href="{% url 'projects:cron_builder' %}" class="btn btn-secondary mt-3">Open Full Cron Builder</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:timestamp_converter' %}"
+                        scrolling="no"
+                        title="Unix Timestamp Converter"
+                        loading="lazy">
+                    </iframe>
+                    <a href="{% url 'projects:timestamp_converter' %}" class="btn btn-secondary mt-3">Open Full Timestamp Converter</a>
                 </div>
             </div>
             

@@ -11,6 +11,11 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("cron_builder", "cron-builder"),
+    ("timestamp_converter", "unix-timestamp-converter"),
+    ("timestamp-converter", "unix-timestamp-converter"),
+    ("unix_timestamp_converter", "unix-timestamp-converter"),
+    ("ai_api_cost_estimator", "ai-api-cost-estimator"),
     ("satellite_pass_predictor", "satellite-pass-predictor"),
     ("space_and_astronomy", "space-and-astronomy"),
     ("robots_analyzer", "robots-analyzer"),

@@ -1,0 +1,294 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/cron_builder_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/cron_builder_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/cron-builder/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/cron_builder.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Cron Expression Builder & Parser | Validate & Preview Cron Schedules{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+
+            <h1 class="text-center mb-2"><i class="bi bi-clock-history me-2"></i>Cron Expression Builder &amp; Parser</h1>
+            <p class="text-muted text-center mb-5">
+                Validate a 5-field cron expression, get a plain-English description,
+                and preview the next scheduled run times in your timezone.
+            </p>
+
+            {% if library_error %}
+            <div class="alert alert-danger">
+                <strong>Dependency missing:</strong> {{ library_error }}
+            </div>
+            {% endif %}
+
+            {% if croniter_available %}
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post"
+                          action=""
+                          novalidate
+                          id="cron-form"
+                          data-gtm-tool="Cron Expression Builder"
+                          data-gtm-category="IT Tools">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+
+                            <div class="col-12 col-md-5">
+                                <label for="cron_expression" class="form-label d-block">
+                                    Cron Expression
+                                    <span class="d-block font-monospace text-muted fw-normal" style="font-size: 0.7rem; letter-spacing: 0.35rem;">MIN &nbsp;HOUR &nbsp;DOM &nbsp;MON &nbsp;DOW</span>
+                                </label>
+                                <input type="text"
+                                       class="form-control font-monospace"
+                                       id="cron_expression"
+                                       name="cron_expression"
+                                       value="{{ expression|default:'' }}"
+                                       placeholder="*  *  *  *  *"
+                                       autocomplete="off"
+                                       spellcheck="false"
+                                       required>
+                            </div>
+
+                            <div class="col-6 col-md-3">
+                                <label for="tz_select" class="form-label">Timezone</label>
+                                <select class="form-select" id="tz_select" name="tz_select">
+                                    {% for tz in timezones %}
+                                    <option value="{{ tz }}" {% if tz == tz_selected %}selected{% endif %}>{{ tz }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-6 col-md-2">
+                                <label for="num_runs" class="form-label">Next runs</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="num_runs"
+                                       name="num_runs"
+                                       value="{{ num_runs }}"
+                                       min="1"
+                                       max="50">
+                            </div>
+
+                            <div class="col-12 col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Parse</button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="mb-2 text-muted">
+                    <span class="me-1">⚡</span> Preset Library
+                    <span class="fw-normal small ms-1">— click to load</span>
+                </h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for preset in presets %}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            title="{{ preset.hint }}"
+                            onclick="loadPreset('{{ preset.expr }}')">
+                        {{ preset.label }}
+                        <span class="badge bg-dark border border-secondary font-monospace ms-1">{{ preset.expr }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger" id="cron-error">{{ error }}</div>
+            {% endif %}
+            {% if warning %}
+            <div class="alert alert-warning">{{ warning }}</div>
+            {% endif %}
+
+            {% if description %}
+
+            <div class="alert alert-success shadow-sm mb-4" id="results-section" role="alert">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="flex-shrink-0 fs-2">🕐</div>
+                    <div>
+                        <div class="text-muted small mb-1">Plain-English Description</div>
+                        <div class="fs-5 fw-semibold">{{ description }}</div>
+                        {% if expression %}
+                        <div class="font-monospace text-muted small mt-1">{{ expression }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+
+                {% if next_runs %}
+                <div class="col-12 col-lg-7">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">
+                                Next {{ next_runs|length }} Scheduled Runs
+                                <span class="text-muted small fw-normal">({{ tz_selected }})</span>
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center">#</th>
+                                            <th>Day</th>
+                                            <th>Date &amp; Time</th>
+                                            <th class="text-center">TZ</th>
+                                            <th class="text-end font-monospace">Epoch</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for run in next_runs %}
+                                        <tr {% if forloop.first %}class="table-primary"{% endif %}>
+                                            <td class="text-center text-muted small">{{ run.index }}</td>
+                                            <td class="small">{{ run.day_of_week }}</td>
+                                            <td class="font-monospace">{{ run.datetime_str }}</td>
+                                            <td class="text-center small">{{ run.abbr }}</td>
+                                            <td class="font-monospace text-end small">{{ run.epoch }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if field_breakdown %}
+                <div class="col-12 col-lg-5">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Field Breakdown</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Field</th>
+                                            <th>Your Value</th>
+                                            <th>Valid Range</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for field in field_breakdown %}
+                                        <tr>
+                                            <td class="small">{{ field.name }}</td>
+                                            <td>
+                                                <span class="font-monospace fw-bold {% if field.is_wildcard %}text-muted{% else %}text-primary{% endif %}">
+                                                    {{ field.value }}
+                                                </span>
+                                                {% if field.is_wildcard %}
+                                                <span class="text-muted small ms-1">(any)</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-muted small font-monospace">{{ field.range }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">
+                                Examples: <code>*/5</code> (step), <code>1-5</code> (range),
+                                <code>1,15</code> (list), <code>L</code> (last day of month).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}{# /description #}
+
+            <div class="card shadow-sm mt-2">
+                <div class="card-header">
+                    <strong>Quick Reference</strong> <span class="text-muted fw-normal">— Field syntax</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <table class="table table-sm table-borderless mb-0">
+                                <thead class="table-light"><tr><th>Special Character</th><th>Meaning</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="font-monospace text-primary">*</td><td>Any / every value</td></tr>
+                                    <tr><td class="font-monospace text-primary">*/n</td><td>Every n-th value (step)</td></tr>
+                                    <tr><td class="font-monospace text-primary">a-b</td><td>Range from a to b</td></tr>
+                                    <tr><td class="font-monospace text-primary">a,b,c</td><td>List of values</td></tr>
+                                    <tr><td class="font-monospace text-primary">a-b/n</td><td>Range with step</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <table class="table table-sm table-borderless mb-0">
+                                <thead class="table-light"><tr><th>Field</th><th>Range</th><th>Names allowed</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Minute</td><td class="font-monospace">0–59</td><td>—</td></tr>
+                                    <tr><td>Hour</td><td class="font-monospace">0–23</td><td>—</td></tr>
+                                    <tr><td>Day of Month</td><td class="font-monospace">1–31</td><td>—</td></tr>
+                                    <tr><td>Month</td><td class="font-monospace">1–12</td><td>JAN–DEC</td></tr>
+                                    <tr><td>Day of Week</td><td class="font-monospace">0–6</td><td>SUN–SAT</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary w-100 mt-3">Go to All IT Tools</a>
+
+            {% endif %}{# /croniter_available #}
+
+            <div class="mt-5 text-center">
+                {% include 'includes/attribution.html' %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+  function loadPreset(expr) {
+    var input = document.getElementById("cron_expression");
+    if (input) {
+      input.value = expr;
+      input.focus();
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event:         "cron_preset_loaded",
+        tool_name:     "Cron Expression Builder",
+        tool_category: "IT Tools",
+        cron_preset:   expr,
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var resultsEl = document.getElementById("results-section");
+    var errorEl   = document.getElementById("cron-error");
+
+    if (resultsEl) {
+      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (errorEl) {
+      errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+</script>
+{% endblock content %}

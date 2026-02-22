@@ -35,8 +35,9 @@
                                 <label for="{{ form.domain.id_for_label }}" class="form-label">Domain Name</label>
                                 {{ form.domain }}
                             </div>
-                            <div class="col-md-3 d-flex align-items-end">
+                            <div class="col-md-3 d-flex flex-column justify-content-end">
                                 <button type="submit" class="btn btn-primary w-100">Lookup</button>
+                                <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary mt-2 w-100">Go to All IT Tools</a>
                             </div>
                         </div>
                         {% if form.errors %}

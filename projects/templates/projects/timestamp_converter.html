@@ -1,0 +1,331 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/timestamp_converter_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/timestamp_converter_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/unix-timestamp-converter/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/timestamp_converter.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Unix Timestamp Converter | bencritt.net{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+
+            <h1 class="text-center mb-2"><i class="bi bi-hourglass-split me-2"></i>Unix Timestamp Converter</h1>
+            <p class="text-muted text-center mb-2">
+                Convert between Unix epoch timestamps and human-readable datetimes — in either direction.
+            </p>
+            <p class="text-center mb-5">
+                <span class="text-muted small">Current epoch: </span>
+                <code id="live-epoch">{{ current_epoch }}</code>
+                <span class="text-muted small ms-2">(ms: <code id="live-epoch-ms">{{ current_epoch_ms }}</code>)</span>
+            </p>
+
+            {% if library_error %}
+            <div class="alert alert-danger">{{ library_error }}</div>
+            {% endif %}
+
+            <ul class="nav nav-tabs mb-4" id="modeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if mode != 'human_to_epoch' %}active{% endif %}"
+                            id="epoch-tab" data-bs-toggle="tab" data-bs-target="#epoch-panel"
+                            type="button" role="tab">
+                        Epoch → Human
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if mode == 'human_to_epoch' %}active{% endif %}"
+                            id="human-tab" data-bs-toggle="tab" data-bs-target="#human-panel"
+                            type="button" role="tab">
+                        Human → Epoch
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="modeTabContent">
+
+                <!-- Tab A: Epoch → Human -->
+                <div class="tab-pane fade {% if mode != 'human_to_epoch' %}show active{% endif %}"
+                     id="epoch-panel" role="tabpanel">
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <form method="post"
+                                  action=""
+                                  novalidate
+                                  data-gtm-tool="Unix Timestamp Converter"
+                                  data-gtm-category="IT Tools">
+                                {% csrf_token %}
+                                <input type="hidden" name="mode" value="epoch_to_human">
+
+                                <div class="mb-3">
+                                    <label for="epoch_input" class="form-label">Unix Timestamp</label>
+                                    <input type="text"
+                                           class="form-control font-monospace"
+                                           id="epoch_input"
+                                           name="epoch_input"
+                                           value="{{ epoch_input|default:'' }}"
+                                           placeholder="e.g. 1700000000  or  1700000000000 (ms)"
+                                           autocomplete="off"
+                                           required>
+                                    <div class="form-text">
+                                        Accepts seconds (10-digit) or milliseconds (13-digit) — auto-detected.
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div>
+                                        <span class="text-muted small me-2">Quick fill:</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                onclick="document.getElementById('epoch_input').value='{{ current_epoch }}'">
+                                            Now (s)
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                onclick="document.getElementById('epoch_input').value='{{ current_epoch_ms }}'">
+                                            Now (ms)
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                onclick="document.getElementById('epoch_input').value='0'">
+                                            Epoch 0
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                onclick="document.getElementById('epoch_input').value='2147483647'">
+                                            Y2K38
+                                        </button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary px-4">Convert</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if mode == 'epoch_to_human' and error %}
+                    <div class="alert alert-danger" id="ts-error">{{ error }}</div>
+                    {% endif %}
+
+                    {% if mode == 'epoch_to_human' and epoch_clean is not None %}
+                    <div id="results-section">
+                        <div class="alert alert-success shadow-sm mb-4" role="alert">
+                            <div class="row text-center">
+                                <div class="col-4 border-end">
+                                    <small class="text-uppercase text-muted">Unix (seconds)</small><br>
+                                    <span class="fs-5 fw-bold font-monospace">{{ epoch_clean }}</span>
+                                </div>
+                                <div class="col-4 border-end">
+                                    <small class="text-uppercase text-muted">Unix (milliseconds)</small><br>
+                                    <span class="fs-5 fw-bold font-monospace">{{ epoch_ms }}</span>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-uppercase text-muted">Relative</small><br>
+                                    <span class="fs-5 fw-bold">{{ relative }}</span>
+                                </div>
+                            </div>
+                            <hr>
+                            <div>
+                                <small class="text-muted text-uppercase">ISO 8601 (UTC)</small><br>
+                                <span class="font-monospace">{{ iso8601_utc }}</span>
+                            </div>
+                        </div>
+
+                        {% if tz_table %}
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">All Timezones</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Timezone</th>
+                                                <th>Day</th>
+                                                <th>Date &amp; Time</th>
+                                                <th>Abbr</th>
+                                                <th>UTC Offset</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in tz_table %}
+                                            <tr {% if row.timezone == "UTC" %}class="table-primary"{% endif %}>
+                                                <td class="font-monospace small">{{ row.timezone }}</td>
+                                                <td class="small">{{ row.day_of_week }}</td>
+                                                <td class="font-monospace">{{ row.datetime_str }}</td>
+                                                <td class="small">{{ row.abbr }}</td>
+                                                <td class="font-monospace small">{{ row.utc_offset }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>{# /epoch-panel #}
+
+                <!-- Tab B: Human → Epoch -->
+                <div class="tab-pane fade {% if mode == 'human_to_epoch' %}show active{% endif %}"
+                     id="human-panel" role="tabpanel">
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <form method="post"
+                                  action=""
+                                  novalidate
+                                  data-gtm-tool="Unix Timestamp Converter"
+                                  data-gtm-category="IT Tools">
+                                {% csrf_token %}
+                                <input type="hidden" name="mode" value="human_to_epoch">
+
+                                <div class="row g-3 align-items-end mb-3">
+                                    <div class="col-md-4">
+                                        <label for="date_input" class="form-label">Date</label>
+                                        <input type="date"
+                                               class="form-control"
+                                               id="date_input"
+                                               name="date_input"
+                                               value="{{ date_input|default:'' }}"
+                                               required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="time_input" class="form-label">Time (HH:MM or HH:MM:SS)</label>
+                                        <input type="time"
+                                               class="form-control font-monospace"
+                                               id="time_input"
+                                               name="time_input"
+                                               value="{{ time_input|default:'00:00' }}"
+                                               step="1"
+                                               required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="tz_select_human" class="form-label">Timezone</label>
+                                        <select class="form-select" id="tz_select_human" name="tz_select">
+                                            {% for tz in timezones %}
+                                            <option value="{{ tz }}" {% if tz == tz_selected %}selected{% endif %}>{{ tz }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100">Convert</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if mode == 'human_to_epoch' and error %}
+                    <div class="alert alert-danger" id="ts-error">{{ error }}</div>
+                    {% endif %}
+
+                    {% if mode == 'human_to_epoch' and epoch_result is not None %}
+                    <div id="results-section">
+                        <div class="alert alert-success shadow-sm mb-4" role="alert">
+                            <div class="row text-center">
+                                <div class="col-4 border-end">
+                                    <small class="text-uppercase text-muted">Unix (seconds)</small><br>
+                                    <span class="fs-5 fw-bold font-monospace">{{ epoch_result }}</span>
+                                </div>
+                                <div class="col-4 border-end">
+                                    <small class="text-uppercase text-muted">Unix (milliseconds)</small><br>
+                                    <span class="fs-5 fw-bold font-monospace">{{ epoch_ms }}</span>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-uppercase text-muted">Relative</small><br>
+                                    <span class="fs-5 fw-bold">{{ relative }}</span>
+                                </div>
+                            </div>
+                            <hr>
+                            <div>
+                                <small class="text-muted text-uppercase">ISO 8601 (UTC)</small><br>
+                                <span class="font-monospace">{{ iso8601_utc }}</span>
+                            </div>
+                        </div>
+
+                        {% if tz_table %}
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">All Timezones</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover table-bordered align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Timezone</th>
+                                                <th>Day</th>
+                                                <th>Date &amp; Time</th>
+                                                <th>Abbr</th>
+                                                <th>UTC Offset</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for row in tz_table %}
+                                            <tr {% if row.timezone == "UTC" %}class="table-primary"{% endif %}>
+                                                <td class="font-monospace small">{{ row.timezone }}</td>
+                                                <td class="small">{{ row.day_of_week }}</td>
+                                                <td class="font-monospace">{{ row.datetime_str }}</td>
+                                                <td class="small">{{ row.abbr }}</td>
+                                                <td class="font-monospace small">{{ row.utc_offset }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>{# /human-panel #}
+
+            </div>{# /tab-content #}
+
+            <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary w-100 mt-3">Go to All IT Tools</a>
+
+            <div class="mt-5 text-center">
+                {% include 'includes/attribution.html' %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<span id="epoch-seed" data-epoch="{{ current_epoch }}" hidden aria-hidden="true"></span>
+
+<script>
+  (function () {
+    var seed  = document.getElementById("epoch-seed");
+    var epoch = seed ? parseInt(seed.getAttribute("data-epoch"), 10) : Math.floor(Date.now() / 1000);
+
+    function tick() {
+      epoch++;
+      var epochEl   = document.getElementById("live-epoch");
+      var epochMsEl = document.getElementById("live-epoch-ms");
+      if (epochEl)   epochEl.textContent   = epoch;
+      if (epochMsEl) epochMsEl.textContent = epoch * 1000;
+    }
+    setInterval(tick, 1000);
+  })();
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var resultsEl = document.getElementById("results-section");
+    var errorEl   = document.getElementById("ts-error");
+
+    if (resultsEl) {
+      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (errorEl) {
+      errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+</script>
+{% endblock content %}

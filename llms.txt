@@ -69,6 +69,8 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [SPF, DKIM & DMARC Validator](https://www.bencritt.net/projects/email-auth-validator/) — Verify email authentication records including SPF mechanisms, DMARC policies, and DKIM keys.
 * [WHOIS Lookup Tool](https://www.bencritt.net/projects/whois-lookup/) — Retrieve domain registration details including registrar, expiration dates, and nameservers.
 * [HTTP Header Inspector](https://www.bencritt.net/projects/http-header-inspector/) — Inspect HTTP response headers to reveal server software, caching policies, and security headers.
+* [Cron Expression Builder & Parser](https://www.bencritt.net/projects/cron-builder/) — Validate 5-field cron expressions, get plain-English descriptions, and preview the next scheduled run times in any timezone.
+* [Unix Timestamp Converter](https://www.bencritt.net/projects/unix-timestamp-converter/) — Convert Unix epoch timestamps to human-readable datetimes and back, featuring auto-detection for seconds vs. milliseconds.
 
 ### Glass Art & Kiln Tools
 * [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver).
@@ -97,6 +99,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [ISS Tracker](https://www.bencritt.net/projects/iss-tracker/) — Track the International Space Station's real-time position and next pass by ZIP code.
 * [Satellite Pass Predictor](https://www.bencritt.net/projects/satellite-pass-predictor/) — Predict upcoming visible passes for 25+ satellites (ISS, Hubble, Landsat) in your local timezone.
 * [Weather Forecast](https://www.bencritt.net/projects/weather/) — Check current conditions and daily forecasts using Google Maps & OpenWeatherMap APIs.
+* [AI Token & API Cost Estimator](https://www.bencritt.net/projects/ai-token-cost-estimator/) — Calculate exact token counts for raw text and compare total API costs (input and output) across OpenAI, Anthropic, and Google models.
 
 ---
 
@@ -107,4 +110,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-14_
+_Last Updated: 2026-02-22_

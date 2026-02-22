@@ -2945,3 +2945,201 @@ class SatellitePassForm(forms.Form):
                 "You've made an invalid submission. Please enter a valid US ZIP code."
             )
         return zip_code
+    
+# --- AI Token & API Cost Estimator ---
+class AITokenCostForm(forms.Form):
+    input_text = forms.CharField(
+        label="Enter or paste text to tokenize",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 6,
+                "placeholder": "Paste your text snippet, prompt, or data here to estimate its token count and API cost...",
+                "autofocus": True,
+            }
+        ),
+        validators=[
+            MinLengthValidator(1, message="Please provide some text to evaluate."),
+            # 5,000,000 characters ≈ 1.25M tokens — accommodates massive context 
+            # windows used by modern frontier models.
+            MaxLengthValidator(5000000, message="Text exceeds the 5,000,000-character limit for this tool (~1.25M tokens)."),
+        ],
+    )
+
+    TASK_CHOICES = [
+        ("summarize", "Summarization (≈15% of input, min. 150 tokens)"),
+        ("translate", "Translation / Proofreading (≈100% of input)"),
+        ("code",      "Code Refactoring (≈120% of input)"),
+        ("classify",  "Classification / Extraction (≈150 tokens fixed)"),
+        ("generate",  "Content Generation (≈50% of input, 500–4,000 token range)"),
+    ]
+
+    task_type = forms.ChoiceField(
+        label="What type of AI task is this?",
+        choices=TASK_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+# --- Cron Expression Builder ---
+class CronBuilderForm(forms.Form):
+    """
+    Validates user input for the Cron Expression Builder.
+    Field-level validation here keeps the view lean; business-logic
+    validation (croniter syntax check, timezone lookup) stays in the view
+    and utils so the view controls the error messaging UX.
+    """
+
+    cron_expression = forms.CharField(
+        label="Cron Expression",
+        max_length=100,
+        strip=True,
+        widget=forms.TextInput(attrs={
+            "class": "form-control form-control-lg font-monospace",
+            "id": "cron_expression",
+            "placeholder": "* * * * *",
+            "autocomplete": "off",
+            "spellcheck": "false",
+        }),
+        error_messages={
+            "required": "Please enter a cron expression.",
+        },
+    )
+
+    tz_select = forms.ChoiceField(
+        label="Timezone",
+        choices=[],               # populated in __init__ from the utils constant
+        widget=forms.Select(attrs={
+            "class": "form-select",
+            "id": "tz_select",
+        }),
+    )
+
+    num_runs = forms.IntegerField(
+        label="Next runs",
+        min_value=1,
+        max_value=50,
+        initial=10,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "id": "num_runs",
+        }),
+        error_messages={
+            "min_value": "Must request at least 1 run.",
+            "max_value": "Maximum is 50 runs.",
+            "invalid": "Please enter a valid whole number.",
+        },
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Deferred import — keeps utils out of module-load time.
+        from .cron_builder_utils import COMMON_TIMEZONES
+        self.fields["tz_select"].choices = [(tz, tz) for tz in COMMON_TIMEZONES]
+
+    def clean_cron_expression(self):
+        """Normalise whitespace. Hard syntax validation lives in the view/utils."""
+        value = self.cleaned_data.get("cron_expression", "").strip()
+        value = " ".join(value.split())
+        return value
+
+    def clean_num_runs(self):
+        """Clamp to [1, 50] even if browser validation was bypassed."""
+        value = self.cleaned_data.get("num_runs", 10)
+        if value is None:
+            return 10
+        return max(1, min(int(value), 50))
+
+# --- Unix Epoch/Timestamp Converter ---
+class EpochToHumanForm(forms.Form):
+    """
+    Tab A — accepts a raw Unix timestamp (seconds or milliseconds).
+    Validation of the numeric range and ms/s auto-detection happens in
+    the utils layer; this form just ensures the field isn't blank.
+    """
+
+    epoch_input = forms.CharField(
+        label="Unix Timestamp",
+        max_length=25,
+        strip=True,
+        widget=forms.TextInput(attrs={
+            "class": "form-control font-monospace",
+            "id": "epoch_input",
+            "placeholder": "e.g. 1700000000  or  1700000000000 (ms)",
+            "autocomplete": "off",
+        }),
+        error_messages={
+            "required": "Please enter a Unix timestamp.",
+        },
+    )
+
+    def clean_epoch_input(self):
+        value = self.cleaned_data.get("epoch_input", "").strip()
+        if not value:
+            raise forms.ValidationError("Please enter a Unix timestamp.")
+        try:
+            float(value)
+        except ValueError:
+            raise forms.ValidationError(
+                f"'{value}' is not a valid number. Enter a Unix timestamp in seconds or milliseconds."
+            )
+        return value
+
+# --- Unix Epoch/Timestamp Converter ---
+class HumanToEpochForm(forms.Form):
+    """
+    Tab B — accepts a human-readable date, time, and timezone,
+    and converts to a Unix epoch.
+    """
+
+    date_input = forms.DateField(
+        label="Date",
+        input_formats=["%Y-%m-%d"],
+        widget=forms.DateInput(attrs={
+            "class": "form-control",
+            "id": "date_input",
+            "type": "date",
+        }),
+        error_messages={
+            "required": "Please enter a date.",
+            "invalid": "Date must be in YYYY-MM-DD format.",
+        },
+    )
+
+    time_input = forms.CharField(
+        label="Time (HH:MM or HH:MM:SS)",
+        max_length=8,
+        strip=True,
+        widget=forms.TimeInput(attrs={
+            "class": "form-control font-monospace",
+            "id": "time_input",
+            "type": "time",
+            "step": "1",
+        }),
+        error_messages={
+            "required": "Please enter a time.",
+        },
+    )
+
+    tz_select = forms.ChoiceField(
+        label="Timezone",
+        choices=[],  # populated in __init__
+        widget=forms.Select(attrs={
+            "class": "form-select",
+            "id": "tz_select_human",
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Deferred import — keeps utils out of module-load time.
+        from .timestamp_converter_utils import COMMON_TIMEZONES
+        self.fields["tz_select"].choices = [(tz, tz) for tz in COMMON_TIMEZONES]
+
+    def clean_time_input(self):
+        """Normalise HH:MM → HH:MM:SS so strptime always has seconds."""
+        value = self.cleaned_data.get("time_input", "").strip()
+        if len(value) == 5:
+            value += ":00"
+        if len(value) != 8:
+            raise forms.ValidationError("Time must be in HH:MM or HH:MM:SS format.")
+        return value
