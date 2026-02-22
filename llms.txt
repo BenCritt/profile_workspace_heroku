@@ -18,6 +18,7 @@ Ben Crittenden is an IT professional and project manager based in the United Sta
 * **GitHub:** https://github.com/BenCritt
 * **Stack Overflow:** https://stackoverflow.com/users/21613304/ben-crittenden
 * **Twitter/X:** https://twitter.com/bencritt89
+* **BlueSky:** https://bsky.app/profile/bencritt.bsky.social
 * **BadgerBridge (UW Alumni):** https://badgerbridge.com/user/26380
 * **Goodreads:** https://www.goodreads.com/bencritt
 * **Steam:** https://steamcommunity.com/id/bencritt/
@@ -53,7 +54,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Warehouse Pallet Storage Estimator](https://www.bencritt.net/projects/warehouse-storage-calculator/) — Estimate maximum pallet capacity for any warehouse footprint, testing both standard and rotated orientations.
 
 ### SEO & Web Development
-* [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Scan URLs/sitemaps to export <head> tags (meta, canonical, OG, schema) to CSV.
+* [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Scan URLs/sitemaps to export `<head>` tags (meta, canonical, OG, schema) to CSV.
 * [Cookie Audit](https://www.bencritt.net/projects/cookie-audit/) — Analyze public pages for cookie attributes (expiration, HttpOnly, Secure, SameSite).
 * [Font Inspector](https://www.bencritt.net/projects/font-inspector/) — Detect loaded fonts, their sources (Google/Adobe/Local), and licensing requirements.
 * [XML Splitter](https://www.bencritt.net/projects/xml-splitter/) — Split multi-object XML files into individual well-formed XML files (downloadable ZIP).

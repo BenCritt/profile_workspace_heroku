@@ -519,7 +519,7 @@ def llms_txt(request):
     llms_path = os.path.join(settings.BASE_DIR, "llms.txt")
     try:
         with open(llms_path, "r", encoding="utf-8") as f:
-            return HttpResponse(f.read(), content_type="text/plain; charset=utf-8")
+            return HttpResponse(f.read(), content_type="text/markdown; charset=utf-8")
     except FileNotFoundError:
         return HttpResponseNotFound("llms.txt not found")
 

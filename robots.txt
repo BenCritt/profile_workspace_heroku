@@ -56,5 +56,6 @@ Disallow: /cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js
 Disallow: /cdn-cgi/styles/cf.errors.css
 
 Sitemap: https://www.bencritt.net/sitemap.xml
+Sitemap: https://www.bencritt.net/llms.txt
 
 Host: www.bencritt.net
