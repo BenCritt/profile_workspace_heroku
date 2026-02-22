@@ -115,79 +115,67 @@
         <!-- ── Health Score Banner ────────────────────────────────────── -->
         <div id="results-section" class="card mb-4 {% if score_pct >= 80 %}border-success{% elif score_pct >= 50 %}border-warning{% else %}border-danger{% endif %} bg-dark">
             <div class="card-body">
-                <div class="row align-items-center gx-3 gy-2">
+                <div class="row align-items-center gx-3 gy-3">
 
-                    <!-- Donut score ring. Arc colour uses the SVG stroke
-                         presentation attribute — standard SVG, not inline style. -->
-                    <div class="col-auto">
-                    <div class="og-score-ring position-relative">
-                        <svg viewBox="0 0 36 36" class="w-100 h-100">
-                            <!-- Track (background circle) -->
-                            <circle cx="18" cy="18" r="15.9155"
-                                    fill="none" stroke="#2d2d2d" stroke-width="3.5"/>
-                            <!-- Progress arc -->
-                            <circle cx="18" cy="18" r="15.9155"
-                                    fill="none"
-                                    stroke="{% if score_pct >= 80 %}#198754{% elif score_pct >= 50 %}#ffc107{% else %}#dc3545{% endif %}"
-                                    stroke-width="3.5"
-                                    stroke-dasharray="{{ score_pct }},100"
-                                    stroke-linecap="round"/>
-                        </svg>
-                        <div class="position-absolute top-50 start-50 translate-middle text-center">
-                            <div class="og-score-pct fw-bold lh-1">{{ score_pct }}%</div>
-                            <div class="og-score-raw text-muted">{{ score }}/{{ max_score }}</div>
+                    <div class="col-12 col-md-auto d-flex justify-content-center">
+                        <div class="og-score-ring position-relative">
+                            <svg viewBox="0 0 36 36" class="w-100 h-100">
+                                <circle cx="18" cy="18" r="15.9155"
+                                        fill="none" stroke="#2d2d2d" stroke-width="3.5"/>
+                                <circle cx="18" cy="18" r="15.9155"
+                                        fill="none"
+                                        stroke="{% if score_pct >= 80 %}#198754{% elif score_pct >= 50 %}#ffc107{% else %}#dc3545{% endif %}"
+                                        stroke-width="3.5"
+                                        stroke-dasharray="{{ score_pct }},100"
+                                        stroke-linecap="round"/>
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                <div class="og-score-pct fw-bold lh-1">{{ score_pct }}%</div>
+                                <div class="og-score-raw text-muted">{{ score }}/{{ max_score }}</div>
+                            </div>
                         </div>
-                    </div>
-                    </div><!-- /col-auto ring -->
+                    </div><div class="col-12 col-md">
+                        <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-2 align-items-center">
+                            {% if checks.has_og_title %}
+                            <span class="badge bg-success">&#10003; og:title</span>
+                            {% else %}
+                            <span class="badge bg-danger">&#10007; og:title missing</span>
+                            {% endif %}
 
-                    <!-- Check badges -->
-                    <div class="col overflow-hidden">
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        {% if checks.has_og_title %}
-                        <span class="badge bg-success">&#10003; og:title</span>
-                        {% else %}
-                        <span class="badge bg-danger">&#10007; og:title missing</span>
-                        {% endif %}
+                            {% if checks.has_og_description %}
+                            <span class="badge bg-success">&#10003; og:description</span>
+                            {% else %}
+                            <span class="badge bg-danger">&#10007; og:description missing</span>
+                            {% endif %}
 
-                        {% if checks.has_og_description %}
-                        <span class="badge bg-success">&#10003; og:description</span>
-                        {% else %}
-                        <span class="badge bg-danger">&#10007; og:description missing</span>
-                        {% endif %}
+                            {% if checks.has_og_image %}
+                            <span class="badge bg-success">&#10003; og:image</span>
+                            {% else %}
+                            <span class="badge bg-danger">&#10007; og:image missing</span>
+                            {% endif %}
 
-                        {% if checks.has_og_image %}
-                        <span class="badge bg-success">&#10003; og:image</span>
-                        {% else %}
-                        <span class="badge bg-danger">&#10007; og:image missing</span>
-                        {% endif %}
+                            {% if checks.has_twitter_card %}
+                            <span class="badge bg-success">&#10003; twitter:card</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">&#9888; twitter:card missing</span>
+                            {% endif %}
 
-                        {% if checks.has_twitter_card %}
-                        <span class="badge bg-success">&#10003; twitter:card</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark">&#9888; twitter:card missing</span>
-                        {% endif %}
+                            {% if checks.has_meta_desc %}
+                            <span class="badge bg-success">&#10003; meta description</span>
+                            {% else %}
+                            <span class="badge bg-danger">&#10007; meta description missing</span>
+                            {% endif %}
 
-                        {% if checks.has_meta_desc %}
-                        <span class="badge bg-success">&#10003; meta description</span>
-                        {% else %}
-                        <span class="badge bg-danger">&#10007; meta description missing</span>
-                        {% endif %}
-
-                        {% if checks.has_canonical %}
-                        <span class="badge bg-success">&#10003; canonical</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark">&#9888; canonical missing</span>
-                        {% endif %}
-                    </div>
-                    </div><!-- /col badges -->
-
-                    <!-- Fetch metadata -->
-                    <div class="col-auto text-end text-muted small og-fetch-info">
+                            {% if checks.has_canonical %}
+                            <span class="badge bg-success">&#10003; canonical</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">&#9888; canonical missing</span>
+                            {% endif %}
+                        </div>
+                    </div><div class="col-12 col-md-auto text-center text-md-end text-muted small og-fetch-info mx-auto mx-md-0">
                         Fetched in {{ elapsed }}s
                         <br><span class="og-fetch-url font-monospace">{{ final_url|truncatechars:60 }}</span>
-                    </div>
-
-                </div>
+                    </div></div>
             </div>
         </div>
 
