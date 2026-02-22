@@ -11,6 +11,7 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("og_previewer", "og-previewer"),
     ("cron_builder", "cron-builder"),
     ("timestamp_converter", "unix-timestamp-converter"),
     ("timestamp-converter", "unix-timestamp-converter"),

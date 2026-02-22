@@ -421,4 +421,8 @@ urlpatterns = [
         views.cron_builder,
         name="cron_builder",
     ),
+    path("projects/og-previewer/",
+         views.og_previewer,
+         name="og_previewer",
+    ),
 ]

@@ -60,6 +60,7 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [Structured Data / JSON-LD Validator](https://www.bencritt.net/projects/jsonld-validator/) — Extract and validate JSON-LD structured data, checking for syntax errors and schema.org compliance.
 * [Redirect Chain Checker](https://www.bencritt.net/projects/redirect-checker/) — Trace HTTP redirect chains (301/302/307/308) to detect loops and analyze latency.
 * [Robots.txt Analyzer](https://www.bencritt.net/projects/robots-analyzer/) — Parse robots.txt files to validate syntax and test URL paths against bot permissions.
+* [Open Graph & Social Card Previewer](https://www.bencritt.net/projects/og-previewer/) — Preview and audit how pages appear when shared on Google, Twitter/X, Facebook, and LinkedIn.
 
 ### Network & Infrastructure
 * [DNS Lookup Tool](https://www.bencritt.net/projects/dns-lookup/) — Query A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, and CAA records.

@@ -1,0 +1,423 @@
+/*
+ * og_previewer.css
+ * Scoped styles for the Open Graph & Social Card Previewer.
+ * Loaded via {% block page_stylesheets %} in og_previewer.html.
+ *
+ * Sections:
+ *   1. Health score ring
+ *   2. Fetch metadata line
+ *   3. Google SERP mockup
+ *   4. Twitter/X card mockup
+ *   5. Facebook card mockup
+ *   6. LinkedIn card mockup
+ *   7. Shared card primitives (images, fallbacks, placeholder text)
+ *   8. Audit table
+ *   9. Tab nav & misc
+ */
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   0. PAGE WRAPPER
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Constrains the centred content column, matching the redirect_checker layout.
+   redirect_checker uses style="max-width:900px" inline; we use a class to keep
+   the template free of inline styles. */
+.og-content-wrapper {
+    max-width: 980px;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1. HEALTH SCORE RING
+
+   Note: arc stroke colour is set via the SVG `stroke` presentation attribute
+   directly on the <circle> element (driven by a Django template conditional).
+   This is standard SVG markup — not an inline style="" attribute — so it
+   doesn't belong here in CSS. The .og-arc-* classes have been removed.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.og-score-ring {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+/* Rotate so the arc progress starts at the top rather than the right */
+.og-score-ring svg {
+    transform: rotate(-90deg);
+}
+
+/* Large percentage label in the centre of the ring */
+.og-score-pct {
+    font-size: 1.1rem;
+}
+
+/* "n/m" denominator label below the percentage */
+.og-score-raw {
+    font-size: 0.6rem;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2. FETCH METADATA LINE
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Right-hand col in the score banner — capped so monospace URLs
+   never blow out the flex row and cause a page-level scrollbar */
+.og-fetch-info {
+    max-width: 16rem;
+}
+
+/* Small monospace URL shown after "Fetched in Xs" —
+   truncates with ellipsis if the URL exceeds the column width */
+.og-fetch-url {
+    font-size: 0.7rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. GOOGLE SERP MOCKUP
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * Outer SERP wrapper — white background is intentional: it mirrors the real
+ * Google search result page, which is always light-themed.
+ */
+.og-google-card {
+    background: #fff;
+    border: 1px solid #dfe1e5;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Favicon <img> element */
+.og-favicon-img {
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Grey circle shown when no favicon URL was found */
+.og-favicon-placeholder {
+    width: 16px;
+    height: 16px;
+    background: #aaa;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* "domain › path › segment" breadcrumb text */
+.og-google-breadcrumb {
+    color: #202124;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+/* Blue clickable title row */
+.og-google-title {
+    color: #1a0dab;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    line-height: 1.3;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+/* Grey description snippet */
+.og-google-desc {
+    color: #4d5156;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4. TWITTER / X CARD MOCKUP
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Outer card shell — black with rounded corners matching X's card UI */
+.og-twitter-card {
+    background: #000;
+    border: 1px solid #2f3336;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 420px;
+}
+
+/* Summary card: square thumbnail wrapper on the left */
+.og-tw-thumb-wrap {
+    width: 100px;
+    flex-shrink: 0;
+    background: #16181c;
+    min-height: 80px;
+}
+
+/* Thumbnail <img> for the summary card */
+.og-tw-thumb {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Square placeholder shown when no image is available (summary card only) */
+.og-tw-thumb-placeholder {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+}
+
+/* Text block sitting beside (summary) or below (large image) the thumbnail */
+.og-tw-card-text {
+    padding: 12px;
+    color: #e7e9ea;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-width: 0;   /* required for text-overflow inside flex */
+}
+
+/* Card title — single line, ellipsis on overflow */
+.og-tw-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Description — clamped to 2 lines.
+   The -webkit-line-clamp approach remains the only cross-browser way to
+   clamp multi-line text. The standard `line-clamp` property is included
+   for forward compatibility, though browser support is still limited.     */
+.og-tw-card-desc {
+    font-size: 13px;
+    color: #71767b;
+    margin-top: 4px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    /* stylelint-disable-next-line property-no-vendor-prefix */
+    -webkit-box-orient: vertical;
+}
+
+/* Domain label below description */
+.og-tw-card-domain {
+    font-size: 13px;
+    color: #71767b;
+    margin-top: 6px;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5. FACEBOOK CARD MOCKUP
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Outer card shell — dark Facebook OG card */
+.og-fb-card {
+    background: #1c1e21;
+    border: 1px solid #3e4042;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 500px;
+    margin: 0 auto;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+/* Caption bar below the image */
+.og-fb-caption {
+    padding: 10px 12px;
+    background: #1c1e21;
+}
+
+/* Site name label — uppercased grey tag above the title */
+.og-fb-site-name {
+    font-size: 11px;
+    color: #b0b3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+}
+
+/* Post title — single line, ellipsis */
+.og-fb-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e4e6eb;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Description — clamped to 3 lines */
+.og-fb-desc {
+    font-size: 14px;
+    color: #b0b3b8;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    /* stylelint-disable-next-line property-no-vendor-prefix */
+    -webkit-box-orient: vertical;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6. LINKEDIN CARD MOCKUP
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Outer card shell — LinkedIn dark post link preview */
+.og-li-card {
+    background: #1b1f23;
+    border: 1px solid #38434f;
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 520px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Caption bar below the image */
+.og-li-caption {
+    padding: 8px 12px 10px;
+    background: #1b1f23;
+    border-top: 1px solid #38434f;
+}
+
+/* Post title — single line, ellipsis */
+.og-li-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Domain label below title */
+.og-li-domain {
+    font-size: 12px;
+    color: #8b949e;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7. SHARED CARD PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Standard 1.91:1 social banner image */
+.og-card-image {
+    width: 100%;
+    aspect-ratio: 1.91 / 1;
+    object-fit: cover;
+    display: block;
+}
+
+/* Static placeholder rendered when no image tag is present at all */
+.og-card-no-image {
+    width: 100%;
+    aspect-ratio: 1.91 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/*
+ * Fallback div shown when an image URL exists but fails to load.
+ * Hidden by default; the onerror handler on the <img> adds .og-img-error
+ * to reveal this element (and adds .d-none to the broken <img>).
+ */
+.og-card-image-fallback {
+    display: none;
+    width: 100%;
+    aspect-ratio: 1.91 / 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.og-card-image-fallback.og-img-error {
+    display: flex;
+}
+
+/* Per-platform background and text colours for no-image and fallback divs */
+.og-card--tw-dark { background: #16181c; color: #444; }
+.og-card--fb-dark { background: #3e4042; color: #aaa; }
+.og-card--li-dark { background: #2d3748; color: #aaa; }
+
+/* "No title / No description / No image" italic placeholder text in mockups */
+.og-no-value {
+    color: #888;
+    font-style: italic;
+}
+
+/* "(truncated)" annotation appended after clipped content */
+.og-trunc-note {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8. AUDIT TABLE
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.og-audit-table td,
+.og-audit-table th {
+    vertical-align: middle;
+}
+
+/* Narrow column for the ✓ / ✗ / – status icons */
+.og-audit-status-col {
+    width: 30px;
+}
+
+/* Value cell — constrained width so long URLs don't blow out the table */
+.og-audit-value-cell {
+    max-width: 380px;
+    word-break: break-all;
+}
+
+/* Raw-tags <details> value cell (slightly wider) */
+.og-raw-value-cell {
+    max-width: 400px;
+    word-break: break-all;
+}
+
+/* "recommended" badge sits flush next to monospace tag names */
+.og-audit-table .badge {
+    font-size: 0.58rem;
+    padding: 0.15em 0.4em;
+}
+
+/* <details> summary row gets a pointer cursor */
+.og-raw-summary {
+    cursor: pointer;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9. TAB NAV & MISC
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Slightly smaller <code> tags inside the platform source-notes cards */
+.og-source-note code {
+    font-size: 0.8rem;
+}
+
+/* Compact tab buttons on very small screens */
+@media (max-width: 480px) {
+    #platformTabs .nav-link {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}

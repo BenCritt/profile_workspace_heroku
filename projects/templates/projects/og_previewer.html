@@ -1,0 +1,604 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/og_previewer_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/og_previewer_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/og-previewer/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/og_previewer.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Open Graph &amp; Social Card Previewer | Preview Web Page Display in Social Media Posts{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center">
+
+    <h1 class="mb-4 text-center">Open Graph &amp; Social Card Previewer</h1>
+
+    <div class="w-100 og-content-wrapper">
+
+        <p class="text-center mb-4">
+            Enter any public URL to see how it appears when shared on Google, Twitter/X,
+            Facebook, and LinkedIn. Audits all <code>og:*</code>, <code>twitter:*</code>,
+            and core meta tags.
+        </p>
+
+        <!-- ── Input Form ───────────────────────────────────────────────── -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-body">
+                <form method="post" id="og-form" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12">
+                            <label for="url_input" class="form-label">Page URL</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="url_input"
+                                   name="url_input"
+                                   value="{{ url_input|default:'' }}"
+                                   placeholder="https://example.com/blog/my-post"
+                                   autocomplete="off"
+                                   spellcheck="false"
+                                   required>
+                            <div class="form-text text-muted mt-2">
+                                https:// is added automatically if omitted. The page is fetched server-side.
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100" id="submit-btn">
+                                Preview
+                            </button>
+                            <p class="mt-3 text-center">
+                                <a href="{% url 'projects:seo_tools' %}" class="btn btn-secondary w-100 mt-2">
+                                    <i class="bi bi-grid-3x3-gap-fill me-2"></i>Go to All SEO Tools
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                    {% endif %}
+
+                </form>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             RESULTS — only rendered after a successful server-side fetch.
+             Sentinel is `final_url` (always a non-empty string in context
+             after a successful fetch). Avoids the `score is not None` trap
+             where Django resolves undefined template vars to "" and
+             "" is not None evaluates True on every GET request.
+        ═══════════════════════════════════════════════════════════════════ -->
+        {% if final_url %}
+
+        <!-- GTM payload — serialised into a JSON script element so VS Code's
+             embedded JS linter never sees Django template tags in a JS block. -->
+        <script type="application/json" id="og-gtm-data">
+        {
+            "og_score_pct":    {{ score_pct }},
+            "og_score_raw":    "{{ score }}/{{ max_score }}",
+            "has_og_title":    {{ checks.has_og_title|yesno:"true,false" }},
+            "has_og_desc":     {{ checks.has_og_description|yesno:"true,false" }},
+            "has_og_image":    {{ checks.has_og_image|yesno:"true,false" }},
+            "has_tw_card":     {{ checks.has_twitter_card|yesno:"true,false" }},
+            "has_meta_desc":   {{ checks.has_meta_desc|yesno:"true,false" }},
+            "has_canonical":   {{ checks.has_canonical|yesno:"true,false" }},
+            "fetch_elapsed_s": {{ elapsed }},
+            "previewed_domain":"{{ final_url|truncatechars:100 }}"
+        }
+        </script>
+        <script>
+            (function () {
+                var dataEl = document.getElementById("og-gtm-data");
+                if (!dataEl || typeof window.gtmPush !== "function") { return; }
+                try {
+                    var d = JSON.parse(dataEl.textContent);
+                    window.gtmPush("og_previewer_result", d);
+                } catch (e) {
+                    console.error("og-gtm-data parse error", e);
+                }
+            }());
+        </script>
+
+        <!-- ── Health Score Banner ────────────────────────────────────── -->
+        <div id="results-section" class="card mb-4 {% if score_pct >= 80 %}border-success{% elif score_pct >= 50 %}border-warning{% else %}border-danger{% endif %} bg-dark">
+            <div class="card-body">
+                <div class="row align-items-center gx-3 gy-2">
+
+                    <!-- Donut score ring. Arc colour uses the SVG stroke
+                         presentation attribute — standard SVG, not inline style. -->
+                    <div class="col-auto">
+                    <div class="og-score-ring position-relative">
+                        <svg viewBox="0 0 36 36" class="w-100 h-100">
+                            <!-- Track (background circle) -->
+                            <circle cx="18" cy="18" r="15.9155"
+                                    fill="none" stroke="#2d2d2d" stroke-width="3.5"/>
+                            <!-- Progress arc -->
+                            <circle cx="18" cy="18" r="15.9155"
+                                    fill="none"
+                                    stroke="{% if score_pct >= 80 %}#198754{% elif score_pct >= 50 %}#ffc107{% else %}#dc3545{% endif %}"
+                                    stroke-width="3.5"
+                                    stroke-dasharray="{{ score_pct }},100"
+                                    stroke-linecap="round"/>
+                        </svg>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <div class="og-score-pct fw-bold lh-1">{{ score_pct }}%</div>
+                            <div class="og-score-raw text-muted">{{ score }}/{{ max_score }}</div>
+                        </div>
+                    </div>
+                    </div><!-- /col-auto ring -->
+
+                    <!-- Check badges -->
+                    <div class="col overflow-hidden">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        {% if checks.has_og_title %}
+                        <span class="badge bg-success">&#10003; og:title</span>
+                        {% else %}
+                        <span class="badge bg-danger">&#10007; og:title missing</span>
+                        {% endif %}
+
+                        {% if checks.has_og_description %}
+                        <span class="badge bg-success">&#10003; og:description</span>
+                        {% else %}
+                        <span class="badge bg-danger">&#10007; og:description missing</span>
+                        {% endif %}
+
+                        {% if checks.has_og_image %}
+                        <span class="badge bg-success">&#10003; og:image</span>
+                        {% else %}
+                        <span class="badge bg-danger">&#10007; og:image missing</span>
+                        {% endif %}
+
+                        {% if checks.has_twitter_card %}
+                        <span class="badge bg-success">&#10003; twitter:card</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">&#9888; twitter:card missing</span>
+                        {% endif %}
+
+                        {% if checks.has_meta_desc %}
+                        <span class="badge bg-success">&#10003; meta description</span>
+                        {% else %}
+                        <span class="badge bg-danger">&#10007; meta description missing</span>
+                        {% endif %}
+
+                        {% if checks.has_canonical %}
+                        <span class="badge bg-success">&#10003; canonical</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">&#9888; canonical missing</span>
+                        {% endif %}
+                    </div>
+                    </div><!-- /col badges -->
+
+                    <!-- Fetch metadata -->
+                    <div class="col-auto text-end text-muted small og-fetch-info">
+                        Fetched in {{ elapsed }}s
+                        <br><span class="og-fetch-url font-monospace">{{ final_url|truncatechars:60 }}</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Platform Tabs ──────────────────────────────────────────── -->
+        <ul class="nav nav-tabs mb-3" id="platformTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-google"
+                        type="button" role="tab" aria-controls="tab-google" aria-selected="true">
+                    &#128269; Google
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-twitter"
+                        type="button" role="tab" aria-controls="tab-twitter" aria-selected="false">
+                    &#120143; Twitter/X
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-facebook"
+                        type="button" role="tab" aria-controls="tab-facebook" aria-selected="false">
+                    &#128216; Facebook
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-linkedin"
+                        type="button" role="tab" aria-controls="tab-linkedin" aria-selected="false">
+                    &#128188; LinkedIn
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-audit"
+                        type="button" role="tab" aria-controls="tab-audit" aria-selected="false">
+                    &#128270; Tag Audit
+                </button>
+            </li>
+        </ul>
+
+        <!-- GTM tab-switch tracking — pure JS, no Django interpolation -->
+        <script>
+            document.querySelectorAll('#platformTabs button[data-bs-toggle="tab"]').forEach(function (btn) {
+                btn.addEventListener('shown.bs.tab', function (e) {
+                    if (typeof window.gtmPush === "function") {
+                        window.gtmPush("og_previewer_tab_switch", {
+                            tab_name: e.target.textContent.trim()
+                        });
+                    }
+                });
+            });
+        </script>
+
+        <div class="tab-content" id="platformTabContent">
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 GOOGLE SEARCH SNIPPET
+            ════════════════════════════════════════════════════════════ -->
+            <div class="tab-pane fade show active" id="tab-google" role="tabpanel" aria-labelledby="tab-google">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-8">
+
+                        <!-- White background intentionally mirrors Google SERP light theme -->
+                        <div class="og-google-card p-4 rounded-3 mb-3">
+
+                            <!-- Favicon + breadcrumb -->
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                {% if favicon %}
+                                <img src="{{ favicon }}" alt="" width="16" height="16"
+                                     loading="lazy" class="og-favicon-img"
+                                     onerror="this.classList.add('d-none')">
+                                {% else %}
+                                <div class="og-favicon-placeholder"></div>
+                                {% endif %}
+                                <span class="og-google-breadcrumb">{{ google_url_display }}</span>
+                            </div>
+
+                            <!-- Title -->
+                            <div class="og-google-title">
+                                {% if google_title %}{{ google_title }}{% else %}<span class="og-no-value">No title found</span>{% endif %}
+                                {% if google_title_trunc %}<span class="og-trunc-note"> (truncated)</span>{% endif %}
+                            </div>
+
+                            <!-- Description -->
+                            <div class="og-google-desc">
+                                {% if google_desc %}{{ google_desc }}{% else %}<span class="og-no-value">No meta description found &mdash; Google will auto-generate a snippet.</span>{% endif %}
+                                {% if google_desc_trunc %}<span class="og-trunc-note"> (truncated at 160 chars)</span>{% endif %}
+                            </div>
+
+                        </div>
+
+                        <div class="card bg-dark border-secondary og-source-note">
+                            <div class="card-body small text-secondary">
+                                <strong class="text-light">Google sources:</strong>
+                                title from <code>og:title</code> &rarr; <code>&lt;title&gt;</code> &middot;
+                                description from <code>meta name="description"</code> &rarr; <code>og:description</code> &middot;
+                                breadcrumb from <code>canonical</code> or final URL.
+                                Google may override any of these with auto-generated content.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TWITTER / X CARDS
+            ════════════════════════════════════════════════════════════ -->
+            <div class="tab-pane fade" id="tab-twitter" role="tabpanel" aria-labelledby="tab-twitter">
+                <div class="row g-4 justify-content-center">
+
+                    <!-- Summary card (small square thumbnail) -->
+                    <div class="col-12 col-md-6">
+                        <h6 class="text-secondary mb-2">
+                            Summary Card <code class="small">twitter:card="summary"</code>
+                            {% if tw_card_type == "summary" %}<span class="badge bg-success ms-1">Active</span>{% endif %}
+                        </h6>
+                        <div class="og-twitter-card">
+                            <div class="d-flex">
+                                <!-- Square thumbnail — left side -->
+                                <div class="og-tw-thumb-wrap">
+                                    {% if tw_image %}
+                                    <img src="{{ tw_image }}" alt="" loading="lazy"
+                                         class="og-tw-thumb"
+                                         onerror="this.classList.add('d-none');this.nextElementSibling.classList.add('og-img-error')">
+                                    <div class="og-card-image-fallback og-card--tw-dark">No image</div>
+                                    {% else %}
+                                    <div class="og-tw-thumb-placeholder">No image</div>
+                                    {% endif %}
+                                </div>
+                                <!-- Text block -->
+                                <div class="og-tw-card-text">
+                                    <div class="og-tw-card-title">{{ tw_sum_title|default:"(No title)" }}</div>
+                                    <div class="og-tw-card-desc">{{ tw_sum_desc|default:"No description." }}</div>
+                                    <div class="og-tw-card-domain">{{ tw_domain }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Large Image card -->
+                    <div class="col-12 col-md-6">
+                        <h6 class="text-secondary mb-2">
+                            Summary Large Image <code class="small">twitter:card="summary_large_image"</code>
+                            {% if tw_card_type == "summary_large_image" %}<span class="badge bg-success ms-1">Active</span>{% endif %}
+                        </h6>
+                        <div class="og-twitter-card">
+                            {% if tw_image %}
+                            <img src="{{ tw_image }}" alt="" loading="lazy"
+                                 class="og-card-image"
+                                 onerror="this.classList.add('d-none');this.nextElementSibling.classList.add('og-img-error')">
+                            <div class="og-card-image-fallback og-card--tw-dark">Image failed to load</div>
+                            {% else %}
+                            <div class="og-card-no-image og-card--tw-dark">No og:image or twitter:image found</div>
+                            {% endif %}
+                            <div class="og-tw-card-text">
+                                <div class="og-tw-card-title">{{ tw_lg_title|default:"(No title)" }}</div>
+                                <div class="og-tw-card-desc">{{ tw_lg_desc|default:"No description." }}</div>
+                                <div class="og-tw-card-domain">
+                                    {{ tw_domain }}{% if tw_site %} &middot; {{ tw_site }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row justify-content-center mt-3">
+                    <div class="col-12 col-lg-10">
+                        <div class="card bg-dark border-secondary og-source-note">
+                            <div class="card-body small text-secondary">
+                                <strong class="text-light">Twitter/X sources:</strong>
+                                <code>twitter:title</code> &rarr; <code>og:title</code> &rarr; <code>&lt;title&gt;</code> &middot;
+                                <code>twitter:description</code> &rarr; <code>og:description</code> &middot;
+                                <code>twitter:image</code> &rarr; <code>og:image</code> &middot;
+                                Card type set by <code>twitter:card</code>
+                                (detected: <code>{{ tw_card_type|default:"not set, defaults to summary" }}</code>).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 FACEBOOK / OPEN GRAPH
+            ════════════════════════════════════════════════════════════ -->
+            <div class="tab-pane fade" id="tab-facebook" role="tabpanel" aria-labelledby="tab-facebook">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8">
+
+                        <div class="og-fb-card">
+                            {% if base_image %}
+                            <img src="{{ base_image }}" alt="" loading="lazy"
+                                 class="og-card-image"
+                                 onerror="this.classList.add('d-none');this.nextElementSibling.classList.add('og-img-error')">
+                            <div class="og-card-image-fallback og-card--fb-dark">Image failed to load</div>
+                            {% else %}
+                            <div class="og-card-no-image og-card--fb-dark">No og:image found</div>
+                            {% endif %}
+                            <div class="og-fb-caption">
+                                <div class="og-fb-site-name">{{ fb_site_name }}</div>
+                                <div class="og-fb-title">
+                                    {% if fb_title %}{{ fb_title }}{% else %}<span class="og-no-value">No title</span>{% endif %}
+                                    {% if fb_title_trunc %}<span class="og-trunc-note"> (truncated)</span>{% endif %}
+                                </div>
+                                <div class="og-fb-desc">
+                                    {% if fb_desc %}{{ fb_desc }}{% else %}<span class="og-no-value">No og:description found.</span>{% endif %}
+                                    {% if fb_desc_trunc %}<span class="og-trunc-note"> (truncated)</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-dark border-secondary mt-3 og-source-note">
+                            <div class="card-body small text-secondary">
+                                <strong class="text-light">Facebook sources:</strong>
+                                <code>og:title</code> &middot; <code>og:description</code> &middot; <code>og:image</code>
+                                (recommended: 1200&times;630 px, &ge;600 KB) &middot;
+                                <code>og:site_name</code> for the grey label above the title &middot;
+                                <code>og:url</code> as canonical for de-duplication &middot;
+                                <code>og:type</code>: <code>{{ og_type }}</code>.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 LINKEDIN
+            ════════════════════════════════════════════════════════════ -->
+            <div class="tab-pane fade" id="tab-linkedin" role="tabpanel" aria-labelledby="tab-linkedin">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8">
+
+                        <div class="og-li-card">
+                            {% if base_image %}
+                            <img src="{{ base_image }}" alt="" loading="lazy"
+                                 class="og-card-image"
+                                 onerror="this.classList.add('d-none');this.nextElementSibling.classList.add('og-img-error')">
+                            <div class="og-card-image-fallback og-card--li-dark">Image failed to load</div>
+                            {% else %}
+                            <div class="og-card-no-image og-card--li-dark">No og:image found</div>
+                            {% endif %}
+                            <div class="og-li-caption">
+                                <div class="og-li-title">
+                                    {% if li_title %}{{ li_title }}{% else %}<span class="og-no-value">No title</span>{% endif %}
+                                    {% if li_title_trunc %}<span class="og-trunc-note"> (truncated)</span>{% endif %}
+                                </div>
+                                <div class="og-li-domain">{{ li_domain }}</div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-dark border-secondary mt-3 og-source-note">
+                            <div class="card-body small text-secondary">
+                                <strong class="text-light">LinkedIn sources:</strong>
+                                <code>og:title</code> &rarr; <code>twitter:title</code> &rarr; <code>&lt;title&gt;</code> &middot;
+                                <code>og:image</code> (recommended: 1200&times;627 px) &middot;
+                                LinkedIn caches OG data aggressively &mdash; use the
+                                <a href="https://www.linkedin.com/post-inspector/" target="_blank" rel="noopener noreferrer"
+                                   class="text-info">Post Inspector (linkedin.com/post-inspector)</a>
+                                to force a refresh after updates.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAG AUDIT TABLE
+            ════════════════════════════════════════════════════════════ -->
+            <div class="tab-pane fade" id="tab-audit" role="tabpanel" aria-labelledby="tab-audit">
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm table-hover table-bordered align-middle og-audit-table">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th class="og-audit-status-col"></th>
+                                <th>Property / Tag</th>
+                                <th>Group</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in audit %}
+                            <tr>
+                                <td class="text-center">
+                                    {% if row.present %}
+                                    <span class="text-success" title="Present">&#10003;</span>
+                                    {% elif row.is_important %}
+                                    <span class="text-danger" title="Missing (recommended)">&#10007;</span>
+                                    {% else %}
+                                    <span class="text-muted" title="Not set (optional)">&ndash;</span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-monospace small">
+                                    {{ row.property }}
+                                    {% if row.is_important and not row.present %}
+                                    <span class="badge bg-danger ms-1">recommended</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if row.group == 'og' %}bg-primary
+                                        {% elif row.group == 'twitter' %}bg-dark border
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ row.group }}
+                                    </span>
+                                </td>
+                                <td class="og-audit-value-cell small">
+                                    {% if row.value %}
+                                        {% if "image" in row.property and row.value|slice:":4" == "http" %}
+                                        <a href="{{ row.value }}" target="_blank" rel="noopener noreferrer"
+                                           class="text-info">{{ row.value|truncatechars:80 }}</a>
+                                        {% else %}
+                                        <span class="text-light">{{ row.value|truncatechars:120 }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="text-muted fst-italic">not set</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if raw_tags %}
+                <details class="mt-3">
+                    <summary class="og-raw-summary text-secondary">
+                        All parsed <code>&lt;head&gt;</code> tags ({{ raw_tags|length }} total)
+                    </summary>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-dark table-sm table-bordered">
+                            <thead class="table-secondary"><tr><th>Key</th><th>Value</th></tr></thead>
+                            <tbody>
+                                {% for key, val in raw_tags.items %}
+                                {% if not key|slice:":1" == "_" %}
+                                <tr>
+                                    <td class="font-monospace small">{{ key }}</td>
+                                    <td class="og-raw-value-cell small">{{ val|truncatechars:200 }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                {% endif %}
+
+            </div><!-- /tab-audit -->
+
+        </div><!-- /tab-content -->
+
+        {% endif %}<!-- /final_url -->
+
+    </div><!-- /og-content-wrapper -->
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div><!-- /container -->
+
+<!-- Spinner on submit -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("og-form");
+        var btn  = document.getElementById("submit-btn");
+        if (form && btn) {
+            form.addEventListener("submit", function () {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" ' +
+                    'role="status" aria-hidden="true"></span> Fetching\u2026';
+            });
+        }
+    });
+</script>
+
+<!-- Auto-scroll + iframe resize (matches redirect_checker pattern) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Auto-scroll to results only when NOT embedded in an iframe
+        if (window.self === window.top) {
+            var resultsDiv = document.getElementById("results-section");
+            if (resultsDiv) {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Send height to parent when embedded in an iframe
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('embedded');
+
+            var lastHeight = 0;
+            var sendHeight = function () {
+                var h = document.documentElement.scrollHeight;
+                if (h !== lastHeight) {
+                    lastHeight = h;
+                    window.parent.postMessage({ type: 'setHeight', height: h }, '*');
+                }
+            };
+
+            window.addEventListener('load', sendHeight);
+            window.addEventListener('resize', sendHeight);
+            new ResizeObserver(sendHeight).observe(document.body);
+        }
+    });
+</script>
+
+{% endblock %}

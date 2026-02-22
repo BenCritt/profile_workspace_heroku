@@ -89,6 +89,16 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Open Graph Previewer</h2>
+                    <img src="{% static 'img/all-projects/og-previewer.webp' %}" alt="Open Graph Previewer" class="img-fluid rounded my-3">
+                    <p class="card-text">Preview how your page appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audit all Open Graph and Twitter Card tags in one place.</p>
+                    <a href="{% url 'projects:og_previewer' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="OG Previewer">Use OG Previewer</a>
+                </div>
+            </div>
+
         </div>  
         
         {# --- Iframe Preview Cards (Width: 450px) --- #}
@@ -169,6 +179,19 @@
                         scrolling="yes">
                     </iframe>
                     <a href="{% url 'projects:robots_analyzer' %}" class="btn btn-secondary mt-3">Open Robots Analyzer Page</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe 
+                        src="{% url 'projects:og_previewer' %}" 
+                        class="tool-iframe" 
+                        title="Open Graph & Social Card Previewer"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:og_previewer' %}" class="btn btn-secondary mt-3">Open OG Previewer Page</a>
                 </div>
             </div>
 

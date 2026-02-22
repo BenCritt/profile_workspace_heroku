@@ -84,6 +84,7 @@ class StaticViewSitemap(Sitemap):
             "projects:ai_api_cost_estimator",
             "projects:timestamp_converter",
             "projects:cron_builder",
+            "projects:og_previewer",
         ]
 
     def location(self, item):

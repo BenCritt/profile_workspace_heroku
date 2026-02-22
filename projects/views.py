@@ -1059,6 +1059,12 @@ def all_projects(request):
             "url_name": "projects:timestamp_converter",
             "image": "unix-timestamp-converter.webp",
             "description": "Convert Unix epoch timestamps to human-readable datetimes — and back. Auto-detects seconds vs. milliseconds, shows results across all major timezones, outputs ISO 8601 format, and includes a live epoch ticker."
+        },
+        {
+            "title": "Open Graph & Social Card Previewer",
+            "url_name": "projects:og_previewer",
+            "image": "og-previewer.webp",
+            "description": "Preview how your page appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all Open Graph, Twitter Card, and core meta tags in one place with a visual health score."
         }
     ]
     
@@ -2563,3 +2569,77 @@ def timestamp_converter(request):
         context["error"] = "Invalid mode. Please use the form buttons."
 
     return render(request, "projects/timestamp_converter.html", context)
+
+# Open Graph & Social Card Previewer
+def og_previewer(request):
+    from urllib.parse import urlparse
+    from .forms import OGPreviewerForm
+    from .og_previewer_utils import (
+        REQUESTS_AVAILABLE,
+        build_card_data,
+        fetch_head_html,
+        normalise_url,
+        parse_tags,
+    )
+    """
+    Main view.
+
+    GET  – render the blank form.
+    POST – validate URL, fetch page, parse head, build card data, render results.
+    """
+    context: dict = {
+        "requests_available": REQUESTS_AVAILABLE,
+        "url_input":          "",
+        "form":               OGPreviewerForm(),
+    }
+
+    if request.method != "POST":
+        return render(request, "projects/og_previewer.html", context)
+
+    raw_url = request.POST.get("url_input", "").strip()
+    context["url_input"] = raw_url
+
+    # Re-populate form with submitted value so the input stays filled on error.
+    context["form"] = OGPreviewerForm(initial={"url_input": raw_url})
+
+    if not raw_url:
+        context["error"] = "Please enter a URL."
+        return render(request, "projects/og_previewer.html", context)
+
+    # Prepend scheme if missing, then basic sanity-check the result.
+    url    = normalise_url(raw_url)
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.netloc:
+        context["error"] = (
+            "That doesn't look like a valid URL. Please include a domain name."
+        )
+        return render(request, "projects/og_previewer.html", context)
+
+    # ── Fetch ──────────────────────────────────────────────────────────────────
+    try:
+        html, final_url, elapsed = fetch_head_html(url)
+    except ValueError as exc:
+        context["error"] = str(exc)
+        return render(request, "projects/og_previewer.html", context)
+
+    # ── Parse ──────────────────────────────────────────────────────────────────
+    try:
+        tags = parse_tags(html)
+    except Exception as exc:
+        context["error"] = f"Failed to parse page HTML: {exc}"
+        return render(request, "projects/og_previewer.html", context)
+
+    # ── Build card data ────────────────────────────────────────────────────────
+    try:
+        card_data = build_card_data(tags, final_url)
+    except Exception as exc:
+        context["error"] = f"Unexpected error building card data: {exc}"
+        return render(request, "projects/og_previewer.html", context)
+
+    context.update({
+        "elapsed":   elapsed,
+        "final_url": final_url,
+        **card_data,
+    })
+
+    return render(request, "projects/og_previewer.html", context)

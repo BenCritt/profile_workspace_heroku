@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/seo-tools/#webpage",
       "name": "SEO Professional Toolkit",
-      "description": "A collection of web-based SEO utilities including SEO Head Checker, Redirect Chain Checker, Font Inspector, Cookie Audit, and Robots.txt Analyzer.",
+      "description": "A collection of web-based SEO utilities including SEO Head Checker, Open Graph & Social Card Previewer, Redirect Chain Checker, Font Inspector, Cookie Audit, and Robots.txt Analyzer.",
       "url": "https://www.bencritt.net/projects/seo-tools/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -61,6 +61,11 @@
             "@type": "ListItem",
             "position": 6,
             "item": { "@id": "https://www.bencritt.net/projects/robots-analyzer/#app" }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": { "@id": "https://www.bencritt.net/projects/og-previewer/#app" }
           }
         ]
       },
@@ -70,7 +75,8 @@
         { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" },
         { "@id": "https://www.bencritt.net/projects/jsonld-validator/#app" },
         { "@id": "https://www.bencritt.net/projects/redirect-checker/#app" },
-        { "@id": "https://www.bencritt.net/projects/robots-analyzer/#app" }
+        { "@id": "https://www.bencritt.net/projects/robots-analyzer/#app" },
+        { "@id": "https://www.bencritt.net/projects/og-previewer/#app" }
       ]
     },
 
@@ -189,6 +195,28 @@
         "Test specific paths against Allow/Disallow rules",
         "Analyze user-agent groups and crawl delays",
         "Detect and list sitemap references"
+      ]
+    },
+
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/og-previewer/#app",
+      "name": "Open Graph & Social Card Previewer",
+      "description": "Preview how any public URL appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all Open Graph, Twitter Card, and core meta tags with a visual health score.",
+      "applicationCategory": "SEO Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/og-previewer/",
+      "image": "https://www.bencritt.net/static/img/all-projects/og-previewer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Google SERP snippet preview",
+        "Twitter/X Summary and Large Image card previews",
+        "Facebook and LinkedIn card previews",
+        "Full tag audit table with pass/warn/fail indicators",
+        "OG health score with visual donut ring"
       ]
     }
 

@@ -3143,3 +3143,28 @@ class HumanToEpochForm(forms.Form):
         if len(value) != 8:
             raise forms.ValidationError("Time must be in HH:MM or HH:MM:SS format.")
         return value
+    
+# --- Open Graph Previewer ---
+class OGPreviewerForm(forms.Form):
+    url_input = forms.URLField(
+        label="Page URL",
+        max_length=2048,
+        widget=forms.TextInput(attrs={
+            "class":        "form-control",
+            "id":           "url_input",
+            "placeholder":  "nintendo.com",
+            "autocomplete": "off",
+            "spellcheck":   "false",
+        }),
+        # Allow bare domains; normalise_url() prepends https:// in the view.
+        # We override the default URLField validator to accept non-schemed input
+        # gracefully — the view will normalise and re-validate.
+        error_messages={
+            "required": "Please enter a URL.",
+            "invalid":  "That doesn't look like a valid URL. Please include a domain name.",
+        },
+    )
+
+    def clean_url_input(self):
+        """Strip whitespace; let the view handle scheme injection."""
+        return self.cleaned_data.get("url_input", "").strip()
