@@ -88,13 +88,13 @@
         font-size: 1.15rem;
     }
 
-    /* Stack twilight table on small screens */
-    .table-responsive {
+    /* Reduce font size for ALL tables on small screens so they fit */
+    .table {
         font-size: 0.85rem;
     }
 
-    /* Ensure satellite table scrolls horizontally */
-    .table-responsive table {
+    /* Ensure ONLY the satellite table scrolls horizontally */
+    .sat-passes-table table {
         min-width: 600px;
     }
 }
