@@ -55,7 +55,7 @@
 
     {% if report %}
     <!-- Results Section -->
-    <div class="results-container w-100">
+    <div class="results-container w-100" id="results-section">
 
         <!-- Location & Rating Header -->
         <div class="text-center mb-4">
@@ -513,6 +513,14 @@
             if (width !== null) {
                 bars[i].style.width = width + '%';
             }
+        }
+
+        // Auto-scroll to results
+        var resultsDiv = document.getElementById("results-section");
+        if (resultsDiv && !isEmbedded) {
+            setTimeout(function() {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
 
         // When embedded in an iframe on the hub page, report content height

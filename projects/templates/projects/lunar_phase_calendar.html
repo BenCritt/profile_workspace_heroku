@@ -88,7 +88,7 @@
     {% endif %}
 
     {% if calendar_data %}
-
+    <div id="results-section"></div>
     {# ── Location label ── #}
     {% if location_label %}
     <p class="text-center text-muted mb-2">
@@ -282,4 +282,16 @@
     </div>
 
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.self !== window.top) return;
+        
+        var resultsDiv = document.getElementById("results-section");
+        if (resultsDiv) {
+            setTimeout(function() {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    });
+</script>
 {% endblock content %}

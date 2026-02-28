@@ -43,6 +43,7 @@
     </form>
 
     {% if result and result.passes %}
+        <div id="results-section"></div>
         <h2 class="h4 mb-2">{{ result.satellite.name }}</h2>
         <p class="text-muted mb-4">{{ result.satellite.description }}</p>
 
@@ -131,4 +132,16 @@
     </div>
 
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.self !== window.top) return; 
+        
+        var resultsDiv = document.getElementById("results-section");
+        if (resultsDiv) {
+            setTimeout(function() {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    });
+</script>
 {% endblock content %}

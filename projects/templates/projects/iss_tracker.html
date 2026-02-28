@@ -66,6 +66,7 @@
     </div>
 
     {% if iss_pass_times %}
+        <div id="results-section"></div>
         <h2 class="h4 mb-3">Upcoming ISS Pass Times</h2>
         <div class="table-responsive w-100 mb-4 shadow-sm rounded" style="max-width: 800px;">
             <table class="table table-hover mb-0 text-center align-middle">
@@ -147,12 +148,21 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-                    // Only run if the table cells exist
-                    if(document.getElementById('latitude')) {
-                        updateCurrentData();
-                        setInterval(updateCurrentData, 10000); // 10 seconds
-                    }
-                });
+            // Only run if the table cells exist
+            if(document.getElementById('latitude')) {
+                updateCurrentData();
+                setInterval(updateCurrentData, 10000); // 10 seconds
+            }
+
+            // Auto-scroll to results
+            var resultsDiv = document.getElementById("results-section");
+            if (resultsDiv && window.self === window.top) {
+                setTimeout(function() {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        });
     })();
 </script>
+
 {% endblock content %}
