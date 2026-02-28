@@ -30,7 +30,6 @@
         satellite passes, and an overall stargazing quality rating.
     </p>
 
-    <!-- ZIP Code Form -->
     <form method="POST" class="mb-5 text-center w-100 nsp-form-container" id="night-sky-form"
           data-gtm-tool="Night Sky Planner" data-gtm-category="Space and Astronomy">
         {% csrf_token %}
@@ -54,10 +53,11 @@
     {% endif %}
 
     {% if report %}
-    <!-- Results Section -->
-    <div class="results-container w-100" id="results-section">
+    
+    <div id="results-section" style="scroll-margin-top: 1.5rem;"></div>
 
-        <!-- Location & Rating Header -->
+    <div class="results-container w-100">
+
         <div class="text-center mb-4">
             <h2 class="h4">
                 Tonight's Sky in {{ report.locality }}{% if report.state %}, {{ report.state }}{% endif %}
@@ -69,7 +69,6 @@
             </p>
         </div>
 
-        <!-- Stargazing Quality Rating -->
         <div class="row justify-content-center mb-4">
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow-sm quality-card">
@@ -94,7 +93,6 @@
                             Overall Score: {{ report.quality.score }}/100
                         </div>
 
-                        <!-- Score Breakdown -->
                         <div class="mt-3">
                             <div class="row text-start small">
                                 <div class="col-6">
@@ -156,10 +154,8 @@
             </div>
         </div>
 
-        <!-- Main Info Cards Row -->
         <div class="row g-4 mb-4">
 
-            <!-- Dark Sky Window Card -->
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header">
@@ -223,7 +219,6 @@
                 </div>
             </div>
 
-            <!-- Moon Info Card -->
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header">
@@ -277,7 +272,6 @@
             </div>
         </div>
 
-        <!-- Golden Hour Card -->
         <div class="row g-4 mb-4">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
@@ -313,7 +307,6 @@
                 </div>
             </div>
 
-            <!-- Quick Tips Card -->
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header">
@@ -350,7 +343,6 @@
             </div>
         </div>
 
-        <!-- Satellite Passes Table -->
         {% if report.satellites %}
         <div class="row mb-4">
             <div class="col-12">
@@ -430,7 +422,6 @@
             {% endif %}
         {% endif %}
 
-        <!-- Methodology / Educational Section -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card shadow-sm">
@@ -496,17 +487,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         var isEmbedded = document.documentElement.classList.contains('embedded');
 
-        // Auto-focus ZIP code input on page load (desktop only, not when embedded)
-        if (!isEmbedded && window.innerWidth >= 768) {
-            var input = document.getElementById('id_zip_code');
-            if (input && !input.value) {
-                input.focus();
-            }
-        }
-
         // Set progress bar widths from data-width attributes.
-        // This avoids placing Django template variables inside inline
-        // style attributes, which causes false linter warnings in IDEs.
         var bars = document.querySelectorAll('.quality-progress');
         for (var i = 0; i < bars.length; i++) {
             var width = bars[i].getAttribute('data-width');
@@ -515,18 +496,24 @@
             }
         }
 
-        // Auto-scroll to results
+        // Auto-scroll to results (Do this BEFORE deciding to auto-focus)
         var resultsDiv = document.getElementById("results-section");
-        if (resultsDiv && !isEmbedded) {
+        if (resultsDiv && window.self === window.top) {
+            // Increase timeout slightly so massive flexboxes have fully painted
             setTimeout(function() {
                 resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            }, 150);
+        } else if (!isEmbedded && window.innerWidth >= 768) {
+            // Only auto-focus ZIP code input on page load IF we aren't scrolling.
+            // (If they fight, the focus command instantly drags you back up to the top!)
+            var input = document.getElementById('id_zip_code');
+            if (input && !input.value) {
+                input.focus();
+            }
         }
 
         // When embedded in an iframe on the hub page, report content height
         // to the parent so iframe-handler.js can resize the iframe.
-        // Fires on initial load and again after a short delay to catch
-        // late-rendering content (web fonts, images, etc.).
         if (isEmbedded && window.parent !== window) {
             var reportHeight = function() {
                 window.parent.postMessage(
