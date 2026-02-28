@@ -77,10 +77,10 @@ def _compute_day_phase(year: int, month: int, day: int) -> dict:
     # Moon phase angle = angular separation between moon and sun ecliptic longitudes
     # ephem provides moon.moon_phase (0–1 illumination fraction) directly,
     # but we also want the directional angle to determine waxing vs waning.
-    moon_lon = math.degrees(float(moon.hlong))   # heliocentric longitude ≈ ecliptic lon
-    sun_lon  = math.degrees(float(sun.hlong))
+    moon_ra = math.degrees(float(moon.ra))   # Use geocentric Right Ascension
+    sun_ra  = math.degrees(float(sun.ra))
 
-    phase_angle = (moon_lon - sun_lon) % 360.0
+    phase_angle = (moon_ra - sun_ra) % 360.0
 
     # ephem.Moon.moon_phase is the illuminated fraction (0.0–1.0); multiply by 100
     illumination = round(moon.moon_phase * 100.0, 1)
