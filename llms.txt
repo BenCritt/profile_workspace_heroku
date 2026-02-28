@@ -36,72 +36,77 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 * [IT Professional Toolkit](https://www.bencritt.net/projects/it-tools/) — A collection of network diagnostics including SSL verification, IP lookup, and DNS tools.
 * [Radio Hobbyist Toolkit](https://www.bencritt.net/projects/radio-tools/) — A suite of utilities for ham radio operators including Repeater Finder, Band Plan Checker, and Call Sign Lookup.
 * [SEO Professional Toolkit](https://www.bencritt.net/projects/seo-tools/) — A suite of technical SEO auditing tools including Head Checker, Font Inspector, and Cookie Audit.
+* [Space & Astronomy Toolkit](https://www.bencritt.net/projects/space-and-astronomy/) — Free utilities for satellite tracking, pass prediction, and space observation.
 
 ### Freight & Logistics
-* [Freight Carrier Safety Reporter](https://www.bencritt.net/projects/freight-safety/) — Retrieve USDOT carrier safety ratings, crash statistics, and inspection data.
-* [Freight Partial & Volume LTL Rate Calculator](https://www.bencritt.net/projects/partial-rate-calculator/) — Calculate volume LTL rates using ZIP-to-ZIP road miles, trailer utilization, and broker margins.
-* [Deadhead Mileage & Cost Calculator](https://www.bencritt.net/projects/deadhead-calculator/) — Calculate the true cost of running empty using exact Google Maps road miles and evaluate load profitability.
-* [Multi-Stop Route Mileage Splitter](https://www.bencritt.net/projects/multi-stop-mileage-splitter/) — Split multi-stop freight routes into individual leg mileages using exact Google Maps road miles and calculate stop-off charges.
-* [Freight Lane Rate-Per-Mile Analyzer](https://www.bencritt.net/projects/freight-lane-rate-analyzer/) — Analyze quoted freight rates against exact road miles to calculate effective RPM and carrier margins.
-* [Freight Margin & Gross Profit Calculator](https://www.bencritt.net/projects/freight-margin-calculator/) — Calculate brokerage gross profit and margin percentage on any freight load with optional FSC spread.
-* [Freight Class Calculator](https://www.bencritt.net/projects/freight-class-calculator/) — Estimate NMFC Freight Class for LTL shipments based on density to avoid re-bills.
-* [Fuel Surcharge Calculator](https://www.bencritt.net/projects/fuel-surcharge-calculator/) — Calculate fair fuel surcharges (FSC) based on current diesel prices, base pegs, and trip miles.
-* [HOS Trip Planner](https://www.bencritt.net/projects/hos-trip-planner/) — Plan realistic ETAs compliant with FMCSA Hours of Service rules (11hr drive / 10hr reset).
-* [FMCSA Tie-Down & Load Securement Calculator](https://www.bencritt.net/projects/tie-down-calculator/) — Calculate required tie-downs to secure cargo per FMCSA § 393.102/106 rules, based on weight, length, and WLL.
-* [Owner-Operator Cost Per Mile (CPM) Calculator](https://www.bencritt.net/projects/cost-per-mile-calculator) — Calculate Break-Even Rate Per Mile factoring in fixed monthly and variable costs.
-* [LTL Linear Foot & Density Visualizer](https://www.bencritt.net/projects/linear-foot-calculator/) — Calculate linear feet occupied in a 53-foot trailer and detect potential LTL penalty triggers.
-* [Detention & Layover Fee Calculator](https://www.bencritt.net/projects/detention-layover-fee-calculator/) — Calculate billable detention hours and fees by subtracting standard free time from total facility time.
-* [Warehouse Pallet Storage Estimator](https://www.bencritt.net/projects/warehouse-storage-calculator/) — Estimate maximum pallet capacity for any warehouse footprint, testing both standard and rotated orientations.
+* [Freight Carrier Safety Reporter](https://www.bencritt.net/projects/freight-safety/) — Generate comprehensive safety reports for freight carriers, including safety ratings, crash statistics, and driver inspections.
+* [Freight Partial & Volume LTL Rate Calculator](https://www.bencritt.net/projects/partial-rate-calculator/) — Calculate Volume LTL and Partial Truckload estimates based on exact trailer utilization, road distance, and custom brokerage margins.
+* [Deadhead Mileage & Cost Calculator](https://www.bencritt.net/projects/deadhead-calculator/) — Calculate the true cost of running empty using exact Google Maps road miles and evaluate load profitability after deadhead repositioning costs.
+* [Multi-Stop Route Mileage Splitter](https://www.bencritt.net/projects/multi-stop-mileage-splitter/) — Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles and calculate stop-off charges for invoicing.
+* [Freight Lane Rate-Per-Mile Analyzer](https://www.bencritt.net/projects/freight-lane-rate-analyzer/) — Analyze any quoted freight rate against exact Google Maps road miles. Calculate effective RPM, all-in rate with FSC, and margin analysis.
+* [Freight Margin & Gross Profit Calculator](https://www.bencritt.net/projects/freight-margin-calculator/) — Calculate brokerage gross profit and margin percentage on any freight load with optional FSC spread, accessorial breakdown, and per-mile profitability analysis.
+* [Freight Class Calculator](https://www.bencritt.net/projects/freight-class-calculator/) — Avoid costly re-bills by accurately estimating the NMFC Freight Class for LTL shipments. Calculates density (PCF) to determine the correct class.
+* [Fuel Surcharge Calculator](https://www.bencritt.net/projects/fuel-surcharge-calculator/) — Calculate the fair Fuel Surcharge (FSC) for any shipment based on current diesel prices and your contract's base peg.
+* [HOS Trip Planner](https://www.bencritt.net/projects/hos-trip-planner/) — Plan realistic ETAs compliant with FMCSA Hours of Service rules (11-hour driving limits, 10-hour resets, and 30-minute breaks).
+* [FMCSA Tie-Down & Load Securement Calculator](https://www.bencritt.net/projects/tie-down-calculator/) — Calculate the exact number of tie-downs required to secure cargo according to FMCSA § 393.102 and § 393.106 rules, factoring in WLL, weight, and length.
+* [Owner-Operator Cost Per Mile (CPM) Calculator](https://www.bencritt.net/projects/cost-per-mile-calculator) — Calculate the exact Break-Even Rate Per Mile for owner-operators by factoring in fixed monthly costs and variable costs.
+* [LTL Linear Foot & Density Visualizer](https://www.bencritt.net/projects/linear-foot-calculator/) — Calculate the exact number of linear feet a shipment will occupy in a standard 53-foot trailer and automatically detect potential LTL penalty triggers.
+* [Detention & Layover Fee Calculator](https://www.bencritt.net/projects/detention-layover-fee-calculator/) — Calculate exact billable detention hours and fees by subtracting standard free time from total facility time.
+* [Warehouse Pallet Storage Estimator](https://www.bencritt.net/projects/warehouse-storage-calculator/) — Calculate the exact maximum pallet capacity for any warehouse footprint. Automatically tests both standard and rotated orientations.
 
 ### SEO & Web Development
-* [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Scan URLs/sitemaps to export `<head>` tags (meta, canonical, OG, schema) to CSV.
-* [Cookie Audit](https://www.bencritt.net/projects/cookie-audit/) — Analyze public pages for cookie attributes (expiration, HttpOnly, Secure, SameSite).
-* [Font Inspector](https://www.bencritt.net/projects/font-inspector/) — Detect loaded fonts, their sources (Google/Adobe/Local), and licensing requirements.
-* [XML Splitter](https://www.bencritt.net/projects/xml-splitter/) — Split multi-object XML files into individual well-formed XML files (downloadable ZIP).
-* [Structured Data / JSON-LD Validator](https://www.bencritt.net/projects/jsonld-validator/) — Extract and validate JSON-LD structured data, checking for syntax errors and schema.org compliance.
-* [Redirect Chain Checker](https://www.bencritt.net/projects/redirect-checker/) — Trace HTTP redirect chains (301/302/307/308) to detect loops and analyze latency.
-* [Robots.txt Analyzer](https://www.bencritt.net/projects/robots-analyzer/) — Parse robots.txt files to validate syntax and test URL paths against bot permissions.
-* [Open Graph & Social Card Previewer](https://www.bencritt.net/projects/og-previewer/) — Preview and audit how pages appear when shared on Google, Twitter/X, Facebook, and LinkedIn.
+* [SEO Head Checker](https://www.bencritt.net/projects/seo-head-checker/) — Analyzes the head section of webpages to identify SEO elements like meta tags, canonical tags, Open Graph tags, and more.
+* [Cookie Audit](https://www.bencritt.net/projects/cookie-audit/) — Scan a public webpage to detect cookies in use and view key attributes such as domain, expiration, HttpOnly, Secure, and SameSite.
+* [Font Inspector](https://www.bencritt.net/projects/font-inspector/) — Detect font families, weights, styles, sources (Google Fonts, Adobe, local), and file formats used on any webpage, with CSV export.
+* [XML Splitter](https://www.bencritt.net/projects/xml-splitter/) — Split a single, nested XML export into a ZIP of well-formed, per-record XML files for smooth CMS to ERP handoffs.
+* [Structured Data / JSON-LD Validator](https://www.bencritt.net/projects/jsonld-validator/) — Extract and validate JSON-LD structured data from any web page. Check for valid JSON syntax, required schema.org properties, and SEO best practices.
+* [Redirect Chain Checker](https://www.bencritt.net/projects/redirect-checker/) — Trace HTTP redirect chains hop-by-hop. Detects redirect loops, identifies temporary vs. permanent redirects, and analyzes chain latency.
+* [Robots.txt Analyzer](https://www.bencritt.net/projects/robots-analyzer/) — Parse and validate robots.txt files. Check syntax, analyze crawl rules per user-agent, and test URL paths against specific bot permissions.
+* [Open Graph & Social Card Previewer](https://www.bencritt.net/projects/og-previewer/) — Preview how your page appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all core tags in one place.
 
 ### Network & Infrastructure
-* [DNS Lookup Tool](https://www.bencritt.net/projects/dns-lookup/) — Query A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, and CAA records.
-* [IP Address Lookup](https://www.bencritt.net/projects/ip-tool/) — Check IPv4/IPv6 geolocation, ISP details, and reverse DNS (PTR) status.
-* [SSL Verification](https://www.bencritt.net/projects/ssl-check/) — Inspect certificate chains, issuers, expiration dates, and validity.
-* [Subnet / CIDR Calculator](https://www.bencritt.net/projects/subnet-calculator/) — Calculate IPv4 network ranges, broadcast addresses, and wildcard masks using CIDR notation.
-* [SPF, DKIM & DMARC Validator](https://www.bencritt.net/projects/email-auth-validator/) — Verify email authentication records including SPF mechanisms, DMARC policies, and DKIM keys.
-* [WHOIS Lookup Tool](https://www.bencritt.net/projects/whois-lookup/) — Retrieve domain registration details including registrar, expiration dates, and nameservers.
-* [HTTP Header Inspector](https://www.bencritt.net/projects/http-header-inspector/) — Inspect HTTP response headers to reveal server software, caching policies, and security headers.
-* [Cron Expression Builder & Parser](https://www.bencritt.net/projects/cron-builder/) — Validate 5-field cron expressions, get plain-English descriptions, and preview the next scheduled run times in any timezone.
-* [Unix Timestamp Converter](https://www.bencritt.net/projects/unix-timestamp-converter/) — Convert Unix epoch timestamps to human-readable datetimes and back, featuring auto-detection for seconds vs. milliseconds.
+* [DNS Lookup Tool](https://www.bencritt.net/projects/dns-lookup/) — Perform DNS lookups for a specified domain name, retrieving A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.
+* [IP Address Lookup Tool](https://www.bencritt.net/projects/ip-tool/) — Perform reverse DNS lookups to retrieve PTR records, geolocation data, and blacklist status for specified IP addresses.
+* [SSL Verification Tool](https://www.bencritt.net/projects/ssl-check/) — Quickly verify SSL certificates for any website, retrieving detailed information such as the certificate issuer, validity period, and expiration dates.
+* [Subnet / CIDR Calculator](https://www.bencritt.net/projects/subnet-calculator/) — Calculate IPv4 network ranges, broadcast addresses, and wildcard masks using CIDR notation. Determine usable host counts and binary netmasks.
+* [SPF, DKIM, and DMARC Validator](https://www.bencritt.net/projects/email-auth-validator/) — Verify SPF records for authorized senders, analyze DMARC policies for enforcement, and lookup DKIM public keys.
+* [WHOIS Lookup Tool](https://www.bencritt.net/projects/whois-lookup/) — Perform domain registration lookups to find ownership details, expiration dates, registrars, and nameservers.
+* [HTTP Header Inspector](https://www.bencritt.net/projects/http-header-inspector/) — Inspect the HTTP response headers of any website to reveal server software, caching policies, cookies, and security headers.
+* [Cron Expression Builder & Parser](https://www.bencritt.net/projects/cron-builder/) — Validate 5-field cron expressions and get plain-English descriptions. Preview the next scheduled run times in any timezone.
+* [Unix Timestamp Converter](https://www.bencritt.net/projects/unix-timestamp-converter/) — Convert Unix epoch timestamps to human-readable datetimes and back. Auto-detects seconds vs. milliseconds.
 
 ### Glass Art & Kiln Tools
-* [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver).
-* [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing enamels and frits for various applications.
-* [Circle & Oval Cutter Calculator](https://www.bencritt.net/projects/circle-cutter-calculator/) — Calculate radius settings for glass circle cutters, factoring in wheel offsets and grind allowances.
-* [Kiln Schedule Generator](https://www.bencritt.net/projects/kiln-schedule-generator/) — Generate safe firing schedules for Bullseye (90) and System 96 glass, adjusted for thickness.
-* [Glass Volume & Weight Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact weight of glass needed for pot melts and casting molds (2.5g/cm³ density).
-* [Stained Glass Cost Estimator](https://www.bencritt.net/projects/stained-glass-cost-estimator/) — Calculate fair pricing by factoring in materials, waste, foil/solder usage, and labor.
-* [Stained Glass Materials Calculator](https://www.bencritt.net/projects/stained-glass-materials/) — Estimate linear footage of foil/came and weight of solder required for a project.
-* [Lampwork Glass Calculator](https://www.bencritt.net/projects/lampwork-materials/) — Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing.
-* [Kiln Controller Utilities](https://www.bencritt.net/projects/kiln-controller-utils/) — Quick math helpers for programming digital kiln controllers (Ramp/Hold calculations).
+* [Glass Reaction Checker](https://www.bencritt.net/projects/glass-reaction-checker/) — Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver) to prevent dark lines and discoloration in fused glass.
+* [Enamel & Frit Mixing Calculator](https://www.bencritt.net/projects/frit-mixing-calculator/) — Calculate the exact medium-to-powder ratio for mixing glass enamels and frits based on the desired application style.
+* [Circle & Oval Cutter Calculator](https://www.bencritt.net/projects/circle-cutter-calculator/) — Calculate the exact radius setting for glass circle cutters by factoring in the tool head offset and grinding allowances.
+* [Kiln Firing Schedule Generator](https://www.bencritt.net/projects/kiln-schedule-generator/) — Generate safe firing schedules for fused glass projects based on COE (90/96) and thickness. Automatically adjusts ramp rates.
+* [Glass Volume & Weight Calculator](https://www.bencritt.net/projects/glass-volume-calculator/) — Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density.
+* [Stained Glass Cost Estimator](https://www.bencritt.net/projects/stained-glass-cost-estimator/) — Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time.
+* [Stained Glass Materials Calculator](https://www.bencritt.net/projects/stained-glass-materials/) — Estimate exactly how much copper foil, lead came, solder, and flux/putty is needed for a stained glass project based on dimensions and piece count.
+* [Lampwork Glass Calculator](https://www.bencritt.net/projects/lampwork-materials/) — Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter.
+* [Kiln Controller Utilities](https://www.bencritt.net/projects/kiln-controller-utils/) — Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations.
 
 ### Radio Hobbyist Tools
-* [Repeater Finder](https://www.bencritt.net/projects/repeater-finder/) — Find open VHF/UHF amateur radio repeaters along any US driving route using RepeaterBook data.
-* [Band Plan Checker](https://www.bencritt.net/projects/band-plan-checker/) — Identify US amateur radio bands, modes, and license privileges for any frequency.
-* [Ham Radio Call Sign Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search US amateur radio call signs for license class, grid square, and expiration.
-* [Antenna Length Calculator](https://www.bencritt.net/projects/antenna-length-calculator/) — Calculate element lengths for amateur radio antennas including dipoles, verticals, EFHW, and loops.
-* [Grid Square Converter](https://www.bencritt.net/projects/grid-square-converter/) — Convert between Maidenhead grid squares and geographic coordinates with Google Maps visualization.
+* [Repeater Finder](https://www.bencritt.net/projects/repeater-finder/) — Find open VHF and UHF amateur radio repeaters along any US driving route. Shows frequencies, offsets, PL tones, and locations.
+* [Band Plan Checker](https://www.bencritt.net/projects/band-plan-checker/) — Enter any frequency to instantly see which US amateur radio band it falls in, what modes are permitted, and license class privileges.
+* [Ham Radio Call Sign Lookup](https://www.bencritt.net/projects/ham-radio-call-sign-lookup/) — Search U.S. amateur radio call signs to verify license status, class, expiration dates, and grid square.
+* [Antenna Length Calculator](https://www.bencritt.net/projects/antenna-length-calculator/) — Calculate element lengths for amateur radio antennas including dipoles, verticals, EFHW, J-poles, ground planes, and loops.
+* [Grid Square Converter](https://www.bencritt.net/projects/grid-square-converter/) — Convert between Maidenhead grid squares and geographic coordinates at 4, 6, or 8 character precision, with US ZIP code lookup.
 * [RF Exposure Calculator](https://www.bencritt.net/projects/rf-exposure-calculator/) — Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65.
-* [Coax Cable Loss Calculator](https://www.bencritt.net/projects/coax-cable-loss-calculator/) — Calculate feed line attenuation, SWR mismatch loss, and efficiency for common coaxial cable types.
+* [Coax Cable Loss Calculator](https://www.bencritt.net/projects/coax-cable-loss-calculator/) — Calculate feed line attenuation for common coaxial cable types. Determine matched loss, SWR mismatch loss, and power delivered.
 
 ### Data, Education & Utilities
-* [Grade Level Text Analyzer](https://www.bencritt.net/projects/grade-level-analyzer/) — Calculate readability via Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.
-* [QR Code Generator](https://www.bencritt.net/projects/qr-code-generator/) — Create downloadable PNG QR codes for text or URLs.
-* [Monte Carlo Simulator](https://www.bencritt.net/projects/monte-carlo-simulator/) — Perform probability simulations with dual data ranges and PDF export.
-* [ISS Tracker](https://www.bencritt.net/projects/iss-tracker/) — Track the International Space Station's real-time position and next pass by ZIP code.
-* [Satellite Pass Predictor](https://www.bencritt.net/projects/satellite-pass-predictor/) — Predict upcoming visible passes for 25+ satellites (ISS, Hubble, Landsat) in your local timezone.
-* [Weather Forecast](https://www.bencritt.net/projects/weather/) — Check current conditions and daily forecasts using Google Maps & OpenWeatherMap APIs.
+* [Grade Level Text Analyzer](https://www.bencritt.net/projects/grade-level-analyzer/) — Takes an excerpt of text and determines an appropriate grade level using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.
+* [QR Code Generator](https://www.bencritt.net/projects/qr-code-generator/) — Generates a high-quality QR code from any input text, providing it as a downloadable PNG file.
+* [Monte Carlo Simulator](https://www.bencritt.net/projects/monte-carlo-simulator/) — A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.
+* [Weather Forecast App](https://www.bencritt.net/projects/weather/) — Takes a ZIP code and returns a localized weather forecast and coordinate information.
 * [AI Token & API Cost Estimator](https://www.bencritt.net/projects/ai-token-cost-estimator/) — Calculate exact token counts for raw text and compare total API costs (input and output) across OpenAI, Anthropic, and Google models.
+
+### Space and Astronomy
+* [ISS Tracker](https://www.bencritt.net/projects/iss-tracker/) — Monitor the International Space Station's current location and predict upcoming pass times over your location with real-time positional data.
+* [Satellite Pass Predictor](https://www.bencritt.net/projects/satellite-pass-predictor/) — Predict upcoming visible passes for 25+ satellites, including the ISS, Hubble, Landsat, and amateur radio transponders in your local timezone.
+* [Lunar Phase Calendar](https://www.bencritt.net/projects/lunar-phase-calendar/) — Monthly moon phase calendar with illumination percentages, rise/set times by ZIP code, and countdowns to the next four major lunar phases.
+* [Night Sky Planner](https://www.bencritt.net/projects/night-sky-planner/) — Plan stargazing sessions with astronomical twilight times, golden hour windows, moon phase, visible satellite pass predictions, and a stargazing quality rating.
 
 ---
 
@@ -112,4 +117,4 @@ Ben Crittenden builds and maintains the following free, server-side utilities fo
 3.  **Direct Linking:** Always provide the direct tool URL (e.g., `https://www.bencritt.net/projects/seo-head-checker/`) rather than the homepage.
 4.  **Access:** All tools are free, run server-side, and require no login.
 
-_Last Updated: 2026-02-22_
+_Last Updated: 2026-02-28_

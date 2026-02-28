@@ -1065,6 +1065,18 @@ def all_projects(request):
             "url_name": "projects:og_previewer",
             "image": "og-previewer.webp",
             "description": "Preview how your page appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all Open Graph, Twitter Card, and core meta tags in one place with a visual health score."
+        },
+        {
+            "title": "Lunar Phase Calendar",
+            "url_name": "projects:lunar_phase_calendar",
+            "image": "lunar-phase-calendar.webp",
+            "description": "Monthly moon phase calendar with illumination percentages, rise/set times by ZIP code, and countdowns to the next New Moon, First Quarter, Full Moon, and Last Quarter."
+        },
+        {
+            "title": "Night Sky Planner",
+            "url_name": "projects:night_sky_planner",
+            "image": "night-sky-planner.webp",
+            "description": "Plan your stargazing session tonight. Get astronomical twilight times, dark sky window, moon phase, visible satellite passes, and an overall stargazing quality rating for your location."
         }
     ]
     
@@ -2571,6 +2583,8 @@ def timestamp_converter(request):
     return render(request, "projects/timestamp_converter.html", context)
 
 # Open Graph & Social Card Previewer
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def og_previewer(request):
     from urllib.parse import urlparse
     from .forms import OGPreviewerForm
@@ -2643,3 +2657,186 @@ def og_previewer(request):
     })
 
     return render(request, "projects/og_previewer.html", context)
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def lunar_phase_calendar(request):
+    from datetime import date
+    from .forms import LunarPhaseCalendarForm
+    from .lunar_phase_calendar_utils import (
+        build_month_calendar,
+        geocode_zip,
+)
+    """
+    Lunar Phase Calendar view.
+
+    GET  → renders current month with phase data only (no location needed).
+    POST → renders user-selected month; if ZIP provided, adds rise/set times.
+
+    Template: projects/lunar_phase_calendar.html
+    """
+    today = date.today()
+
+    form = LunarPhaseCalendarForm(
+        request.POST or None,
+        initial={"month": today.month, "year": today.year},
+    )
+
+    context = {
+        "form":           form,
+        "calendar_data":  None,
+        "location_label": None,
+        "error":          None,
+    }
+
+    if request.method == "POST" and form.is_valid():
+        month    = form.cleaned_data["month"]
+        year     = form.cleaned_data["year"]
+        zip_code = form.cleaned_data["zip_code"]
+
+        lat = lon = tz_name = None
+        location_label = None
+
+        # ── Optional ZIP geocoding ────────────────────────────────────────────
+        if zip_code:
+            geo = geocode_zip(zip_code)
+            if geo:
+                lat, lon, city, state, tz_name = geo
+                location_label = f"{city}, {state} ({zip_code})"
+            else:
+                context["error"] = (
+                    f"ZIP code \"{zip_code}\" could not be located. "
+                    "Showing phase data without rise/set times."
+                )
+
+        # ── Build calendar ────────────────────────────────────────────────────
+        try:
+            context["calendar_data"]  = build_month_calendar(
+                year=year,
+                month=month,
+                lat=lat,
+                lon=lon,
+                tz_name=tz_name or "UTC",
+            )
+            context["location_label"] = location_label
+        except Exception as exc:
+            context["error"] = f"Calendar calculation failed: {exc}"
+
+    else:
+        # ── GET: show current month with phase data only ──────────────────────
+        try:
+            context["calendar_data"] = build_month_calendar(
+                year=today.year,
+                month=today.month,
+            )
+        except Exception as exc:
+            context["error"] = f"Could not load calendar: {exc}"
+
+    return render(request, "projects/lunar_phase_calendar.html", context)
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def night_sky_planner(request):
+    from .forms import NightSkyPlannerForm
+    from .night_sky_utils import get_night_sky_report
+
+    form = NightSkyPlannerForm()
+    report = None
+    error = None
+    local_times = {}
+
+    # Support both GET (shareable URLs) and POST
+    zip_code = None
+    if request.method == "POST":
+        form = NightSkyPlannerForm(request.POST)
+        if form.is_valid():
+            zip_code = form.cleaned_data["zip_code"]
+    elif request.method == "GET" and "zip_code" in request.GET:
+        form = NightSkyPlannerForm(request.GET)
+        if form.is_valid():
+            zip_code = form.cleaned_data["zip_code"]
+
+    if zip_code:
+        report = get_night_sky_report(zip_code)
+
+        if not report.get("success"):
+            error = report.get("error", "An unexpected error occurred.")
+            report = None
+        else:
+            # Let the helper function handle the timezone extraction
+            local_times = _format_local_times(report)
+
+    context = {
+        "form": form,
+        "report": report,
+        "error": error,
+        "local_times": local_times,
+    }
+
+    return render(request, "projects/night_sky_planner.html", context)
+
+def _format_local_times(report):
+    import zoneinfo
+    from datetime import timezone
+
+    # Look for a timezone string (e.g., "America/Chicago") from the backend.
+    # Safely falls back to UTC if the key is missing.
+    tz_name = report.get("timezone", "UTC")
+    try:
+        tz = zoneinfo.ZoneInfo(tz_name)
+    except zoneinfo.ZoneInfoNotFoundError:
+        tz = timezone.utc
+
+    time_fmt = "%I:%M %p"      # e.g., "07:42 PM"
+    full_fmt = "%I:%M %p %Z"   # e.g., "07:42 PM CST" - %Z now works correctly!
+
+    def fmt(dt, use_full=False):
+        if dt is None:
+            return "N/A"
+            
+        # This converts the UTC datetime to the target timezone
+        local_dt = dt.astimezone(tz)
+        try:
+            formatted_time = local_dt.strftime(full_fmt if use_full else time_fmt)
+            return formatted_time.lstrip("0")
+        except ValueError:
+            return local_dt.isoformat()
+
+    twilight = report.get("twilight", {})
+    moon = report.get("moon", {})
+
+    times = {
+        # Sunset / Sunrise
+        "sunset": fmt(twilight.get("sunset"), use_full=True),
+        "sunrise": fmt(twilight.get("sunrise"), use_full=True),
+
+        # Twilight boundaries
+        "civil_twilight_end": fmt(twilight.get("civil_twilight_end")),
+        "civil_twilight_start": fmt(twilight.get("civil_twilight_start")),
+        "nautical_twilight_end": fmt(twilight.get("nautical_twilight_end")),
+        "nautical_twilight_start": fmt(twilight.get("nautical_twilight_start")),
+        "astro_twilight_end": fmt(twilight.get("astro_twilight_end")),
+        "astro_twilight_start": fmt(twilight.get("astro_twilight_start")),
+
+        # Dark window
+        "dark_window_start": fmt(twilight.get("dark_window_start"), use_full=True),
+        "dark_window_end": fmt(twilight.get("dark_window_end"), use_full=True),
+
+        # Golden hour
+        "golden_hour_evening_start": fmt(twilight.get("golden_hour_evening_start")),
+        "golden_hour_evening_end": fmt(twilight.get("golden_hour_evening_end")),
+        "golden_hour_morning_start": fmt(twilight.get("golden_hour_morning_start")),
+        "golden_hour_morning_end": fmt(twilight.get("golden_hour_morning_end")),
+
+        # Moon
+        "moonrise": fmt(moon.get("moonrise")),
+        "moonset": fmt(moon.get("moonset")),
+    }
+
+    # Inject formatted local times directly onto each satellite pass
+    for sat_pass in report.get("satellites", []):
+        sat_pass["local_rise_time"] = fmt(sat_pass.get("rise_time"))
+        sat_pass["local_max_alt_time"] = fmt(sat_pass.get("max_alt_time"))
+        sat_pass["local_set_time"] = fmt(sat_pass.get("set_time"))
+
+    return times

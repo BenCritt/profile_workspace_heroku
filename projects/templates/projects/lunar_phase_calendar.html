@@ -1,0 +1,285 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/lunar_phase_calendar_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/lunar_phase_calendar_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/lunar-phase-calendar/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/lunar_phase_calendar.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Lunar Phase Calendar | Monthly Moon Phases, Rise/Set Times &amp; Illumination{% endblock title %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center">
+
+    <h1 class="mb-4 text-center">Lunar Phase Calendar</h1>
+    <p class="text-muted text-center mb-4">
+        Monthly moon phases, illumination percentages, and rise/set times — powered by Skyfield.
+    </p>
+
+    {# ── Form ── #}
+    <form method="POST" class="mb-4 w-100 lunar-form-container"
+          data-gtm-tool="Lunar Phase Calendar"
+          data-gtm-category="Space and Astronomy">
+        {% csrf_token %}
+
+        <div class="row g-3 justify-content-center mb-3">
+
+            {# Month #}
+            <div class="col-12 col-sm-4 col-md-3">
+                <label for="{{ form.month.id_for_label }}" class="form-label fw-semibold">Month</label>
+                {{ form.month }}
+                {% if form.month.errors %}
+                    <div class="text-danger small mt-1">{{ form.month.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            {# Year #}
+            <div class="col-12 col-sm-3 col-md-2">
+                <label for="{{ form.year.id_for_label }}" class="form-label fw-semibold">Year</label>
+                {{ form.year }}
+                {% if form.year.errors %}
+                    <div class="text-danger small mt-1">{{ form.year.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+            {# ZIP — optional #}
+            <div class="col-12 col-sm-5 col-md-4">
+                <label for="{{ form.zip_code.id_for_label }}" class="form-label fw-semibold">
+                    ZIP Code
+                    <span class="badge bg-secondary ms-1" style="font-size:.65rem;">Optional</span>
+                </label>
+                {{ form.zip_code }}
+                <div class="form-text">{{ form.zip_code.help_text }}</div>
+                {% if form.zip_code.errors %}
+                    <div class="text-danger small mt-1">{{ form.zip_code.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+            <button type="submit" id="lunar-submit-btn" class="btn btn-primary px-5">
+                <i class="bi bi-moon-stars-fill me-2"></i>Generate Calendar
+            </button>
+            <a href="{% url 'projects:space_and_astronomy' %}" class="btn btn-secondary">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Back to Space Toolkit
+            </a>
+        </div>
+
+    </form>
+
+    {# ── Error banner ── #}
+    {% if error %}
+    <div class="alert alert-danger w-100 text-center mb-4" style="max-width:700px;" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    {% if calendar_data %}
+
+    {# ── Location label ── #}
+    {% if location_label %}
+    <p class="text-center text-muted mb-2">
+        <i class="bi bi-geo-alt-fill me-1 text-primary"></i>
+        Rise/set times for <strong>{{ location_label }}</strong>
+        <span class="ms-1 small text-secondary">({{ calendar_data.tz_name }})</span>
+    </p>
+    {% endif %}
+
+    {# ── Month heading + prev/next nav ── #}
+    <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+        <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ calendar_data.prev_month }}">
+            <input type="hidden" name="year"  value="{{ calendar_data.prev_year }}">
+            {% if location_label %}
+            <input type="hidden" name="zip_code" value="{{ form.zip_code.value }}">
+            {% endif %}
+            <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Previous month">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </form>
+
+        <h2 class="h4 mb-0 text-center lunar-month-heading">{{ calendar_data.month_name }}</h2>
+
+        <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ calendar_data.next_month }}">
+            <input type="hidden" name="year"  value="{{ calendar_data.next_year }}">
+            {% if location_label %}
+            <input type="hidden" name="zip_code" value="{{ form.zip_code.value }}">
+            {% endif %}
+            <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Next month">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </form>
+    </div>
+
+    {# ── Calendar grid ── #}
+    <div class="table-responsive w-100 mb-5 shadow-sm rounded lunar-calendar-wrapper">
+        <table class="table table-bordered mb-0 text-center lunar-calendar-table">
+            <thead>
+                <tr>
+                        <th scope="col" class="lunar-dow">Sun</th>
+                    <th scope="col" class="lunar-dow">Mon</th>
+                    <th scope="col" class="lunar-dow">Tue</th>
+                    <th scope="col" class="lunar-dow">Wed</th>
+                    <th scope="col" class="lunar-dow">Thu</th>
+                    <th scope="col" class="lunar-dow">Fri</th>
+                    <th scope="col" class="lunar-dow">Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in calendar_data.weeks %}
+                <tr>
+                    {% for day in week %}
+                    {% if day is None %}
+                        <td class="lunar-cell lunar-cell--empty"></td>
+                    {% else %}
+                        {# Determine CSS modifier classes #}
+                        <td class="lunar-cell{% if day.is_today %} lunar-cell--today{% endif %}{% if day.major_phase_name %} lunar-cell--major-phase{% endif %} lunar-phase--{{ day.phase_name|slugify }}"
+                            data-bs-toggle="{% if day.major_phase_name %}tooltip{% endif %}"
+                            data-bs-placement="top"
+                            title="{% if day.major_phase_name %}{{ day.major_phase_name }} at {{ day.major_phase_time }}{% endif %}">
+
+                            {# Day number #}
+                            <div class="lunar-day-number{% if day.is_today %} lunar-today-badge{% endif %}">
+                                {{ day.day }}
+                            </div>
+
+                            {# Phase emoji — large focal element #}
+                            <div class="lunar-emoji" aria-label="{{ day.phase_name }}">{{ day.phase_emoji }}</div>
+
+                            {# Phase name + illumination #}
+                            <div class="lunar-phase-name">{{ day.phase_name }}</div>
+                            <div class="lunar-illumination">
+                                <i class="bi bi-brightness-high-fill me-1" style="font-size:.65rem;"></i>{{ day.illumination }}%
+                            </div>
+
+                            {# Major phase badge #}
+                            {% if day.major_phase_name %}
+                            <div class="lunar-major-badge">
+                                {{ day.major_phase_emoji }} {{ day.major_phase_name }}
+                            </div>
+                            {% endif %}
+
+                            {# Rise / set (only when location provided; data merged into day dict by utils) #}
+                            {% if calendar_data.has_location %}
+                            <div class="lunar-rise-set">
+                                {% if day.up_all_day %}
+                                    <span class="text-warning">↑ All Day</span>
+                                {% elif day.down_all_day %}
+                                    <span class="text-secondary">↓ All Night</span>
+                                {% else %}
+                                    {% if day.moon_rise and day.moon_rise != "—" %}
+                                    <span class="lunar-rise">↑ {{ day.moon_rise }}</span>
+                                    {% endif %}
+                                    {% if day.moon_set and day.moon_set != "—" %}
+                                    <span class="lunar-set">↓ {{ day.moon_set }}</span>
+                                    {% endif %}
+                                    {% if day.moon_rise == "—" and day.moon_set == "—" %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                        </td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# ── Next Major Phases countdown ── #}
+    {% if calendar_data.next_phases %}
+    <h2 class="h5 mb-3 text-center">Next Major Phases</h2>
+    <div class="d-flex flex-wrap justify-content-center gap-3 mb-5 next-phases-row">
+        {% for phase in calendar_data.next_phases %}
+        <div class="card next-phase-card text-center shadow-sm">
+            <div class="card-body py-3 px-4">
+                <div class="next-phase-emoji">{{ phase.emoji }}</div>
+                <div class="fw-semibold next-phase-name">{{ phase.name }}</div>
+                <div class="text-muted small">{{ phase.date_str }}</div>
+                <div class="text-muted small">{{ phase.time_str }}</div>
+                <div class="next-phase-countdown mt-2
+                    {% if phase.days_away == 0 %}text-warning
+                    {% elif phase.days_away <= 3 %}text-success
+                    {% else %}text-secondary{% endif %}">
+                    {% if phase.days_away == 0 %}
+                        Today
+                    {% elif phase.days_away == 1 %}
+                        Tomorrow
+                    {% else %}
+                        In {{ phase.days_away }} days
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Phase legend ── #}
+    <h2 class="h5 mb-3 text-center">Phase Reference</h2>
+    <div class="table-responsive w-100 mb-5 shadow-sm rounded" style="max-width:640px;">
+        <table class="table table-striped table-bordered mb-0 text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Phase</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Illumination</th>
+                    <th scope="col">Best for Observing</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                <tr><td>🌑</td><td>New Moon</td>       <td>~0%</td>    <td>Deep sky objects (darkest skies)</td></tr>
+                <tr><td>🌒</td><td>Waxing Crescent</td><td>1–49%</td>  <td>Evening crescent, earthshine visible</td></tr>
+                <tr><td>🌓</td><td>First Quarter</td>  <td>~50%</td>   <td>Lunar terminator &amp; crater detail</td></tr>
+                <tr><td>🌔</td><td>Waxing Gibbous</td> <td>51–99%</td> <td>Mare &amp; highland contrast</td></tr>
+                <tr><td>🌕</td><td>Full Moon</td>       <td>~100%</td>  <td>Naked-eye features; bright</td></tr>
+                <tr><td>🌖</td><td>Waning Gibbous</td> <td>99–51%</td> <td>Late-night &amp; pre-dawn viewing</td></tr>
+                <tr><td>🌗</td><td>Last Quarter</td>   <td>~50%</td>   <td>Pre-dawn terminator detail</td></tr>
+                <tr><td>🌘</td><td>Waning Crescent</td><td>49–1%</td>  <td>Pre-dawn crescent; near-dark skies</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% endif %}{# end calendar_data #}
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">Understanding Lunar Phases</h3>
+            <p class="small text-muted mb-2">
+                <strong>The lunar cycle:</strong> The Moon completes one full cycle of phases — from New Moon back to New Moon — every 29.53 days (the synodic period). This calendar uses the Skyfield astronomy library to compute precise illumination and phase angles directly from JPL ephemeris data, so percentages and phase labels are accurate to the minute.
+            </p>
+            <p class="small text-muted">
+                <strong>Rise and set times:</strong> When a ZIP code is provided, the calendar adds local moonrise and moonset times for each day. These times vary significantly with latitude and can shift by more than an hour across the continental US. On some days the Moon may not rise or set at all — this is normal near the poles or when the Moon's orbital geometry keeps it above (or below) the horizon for a full day.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related space tools:</strong> Find out if tonight is good for stargazing — including twilight windows, satellite passes, and a quality rating — with the <a href="{% url 'projects:night_sky_planner' %}" class="related-tool-link">Night Sky Planner</a>. Track the ISS in real time with the <a href="{% url 'projects:iss_tracker' %}" class="related-tool-link">ISS Tracker</a>, or predict visible passes for dozens of other satellites with the <a href="{% url 'projects:satellite_pass_predictor' %}" class="related-tool-link">Satellite Pass Predictor</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock content %}

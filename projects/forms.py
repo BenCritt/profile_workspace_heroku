@@ -3168,3 +3168,108 @@ class OGPreviewerForm(forms.Form):
     def clean_url_input(self):
         """Strip whitespace; let the view handle scheme injection."""
         return self.cleaned_data.get("url_input", "").strip()
+    
+from datetime import date
+class LunarPhaseCalendarForm(forms.Form):
+    """
+    Form for the Lunar Phase Calendar tool.
+
+    month + year   — select which calendar month to display
+    zip_code       — optional US ZIP; when provided, adds moon rise/set times
+    """
+
+    MONTH_CHOICES = [
+        (1,  "January"),  (2,  "February"), (3,  "March"),
+        (4,  "April"),    (5,  "May"),       (6,  "June"),
+        (7,  "July"),     (8,  "August"),    (9,  "September"),
+        (10, "October"),  (11, "November"),  (12, "December"),
+    ]
+
+    @staticmethod
+    def _year_choices() -> list[tuple[int, str]]:
+        """Allow 2 years in the past through 3 years ahead."""
+        current = date.today().year
+        return [(y, str(y)) for y in range(current - 2, current + 4)]
+
+    month = forms.ChoiceField(
+        choices=MONTH_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Month",
+    )
+
+    year = forms.ChoiceField(
+        choices=[],          # populated in __init__ so it reflects runtime year
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Year",
+    )
+
+    zip_code = forms.CharField(
+        max_length=10,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class":       "form-control",
+            "placeholder": "53546",
+            "pattern":     r"\d{5}(-\d{4})?",
+            "inputmode":   "numeric",
+            "autocomplete": "postal-code",
+        }),
+        label="ZIP Code",
+        help_text="Optional: Enter your 5-digit US ZIP code to add moon rise and set times.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["year"].choices = self._year_choices()
+
+    def clean_zip_code(self) -> str:
+        """Strip whitespace; allow empty (field is optional)."""
+        return self.cleaned_data.get("zip_code", "").strip()
+
+    def clean_month(self) -> int:
+        return int(self.cleaned_data["month"])
+
+    def clean_year(self) -> int:
+        return int(self.cleaned_data["year"])
+    
+class NightSkyPlannerForm(forms.Form):
+    """
+    Form for collecting the user's ZIP code to generate a night sky report.
+
+    Validates that the input is a 5-digit US ZIP code. The form uses
+    Bootstrap-compatible widget attributes for consistent styling with
+    the site's dark theme.
+    """
+
+    zip_code = forms.CharField(
+        max_length=5,
+        min_length=5,
+        label="ZIP Code",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "53546",
+                "pattern": "[0-9]{5}",
+                "inputmode": "numeric",
+                "maxlength": "5",
+                "title": "Please enter a valid 5-digit US ZIP code.",
+                "autocomplete": "postal-code",
+                "aria-label": "US ZIP code for night sky report",
+                "id": "zip-code-input",
+            }
+        ),
+        help_text="Enter a 5-digit US ZIP code to see tonight's sky conditions.",
+        error_messages={
+            "required": "Please enter a ZIP code.",
+            "min_length": "ZIP code must be exactly 5 digits.",
+            "max_length": "ZIP code must be exactly 5 digits.",
+        },
+    )
+
+    def clean_zip_code(self):
+        """Validate that the ZIP code contains only digits."""
+        zip_code = self.cleaned_data.get("zip_code", "").strip()
+
+        if not zip_code.isdigit():
+            raise forms.ValidationError("ZIP code must contain only numbers.")
+
+        return zip_code

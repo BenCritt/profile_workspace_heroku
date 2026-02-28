@@ -30,6 +30,17 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
+                    <h2 class="card-title h4">Night Sky Planner</h2>
+                    <img src="{% static 'img/all-projects/night-sky-planner.webp' %}"
+                         alt="Night Sky Planner" class="img-fluid rounded my-3">
+                    <p class="card-text small">Plan your stargazing session tonight. Get astronomical twilight times, dark sky window, golden hour, moon phase with illumination, visible satellite passes, and a stargazing quality rating for your ZIP code.</p>
+                    <a href="{% url 'projects:night_sky_planner' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Night Sky Planner">Open Planner</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
                     <h2 class="card-title h4">ISS Tracker</h2>
                     <img src="{% static 'img/all-projects/iss-tracker.webp' %}" alt="ISS Tracker" class="img-fluid rounded my-3">
                     <p class="card-text small">Monitor the International Space Station in real-time. View current latitude, longitude, altitude, velocity, and regional position. Project upcoming pass times over your location.</p>
@@ -48,9 +59,30 @@
                 </div>
             </div>
 
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Lunar Phase Calendar</h2>
+                    <img src="{% static 'img/all-projects/lunar-phase-calendar.webp' %}"
+                         alt="Lunar Phase Calendar" class="img-fluid rounded my-3">
+                    <p class="card-text small">Monthly moon phase calendar with
+                    illumination percentages, rise/set times by ZIP code, and
+                    countdowns to the next New Moon, First Quarter, Full Moon, and
+                    Last Quarter. Powered by Skyfield — no external APIs.</p>
+                    <a href="{% url 'projects:lunar_phase_calendar' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Lunar Phase Calendar">Open Calendar</a>
+                </div>
+            </div>
+
         </div>
 
         <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:night_sky_planner' %}" title="Night Sky Planner" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:night_sky_planner' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
 
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
@@ -63,6 +95,14 @@
                 <div class="card-body p-0 p-md-3">
                     <iframe src="{% url 'projects:satellite_pass_predictor' %}" title="Satellite Pass Predictor" loading="lazy" scrolling="yes"></iframe>
                     <a href="{% url 'projects:satellite_pass_predictor' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:lunar_phase_calendar' %}"
+                            title="Lunar Phase Calendar" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:lunar_phase_calendar' %}" class="btn btn-secondary mt-3">Full Page View</a>
                 </div>
             </div>
 

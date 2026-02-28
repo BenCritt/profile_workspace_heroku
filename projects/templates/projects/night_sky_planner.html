@@ -1,0 +1,534 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/night_sky_planner_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/night_sky_planner_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/night-sky-planner/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/night_sky_planner.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Night Sky Planner | Tonight's Stargazing Conditions{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center">
+
+    <h1 class="mb-4 text-center">Night Sky Planner</h1>
+    <p class="text-muted text-center mb-5">
+        Enter your ZIP code to find out if tonight is good for stargazing.
+        Get astronomical twilight times, golden hour windows, moon phase, visible
+        satellite passes, and an overall stargazing quality rating.
+    </p>
+
+    <!-- ZIP Code Form -->
+    <form method="POST" class="mb-5 text-center w-100 nsp-form-container" id="night-sky-form"
+          data-gtm-tool="Night Sky Planner" data-gtm-category="Space and Astronomy">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.as_p }}
+        </div>
+        <input type="submit" id="nsp-submit-btn" class="btn btn-primary w-100" value="Check Tonight's Sky" aria-label="Check Tonight's Sky">
+
+        {# ── Back Button (Inside Form) ── #}
+        <p class="mt-3 text-center">
+            <a href="{% url 'projects:space_and_astronomy' %}" class="btn btn-secondary w-100 mt-2">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Back to Space Toolkit
+            </a>
+        </p>
+    </form>
+
+    {% if error %}
+    <div class="alert alert-danger w-100 text-center mb-4" style="max-width: 600px;" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if report %}
+    <!-- Results Section -->
+    <div class="results-container">
+
+        <!-- Location & Rating Header -->
+        <div class="text-center mb-4">
+            <h2 class="h4">
+                Tonight's Sky in {{ report.locality }}{% if report.state %}, {{ report.state }}{% endif %}
+            </h2>
+            <p class="text-secondary mb-2">
+                Coordinates: {{ report.lat }}°, {{ report.lon }}°
+                &nbsp;|&nbsp;
+                {{ report.twilight.date|date:"l, F j, Y" }}
+            </p>
+        </div>
+
+        <!-- Stargazing Quality Rating -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm quality-card">
+                    <div class="card-body text-center">
+                        <h3 class="h5 mb-3">Stargazing Quality Rating</h3>
+                        <div class="quality-stars mb-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= report.quality.stars %}
+                                    <span class="star star-filled">★</span>
+                                {% else %}
+                                    <span class="star star-empty">☆</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="quality-label h4 mb-1">
+                            {{ report.quality.label }}
+                        </div>
+                        <p class="text-secondary mb-3">
+                            {{ report.quality.description }}
+                        </p>
+                        <div class="quality-score text-secondary">
+                            Overall Score: {{ report.quality.score }}/100
+                        </div>
+
+                        <!-- Score Breakdown -->
+                        <div class="mt-3">
+                            <div class="row text-start small">
+                                <div class="col-6">
+                                    <div class="mb-2">
+                                        <span class="text-secondary">Moon Darkness:</span>
+                                        <div class="progress bg-secondary" style="height: 6px;">
+                                            <div class="progress-bar bg-info quality-progress"
+                                                 data-width="{{ report.quality.breakdown.moon_illumination }}"
+                                                 role="progressbar"
+                                                 aria-valuenow="{{ report.quality.breakdown.moon_illumination }}"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-2">
+                                        <span class="text-secondary">Moon Position:</span>
+                                        <div class="progress bg-secondary" style="height: 6px;">
+                                            <div class="progress-bar bg-info quality-progress"
+                                                 data-width="{{ report.quality.breakdown.moon_position }}"
+                                                 role="progressbar"
+                                                 aria-valuenow="{{ report.quality.breakdown.moon_position }}"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-2">
+                                        <span class="text-secondary">Dark Window:</span>
+                                        <div class="progress bg-secondary" style="height: 6px;">
+                                            <div class="progress-bar bg-info quality-progress"
+                                                 data-width="{{ report.quality.breakdown.dark_window }}"
+                                                 role="progressbar"
+                                                 aria-valuenow="{{ report.quality.breakdown.dark_window }}"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-2">
+                                        <span class="text-secondary">Twilight Quality:</span>
+                                        <div class="progress bg-secondary" style="height: 6px;">
+                                            <div class="progress-bar bg-info quality-progress"
+                                                 data-width="{{ report.quality.breakdown.twilight_quality }}"
+                                                 role="progressbar"
+                                                 aria-valuenow="{{ report.quality.breakdown.twilight_quality }}"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Info Cards Row -->
+        <div class="row g-4 mb-4">
+
+            <!-- Dark Sky Window Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">🌃 Dark Sky Window</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if local_times.dark_window_start != "N/A" %}
+                            <div class="dark-window-highlight text-center mb-3 p-3 rounded">
+                                <div class="h4 mb-1 text-info">
+                                    {{ local_times.dark_window_start }}
+                                </div>
+                                <div class="text-secondary">to</div>
+                                <div class="h4 mt-1 text-info">
+                                    {{ local_times.dark_window_end }}
+                                </div>
+                                {% if report.twilight.dark_window_hours %}
+                                    <div class="mt-2 text-secondary">
+                                        {{ report.twilight.dark_window_hours|floatformat:1 }} hours of true darkness
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-warning">
+                                No full astronomical darkness tonight — the Sun does not
+                                drop far enough below the horizon at this latitude and date.
+                            </p>
+                        {% endif %}
+
+                        <table class="table table-striped table-bordered mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Event</th>
+                                    <th class="text-end">Evening</th>
+                                    <th class="text-end">Morning</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sunset / Sunrise</td>
+                                    <td class="text-end">{{ local_times.sunset }}</td>
+                                    <td class="text-end">{{ local_times.sunrise }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Civil Twilight</td>
+                                    <td class="text-end">{{ local_times.civil_twilight_end }}</td>
+                                    <td class="text-end">{{ local_times.civil_twilight_start }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Nautical Twilight</td>
+                                    <td class="text-end">{{ local_times.nautical_twilight_end }}</td>
+                                    <td class="text-end">{{ local_times.nautical_twilight_start }}</td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td><strong>Astronomical Twilight</strong></td>
+                                    <td class="text-end"><strong>{{ local_times.astro_twilight_end }}</strong></td>
+                                    <td class="text-end"><strong>{{ local_times.astro_twilight_start }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moon Info Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">{{ report.moon.phase_emoji }} Moon Conditions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="moon-phase-display">
+                                <span class="moon-emoji">{{ report.moon.phase_emoji }}</span>
+                            </div>
+                            <div class="h4 mt-2 mb-1">{{ report.moon.phase_name }}</div>
+                            <div class="h5 text-info">
+                                {{ report.moon.illumination }}% Illuminated
+                            </div>
+                        </div>
+
+                        <table class="table table-striped table-bordered mb-0 align-middle">
+                            <tbody>
+                                <tr>
+                                    <td>Moonrise</td>
+                                    <td class="text-end">{{ local_times.moonrise }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Moonset</td>
+                                    <td class="text-end">{{ local_times.moonset }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Altitude at 9 PM</td>
+                                    <td class="text-end">
+                                        {{ report.moon.altitude_deg }}°
+                                        {% if report.moon.altitude_deg <= 0 %}
+                                            <span class="badge bg-success ms-1">Below Horizon</span>
+                                        {% elif report.moon.altitude_deg < 20 %}
+                                            <span class="badge bg-warning text-dark ms-1">Low</span>
+                                        {% else %}
+                                            <span class="badge bg-danger ms-1">High</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Direction at 9 PM</td>
+                                    <td class="text-end">
+                                        {{ report.moon.azimuth_compass }}
+                                        ({{ report.moon.azimuth_deg }}°)
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Golden Hour Card -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">🌅 Golden Hour</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <h4 class="h6 text-warning">Evening</h4>
+                                <p class="mb-1">
+                                    {{ local_times.golden_hour_evening_start }}
+                                </p>
+                                <p class="text-secondary">
+                                    to {{ local_times.golden_hour_evening_end }}
+                                </p>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="h6 text-warning">Morning</h4>
+                                <p class="mb-1">
+                                    {{ local_times.golden_hour_morning_start }}
+                                </p>
+                                <p class="text-secondary">
+                                    to {{ local_times.golden_hour_morning_end }}
+                                </p>
+                            </div>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">
+                            The golden hour is the period when the Sun is low on the
+                            horizon, producing warm, diffused light ideal for photography.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips Card -->
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">💡 Tips for Tonight</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            {% if report.quality.stars >= 4 %}
+                                <li class="mb-2">✅ Excellent conditions — great night for deep-sky objects like galaxies and nebulae.</li>
+                            {% elif report.quality.stars >= 3 %}
+                                <li class="mb-2">✅ Good conditions — planets, bright stars, and star clusters will show well.</li>
+                            {% else %}
+                                <li class="mb-2">⚠️ Bright moon tonight — focus on planets and bright stars rather than faint objects.</li>
+                            {% endif %}
+
+                            {% if report.moon.altitude_deg <= 0 %}
+                                <li class="mb-2">🌑 Moon is below the horizon at 9 PM — darker skies for deep-sky viewing.</li>
+                            {% elif report.moon.illumination > 75 %}
+                                <li class="mb-2">🌕 Bright moon — consider observing objects away from the moon's direction ({{ report.moon.azimuth_compass }}).</li>
+                            {% endif %}
+
+                            {% if report.twilight.dark_window_hours and report.twilight.dark_window_hours >= 6 %}
+                                <li class="mb-2">⏰ Long dark window tonight — plenty of time for extended observation sessions.</li>
+                            {% endif %}
+
+                            {% if report.satellites %}
+                                <li class="mb-2">🛰️ {{ report.satellites|length }} satellite pass{{ report.satellites|length|pluralize:"es" }} visible tonight — check the table below for timing.</li>
+                            {% endif %}
+
+                            <li class="mb-0">🔭 Allow 20–30 minutes for your eyes to fully adapt to the dark.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Satellite Passes Table -->
+        {% if report.satellites %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">🛰️ Visible Satellite Passes Tonight</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary small mb-3">
+                            Showing satellites that reach at least 10° above the horizon
+                            and are illuminated by the Sun. Higher max altitude = easier to see.
+                        </p>
+                        <div class="table-responsive w-100 shadow-sm rounded">
+                            <table class="table table-striped table-hover table-bordered mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Satellite</th>
+                                        <th>Category</th>
+                                        <th class="text-end">Rise</th>
+                                        <th class="text-center">Max Alt</th>
+                                        <th class="text-end">Set</th>
+                                        <th class="text-end">Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sat_pass in report.satellites %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ sat_pass.satellite_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ sat_pass.category }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            {{ sat_pass.local_rise_time }}
+                                            <br>
+                                            <small class="text-secondary">{{ sat_pass.rise_compass }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="{% if sat_pass.max_altitude >= 45 %}text-success{% elif sat_pass.max_altitude >= 25 %}text-info{% else %}text-secondary{% endif %}">
+                                                {{ sat_pass.max_altitude }}°
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            {{ sat_pass.local_set_time }}
+                                            <br>
+                                            <small class="text-secondary">{{ sat_pass.set_compass }}</small>
+                                        </td>
+                                        <td class="text-end">{{ sat_pass.duration_formatted }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            {% if report %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h3 class="h5 mb-0">🛰️ Visible Satellite Passes Tonight</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-secondary">
+                                No visible satellite passes predicted for tonight at this location.
+                                Satellite visibility depends on orbital geometry and solar illumination
+                                angles — check back tomorrow for updated predictions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- Methodology / Educational Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">📖 Understanding the Data</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="h6">Twilight Phases</h4>
+                                <p class="small text-secondary">
+                                    <strong>Civil twilight</strong> ends when the Sun is 6° below the horizon —
+                                    streetlights come on. <strong>Nautical twilight</strong> ends at 12° below —
+                                    the horizon is no longer visible at sea. <strong>Astronomical twilight</strong>
+                                    ends at 18° below — the sky is fully dark for observation. The time between
+                                    astronomical twilight end (evening) and start (morning) is your true dark window.
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="h6">Stargazing Quality Score</h4>
+                                <p class="small text-secondary">
+                                    The quality rating factors in moon brightness (40%), moon position relative to the
+                                    horizon (25%), length of the dark sky window (25%), and whether full astronomical
+                                    darkness is achievable (10%). A new moon below the horizon during a long dark window
+                                    yields the best scores. Note that this rating does not account for weather or
+                                    local light pollution — always check your local forecast.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">What Affects Stargazing Quality</h3>
+            <p class="small text-muted mb-2">
+                <strong>Moon illumination:</strong> The single biggest factor for visual astronomy. A full moon washes out all but the brightest stars; a new moon leaves skies dark enough for faint galaxies and nebulae. This tool weights moon brightness at 40% of the overall quality score.
+            </p>
+            <p class="small text-muted">
+                <strong>Twilight and dark windows:</strong> True astronomical darkness begins when the Sun drops 18° below the horizon. The interval between evening and morning astronomical twilight is your dark window — the wider it is, the more time you have under genuinely dark skies. At high latitudes in summer, this window can shrink to zero.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related space tools:</strong> Browse a full month of moon phases, illumination percentages, and rise/set times with the <a href="{% url 'projects:lunar_phase_calendar' %}" class="related-tool-link">Lunar Phase Calendar</a>. Track the ISS in real time with the <a href="{% url 'projects:iss_tracker' %}" class="related-tool-link">ISS Tracker</a>, or predict visible passes for dozens of other satellites with the <a href="{% url 'projects:satellite_pass_predictor' %}" class="related-tool-link">Satellite Pass Predictor</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var isEmbedded = document.documentElement.classList.contains('embedded');
+
+        // Auto-focus ZIP code input on page load (desktop only, not when embedded)
+        if (!isEmbedded && window.innerWidth >= 768) {
+            var input = document.getElementById('id_zip_code');
+            if (input && !input.value) {
+                input.focus();
+            }
+        }
+
+        // Set progress bar widths from data-width attributes.
+        // This avoids placing Django template variables inside inline
+        // style attributes, which causes false linter warnings in IDEs.
+        var bars = document.querySelectorAll('.quality-progress');
+        for (var i = 0; i < bars.length; i++) {
+            var width = bars[i].getAttribute('data-width');
+            if (width !== null) {
+                bars[i].style.width = width + '%';
+            }
+        }
+
+        // When embedded in an iframe on the hub page, report content height
+        // to the parent so iframe-handler.js can resize the iframe.
+        // Fires on initial load and again after a short delay to catch
+        // late-rendering content (web fonts, images, etc.).
+        if (isEmbedded && window.parent !== window) {
+            var reportHeight = function() {
+                window.parent.postMessage(
+                    { type: 'setHeight', height: document.body.scrollHeight },
+                    '*'
+                );
+            };
+            reportHeight();
+            setTimeout(reportHeight, 500);
+        }
+    });
+</script>
+{% endblock %}

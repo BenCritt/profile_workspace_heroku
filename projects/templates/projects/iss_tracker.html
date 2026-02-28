@@ -95,7 +95,23 @@
         </div>
     {% endif %}
 
-    <div class="mt-4 text-center">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">About ISS Tracking</h3>
+            <p class="small text-muted mb-2">
+                <strong>Real-time position:</strong> The ISS orbits Earth at roughly 420 km (260 miles) altitude, traveling at approximately 28,000 km/h (17,500 mph). It completes one full orbit every 90 minutes, so the data above refreshes every few seconds to keep pace with its rapid movement across the globe.
+            </p>
+            <p class="small text-muted">
+                <strong>Visible passes:</strong> The ISS is visible to the naked eye when it passes overhead during twilight — after sunset or before sunrise — while the station is still illuminated by the Sun. Passes typically last 2–6 minutes and the ISS appears as a bright, steadily moving point of light without any blinking.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related space tools:</strong> Predict passes for dozens of other satellites with the <a href="{% url 'projects:satellite_pass_predictor' %}" class="related-tool-link">Satellite Pass Predictor</a>. Check tonight's overall observing conditions — including twilight times, moon phase, and a stargazing quality rating — with the <a href="{% url 'projects:night_sky_planner' %}" class="related-tool-link">Night Sky Planner</a>, or browse a full month of moon phases with the <a href="{% url 'projects:lunar_phase_calendar' %}" class="related-tool-link">Lunar Phase Calendar</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>
 

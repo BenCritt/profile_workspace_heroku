@@ -1,0 +1,114 @@
+/* =========================================================================
+   Night Sky Planner Styles
+   Ensures proper display on the dark Bootstrap theme and responsive layouts.
+   ========================================================================= */
+
+/* --- Quality Rating Stars --- */
+.quality-stars {
+    font-size: 2.5rem;
+    letter-spacing: 0.15rem;
+    line-height: 1;
+}
+
+.star-filled {
+    color: #ffc107; /* Bootstrap warning/gold */
+}
+
+.star-empty {
+    color: #495057; /* Muted grey */
+}
+
+.quality-label {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.quality-card {
+    border-color: #495057 !important;
+}
+
+/* --- Dark Window Highlight Box --- */
+.dark-window-highlight {
+    background-color: rgba(13, 202, 240, 0.08); /* Subtle info tint */
+    border: 1px solid rgba(13, 202, 240, 0.2);
+}
+
+/* --- Moon Phase Display --- */
+.moon-phase-display {
+    display: inline-block;
+}
+
+.moon-emoji {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+/* --- Related Tool Link Cards --- */
+.tool-link-card {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.tool-link-card:hover {
+    background-color: rgba(13, 202, 240, 0.06);
+    border-color: #0dcaf0 !important;
+}
+
+/* --- Progress Bars (Score Breakdown) --- */
+.progress {
+    border-radius: 3px;
+}
+
+/* --- Table Tweaks --- */
+.table-dark th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table-dark td {
+    vertical-align: middle;
+}
+
+/* --- Satellite Category Badges --- */
+.badge.bg-secondary {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 767.98px) {
+    .quality-stars {
+        font-size: 2rem;
+    }
+
+    .moon-emoji {
+        font-size: 3rem;
+    }
+
+    .dark-window-highlight .h4 {
+        font-size: 1.15rem;
+    }
+
+    /* Stack twilight table on small screens */
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+
+    /* Ensure satellite table scrolls horizontally */
+    .table-responsive table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .display-5 {
+        font-size: 1.75rem;
+    }
+
+    .quality-stars {
+        font-size: 1.75rem;
+    }
+
+    .moon-emoji {
+        font-size: 2.5rem;
+    }
+}

@@ -13,6 +13,7 @@ dj-database-url==2.3.0
 Django==5.2.11
 django-heroku==0.3.1
 dnspython==2.7.0
+ephem==4.2
 et-xmlfile==2.0.0
 fonttools==4.61.0
 geopy==2.4.1

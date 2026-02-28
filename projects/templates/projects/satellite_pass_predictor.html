@@ -110,7 +110,23 @@
     </div>
     {% endif %}
 
-    <div class="mt-4 text-center">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">How Satellite Visibility Works</h3>
+            <p class="small text-muted mb-2">
+                <strong>Sunlit passes:</strong> Satellites are only visible when they reflect sunlight while the observer is in darkness. This happens during twilight — shortly after sunset or before sunrise — when the satellite's high orbit keeps it in direct sunlight while the ground below is in shadow.
+            </p>
+            <p class="small text-muted">
+                <strong>TLE data:</strong> Predictions rely on Two-Line Element sets published by CelesTrak, which describe each satellite's orbit with high precision. TLEs are updated roughly twice daily; older data reduces prediction accuracy, so this tool automatically refreshes its orbital data every 12 hours.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related space tools:</strong> Track the International Space Station in real time with the <a href="{% url 'projects:iss_tracker' %}" class="related-tool-link">ISS Tracker</a>. Check tonight's overall stargazing conditions — twilight windows, moon phase, and quality rating — with the <a href="{% url 'projects:night_sky_planner' %}" class="related-tool-link">Night Sky Planner</a>, or view a full month of moon phases and illumination with the <a href="{% url 'projects:lunar_phase_calendar' %}" class="related-tool-link">Lunar Phase Calendar</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>
 

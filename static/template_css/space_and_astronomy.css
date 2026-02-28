@@ -1,25 +1,64 @@
-/* Style the iframes inside the cards */
-.iframe-card-wrapper iframe {
-    width: 100%;
-    height: auto;
-    min-height: 553px;
-    border: none;
+/* =========================================================================
+   Space & Astronomy Hub Page Styles
+   =========================================================================
+   Hub-specific styles only. The dual-card responsive switching
+   (.non-iframe-cards / .iframe-cards) and all embedded-page rules
+   (html.embedded) are handled globally by base.css and iframe-handler.js.
+   This file provides only the visual refinements for this hub page.
+   ========================================================================= */
+
+/* --- Hub Page Header --- */
+.hub-header .lead {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Styling matched exactly to other toolkits for consistency */
-.tool-card {
-    width: 300px;
-    max-width: 100%;
-}
+
+/* --- iframe Card Wrappers ------------------------------------------------
+   Each desktop iframe sits inside an .iframe-card-wrapper card. These
+   styles ensure the iframe fills the card body edge-to-edge and that
+   the card header visually anchors the embedded tool.
+   base.css does not style .iframe-card-wrapper, so these are additive. */
 
 .iframe-card-wrapper {
     width: 100%;
-    max-width: 450px;
+    max-width: 800px; /* This is needed because of the calendar. */
 }
 
-/* Mobile override */
-@media (max-width: 600px) {
-    .tool-card {
-        width: 100%;
+.iframe-card-wrapper .card-body {
+    overflow: hidden;
+}
+
+.iframe-card-wrapper .card-body {
+    overflow: hidden;
+}
+
+.iframe-card-wrapper iframe {
+    display: block;     /* Remove inline-element bottom gap */
+    width: 100%;
+}
+
+.iframe-card-wrapper .card-header {
+    background-color: rgba(33, 37, 41, 0.6);
+}
+
+/* --- Mobile Link Cards ---------------------------------------------------
+   The .non-iframe-cards set uses standard Bootstrap .card components.
+   Hover lift gives tactile desktop feedback but is disabled on mobile
+   where it can feel jittery on touch. */
+.non-iframe-cards .card {
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.non-iframe-cards .card:hover {
+    transform: translateY(-3px);
+    border-color: #0dcaf0 !important;
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.15);
+}
+
+@media (max-width: 767.98px) {
+    .non-iframe-cards .card:hover {
+        transform: none;  /* Disable hover lift on touch devices */
     }
 }

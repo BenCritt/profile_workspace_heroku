@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/space-and-astronomy/#webpage",
       "name": "Space & Astronomy Toolkit",
-      "description": "Free utilities for satellite tracking, pass prediction, and space observation. Includes the ISS Tracker and Satellite Pass Predictor.",
+      "description": "Free utilities for satellite tracking, pass prediction, and space observation. Includes the Night Sky Planner, Lunar Phase Calendar, ISS Tracker, and Satellite Pass Predictor.",
       "url": "https://www.bencritt.net/projects/space-and-astronomy/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -32,13 +32,69 @@
         "name": "Space & Astronomy Tools",
         "itemListOrder": "https://schema.org/ItemListOrderAscending",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" } },
-          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" } }
+          { "@type": "ListItem", "position": 1, "item": { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" } },
+          { "@type": "ListItem", "position": 2, "item": { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" } },
+          { "@type": "ListItem", "position": 3, "item": { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" } },
+          { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" } }
         ]
       },
       "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" },
+        { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" },
         { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" },
         { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/night-sky-planner/#app",
+      "name": "Night Sky Planner",
+      "description": "Plan your stargazing session with astronomical twilight times, golden hour windows, moon phase and illumination percentage, moonrise and moonset times, visible satellite pass predictions, and an overall stargazing quality rating. Enter a US ZIP code to get tonight's conditions.",
+      "url": "https://www.bencritt.net/projects/night-sky-planner/",
+      "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/night-sky-planner.webp",
+      "creator": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "category": "Free"
+      },
+      "featureList": [
+        "Astronomical twilight start and end times (true dark window)",
+        "Civil and nautical twilight boundaries",
+        "Evening and morning golden hour windows for photography",
+        "Moon phase name with illumination percentage",
+        "Moonrise and moonset times with altitude and direction",
+        "Visible satellite pass predictions including space stations, amateur radio, weather, and science satellites",
+        "Overall stargazing quality rating (1-5 stars) with score breakdown",
+        "ZIP code based lookup using Google Maps geocoding"
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app",
+      "name": "Lunar Phase Calendar",
+      "description": "An interactive monthly lunar phase calendar showing moon phase name, illumination percentage, and optional rise/set times for any US location by ZIP code. Displays countdowns to the next four major phases. Powered entirely by Skyfield astronomical calculations.",
+      "url": "https://www.bencritt.net/projects/lunar-phase-calendar/",
+      "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "image": "https://www.bencritt.net/static/img/all-projects/lunar-phase-calendar.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "category": "Free" },
+      "featureList": [
+        "Monthly calendar grid with phase name, emoji, and illumination % for every day.",
+        "Exact major phase events flagged with UTC times.",
+        "Next 4 major phase countdown cards.",
+        "Moon rise/set times for any US location by ZIP code.",
+        "Skyfield DE421 ephemeris — no external API dependencies."
       ]
     },
 
@@ -58,7 +114,8 @@
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "category": "Free"
       },
       "featureList": [
         "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
@@ -85,7 +142,8 @@
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "category": "Free"
       },
       "featureList": [
         "Predict satellite passes for 30 satellites across six categories.",
@@ -99,6 +157,7 @@
         "TLE data sourced from Celestrak with aggressive caching."
       ]
     }
+
   ]
 }
 </script>

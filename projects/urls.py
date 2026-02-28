@@ -425,4 +425,12 @@ urlpatterns = [
          views.og_previewer,
          name="og_previewer",
     ),
+    path("projects/lunar-phase-calendar/",
+         views.lunar_phase_calendar,
+         name="lunar_phase_calendar",
+    ),
+    path("projects/night-sky-planner/",
+         views.night_sky_planner,
+         name="night_sky_planner",
+    ),
 ]

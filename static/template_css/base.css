@@ -72,6 +72,16 @@ html.embedded main {
     margin: 0 !important;
 }
 
+/* ── EMBEDDED PAGE: Allow containers to fill the iframe ─────────────────────
+   Inside an iframe, the viewport is artificially constrained. Force the standard
+   Bootstrap .container to utilize 100% of the iframe's width so wide elements
+   (like calendars or data tables) don't trigger unnecessary scrollbars. */
+html.embedded .container {
+    max-width: 100% !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
 /* ── EMBEDDED PAGE: Hide related-tools and educational content ───────────────
    Tool pages include a .related-tools-block section below the results area
    with explanatory text and cross-links to other tools. This content is
@@ -212,4 +222,15 @@ main {
     opacity: 1;
     text-decoration: none;
     color: var(--bs-info);
+}
+
+/* Improve contrast for muted/secondary text globally in dark mode */
+[data-bs-theme="dark"] .text-secondary,
+[data-bs-theme="dark"] .text-muted {
+    color: #ced4da !important; /* Bootstrap's "gray-400" - much brighter */
+}
+
+/* Slightly brighten standard body text for better reading */
+[data-bs-theme="dark"] {
+    --bs-body-color: #f8f9fa; /* Bootstrap's "gray-100" */
 }
