@@ -106,7 +106,12 @@
 
         </div>
     {% endif %}
-
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="w-100 freight-form-container related-tools-block mt-5">
+        <p class="small text-muted">
+            <strong>Related freight tools:</strong> Before onboarding a carrier and trusting them with a high-margin load, check their safety record here and evaluate the lane's profitability with the <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Freight Margin Calculator</a>.
+        </p>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

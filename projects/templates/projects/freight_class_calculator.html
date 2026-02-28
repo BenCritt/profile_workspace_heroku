@@ -64,8 +64,9 @@
         </div>
     </div>
 
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Standard Density-to-Class Guide</h3>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm text-center align-middle density-table">
@@ -94,6 +95,9 @@
             </div>
             <p class="small text-muted mt-2">
                 *Note: This calculator uses standard density-based classification. Some commodities have specific NMFC codes regardless of density.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related freight tools:</strong> Density directly impacts how much trailer space your freight occupies. Use the <a href="{% url 'projects:linear_foot_calculator' %}" class="related-tool-link">LTL Linear Foot Calculator</a> to ensure your shipment doesn't trigger length penalties. If your freight is too large for standard LTL, estimate a volume quote using the <a href="{% url 'projects:partial_rate_calculator' %}" class="related-tool-link">Partial &amp; Volume LTL Rate Calculator</a>.
             </p>
         </div>
     </div>

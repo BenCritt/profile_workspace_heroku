@@ -235,8 +235,9 @@
         </div>
     </div>
 
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Understanding Deadhead Miles</h3>
             <p class="small text-muted mb-2">
                 <strong>Deadhead miles</strong> are the miles a truck drives empty to reposition for its next load. Because the truck burns fuel and accumulates wear without generating revenue, every deadhead mile is pure cost. Dispatchers and owner-operators must factor this repositioning cost into every load decision.
@@ -248,7 +249,7 @@
                 <strong>Effective RPM (All Miles)</strong> divides the load rate by total miles driven (empty + loaded). This is the real revenue per mile the truck earns. <strong>Effective RPM (Loaded Only)</strong> divides the rate by loaded miles alone — what the rate sheet shows, but not the full picture when deadhead is involved.
             </p>
             <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost before evaluating loads with this tool.
+                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}" class="related-tool-link">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost before evaluating loads with this tool. To analyze the line-haul and all-in RPM for the loaded portion of your trip, try the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate Analyzer</a>.
             </p>
         </div>
     </div>

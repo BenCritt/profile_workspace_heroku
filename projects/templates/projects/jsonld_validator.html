@@ -27,6 +27,15 @@
         <div class="col-lg-8">
             <h1 class="text-center mb-4">Structured Data / JSON-LD Validator</h1>
 
+            <p class="text-center mb-4">
+                Enter any public URL to extract and validate every
+                <code>&lt;script type="application/ld+json"&gt;</code> block on the page. The tool checks for
+                valid JSON syntax, verifies required and recommended
+                <a href="https://schema.org" target="_blank" rel="noopener noreferrer" class="related-tool-link">schema.org</a>
+                properties for each <code>@type</code>, and surfaces missing fields that can prevent rich result
+                eligibility in Google Search.
+            </p>
+
             {# ── Input Form ──────────────────────────────────────────── #}
             <div class="card shadow-sm mb-5">
                 <div class="card-body">
@@ -241,6 +250,20 @@
 
                 {% endif %}{# end fetch_error else #}
             {% endif %}{# end result #}
+            {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+            <div class="row justify-content-center mt-5 related-tools-block">
+                <div class="col-12">
+                    <p class="small text-muted">
+                        <strong>Related SEO tools:</strong>
+                        Structured data and Open Graph tags work together to control how your pages appear in
+                        search results and on social platforms. After validating your JSON-LD, use the
+                        <a href="{% url 'projects:og_previewer' %}" class="related-tool-link">Open Graph &amp; Social Card Previewer</a>
+                        to audit the <code>og:*</code> tags that shape the card displayed alongside rich results.
+                        Before either audit matters, confirm that search engines can access the page using the
+                        <a href="{% url 'projects:robots_analyzer' %}" class="related-tool-link">Robots.txt Analyzer</a>.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
     <div class="mt-5 text-center">

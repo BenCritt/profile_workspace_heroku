@@ -3,6 +3,10 @@
 <html lang="en" data-bs-theme="dark">
   <head>
     {% include "includes/analytics_head.html" %}
+    {# Synchronous inline check — runs before any CSS is fetched/applied, preventing a flash of .related-tools-block content in iframes. #}
+    <script>if(window.self!==window.top)document.documentElement.classList.add('embedded');</script>
+    <!-- Redundant style in case base.css fails to load, ensuring iframes are hidden until JS runs. -->
+    <!-- <style>html.embedded .related-tools-block{display:none!important}html.embedded .attribution-block{display:none!important}</style>-->
     <script src="{% static 'template-js/iframe-handler.js' %}" defer></script>
 
     <meta charset="UTF-8">

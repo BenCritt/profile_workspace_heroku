@@ -123,6 +123,16 @@
 
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Before quoting your final price, make sure you know exactly how much consumable material you'll use by running your dimensions through the <a href="{% url 'projects:stained_glass_materials' %}" class="related-tool-link">Stained Glass Materials Calculator</a>. Need to cut perfect circles for your panel? Use the <a href="{% url 'projects:circle_cutter_calculator' %}" class="related-tool-link">Circle &amp; Oval Cutter Calculator</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

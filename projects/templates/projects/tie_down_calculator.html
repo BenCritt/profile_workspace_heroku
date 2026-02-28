@@ -84,7 +84,16 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related freight tools:</strong> Proper load securement is critical for passing DOT inspections. Review carrier safety records and out-of-service rates with the <a href="{% url 'projects:freight_safety' %}" class="related-tool-link">Freight Carrier Safety Reporter</a>. If you are hauling open deck freight, calculate your true line-haul profitability using the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate Analyzer</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

@@ -126,6 +126,16 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Now that you know how much glass you need for your casting or pot melt, generate a safe, thick-block firing schedule with the <a href="{% url 'projects:kiln_schedule_generator' %}" class="related-tool-link">Kiln Firing Schedule Generator</a>. You can also calculate hold times and ramp rate conversions for your digital controller using the <a href="{% url 'projects:kiln_controller_utils' %}" class="related-tool-link">Kiln Controller Utilities</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

@@ -1,21 +1,127 @@
-/* When a page is embedded in an iframe, hide site chrome */
-body.in-iframe header,
-body.in-iframe footer {
-  display: none !important;
+/**
+ * base.css
+ * ========
+ * Global styles applied to every page via base.html.
+ *
+ * IFRAME ARCHITECTURE OVERVIEW
+ * -----------------------------
+ * The site uses two display modes for toolkit hub pages
+ * (freight_tools, glass_artist_toolkit, it_tools, etc.):
+ *
+ *   MOBILE  (< 768px):  .non-iframe-cards are shown — simple Bootstrap cards
+ *                        with a title, image, description, and a link button.
+ *                        No iframes. Clean and fast on small screens.
+ *
+ *   DESKTOP (≥ 768px):  .iframe-cards are shown — the same tool pages are
+ *                        embedded live inside <iframe> elements within
+ *                        .iframe-card-wrapper cards. Users can interact with
+ *                        each tool without navigating away from the hub page.
+ *
+ * When a tool page loads as the src of one of these iframes, base.html's
+ * synchronous inline script immediately sets the 'embedded' class on <html>:
+ *
+ *     <script>if(window.self!==window.top)document.documentElement.classList.add('embedded');</script>
+ *
+ * This runs before CSS is fetched, so the html.embedded rules below apply
+ * instantly with zero flash of the hidden elements. The deferred iframe-handler.js
+ * then reads this class and handles JS-side cleanup (removing the repo link and
+ * attribution paragraph — see iframe-handler.js for details).
+ *
+ * Everything visible-state-related for embedded pages is controlled here in CSS.
+ * JavaScript does not toggle display or visibility for any of these rules.
+ */
+
+
+/* ── EMBEDDED PAGE: Hide site chrome ────────────────────────────────────────
+   When a tool page is loaded inside a hub-page iframe, the navbar and footer
+   are meaningless context — the user is already on the hub page that provides
+   that navigation. Hiding them also eliminates the 100px body padding-top that
+   compensates for the fixed navbar, which is reset below. */
+html.embedded header,
+html.embedded footer {
+    display: none !important;
 }
 
-/* If you want to hide secondary buttons only in embedded mode */
-body.in-iframe .btn.btn-secondary {
-  display: none !important;
+/* ── EMBEDDED PAGE: Hide secondary "Go to [toolkit]" buttons ────────────────
+   Every tool page has a .btn.btn-secondary that links back to its parent
+   toolkit hub (e.g., "Go to Freight Professional Toolkit"). When the tool
+   is already embedded inside that hub page, this button is redundant and
+   takes up vertical space that affects iframe sizing. */
+html.embedded .btn.btn-secondary {
+    display: none !important;
 }
 
-/* Utilities (only apply when you add these classes in templates) */
+/* ── EMBEDDED PAGE: Remove body padding and scrollbars ──────────────────────
+   base.html's <body> has padding-top: 100px to clear the fixed navbar.
+   Inside an iframe the navbar is hidden, so that padding creates a large
+   blank gap at the top of the embedded tool. overflow: hidden prevents the
+   iframe from showing its own scrollbar — the hub page's iframe height is
+   managed dynamically by iframe-handler.js so the content never needs to
+   scroll inside the frame. */
+html.embedded body {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+}
+
+/* ── EMBEDDED PAGE: Remove main padding ─────────────────────────────────────
+   <main> also carries bottom padding (to clear the fixed footer). Inside an
+   iframe the footer is hidden, so that padding is dead space. */
+html.embedded main {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ── EMBEDDED PAGE: Hide related-tools and educational content ───────────────
+   Tool pages include a .related-tools-block section below the results area
+   with explanatory text and cross-links to other tools. This content is
+   valuable on the standalone tool page, but inside an iframe it adds vertical
+   height that inflates the iframe size unnecessarily, and the cross-links
+   would navigate the iframe window rather than the parent. Hidden here;
+   the .related-tools-block class is applied in each tool template. */
+.embedded .related-tools-block {
+    display: none !important;
+}
+
+
+/* ── HUB PAGE: Responsive card switching ────────────────────────────────────
+   Hub pages render two card sets for the same tools:
+     .non-iframe-cards — link cards (mobile-appropriate, no iframes)
+     .iframe-cards     — live embedded tool iframes (desktop only)
+   CSS toggles which set is visible based on viewport width. JavaScript is
+   not involved in this toggle. */
+
+@media (min-width: 768px) {
+    /* Desktop: show live iframes, hide plain link cards */
+    .non-iframe-cards {
+        display: none !important;
+    }
+    .iframe-cards {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 767px) {
+    /* Mobile: show plain link cards, hide iframes */
+    .iframe-cards {
+        display: none !important;
+    }
+    .non-iframe-cards {
+        display: flex !important;
+    }
+}
+
+
+/* ── UTILITIES ──────────────────────────────────────────────────────────────
+   General-purpose classes available across all templates. */
+
+/* Narrow content column — apply to a wrapping div to constrain prose width */
 .u-container-narrow {
     width: 100%;
     max-width: 750px;
 }
 
-/* Replaces inline style="text-decoration: none;" safely */
+/* Replaces inline style="text-decoration: none;" on footer brand links */
 .footer-brand-link {
     text-decoration: none;
 }
@@ -24,77 +130,48 @@ body.in-iframe .btn.btn-secondary {
     text-decoration: none;
 }
 
-/* Generic inline content links */
+/* Inline content links — subtle dotted underline that becomes solid on hover */
 .content-link {
-    color: inherit;                /* match surrounding text color */
-    text-decoration: none;         /* no default underline */
-    border-bottom: 1px dotted currentColor; /* subtle "designer" underline */
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
     transition: border-color 0.15s ease, color 0.15s ease;
 }
-
 .content-link:hover,
 .content-link:focus {
-    border-bottom-style: solid;    /* stronger underline on hover/focus */
-    text-decoration: none;         /* keep decoration consistent */
+    border-bottom-style: solid;
+    text-decoration: none;
 }
 
+
+/* ── BODY & LAYOUT ──────────────────────────────────────────────────────────
+   The navbar is fixed-position, so body needs top padding to prevent content
+   from sliding underneath it. The same value applies at all breakpoints. */
 body {
-    padding-top: 100px; /* Adjust based on your navbar height */
+    padding-top: 100px;
 }
 
 @media (max-width: 768px) {
     body {
-        padding-top: 100px; /* Adjust if the navbar height changes on smaller screens */
+        padding-top: 100px;
     }
 }
 
-main {
-    padding-bottom: 150px; /* Adjust based on your footer height */
-}
 
-/* Remove all padding and margins when inside an iframe */
-body.in-iframe {
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-}
-
-main.in-iframe {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-@media (min-width: 768px) {
-    .non-iframe-cards {
-        display: none !important; /* Hide non-iframe cards on larger screens */
-    }
-
-    .iframe-cards {
-        display: flex !important; /* Show iframe cards on larger screens */
-    }
-}
-
-@media (max-width: 767px) {
-    .iframe-cards {
-        display: none !important; /* Hide iframe cards on smaller screens */
-    }
-
-    .non-iframe-cards {
-        display: flex !important; /* Show non-iframe cards on smaller screens */
-    }
-}
-
-/* Replace your existing footer block with this */
+/* ── FOOTER ─────────────────────────────────────────────────────────────────
+   On mobile the footer flows with the document (position: relative) so it
+   doesn't overlap content. On desktop it is fixed to the bottom of the
+   viewport — main needs extra bottom padding to compensate so content
+   isn't hidden behind it (see the main rules below). */
 footer {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.9);
     margin: 0 auto;
     padding: 1rem 0;
     border-top: 1px solid #ccc;
-    position: relative; /* Default for mobile: flow with content */
+    position: relative; /* Mobile: flows with document */
 }
 
-/* Re-enable fixed position only for larger screens */
 @media (min-width: 768px) {
     footer {
         position: fixed;
@@ -102,13 +179,37 @@ footer {
     }
 }
 
-/* Adjust main padding so you don't have a giant gap on mobile */
+
+/* ── MAIN CONTENT AREA ──────────────────────────────────────────────────────
+   On mobile the footer is not fixed, so a small buffer is enough.
+   On desktop the footer is fixed at ~150px tall, so main needs equivalent
+   bottom padding to ensure the last content element isn't hidden behind it. */
 main {
-    padding-bottom: 2rem; /* Small buffer on mobile */
+    padding-bottom: 2rem; /* Mobile: small buffer above in-flow footer */
 }
 
 @media (min-width: 768px) {
     main {
-        padding-bottom: 150px; /* Original buffer for fixed footer on desktop */
+        padding-bottom: 150px; /* Desktop: clear the fixed footer */
     }
+}
+
+/* ── RELATED TOOLS LINKS ────────────────────────────────────────────────────
+   Styled anchor for cross-tool navigation within .related-tools-block.
+   Inherits the dotted/solid underline behavior of .content-link but adds
+   a muted teal accent so the links read as navigational rather than purely
+   inline prose. The ::after arrow is decorative and hidden on hover. */
+.related-tool-link {
+    color: var(--bs-info); /* Bootstrap dark theme's muted teal */
+    text-decoration: none;
+    border-bottom: 1px dotted var(--bs-info);
+    transition: border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+    opacity: 0.8;
+}
+.related-tool-link:hover,
+.related-tool-link:focus {
+    border-bottom-style: solid;
+    opacity: 1;
+    text-decoration: none;
+    color: var(--bs-info);
 }

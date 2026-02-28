@@ -203,59 +203,79 @@
         </div>
     </div>
 
-    {# --- Quick-Reference Band Table --- #}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">US Amateur Bands — Quick Reference</h3>
-            <div class="table-responsive">
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Band</th>
-                            <th>Lower Edge</th>
-                            <th>Upper Edge</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for band in bands_summary %}
-                        <tr>
-                            <td>{{ band.name }}</td>
-                            <td>{{ band.freq_start }} MHz</td>
-                            <td>{{ band.freq_end }} MHz</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <p class="small text-muted mt-2">
-                Source: FCC Part 97 (47 CFR § 97.301–305). Verify against the current
-                <a href="https://www.arrl.org/band-plan" target="_blank" rel="noopener">ARRL Band Plan chart</a>
-                before transmitting.
-            </p>
-        </div>
-    </div>
+    {# ============================================================= #}
+    {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+    {# ============================================================= #}
+    <div class="related-tools-block">
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Understanding the US Amateur Radio Band Plan</h3>
-            <p class="small text-muted mb-2">
-                <strong>Band Allocations</strong> define the frequency ranges the FCC has allocated for amateur radio use in the United States. Each band is subdivided into segments with specific rules about which emission modes are permitted and which license classes may transmit.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>License Class Privileges:</strong> The FCC issues four active license classes — Technician, General, Amateur Extra, and the grandfathered Advanced class. Higher-class licenses unlock additional frequency segments, particularly on HF (below 30 MHz). Technicians have full VHF/UHF privileges and limited HF access (10 meters, plus CW on portions of 80, 40, and 15 meters at 200 W PEP).
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Permitted Modes:</strong> Each sub-band segment may allow CW (Morse code), Phone (voice — SSB or FM), Data (digital modes like FT8, RTTY, PSK31), Image (SSTV, FAX), or a combination. Mode restrictions are tightest at the bottom of each HF band (typically CW/Data only) and broaden as you move up in frequency.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Power Limits:</strong> The default maximum is 1,500 W PEP for most bands and classes. Notable exceptions include 30 meters (200 W PEP, shared allocation), 60 meters (100 W ERP, channelized), and Technician/Novice HF CW segments (200 W PEP).
-            </p>
-            <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a> to check any US call sign's license class and expiration status or the <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a> to calculate element dimensions for any frequency.
-            </p>
+        {# --- Quick-Reference Band Table --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">US Amateur Bands — Quick Reference</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Band</th>
+                                <th>Lower Edge</th>
+                                <th>Upper Edge</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for band in bands_summary %}
+                            <tr>
+                                <td>{{ band.name }}</td>
+                                <td>{{ band.freq_start }} MHz</td>
+                                <td>{{ band.freq_end }} MHz</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">
+                    Source: FCC Part 97 (47 CFR § 97.301–305). Verify against the current
+                    <a href="https://www.arrl.org/band-plan" target="_blank" rel="noopener">ARRL Band Plan chart</a>
+                    before transmitting.
+                </p>
+            </div>
         </div>
-    </div>
+
+        {# --- Educational Section --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Understanding the US Amateur Radio Band Plan</h3>
+                <p class="small text-muted mb-2">
+                    <strong>Band Allocations</strong> define the frequency ranges the FCC has allocated for amateur radio use in the United States. Each band is subdivided into segments with specific rules about which emission modes are permitted and which license classes may transmit.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>License Class Privileges:</strong> The FCC issues four active license classes — Technician, General, Amateur Extra, and the grandfathered Advanced class. Higher-class licenses unlock additional frequency segments, particularly on HF (below 30 MHz). Technicians have full VHF/UHF privileges and limited HF access: 10 meters plus CW on narrow portions of 80, 40, and 15 meters at 200 W PEP. Upgrading to General opens most HF segments; Extra opens the remaining exclusive sub-bands at the bottom of each HF band.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Permitted Modes:</strong> Each sub-band segment may allow CW (Morse code), Phone (voice — SSB or FM), Data (digital modes like FT8, RTTY, PSK31), Image (SSTV, FAX), or a combination. Mode restrictions are tightest at the bottom of each HF band (typically CW/Data only) and broaden as you move up in frequency within the band. On VHF/UHF, the entire band is typically open to all modes.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Power Limits:</strong> The default maximum is 1,500 W PEP for most bands and classes. Notable exceptions include 30 meters (200 W PEP, shared allocation with fixed services), 60 meters (100 W ERP on five channelized frequencies), and Technician/Novice HF CW segments (200 W PEP). Always check segment-specific notes — some frequencies carry additional restrictions.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Shared and secondary allocations:</strong> Several amateur bands are shared with other radio services. On shared bands, amateurs may be secondary users and must not cause harmful interference to primary services. The 60-meter band is a notable example — amateur use is restricted to five specific channels with a maximum ERP of 100 W relative to a dipole.
+                </p>
+                <p class="small text-muted">
+                    <strong>Before you transmit:</strong> Verify your license class with the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a>, calculate element dimensions for your target frequency with the <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a>, and evaluate RF exposure compliance with the <a href="{% url 'projects:rf_exposure_calculator' %}">RF Exposure Calculator</a>.
+                </p>
+            </div>
+        </div>
+
+        {# --- Related Tools --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <p class="small text-muted">
+                    <strong>Related radio tools:</strong> Once you've confirmed your frequency and privilege, use the <a href="{% url 'projects:antenna_calculator' %}" class="related-tool-link">Antenna Length Calculator</a> to get element dimensions for that band. Look up any US call sign's license class and expiration with the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="related-tool-link">Ham Radio Call Sign Lookup</a>. If you're building a new station or changing power levels, run the <a href="{% url 'projects:rf_exposure_calculator' %}" class="related-tool-link">RF Exposure Calculator</a> to confirm FCC Part 97.13 compliance — the power limits shown here feed directly into that evaluation.
+                </p>
+            </div>
+        </div>
+
+    </div>{# end related-tools-block #}
+
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

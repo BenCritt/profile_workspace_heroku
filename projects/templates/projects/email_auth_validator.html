@@ -122,6 +122,16 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related IT tools:</strong> Want to see all of a domain's public records at once? Use the <a href="{% url 'projects:dns_tool' %}" class="related-tool-link">DNS Lookup Tool</a> to fetch standard A, MX, NS, and TXT records. If you are also auditing web security, use the <a href="{% url 'projects:http_header_inspector' %}" class="related-tool-link">HTTP Header Inspector</a> to check the domain's Strict-Transport-Security (HSTS) and Content-Security-Policy (CSP) headers.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

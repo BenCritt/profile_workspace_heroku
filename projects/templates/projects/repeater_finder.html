@@ -120,12 +120,102 @@
                     </table>
                 </div>
             </div>
-            
-            <div class="text-center mt-5">
-                {% include 'includes/attribution.html' %}
-            </div>
 
         </div>
+    </div>
+
+    {# ============================================================= #}
+    {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+    {# ============================================================= #}
+    <div class="related-tools-block">
+
+        {# --- Standard Offsets Reference --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Standard Repeater Offsets — Quick Reference</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Band</th>
+                                <th>Output Range</th>
+                                <th>Standard Offset</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>6 Meters (50 MHz)</td>
+                                <td>51.0–54.0 MHz</td>
+                                <td>−1.0 MHz</td>
+                                <td>Less common; used in DX openings</td>
+                            </tr>
+                            <tr>
+                                <td>2 Meters (144 MHz)</td>
+                                <td>146.0–148.0 MHz</td>
+                                <td>±600 kHz</td>
+                                <td>Most common VHF band for local FM</td>
+                            </tr>
+                            <tr>
+                                <td>1.25 Meters (222 MHz)</td>
+                                <td>224.0–225.0 MHz</td>
+                                <td>−1.6 MHz</td>
+                                <td>US-only; less common than 2m/70cm</td>
+                            </tr>
+                            <tr>
+                                <td>70 Centimeters (440 MHz)</td>
+                                <td>440–450 MHz</td>
+                                <td>+5 MHz</td>
+                                <td>Second most common; wide coverage</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">
+                    Some repeaters use non-standard offsets, particularly older installations or frequency-coordination edge cases.
+                    Always verify the offset from the repeater listing before programming your radio.
+                </p>
+            </div>
+        </div>
+
+        {# --- Educational Section --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Understanding VHF/UHF Repeaters</h3>
+                <p class="small text-muted mb-2">
+                    <strong>What is a repeater?</strong> A repeater is an automated radio station that simultaneously receives on one frequency (the input) and retransmits on another (the output). Because repeater antennas are typically mounted high on towers, hilltops, or buildings, they dramatically extend the range of low-power mobile and handheld radios. A 5-watt HT that might only reach a few miles direct can cover an entire metropolitan area through a well-sited repeater.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>PL / CTCSS tones:</strong> Most repeaters require a sub-audible tone (67–254.1 Hz) transmitted along with your voice signal to open their squelch and activate the transmitter. This is called a PL tone (Private Line, a Motorola trademark) or CTCSS (Continuous Tone-Coded Squelch System). Without the correct tone, the repeater ignores your transmission. The tone listed in this tool is the access tone you must transmit — your radio encodes it automatically once programmed. Some repeaters also encode a tone on their output so that your radio stays quiet until the repeater is actually transmitting.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Open vs. closed repeaters:</strong> An "open" repeater is available to any licensed amateur who transmits the correct access tone. A "closed" repeater requires membership or a specific invitation from the trustee. This tool only returns open repeaters from RepeaterBook, so all results should be accessible to any licensed operator.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Internet-linked repeater systems:</strong> Many modern repeaters are connected to internet-linking systems such as IRLP (Internet Radio Linking Project), EchoLink, AllStar, or Wires-X. These systems allow you to connect to distant repeaters or conference nodes through a DTMF-controlled internet gateway. A linked repeater in your area might give you access to a club net across the country.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Repeaters and emergency communications:</strong> Many repeaters are maintained by amateur radio emergency service groups (ARES, RACES) specifically for use during disasters. A significant number have backup generators or battery systems to remain operational during power outages. Knowing local repeater frequencies in advance of travel is good emergency preparedness — cell networks fail; 2-meter FM often doesn't.
+                </p>
+                <p class="small text-muted">
+                    <strong>Simplex fallback:</strong> If a repeater is busy, unreachable, or its link is down, local simplex calling frequencies are a reliable fallback. The national 2-meter FM simplex calling frequency is 146.520 MHz. For 70cm, 446.000 MHz is the standard calling channel. No tones required — just direct radio-to-radio communication.
+                </p>
+            </div>
+        </div>
+
+        {# --- Related Tools --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <p class="small text-muted">
+                    <strong>Related radio tools:</strong> To look up the license class, grid square, and expiration for any call sign listed in your results, use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="related-tool-link">Ham Radio Call Sign Lookup</a>. If you want to find your own grid square for the area you'll be operating in, the <a href="{% url 'projects:grid_square_converter' %}" class="related-tool-link">Grid Square Converter</a> can resolve any ZIP code or coordinate pair. To confirm that your radio is programmed within a segment your license permits, check the output frequency against the <a href="{% url 'projects:band_plan_checker' %}" class="related-tool-link">Band Plan Checker</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>{# end related-tools-block #}
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
     </div>
 </div>
 

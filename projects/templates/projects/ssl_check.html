@@ -84,7 +84,12 @@
                 </div>
             </div>
         {% endif %}
-        
+        {# --- Related Tools Section --- #}
+        <div class="related-tools-block mt-5 container u-container-narrow">
+            <p class="small text-muted text-start">
+                <strong>Related IT tools:</strong> After verifying a domain's SSL certificate, you might want to inspect its web security policies (like Strict-Transport-Security) using the <a href="{% url 'projects:http_header_inspector' %}" class="related-tool-link">HTTP Header Inspector</a>. To view the domain's underlying A and CNAME records, use the <a href="{% url 'projects:dns_tool' %}" class="related-tool-link">DNS Lookup Tool</a>, or find its registration details with a <a href="{% url 'projects:whois_lookup' %}" class="related-tool-link">WHOIS Lookup</a>.
+            </p>
+        </div>
         <div class="mt-5">
             {% include 'includes/attribution.html' %}
         </div>

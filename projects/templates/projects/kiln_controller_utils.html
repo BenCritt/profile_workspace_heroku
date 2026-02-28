@@ -119,7 +119,14 @@
     <div class="text-center mt-5 mb-3">
         <a href="{% url 'projects:glass_artist_toolkit' %}" class="btn btn-secondary">Go to Glass Artist Toolkit</a>
     </div>
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block row justify-content-center mt-2 mb-4">
+        <div class="col-lg-10">
+            <p class="small text-muted text-center">
+                <strong>Related glass tools:</strong> Use these quick conversions alongside the <a href="{% url 'projects:kiln_schedule_generator' %}" class="related-tool-link">Kiln Firing Schedule Generator</a> to program your digital controller perfectly. If you are doing a thick casting, calculate your exact glass weight first using the <a href="{% url 'projects:glass_volume_calculator' %}" class="related-tool-link">Glass Volume &amp; Weight Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

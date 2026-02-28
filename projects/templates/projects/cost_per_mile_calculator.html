@@ -102,7 +102,14 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-lg-8">
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> Once you know your break-even CPM, use the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate Analyzer</a> to evaluate if a quoted load meets your profit goals. If you have to drive empty to pick up that load, calculate your true repositioning costs with the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

@@ -92,6 +92,16 @@
 
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related IT tools:</strong> Security headers like HSTS require a valid HTTPS connection; verify the site's certificate expiration and issuer with the <a href="{% url 'projects:ssl_check' %}" class="related-tool-link">SSL Verification Tool</a>. You can also audit domain-level email security using the <a href="{% url 'projects:email_auth_validator' %}" class="related-tool-link">SPF, DKIM &amp; DMARC Validator</a>, or inspect network routing using the <a href="{% url 'projects:dns_tool' %}" class="related-tool-link">DNS Lookup Tool</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

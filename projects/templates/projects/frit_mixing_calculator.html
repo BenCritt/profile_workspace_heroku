@@ -79,7 +79,16 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Ensure your enameled pieces fire beautifully by generating a custom firing profile with the <a href="{% url 'projects:kiln_schedule_generator' %}" class="related-tool-link">Kiln Firing Schedule Generator</a>. If you are mixing distinct colors of glass powders, verify they won't cause dark outlines by running them through the <a href="{% url 'projects:glass_reaction_checker' %}" class="related-tool-link">Glass Reaction Checker</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

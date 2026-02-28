@@ -234,58 +234,78 @@
         </div>
     </div>
 
-    {# --- Precision Reference Table --- #}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Grid Square Precision Levels</h3>
-            <div class="table-responsive">
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Characters</th>
-                            <th>Example</th>
-                            <th>Lon Resolution</th>
-                            <th>Lat Resolution</th>
-                            <th>Approx. Area</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in precision_table %}
-                        <tr>
-                            <td>{{ row.characters }}</td>
-                            <td class="font-monospace">{{ row.example }}</td>
-                            <td>{{ row.lon_resolution }}</td>
-                            <td>{{ row.lat_resolution }}</td>
-                            <td>{{ row.approx_area }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {# ============================================================= #}
+    {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+    {# ============================================================= #}
+    <div class="related-tools-block">
+
+        {# --- Precision Reference Table --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Grid Square Precision Levels</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Characters</th>
+                                <th>Example</th>
+                                <th>Lon Resolution</th>
+                                <th>Lat Resolution</th>
+                                <th>Approx. Area</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in precision_table %}
+                            <tr>
+                                <td>{{ row.characters }}</td>
+                                <td class="font-monospace">{{ row.example }}</td>
+                                <td>{{ row.lon_resolution }}</td>
+                                <td>{{ row.lat_resolution }}</td>
+                                <td>{{ row.approx_area }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Understanding the Maidenhead Locator System</h3>
-            <p class="small text-muted mb-2">
-                <strong>What is a grid square?</strong> The Maidenhead Locator System is a geographic coordinate encoding used by amateur radio operators worldwide. It divides the Earth's surface into a hierarchical grid of progressively smaller rectangles, each identified by an alternating sequence of letters and digits. The most common format is six characters (e.g. EN53dj), which identifies a roughly 4.6 km × 4.6 km area.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>VHF/UHF contesting:</strong> Grid squares are the multiplier in ARRL VHF/UHF contests — working a station in a new grid earns bonus points. Contesting rovers drive from grid to grid to give out rare multipliers, making the grid system central to VHF contest strategy.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>POTA, SOTA, and portable ops:</strong> Parks on the Air (POTA) and Summits on the Air (SOTA) activators log their grid square as part of every contact. An 8-character grid (extended precision) pins your location to within ~460 meters, which is usually sufficient for portable QTH logging.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Satellite contacts:</strong> Grid squares are required for satellite QSOs. Knowing your exact grid square helps other operators calculate antenna aiming and Doppler correction.
-            </p>
-            <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a> to see the grid square registered to any US call sign, and the <a href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a> to verify your operating privileges.
-            </p>
+        {# --- Educational Section --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Understanding the Maidenhead Locator System</h3>
+                <p class="small text-muted mb-2">
+                    <strong>What is a grid square?</strong> The Maidenhead Locator System is a geographic coordinate encoding used by amateur radio operators worldwide. It divides the Earth's surface into a hierarchical grid of progressively smaller rectangles, each identified by an alternating sequence of letters and digits. The most common format is six characters (e.g. EN53dj), which identifies a roughly 4.6 km × 4.6 km area.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>How the encoding works:</strong> The first two characters (the "field") divide the world into 18 × 18 zones spanning 20° longitude by 10° latitude. The next two digits (the "square") subdivide each field into a 10 × 10 grid. The optional fifth and sixth characters (the "subsquare") further divide each square into 24 × 24 cells, identified by lower-case letters. An eighth-character extended grid adds yet another 10 × 10 layer, pinpointing locations to roughly 460 meters.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>VHF/UHF contesting:</strong> Grid squares are the multiplier in ARRL VHF/UHF contests — working a station in a new grid earns bonus points. Contesting rovers drive from grid to grid to give out rare multipliers, making the grid system central to VHF contest strategy.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>POTA, SOTA, and portable ops:</strong> Parks on the Air (POTA) and Summits on the Air (SOTA) activators log their grid square as part of every contact. An 8-character grid (extended precision) pins your location to within ~460 meters, which is usually sufficient for portable QTH logging.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Satellite contacts:</strong> Grid squares are required for satellite QSOs logged in programs like LOTW. Knowing your exact grid square also helps other operators calculate antenna aiming angles and Doppler shift correction for linear transponder satellites.
+                </p>
+                <p class="small text-muted">
+                    <strong>FCC license records:</strong> The FCC stores a mailing address with each license, not a QTH coordinate — so the grid square shown in a call sign lookup is geocoded from that address and may not match a station's actual operating location. Use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}">Ham Radio Call Sign Lookup</a> to retrieve the grid registered to any US call sign.
+                </p>
+            </div>
         </div>
-    </div>
+
+        {# --- Related Tools --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <p class="small text-muted">
+                    <strong>Related radio tools:</strong> To see the grid square registered to any US call sign's FCC mailing address, use the <a href="{% url 'projects:ham_radio_call_sign_lookup' %}" class="related-tool-link">Ham Radio Call Sign Lookup</a> — though keep in mind that address may differ from the station's actual operating location. Planning a road trip? The <a href="{% url 'projects:repeater_finder' %}" class="related-tool-link">Repeater Finder</a> locates open VHF and UHF repeaters along your driving route, which is a natural complement to tracking the grids you'll be passing through. To confirm your transmit privileges in each new band or segment, check the <a href="{% url 'projects:band_plan_checker' %}" class="related-tool-link">Band Plan Checker</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>{# end related-tools-block #}
+
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

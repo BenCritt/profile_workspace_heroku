@@ -92,6 +92,20 @@
 
   </div>
 
+  {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+  <div class="mt-5 w-100 text-center related-tools-block">
+      <p class="small text-muted">
+          <strong>Related SEO tools:</strong>
+          The Cookie Audit surfaces third-party trackers and consent-relevant cookies. For a fuller
+          technical audit, combine it with the
+          <a href="{% url 'projects:font_inspector' %}" class="related-tool-link">Font Inspector</a>
+          to check whether any loaded font services introduce additional data relationships that may
+          require disclosure. To audit SEO metadata across your entire site at once, use the
+          <a href="{% url 'projects:seo_head_checker' %}" class="related-tool-link">SEO Head Checker</a>
+          with your sitemap URL.
+      </p>
+  </div>
+
   <div class="mt-5 text-center cookie-audit-footer">
     {% include 'includes/attribution.html' %}
   </div>

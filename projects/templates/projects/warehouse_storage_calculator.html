@@ -101,7 +101,16 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related freight tools:</strong> If you are moving these pallets out of the warehouse and onto a truck, calculate how much trailer space they will occupy using the <a href="{% url 'projects:linear_foot_calculator' %}" class="related-tool-link">LTL Linear Foot Calculator</a>. You can also determine the density of your pallets with the <a href="{% url 'projects:freight_class_calculator' %}" class="related-tool-link">Freight Class Calculator</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

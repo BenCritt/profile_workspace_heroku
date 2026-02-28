@@ -132,7 +132,12 @@
             </div>
         </div>
     {% endif %}
-    
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block w-100 mt-5" style="max-width: 800px;">
+        <p class="small text-muted">
+            <strong>Related IT tools:</strong> Managing IP allocations? Use the <a href="{% url 'projects:subnet_calculator' %}" class="related-tool-link">Subnet Calculator</a> to determine CIDR network ranges and broadcast addresses. If you want to find the owner of the domain associated with a specific IP's reverse DNS, run a <a href="{% url 'projects:whois_lookup' %}" class="related-tool-link">WHOIS Lookup</a>.
+        </p>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

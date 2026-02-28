@@ -255,7 +255,12 @@
             <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary w-100 mt-3">Go to All IT Tools</a>
 
             {% endif %}{# /croniter_available #}
-
+            {# --- Related Tools Section --- #}
+            <div class="related-tools-block mt-5">
+                <p class="small text-muted">
+                    <strong>Related developer tools:</strong> Working with scheduled tasks often involves debugging precise execution times in server logs. Use the <a href="{% url 'projects:timestamp_converter' %}" class="related-tool-link">Unix Timestamp Converter</a> to translate epoch times from your system logs into human-readable local datetimes.
+                </p>
+            </div>
             <div class="mt-5 text-center">
                 {% include 'includes/attribution.html' %}
             </div>

@@ -240,66 +240,76 @@
         </div>
     </div>
 
-    {# --- Example Scenarios Reference --- #}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Common Scenarios — Quick Reference</h3>
-            <div class="table-responsive">
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Scenario</th>
-                            <th>Cable</th>
-                            <th>Freq</th>
-                            <th>Length</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ex in examples %}
-                        <tr>
-                            <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
-                            <td>{{ ex.cable|upper }}</td>
-                            <td>{{ ex.freq }} MHz</td>
-                            <td>{{ ex.length }} {{ ex.unit }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {# ============================================================= #}
+    {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+    {# ============================================================= #}
+    <div class="related-tools-block">
+
+        {# --- Example Scenarios Reference --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Common Scenarios — Quick Reference</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Cable</th>
+                                <th>Freq</th>
+                                <th>Length</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ex in examples %}
+                            <tr>
+                                <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
+                                <td>{{ ex.cable|upper }}</td>
+                                <td>{{ ex.freq }} MHz</td>
+                                <td>{{ ex.length }} {{ ex.unit }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Understanding Coaxial Cable Loss</h3>
-            <p class="small text-muted mb-2">
-                <strong>Why does cable loss matter?</strong> Every decibel of loss in your feed line is power that never reaches your antenna. A 3 dB loss means half your power is wasted as heat in the cable. On VHF and UHF, where cable loss increases significantly with frequency, choosing the right cable can make the difference between a strong signal and a marginal one.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Matched loss vs. mismatch loss:</strong> Matched loss (also called "flat loss" or "attenuation") occurs even with a perfect 1.0:1 SWR. It increases with frequency and cable length. Mismatch loss is the additional power reflected back due to an imperfect impedance match (SWR > 1.0). In practice, moderate SWR (under 2:1) adds relatively little additional loss — usually less than 0.5 dB.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>How to choose cable:</strong> For HF (below 30 MHz), even RG-8/213 performs well for runs under 100 feet. For VHF (2m), LMR-400 or equivalent is a strong choice for tower runs. For UHF (70cm) and above, every foot of cable matters — use the lowest-loss cable you can afford and keep runs as short as practical. Tower-mounted preamps and remote antenna tuners can help compensate for unavoidable loss.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Real-world factors:</strong> Published loss specs assume new cable at 68°F (20°C) with properly installed connectors. Actual loss increases with cable age, UV exposure, moisture ingress, tight bends, and poor connector workmanship. Measured loss in an installed cable run is typically 10–20% higher than book values. When in doubt, measure your actual cable loss with an antenna analyzer.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>75-ohm cable note:</strong> RG-6 and other 75-ohm cables are designed for TV/CATV use. Connecting them to 50-ohm amateur equipment creates a baseline 1.5:1 SWR from the impedance mismatch alone, before any antenna mismatch is factored in. They can work for receive-only applications but are not recommended for transmitting.
-            </p>
-            <p class="small text-muted">
-                <strong>Related tools:</strong>
-                Use the <a href="{% url 'projects:rf_exposure_calculator' %}">RF Exposure Calculator</a>
-                to evaluate your station's MPE compliance using the feed line loss calculated here.
-                Calculate antenna element dimensions with the
-                <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a>,
-                then determine how much power your feed line will deliver.
-                <a href="{% url 'projects:band_plan_checker' %}">Check your operating privileges and power limits</a>
-                with the Band Plan Checker.
-            </p>
+        {# --- Educational Section --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Understanding Coaxial Cable Loss</h3>
+                <p class="small text-muted mb-2">
+                    <strong>Why does cable loss matter?</strong> Every decibel of loss in your feed line is power that never reaches your antenna. A 3 dB loss means half your power is wasted as heat in the cable. On VHF and UHF, where cable loss increases significantly with frequency, choosing the right cable can make the difference between a strong signal and a marginal one.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Matched loss vs. mismatch loss:</strong> Matched loss (also called "flat loss" or "attenuation") occurs even with a perfect 1.0:1 SWR. It increases with frequency and cable length. Mismatch loss is the additional power reflected back due to an imperfect impedance match (SWR > 1.0). In practice, moderate SWR (under 2:1) adds relatively little additional loss — usually less than 0.5 dB. The dominant loss in most installations is matched loss from the cable itself.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>How to choose cable:</strong> For HF (below 30 MHz), even RG-8/213 performs well for runs under 100 feet. For VHF (2m), LMR-400 or equivalent is a strong choice for tower runs. For UHF (70cm) and above, every foot of cable matters — use the lowest-loss cable you can afford and keep runs as short as practical. Tower-mounted preamps and remote antenna tuners can help compensate for unavoidable loss.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Real-world factors:</strong> Published loss specs assume new cable at 68°F (20°C) with properly installed connectors. Actual loss increases with cable age, UV exposure, moisture ingress, tight bends, and poor connector workmanship. Measured loss in an installed cable run is typically 10–20% higher than book values. When in doubt, measure your actual cable loss with an antenna analyzer.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>75-ohm cable note:</strong> RG-6 and other 75-ohm cables are designed for TV/CATV use. Connecting them to 50-ohm amateur equipment creates a baseline 1.5:1 SWR from the impedance mismatch alone, before any antenna mismatch is factored in. They can work for receive-only applications but are not recommended for transmitting.
+                </p>
+                <p class="small text-muted">
+                    <strong>Connector quality counts:</strong> A poorly installed PL-259 or BNC connector can introduce as much loss as 10–20 feet of cable. Silver-plated connectors with proper solder joints and weatherproofing (coax seal, self-amalgamating tape) on outdoor connections are well worth the extra effort.
+                </p>
+            </div>
         </div>
-    </div>
+
+        {# --- Related Tools --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <p class="small text-muted">
+                    <strong>Related radio tools:</strong> Feed line loss directly affects your RF exposure evaluation — use the total loss figure calculated here as the feed line loss input in the <a href="{% url 'projects:rf_exposure_calculator' %}" class="related-tool-link">RF Exposure Calculator</a> for an accurate effective radiated power calculation. To determine what antenna you're feeding, use the <a href="{% url 'projects:antenna_calculator' %}" class="related-tool-link">Antenna Length Calculator</a> to get element dimensions for your operating frequency. And before transmitting, verify that your frequency, mode, and power level are within your license privileges using the <a href="{% url 'projects:band_plan_checker' %}" class="related-tool-link">Band Plan Checker</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>{# end related-tools-block #}
+
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

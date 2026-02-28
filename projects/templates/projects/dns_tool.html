@@ -81,7 +81,12 @@
         </div>
     </div>
     {% endif %}
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block w-100 mt-5" style="max-width: 800px;">
+        <p class="small text-muted">
+            <strong>Related IT tools:</strong> If you're investigating domain routing, use the <a href="{% url 'projects:whois_lookup' %}" class="related-tool-link">WHOIS Lookup</a> to find domain registration and ownership details, or verify the domain's secure connection with the <a href="{% url 'projects:ssl_check' %}" class="related-tool-link">SSL Verification Tool</a>. Need to verify SPF, DKIM, and DMARC configurations? Use the dedicated <a href="{% url 'projects:email_auth_validator' %}" class="related-tool-link">Email Auth Validator</a>. To look up the reverse DNS of a specific A-record IP address, try the <a href="{% url 'projects:ip_tool' %}" class="related-tool-link">IP Address Lookup Tool</a>.
+        </p>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

@@ -26,10 +26,16 @@
     <h1 class="mb-4">SEO Head Checker</h1>
     
     <div class="w-100 seo-tool-container">
-        
+
         <section class="mb-4 text-center">
             <h2 class="h4">Instructions</h2>
-            <p class="text-muted">Enter the URL of a sitemap or web page and click the blue "Generate SEO Report" button. Progress will update below. Once complete, click the green "Download" button.</p>
+            <p class="text-muted">
+                Enter a sitemap URL (e.g., <code>bencritt.net/sitemap.xml</code>) or a single page URL,
+                then click <strong>Generate SEO Report</strong>. The tool fetches each listed page and audits
+                its <code>&lt;head&gt;</code> for title tags, meta descriptions, canonical URLs, Open Graph
+                tags, and more — up to 1,000 pages per run. Progress updates live; once processing is
+                complete, click the green button to download a CSV with one row per page.
+            </p>
         </section>
 
         <form method="POST" id="sitemap-form" class="mb-4 d-grid gap-3" onsubmit="return false;"
@@ -70,9 +76,24 @@
             <p>Reports are limited to the first 1,000 pages. There may be a delay before progress bars update. If you do not download your file within 30 minutes, it will be deleted.</p>
         </section>
 
+        {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+        <section class="mt-4 text-muted small related-tools-block">
+            <p>
+                <strong>Related SEO tools:</strong>
+                The SEO Head Checker audits meta tags at scale across your entire sitemap. To preview exactly
+                how individual pages render when shared on Google, Twitter/X, Facebook, or LinkedIn, test them
+                one at a time with the
+                <a href="{% url 'projects:og_previewer' %}" class="related-tool-link">Open Graph &amp; Social Card Previewer</a>.
+                Before running a sitemap audit, confirm that search engine bots are permitted to crawl your
+                pages by verifying your crawl rules with the
+                <a href="{% url 'projects:robots_analyzer' %}" class="related-tool-link">Robots.txt Analyzer</a>.
+            </p>
+        </section>
+
         <div class="mt-4 text-center">
             {% include 'includes/attribution.html' %}
         </div>
+
     </div>
 
     <script>

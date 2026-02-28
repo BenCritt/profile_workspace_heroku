@@ -102,7 +102,14 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-lg-8">
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> The Linear Foot Rule is heavily tied to shipment density. Verify your freight's exact NMFC class using the <a href="{% url 'projects:freight_class_calculator' %}" class="related-tool-link">Freight Class Calculator</a>. If your shipment exceeds 12 feet, it might be more cost-effective to skip LTL entirely and price it using the <a href="{% url 'projects:partial_rate_calculator' %}" class="related-tool-link">Partial &amp; Volume LTL Rate Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

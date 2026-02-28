@@ -29,8 +29,12 @@
     <h1 class="mb-4 text-center">Redirect Chain Checker</h1>
     
     <div class="w-100" style="max-width: 900px;">
+
         <p class="text-center mb-4">
-            Enter a URL to trace its full redirect chain. Detect loops, mixed redirect types, and analyze hop latency.
+            Enter any URL to follow every HTTP hop — 301 permanent, 302 temporary, 307, and 308 redirects —
+            through to its final destination. Identify redirect loops, measure per-hop latency, spot mixed
+            HTTP/HTTPS transitions, and catch long chains that dilute link equity or slow down search engine
+            crawlers.
         </p>
 
         {# ── Input Form ────────────────────────────────────────────────── #}
@@ -211,8 +215,20 @@
             </div>
 
         {% endif %}
-
-    </div>
+        
+        {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+        <div class="mt-5 w-100 related-tools-block">
+            <p class="small text-muted">
+                <strong>Related SEO tools:</strong>
+                Make sure the final destination URL in your redirect chain isn't inadvertently blocked from
+                crawling — verify the site's rules with the
+                <a href="{% url 'projects:robots_analyzer' %}" class="related-tool-link">Robots.txt Analyzer</a>.
+                Once you've confirmed the page is accessible, validate its structured data with the
+                <a href="{% url 'projects:jsonld_validator' %}" class="related-tool-link">JSON-LD Validator</a>
+                to check whether your 301 redirects are correctly passing schema signals to Google's rich
+                result parser.
+            </p>
+        </div>
 
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}

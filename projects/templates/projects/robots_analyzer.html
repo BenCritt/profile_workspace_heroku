@@ -26,6 +26,13 @@
         <div class="col-lg-8">
             <h1 class="text-center mb-4">Robots.txt Analyzer</h1>
 
+            <p class="text-center mb-4">
+                Enter any domain name to fetch and parse its <code>robots.txt</code> file. The tool displays
+                every user-agent group, allow/disallow rules, crawl-delay directives, and linked sitemaps.
+                Optionally enter a path (e.g., <code>/blog/</code>) to test whether Googlebot, Bingbot, or
+                other crawlers are permitted to access it.
+            </p>
+
             {# ── Input Form ──────────────────────────────────────────── #}
             <div class="card shadow-sm mb-5">
                 <div class="card-body">
@@ -258,6 +265,21 @@
 
                 {% endif %}{# end fetch_error else #}
             {% endif %}{# end result #}
+            {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+            <div class="row justify-content-center mt-5 related-tools-block">
+                <div class="col-12">
+                    <p class="small text-muted">
+                        <strong>Related SEO tools:</strong>
+                        If your site uses redirects in front of key pages, trace every HTTP hop with the
+                        <a href="{% url 'projects:redirect_checker' %}" class="related-tool-link">Redirect Chain Checker</a>
+                        to confirm crawlers are landing on the correct final URL — a redirect loop or long 302
+                        chain can prevent Googlebot from ever indexing the page. Once access is confirmed,
+                        validate the page's structured data with the
+                        <a href="{% url 'projects:jsonld_validator' %}" class="related-tool-link">JSON-LD Validator</a>
+                        to check rich result eligibility.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
     <div class="mt-5 text-center">

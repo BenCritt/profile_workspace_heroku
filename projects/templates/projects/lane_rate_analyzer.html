@@ -225,9 +225,9 @@
         </div>
     </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Understanding Rate Per Mile</h3>
             <p class="small text-muted mb-2">
                 <strong>Rate Per Mile (RPM)</strong> is the most fundamental metric in freight pricing. It divides the quoted flat rate by the exact number of road miles between origin and destination. Brokers and carriers use RPM to compare loads across different lane lengths, evaluate market competitiveness, and make quick accept/reject decisions.
@@ -239,7 +239,7 @@
                 <strong>Market Context:</strong> Dry van spot rates typically range from $2.00 to $2.75 per mile nationally, though this varies significantly by lane, season, and market conditions. The benchmarks shown are directional guidance, not real-time market data.
             </p>
             <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost, then plug it in here to see your true margin. Pair with the <a href="{% url 'projects:fuel_surcharge_calculator' %}">Fuel Surcharge Calculator</a> to compute FSC from current diesel prices.
+                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:cost_per_mile_calculator' %}" class="related-tool-link">Cost Per Mile (CPM) Calculator</a> to determine your all-in operating cost, then plug it in here to see your true margin. Pair with the <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="related-tool-link">Fuel Surcharge Calculator</a> to compute FSC from current diesel prices, or use the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> if you have to drive empty to the pickup.
             </p>
         </div>
     </div>

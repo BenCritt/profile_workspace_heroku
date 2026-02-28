@@ -291,7 +291,12 @@
             </div>{# /tab-content #}
 
             <a href="{% url 'projects:it_tools' %}" class="btn btn-secondary w-100 mt-3">Go to All IT Tools</a>
-
+            {# --- Related Tools Section --- #}
+            <div class="related-tools-block mt-5">
+                <p class="small text-muted">
+                    <strong>Related developer tools:</strong> If you are debugging server logs, you might also be scheduling server tasks. Use the <a href="{% url 'projects:cron_builder' %}" class="related-tool-link">Cron Expression Builder</a> to validate your cron syntax and preview upcoming execution times in your local timezone.
+                </p>
+            </div>
             <div class="mt-5 text-center">
                 {% include 'includes/attribution.html' %}
             </div>

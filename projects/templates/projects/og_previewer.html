@@ -28,9 +28,10 @@
     <div class="w-100 og-content-wrapper">
 
         <p class="text-center mb-4">
-            Enter any public URL to see how it appears when shared on Google, Twitter/X,
-            Facebook, and LinkedIn. Audits all <code>og:*</code>, <code>twitter:*</code>,
-            and core meta tags.
+            Enter any public URL to preview exactly how it appears when shared on Google, Twitter/X,
+            Facebook, and LinkedIn. Audits all <code>og:*</code>, <code>twitter:*</code>, and core
+            meta tags, scores overall tag completeness, and flags missing or misconfigured properties
+            that would degrade your social card or search snippet.
         </p>
 
         <!-- ── Input Form ───────────────────────────────────────────────── -->
@@ -532,6 +533,19 @@
         </div><!-- /tab-content -->
 
         {% endif %}<!-- /final_url -->
+        {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+        <div class="mt-5 w-100 related-tools-block">
+            <p class="small text-muted">
+                <strong>Related SEO tools:</strong>
+                The Open Graph Previewer audits one URL at a time. To run the same meta tag checks across
+                every page in your sitemap and generate a downloadable CSV report, use the
+                <a href="{% url 'projects:seo_head_checker' %}" class="related-tool-link">SEO Head Checker</a>.
+                For pages that also use structured data to qualify for rich results in Google Search, validate
+                their <code>application/ld+json</code> blocks with the
+                <a href="{% url 'projects:jsonld_validator' %}" class="related-tool-link">JSON-LD Validator</a>
+                to ensure both layers of metadata are correct.
+            </p>
+        </div>
 
     </div><!-- /og-content-wrapper -->
 

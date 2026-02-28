@@ -79,14 +79,18 @@
         </div>
     </div>
 
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Volume LTL vs. Partial Truckload</h3>
             <p class="small text-muted mb-2">
                 <strong>Volume LTL:</strong> Moves through a standard LTL carrier's hub-and-spoke network, but rates are spot-quoted based on trailer capacity rather than NMFC class. Highly susceptible to damage from cross-docking.
             </p>
             <p class="small text-muted">
                 <strong>Partial Truckload:</strong> Freight stays on one truck from origin to destination (no cross-docking). It is paired with another shipper's freight to fill the trailer. Lower damage risk, but transit times depend on the carrier's ability to find matching freight.
+            </p>
+            <p class="small text-muted mt-3">
+                <strong>Related freight tools:</strong> Ensure your freight isn't small enough to just ship standard LTL by checking its footprint with the <a href="{% url 'projects:linear_foot_calculator' %}" class="related-tool-link">LTL Linear Foot Calculator</a>. You can also estimate the shipment's density and NMFC class using the <a href="{% url 'projects:freight_class_calculator' %}" class="related-tool-link">Freight Class Calculator</a>.
             </p>
         </div>
     </div>

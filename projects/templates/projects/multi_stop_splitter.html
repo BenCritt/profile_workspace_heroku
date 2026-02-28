@@ -216,9 +216,9 @@
         </div>
     </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Why Split Routes by Leg?</h3>
             <p class="small text-muted mb-2">
                 Freight brokers, dispatchers, and carriers need per-leg mileage for several critical workflows.
@@ -229,7 +229,7 @@
                 <strong>Stop-off charges</strong> are flat fees billed for each additional stop beyond a standard point-to-point haul. Typical rates range from $50 to $150 per stop, depending on the carrier and lane. This tool calculates the total stop-off cost so you can include it on rate confirmations and invoices.
             </p>
             <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:deadhead_calculator' %}">Deadhead Calculator</a> to evaluate whether repositioning to the first pickup on this route is worthwhile, or the <a href="{% url 'projects:hos_trip_planner' %}">HOS Trip Planner</a> to estimate realistic transit times with mandatory rest breaks.
+                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> to evaluate whether repositioning to the first pickup on this route is worthwhile, or the <a href="{% url 'projects:hos_trip_planner' %}" class="related-tool-link">HOS Trip Planner</a> to estimate realistic transit times with mandatory rest breaks.
             </p>
         </div>
     </div>

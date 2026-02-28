@@ -291,61 +291,78 @@
         </div>
     </div>
 
-    {# --- Example Scenarios Reference --- #}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Common Station Scenarios — Quick Reference</h3>
-            <div class="table-responsive">
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Scenario</th>
-                            <th>Power</th>
-                            <th>Gain</th>
-                            <th>Freq</th>
-                            <th>Mode</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ex in examples %}
-                        <tr>
-                            <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
-                            <td>{{ ex.power }} W</td>
-                            <td>{{ ex.gain }} {{ ex.ref }}</td>
-                            <td>{{ ex.freq }} MHz</td>
-                            <td>{{ ex.mode|upper }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {# ============================================================= #}
+    {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+    {# ============================================================= #}
+    <div class="related-tools-block">
+
+        {# --- Example Scenarios Reference --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Common Station Scenarios — Quick Reference</h3>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Power</th>
+                                <th>Gain</th>
+                                <th>Freq</th>
+                                <th>Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ex in examples %}
+                            <tr>
+                                <td>{{ ex.label }}<br><small class="text-muted">{{ ex.note }}</small></td>
+                                <td>{{ ex.power }} W</td>
+                                <td>{{ ex.gain }} {{ ex.ref }}</td>
+                                <td>{{ ex.freq }} MHz</td>
+                                <td>{{ ex.mode|upper }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
-            <h3 class="h5 mb-3 text-muted">Understanding RF Exposure Compliance</h3>
-            <p class="small text-muted mb-2">
-                <strong>Why is this required?</strong> FCC Part 97.13(c)(1) requires every amateur station licensee to perform a routine RF exposure evaluation before transmitting. This isn't just for high-power stations — even QRP setups technically need an evaluation, though they almost always pass easily. The regulation protects both the operator and nearby people from excessive radio-frequency energy absorption.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Controlled vs. Uncontrolled environments:</strong> A "controlled" environment is one where people present are aware of the RF exposure and can take steps to minimize it (you, your household members who know about the antenna). "Uncontrolled" applies to neighbors, passers-by, and anyone who might be near your antenna without knowing it's active. Most residential stations must meet the stricter uncontrolled limits at their property boundaries.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Duty cycle matters:</strong> SSB voice typically has only about 20% duty cycle (you're transmitting less than half the time, and speech doesn't fully modulate the carrier). FM and digital modes like FT8 run at 100% duty during transmission. Lower duty cycles significantly reduce your average exposure, often making the difference between compliant and non-compliant on HF.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>Far-field vs. near-field:</strong> This calculator uses the standard far-field power density formula, which is valid when the distance from the antenna is at least one wavelength. For very close distances (near-field), actual exposure may differ. The far-field calculation is the standard method recommended in OET Bulletin 65 for routine amateur evaluations.
-            </p>
-            <p class="small text-muted mb-2">
-                <strong>What if I fail?</strong> Options include reducing power, using a lower-gain antenna, choosing a mode with a lower duty cycle, increasing antenna height (distance to people), or restricting transmission times. Often, switching from FM to SSB on HF dramatically improves compliance due to the duty cycle difference.
-            </p>
-            <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:antenna_calculator' %}">Antenna Length Calculator</a> to determine element dimensions for your antenna, and the <a href="{% url 'projects:band_plan_checker' %}">Band Plan Checker</a> to verify the power limits for your license class and band.
-            </p>
+        {# --- Educational Section --- #}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-10">
+                <h3 class="h5 mb-3 text-muted">Understanding RF Exposure Compliance</h3>
+                <p class="small text-muted mb-2">
+                    <strong>Why is this required?</strong> FCC Part 97.13(c)(1) requires every amateur station licensee to perform a routine RF exposure evaluation before transmitting. This isn't just for high-power stations — even QRP setups technically need an evaluation, though they almost always pass easily. The regulation protects both the operator and nearby people from excessive radio-frequency energy absorption.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Controlled vs. Uncontrolled environments:</strong> A "controlled" environment is one where people present are aware of the RF exposure and can take steps to minimize it (you, your household members who know about the antenna). "Uncontrolled" applies to neighbors, passers-by, and anyone who might be near your antenna without knowing it's active. Most residential stations must meet the stricter uncontrolled limits at their property boundaries.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Duty cycle matters:</strong> SSB voice typically has only about 20% duty cycle (you're transmitting less than half the time, and speech doesn't fully modulate the carrier). FM and digital modes like FT8 run at 100% duty during transmission. Lower duty cycles significantly reduce your average exposure, often making the difference between compliant and non-compliant on HF.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Far-field vs. near-field:</strong> This calculator uses the standard far-field power density formula, which is valid when the distance from the antenna is at least one wavelength. For very close distances (near-field), actual exposure may differ. The far-field calculation is the standard method recommended in OET Bulletin 65 for routine amateur evaluations.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>What if I fail?</strong> Options include reducing power, using a lower-gain antenna, choosing a mode with a lower duty cycle, increasing antenna height (distance to people), or restricting transmission times. Often, switching from FM to SSB on HF dramatically improves compliance due to the duty cycle difference.
+                </p>
+                <p class="small text-muted">
+                    <strong>Feed line loss and effective radiated power:</strong> Power lost in your feed line never reaches the antenna, which also means it never contributes to RF exposure. For stations with long runs of lossy cable, entering the feed line loss (in dB) gives a more accurate effective power figure. Use the Coax Cable Loss Calculator to determine your actual feed line loss before running the exposure evaluation.
+                </p>
+            </div>
         </div>
-    </div>
+
+        {# --- Related Tools --- #}
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <p class="small text-muted">
+                    <strong>Related radio tools:</strong> If your feed line has measurable loss, calculate it first with the <a href="{% url 'projects:coax_cable_loss_calculator' %}" class="related-tool-link">Coax Cable Loss Calculator</a> and enter that figure in the feed line loss field above — power lost in the cable never reaches the antenna and should not count toward your exposure calculation. Use the <a href="{% url 'projects:antenna_calculator' %}" class="related-tool-link">Antenna Length Calculator</a> to determine element dimensions for the antenna you're evaluating, and check the <a href="{% url 'projects:band_plan_checker' %}" class="related-tool-link">Band Plan Checker</a> to verify the power limits that apply to your license class and band before setting transmitter output.
+                </p>
+            </div>
+        </div>
+
+    </div>{# end related-tools-block #}
+
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

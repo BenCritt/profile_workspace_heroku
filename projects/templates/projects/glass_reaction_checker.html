@@ -61,13 +61,22 @@
             </div>
             {% endif %}
             
-            <div class="mt-5">
+            <div class="mt-5 related-tools-block">
                 <h3>How this works</h3>
                 <p>Certain glass colors contain <strong>Sulfur</strong> (mostly warm colors) while others contain <strong>Copper</strong> or <strong>Lead</strong> (mostly cool colors/turquoises). When fused together, they form Copper Sulfide or Lead Sulfide, creating a dark outline.</p>
             </div>
         </div>
     </div>
-
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-4 pt-4 border-top">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Once you've verified your glass palette is safe from sulfur-copper/lead reactions, generate a safe firing profile using the <a href="{% url 'projects:kiln_schedule_generator' %}" class="related-tool-link">Kiln Firing Schedule Generator</a>. If you are mixing your own enamels for the piece, calculate the exact liquid-to-powder ratios with the <a href="{% url 'projects:frit_mixing_calculator' %}" class="related-tool-link">Enamel &amp; Frit Mixing Calculator</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

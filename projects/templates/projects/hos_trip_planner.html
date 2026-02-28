@@ -101,6 +101,14 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-10 col-lg-8">
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> For complex routes with multiple pickups or deliveries, break down the mileage leg-by-leg using the <a href="{% url 'projects:multi_stop_splitter' %}" class="related-tool-link">Multi-Stop Route Mileage Splitter</a>. If extended wait times throw off your schedule, calculate your billable compensation with the <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="related-tool-link">Detention &amp; Layover Fee Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

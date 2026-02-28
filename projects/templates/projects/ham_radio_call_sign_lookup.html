@@ -179,6 +179,95 @@
       </div>
   {% endif %}
 
+  {# ============================================================= #}
+  {#  EDUCATIONAL CONTENT — hidden when embedded in an iframe       #}
+  {# ============================================================= #}
+  <div class="related-tools-block">
+
+    {# --- License Class Quick Reference --- #}
+    <div class="mt-5">
+      <h3 class="h5 mb-3 text-muted">US Amateur License Classes — Quick Reference</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Code</th>
+              <th>HF Privileges</th>
+              <th>VHF/UHF</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge bg-primary">Amateur Extra</span></td>
+              <td class="font-monospace">E</td>
+              <td>Full — all bands and all sub-band segments</td>
+              <td>Full</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-info text-dark">Advanced</span></td>
+              <td class="font-monospace">A</td>
+              <td>Most HF segments; slightly fewer than Extra (grandfathered — no longer issued)</td>
+              <td>Full</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-success">General</span></td>
+              <td class="font-monospace">G</td>
+              <td>Most HF segments; Extra-only sub-bands restricted</td>
+              <td>Full</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-warning text-dark">Technician</span></td>
+              <td class="font-monospace">T</td>
+              <td>10m phone + CW on narrow portions of 80/40/15m (200 W PEP)</td>
+              <td>Full</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-light text-dark">Novice</span></td>
+              <td class="font-monospace">N</td>
+              <td>CW on portions of 80/40/15/10m (grandfathered — no longer issued)</td>
+              <td>Limited</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# --- Educational Section --- #}
+    <div class="mt-5">
+      <h3 class="h5 mb-3 text-muted">Understanding US Amateur Radio Call Signs</h3>
+      <p class="small text-muted mb-2">
+          <strong>Call sign structure:</strong> US amateur call signs follow a standard format: one or two prefix letters, a single region digit (0–9), and a one-to-three letter suffix. The prefix indicates the license class and era of issuance. Single-letter prefixes (W, K, N) and two-letter AA–AL prefixes are the most common. Extra class licensees are eligible for the shortest "1×2" or "2×1" format call signs (e.g. W1AB or AA1B); Technicians are typically issued 2×3 format signs.
+      </p>
+      <p class="small text-muted mb-2">
+          <strong>Region numbers:</strong> The digit in a call sign roughly corresponds to the geographic region where the license was first issued — Region 1 covers New England, Region 7 covers the Pacific Northwest, and so on. However, call signs are not required to match the operator's current location; operators keep their original call sign when moving between regions.
+      </p>
+      <p class="small text-muted mb-2">
+          <strong>The FCC ULS database:</strong> All US amateur radio licenses are maintained in the FCC's Universal Licensing System (ULS). This tool queries the ULS in real time via the <a href="https://callook.info/" target="_blank" rel="noopener">Callook.info API</a>. The data shown — including name, address, grid square, and expiration date — reflects the licensee's mailing address on file with the FCC, which may differ from their actual operating location.
+      </p>
+      <p class="small text-muted mb-2">
+          <strong>FRN (FCC Registration Number):</strong> Every FCC licensee is assigned a unique FRN for managing their licenses through the FCC's online systems. An FRN can hold multiple licenses across different radio services (e.g. amateur, GMRS) under a single account. The FRN shown here is required when filing paperwork with the FCC.
+      </p>
+      <p class="small text-muted mb-2">
+          <strong>Club and trustee call signs:</strong> Amateur radio clubs are licensed under a club call sign, with an individual licensee (the trustee) responsible for its proper use. The trustee's personal call sign appears in the Trustee accordion above. Club call signs follow the same format as individual signs but are associated with the club's mailing address rather than an individual.
+      </p>
+      <p class="small text-muted mb-2">
+          <strong>License renewal and expiration:</strong> US amateur licenses are valid for 10 years. Licenses can be renewed online through the FCC ULS starting 90 days before expiration. There is a 2-year grace period after expiration during which a license can be reinstated without retesting — but operating while expired is not permitted.
+      </p>
+      <p class="small text-muted">
+          <strong>Grid square note:</strong> The Maidenhead grid square shown is derived from the licensee's mailing address geocode, not a GPS coordinate. For portable or rover operations, operators typically report their actual operating grid square in their logbook and contest exchange. Use the <a href="{% url 'projects:grid_square_converter' %}">Grid Square Converter</a> to find the grid for any coordinates or ZIP code.
+      </p>
+    </div>
+
+    {# --- Related Tools --- #}
+    <div class="mt-4">
+      <p class="small text-muted">
+        <strong>Related radio tools:</strong> The grid square shown above is derived from the licensee's mailing address — use the <a href="{% url 'projects:grid_square_converter' %}" class="related-tool-link">Grid Square Converter</a> to find the precise Maidenhead locator for any coordinates or ZIP code instead. If you're traveling and want to know which repeaters you'll have access to along the way, the <a href="{% url 'projects:repeater_finder' %}" class="related-tool-link">Repeater Finder</a> searches open VHF and UHF repeaters by driving route. To look up what modes and power limits apply to a specific frequency, use the <a href="{% url 'projects:band_plan_checker' %}" class="related-tool-link">Band Plan Checker</a>.
+      </p>
+    </div>
+
+  </div>{# end related-tools-block #}
+
   <div class="text-center mt-5">
     {% include 'includes/attribution.html' %}
   </div>

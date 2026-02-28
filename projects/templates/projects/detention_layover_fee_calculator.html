@@ -108,7 +108,14 @@
             
         </div>
     </div>
-
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-lg-8">
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> Delays at the shipper or receiver eat into your driving clock. Use the <a href="{% url 'projects:hos_trip_planner' %}" class="related-tool-link">HOS Trip Planner</a> to recalculate your ETA after a long detention period. If you are a broker, track how detention accessorials impact your gross profit using the <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Freight Margin Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

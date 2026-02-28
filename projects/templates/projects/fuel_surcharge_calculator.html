@@ -75,6 +75,14 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> Combine your calculated FSC with the base line-haul rate to find the all-in Rate Per Mile using the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate Analyzer</a>. If you're a broker looking to break down the FSC spread between your customer and carrier, use the <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Freight Margin Calculator</a>.
+            </p>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>

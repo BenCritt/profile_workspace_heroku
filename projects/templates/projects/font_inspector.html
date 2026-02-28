@@ -219,7 +219,13 @@
   <h1 class="mb-4">Font Inspector</h1>
   
   <div class="w-100 font-inspector-container">
-    <p class="text-center mb-4">Enter the URL of a web page. A table below will identify all fonts, font sources, and offer guidance on license requirements.</p>
+
+    <p class="text-center mb-4">
+        Enter the URL of any public web page to identify every font in use — the family name, where it
+        loads from (Google Fonts, Adobe Fonts, self-hosted, system stack, etc), and whether a commercial
+        license is required. Useful for design audits, brand compliance reviews, and technical due
+        diligence before client site launches.
+    </p>
 
     <form id="font-inspector-form" class="mb-4"
       data-gtm-tool="Font Inspector" data-gtm-category="SEO Tools">
@@ -255,6 +261,19 @@
       <p class="mt-2 text-muted small text-center">CSV files are stored temporarily and auto-deleted after 30 minutes.</p>
     </div>
 
+  </div>
+
+  {# --- Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+  <div class="mt-5 w-100 text-center related-tools-block">
+      <p class="small text-muted">
+          <strong>Related SEO tools:</strong>
+          Font licensing is one part of a full site compliance audit. Pair this scan with the
+          <a href="{% url 'projects:cookie_audit' %}" class="related-tool-link">Cookie Audit</a>
+          to surface third-party trackers and session cookies that may require user consent disclosures.
+          To see how the same page presents itself to visitors on Google and social media, check its
+          Open Graph and meta tags with the
+          <a href="{% url 'projects:og_previewer' %}" class="related-tool-link">Open Graph &amp; Social Card Previewer</a>.
+      </p>
   </div>
 
   <div class="mt-5 text-center">

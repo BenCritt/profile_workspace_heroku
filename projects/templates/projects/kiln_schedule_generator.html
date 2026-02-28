@@ -149,6 +149,16 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5 d-print-none">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Need to translate these ramp rates for your specific digital controller? Use the <a href="{% url 'projects:kiln_controller_utils' %}" class="related-tool-link">Kiln Controller Utilities</a>. If you are firing a thick slab or casting, ensure you have the correct amount of glass with the <a href="{% url 'projects:glass_volume_calculator' %}" class="related-tool-link">Glass Volume &amp; Weight Calculator</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center d-print-none">
         {% include 'includes/attribution.html' %}
     </div>

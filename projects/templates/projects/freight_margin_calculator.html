@@ -280,9 +280,9 @@
         </div>
     </div>
 
-    {# --- Educational Section --- #}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-10">
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">Understanding Freight Brokerage Margins</h3>
             <p class="small text-muted mb-2">
                 <strong>Gross Profit</strong> is the difference between what a shipper pays the brokerage (revenue) and what the brokerage pays the carrier (cost). This is the core metric brokerages use to evaluate load profitability before overhead.
@@ -297,7 +297,7 @@
                 <strong>Accessorial Margin:</strong> Accessorial charges (lumper fees, liftgate, detention, etc.) are another source of brokerage profit. The spread between what you bill the customer and what you reimburse the carrier directly impacts gross profit.
             </p>
             <p class="small text-muted">
-                <strong>Tip:</strong> Use the <a href="{% url 'projects:lane_rate_analyzer' %}">Lane Rate Analyzer</a> to evaluate individual carrier rates before booking. Pair this tool with the <a href="{% url 'projects:deadhead_calculator' %}">Deadhead Calculator</a> to factor repositioning costs into your margin decisions.
+                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate Analyzer</a> to evaluate individual carrier rates before booking. Pair this tool with the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> to factor repositioning costs into your margin decisions, or use the <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="related-tool-link">Fuel Surcharge Calculator</a> to determine standard FSC spreads.
             </p>
         </div>
     </div>

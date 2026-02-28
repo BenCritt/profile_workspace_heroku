@@ -113,6 +113,16 @@
             {% endif %}
         </div>
     </div>
+    {# --- Related Tools Section --- #}
+    <div class="related-tools-block mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="small text-muted">
+                    <strong>Related glass tools:</strong> Once you know your exact material quantities, plug those costs into the <a href="{% url 'projects:stained_glass_cost_estimator' %}" class="related-tool-link">Stained Glass Cost Estimator</a> to calculate your piece's retail value. If your pattern includes complex curves or circles, set up your rig perfectly with the <a href="{% url 'projects:circle_cutter_calculator' %}" class="related-tool-link">Circle &amp; Oval Cutter Calculator</a>.
+                </p>
+            </div>
+        </div>
+    </div>
     <div class="mt-5 text-center">
         {% include 'includes/attribution.html' %}
     </div>
