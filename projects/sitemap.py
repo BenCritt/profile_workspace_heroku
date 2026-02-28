@@ -85,6 +85,8 @@ class StaticViewSitemap(Sitemap):
             "projects:timestamp_converter",
             "projects:cron_builder",
             "projects:og_previewer",
+            "projects:lunar_phase_calendar",
+            "projects:night_sky_planner",
         ]
 
     def location(self, item):

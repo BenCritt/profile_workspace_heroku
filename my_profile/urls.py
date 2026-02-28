@@ -11,6 +11,8 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("night_sky_planner", "night-sky-planner"),
+    ("lunar_phase_calendar", "lunar-phase-calendar"),
     ("og_previewer", "og-previewer"),
     ("cron_builder", "cron-builder"),
     ("timestamp_converter", "unix-timestamp-converter"),
