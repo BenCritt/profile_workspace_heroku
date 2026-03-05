@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, iss_utils, seo_head_checker_utils, font_utils
+from . import views, iss_utils, font_utils
 from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
@@ -113,17 +113,17 @@ urlpatterns = [
     ),
     path(
         "start_sitemap_processing/",
-        seo_head_checker_utils.start_sitemap_processing,
+        views.start_sitemap_processing,
         name="start_sitemap_processing",
     ),
     path(
         "get_task_status/<str:task_id>/",
-        seo_head_checker_utils.get_task_status,
+        views.get_task_status,
         name="get_task_status",
     ),
     path(
         "download_task_file/<str:task_id>/",
-        seo_head_checker_utils.download_task_file,
+        views.download_task_file,
         name="download_task_file",
     ),
     path(

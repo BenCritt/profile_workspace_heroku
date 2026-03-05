@@ -597,9 +597,17 @@ def download_task_file(request, task_id: str):
             filename=os.path.basename(file_path),
             content_type="text/csv",
         )
+
         original_close = resp.close
+        _already_closed = {"done": False}  # mutable sentinel; closures can't rebind a plain bool
 
         def _close_and_maybe_delete():
+            # wsgiref calls close() a second time through its error handler if the
+            # first close() raises.  Guard here so the semaphore is released exactly once.
+            if _already_closed["done"]:
+                return
+            _already_closed["done"] = True
+
             try:
                 original_close()
             finally:
