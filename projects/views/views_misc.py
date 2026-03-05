@@ -267,9 +267,7 @@ def weather(request):
         city_name  = location["city"]  or "Unknown City"
         state_name = location["state"] or ""
 
-        # TODO: Move to Heroku Config Vars: OPEN_WEATHER_MAP_KEY
-        # API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
-        API_KEY_WEATHER = "7e805bf42d5f1713e20456904be7155c"
+        API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
         API_URL = (
             f"https://api.openweathermap.org/data/3.0/onecall"
             f"?lat={latitude}&lon={longitude}"
