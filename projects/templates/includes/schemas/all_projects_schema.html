@@ -1,887 +1,1294 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": "Web Development Projects & Tools",
-  "description": "A collection of specialized web tools including the Glass Artist Toolkit, IT diagnostics, SEO utilities, Freight professional tools, and Radio Hobbyist utilities.",
-  "url": "https://www.bencritt.net/projects/",
-  "hasPart": [
+  "@graph": [
     {
-      "@type": "SoftwareApplication",
-      "name": "QR Code Generator",
-      "description": "Generates a QR code from any input text, providing the QR code as a downloadable PNG file.",
-      "applicationCategory": "Utility software",
-      "url": "https://www.bencritt.net/projects/qr-code-generator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Enables users to create QR codes from any text input, offering a versatile tool for various data encoding needs.",
-        "Generates high-quality QR codes as downloadable PNG files, ensuring compatibility with a wide range of devices and applications.",
-        "Automatically places the generated QR code in the user's default downloads folder, simplifying the retrieval process.",
-        "User-friendly interface allows for quick and easy generation of QR codes, enhancing user experience and efficiency.",
-        "Web-based application, accessible from any device with an internet connection, eliminating the need for software installation.",
-        "Supports a wide range of characters, enabling the encoding of diverse information types within QR codes."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Monte Carlo Simulator",
-      "description": "A simulator that allows random value generation within specified ranges, target value selection, and graph output in a PDF.",
-      "applicationCategory": "Simulation software",
-      "url": "https://www.bencritt.net/projects/monte-carlo-simulator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Supports simulations with single or dual number ranges, accommodating a variety of statistical modeling needs.",
-        "Enables users to specify target values for their simulations, adding precision and relevance to the analysis.",
-        "Generates random values within user-defined ranges, facilitating robust and comprehensive Monte Carlo simulations.",
-        "Graphically presents simulation outcomes, offering intuitive and accessible visual data interpretation.",
-        "Provides downloadable PDF output, allowing users to easily save and share their simulation results.",
-        "Web-based platform ensures accessibility from any device with an internet connection, without the need for software installation."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Weather Forecast App",
-      "description": "This weather forecast app takes a ZIP code and returns a forecast and other weather information.",
-      "applicationCategory": "Weather Forecasting Software",
-      "url": "https://www.bencritt.net/projects/weather/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Provides accurate and detailed weather forecasts based on user-provided ZIP code inputs, offering localized weather information.",
-        "Utilizes the Google Maps Platform API to accurately convert ZIP codes into geographical coordinates, ensuring precise weather data retrieval.",
-        "Leverages the OpenWeatherMap One Call API to provide comprehensive weather details, including temperature, precipitation, wind speed, and more.",
-        "Displays weather forecasts in a user-friendly interface, allowing users to easily understand and interpret weather conditions.",
-        "Web-based application ensures accessibility from any device with an internet connection, facilitating on-the-go weather checks.",
-        "Offers real-time weather updates, enabling users to receive the most current weather information available."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Grade Level Text Analyzer",
-      "description": "The Grade Level Text Analyzer takes an excerpt of text and determines an appropriate grade level for that text. This analyzer uses three different indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. All three scores are given, as well as uniform and weighted averages.",
-      "applicationCategory": "Educational Software",
-      "url": "https://www.bencritt.net/projects/grade-level-analyzer/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Calculates readability scores using Flesch-Kincaid, Gunning Fog, and Coleman-Liau indices.",
-        "Provides uniform and weighted averages for a comprehensive analysis.",
-        "User-friendly interface with quick processing."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "DNS Lookup Tool",
-      "description": "The DNS Lookup Tool allows users to perform DNS lookups for a specified domain name, retrieving various DNS records such as A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records.",
-      "applicationCategory": "Network Utility",
-      "url": "https://www.bencritt.net/projects/dns-lookup/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Perform DNS lookups for various DNS record types.",
-        "Retrieve detailed DNS information for network troubleshooting and domain management.",
-        "Accessible from any web-enabled device with a user-friendly interface."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "SSL Verification Tool",
-      "description": "The SSL Verification Tool allows users to quickly verify SSL certificates for any website, retrieving detailed information such as the certificate issuer, validity period, and expiration dates. It's an essential tool for website owners, developers, and security professionals to ensure their site's security.",
-      "applicationCategory": "Network Utility",
-      "url": "https://www.bencritt.net/projects/ssl-check/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Quickly verify SSL certificates for any website.",
-        "Retrieve detailed SSL information including issuer, validity period, and expiration dates.",
-        "Ensure your website is secure for users by verifying SSL configurations.",
-        "Accessible from any web-enabled device with a user-friendly interface."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "IP Address Lookup Tool",
-      "description": "The IP Address Lookup Tool enables users to perform reverse DNS lookups to retrieve PTR records, geolocation data, and blacklist status for specified IP addresses. A valuable tool for network diagnostics and verification.",
-      "applicationCategory": "Network Utility",
-      "url": "https://www.bencritt.net/projects/ip-tool/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Performs reverse DNS lookups to retrieve PTR records for specified IP addresses.",
-        "Displays geolocation information for IP addresses, including country, city, and ISP.",
-        "Checks blacklist status to determine if an IP is flagged by major spam or abuse databases.",
-        "Web-based tool accessible from any device with an internet connection."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Freight Carrier Safety Reporter",
-      "description": "Generate comprehensive safety reports for freight carriers, including safety ratings, crash statistics, and driver inspections. This tool is essential for freight brokers, logistics managers, and safety professionals.",
-      "applicationCategory": "Transportation Utility",
-      "url": "https://www.bencritt.net/projects/freight-safety/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Generate detailed safety reports for freight carriers.",
-        "Calculate safety scores based on crash statistics and inspections.",
-        "Retrieve critical safety information using USDOT numbers.",
-        "Accessible via a web-based platform with a user-friendly interface."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "SEO Head Checker",
-      "description": "The SEO Head Checker analyzes the head section of webpages to identify SEO elements like meta tags, canonical tags, Open Graph tags, and more. It helps improve website optimization for better search engine performance.",
-      "applicationCategory": "SEO Utility",
-      "url": "https://www.bencritt.net/projects/seo-head-checker/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Analyzes the head section of webpages for essential SEO elements.",
-        "Identifies meta tags, canonical tags, Open Graph tags, and more.",
-        "Generates detailed reports in CSV format for easy review.",
-        "Web-based and accessible on any internet-connected device.",
-        "Helps optimize websites for improved search engine visibility."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "ISS Tracker",
-      "description": "The ISS Tracker allows users to monitor the International Space Station's current location and predict upcoming pass times over their location. It provides real-time data on latitude, longitude, altitude, velocity, and regional positioning of the ISS.",
-      "applicationCategory": "Astronomy Utility",
-      "url": "https://www.bencritt.net/projects/iss-tracker/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Real-time data on the ISS's latitude, longitude, altitude, velocity, and region.",
-        "Tracks upcoming ISS pass times with precise local time and positional information.",
-        "Region detection for both land and ocean coverage using geolocation services.",
-        "Web-based application accessible from any internet-connected device.",
-        "Provides regular data updates every 60 seconds for dynamic tracking."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "XML Splitter",
-      "description": "Split a single, nested XML export into a ZIP of well-formed, per-record XML files for smooth CMS to ERP handoffs.",
-      "applicationCategory": "Data Transformation Tool",
-      "url": "https://www.bencritt.net/projects/xml-splitter/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Uploads a single XML export and returns a ZIP of one-file-per-record XML documents.",
-        "Preserves XML declarations, encoding, and namespaces.",
-        "Validates well-formedness before splitting.",
-        "Streams large outputs for reliability on big files.",
-        "Web-based UI with a simple, guided workflow."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Ham Radio Call Sign Lookup",
-      "description": "Search U.S. amateur radio call signs to verify license status and view licensee details.",
-      "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
-      "featureList": [
-        "Instant lookup for any U.S. ham radio call sign.",
-        "Shows licensee name, class, and expiration.",
-        "Useful for identity checks during events and nets.",
-        "Mobile-friendly interface for on-the-air use.",
-        "Fast, streamlined search experience."
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "Repeater Finder",
-      "description": "Find open VHF and UHF amateur radio repeaters along any US driving route. Enter origin and destination ZIP codes to see frequencies, offsets, PL tones, and locations sorted by position along the route.",
-      "url": "https://www.bencritt.net/projects/repeater-finder/",
-      "applicationCategory": "Amateur Radio Utility",
-      "operatingSystem": "Web-based",
-      "image": "https://www.bencritt.net/static/img/all-projects/repeater-finder.webp",
-      "creator": {
-        "@type": "Person",
+      "@type": "CollectionPage",
+      "@id": "https://www.bencritt.net/projects/#webpage",
+      "name": "Web Development Projects & Tools",
+      "description": "The complete directory of free, server-side web tools built by Ben Crittenden. Covers IT networking, SEO auditing, freight logistics, glass art, ham radio, space and astronomy, and general developer utilities.",
+      "url": "https://www.bencritt.net/projects/",
+      "inLanguage": "en-US",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.bencritt.net/#website",
         "name": "Ben Crittenden",
         "url": "https://www.bencritt.net/"
       },
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "category": "Free"
+      "about": {
+        "@type": "Person",
+        "@id": "https://www.bencritt.net/#person",
+        "name": "Ben Crittenden",
+        "url": "https://www.bencritt.net/"
       },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "@id": "https://www.bencritt.net/projects/#primaryimage",
+        "url": "https://www.bencritt.net/static/img/hubs/all-projects.webp",
+        "caption": "All Projects — Ben Crittenden"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "name": "All Tools — Ben Crittenden",
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1,  "item": { "@id": "https://www.bencritt.net/projects/qr-code-generator/#app" } },
+          { "@type": "ListItem", "position": 2,  "item": { "@id": "https://www.bencritt.net/projects/monte-carlo-simulator/#app" } },
+          { "@type": "ListItem", "position": 3,  "item": { "@id": "https://www.bencritt.net/projects/weather/#app" } },
+          { "@type": "ListItem", "position": 4,  "item": { "@id": "https://www.bencritt.net/projects/grade-level-analyzer/#app" } },
+          { "@type": "ListItem", "position": 5,  "item": { "@id": "https://www.bencritt.net/projects/dns-lookup/#app" } },
+          { "@type": "ListItem", "position": 6,  "item": { "@id": "https://www.bencritt.net/projects/ssl-check/#app" } },
+          { "@type": "ListItem", "position": 7,  "item": { "@id": "https://www.bencritt.net/projects/ip-tool/#app" } },
+          { "@type": "ListItem", "position": 8,  "item": { "@id": "https://www.bencritt.net/projects/freight-safety/#app" } },
+          { "@type": "ListItem", "position": 9,  "item": { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" } },
+          { "@type": "ListItem", "position": 10, "item": { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" } },
+          { "@type": "ListItem", "position": 11, "item": { "@id": "https://www.bencritt.net/projects/xml-splitter/#app" } },
+          { "@type": "ListItem", "position": 12, "item": { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" } },
+          { "@type": "ListItem", "position": 13, "item": { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" } },
+          { "@type": "ListItem", "position": 14, "item": { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" } },
+          { "@type": "ListItem", "position": 15, "item": { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" } },
+          { "@type": "ListItem", "position": 16, "item": { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" } },
+          { "@type": "ListItem", "position": 17, "item": { "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app" } },
+          { "@type": "ListItem", "position": 18, "item": { "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app" } },
+          { "@type": "ListItem", "position": 19, "item": { "@id": "https://www.bencritt.net/projects/font-inspector/#app" } },
+          { "@type": "ListItem", "position": 20, "item": { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" } },
+          { "@type": "ListItem", "position": 21, "item": { "@id": "https://www.bencritt.net/projects/stained-glass-materials/#app" } },
+          { "@type": "ListItem", "position": 22, "item": { "@id": "https://www.bencritt.net/projects/glass-volume-calculator/#app" } },
+          { "@type": "ListItem", "position": 23, "item": { "@id": "https://www.bencritt.net/projects/kiln-schedule-generator/#app" } },
+          { "@type": "ListItem", "position": 24, "item": { "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app" } },
+          { "@type": "ListItem", "position": 25, "item": { "@id": "https://www.bencritt.net/projects/stained-glass-cost-estimator/#app" } },
+          { "@type": "ListItem", "position": 26, "item": { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" } },
+          { "@type": "ListItem", "position": 27, "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" } },
+          { "@type": "ListItem", "position": 28, "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" } },
+          { "@type": "ListItem", "position": 29, "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" } },
+          { "@type": "ListItem", "position": 30, "item": { "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app" } },
+          { "@type": "ListItem", "position": 31, "item": { "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app" } },
+          { "@type": "ListItem", "position": 32, "item": { "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app" } },
+          { "@type": "ListItem", "position": 33, "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" } },
+          { "@type": "ListItem", "position": 34, "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" } },
+          { "@type": "ListItem", "position": 35, "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" } },
+          { "@type": "ListItem", "position": 36, "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" } },
+          { "@type": "ListItem", "position": 37, "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" } },
+          { "@type": "ListItem", "position": 38, "item": { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" } },
+          { "@type": "ListItem", "position": 39, "item": { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" } },
+          { "@type": "ListItem", "position": 40, "item": { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" } },
+          { "@type": "ListItem", "position": 41, "item": { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" } },
+          { "@type": "ListItem", "position": 42, "item": { "@id": "https://www.bencritt.net/projects/freight-margin-calculator/#app" } },
+          { "@type": "ListItem", "position": 43, "item": { "@id": "https://www.bencritt.net/projects/subnet-calculator/#app" } },
+          { "@type": "ListItem", "position": 44, "item": { "@id": "https://www.bencritt.net/projects/email-auth-validator/#app" } },
+          { "@type": "ListItem", "position": 45, "item": { "@id": "https://www.bencritt.net/projects/whois-lookup/#app" } },
+          { "@type": "ListItem", "position": 46, "item": { "@id": "https://www.bencritt.net/projects/http-header-inspector/#app" } },
+          { "@type": "ListItem", "position": 47, "item": { "@id": "https://www.bencritt.net/projects/jsonld-validator/#app" } },
+          { "@type": "ListItem", "position": 48, "item": { "@id": "https://www.bencritt.net/projects/redirect-checker/#app" } },
+          { "@type": "ListItem", "position": 49, "item": { "@id": "https://www.bencritt.net/projects/robots-analyzer/#app" } },
+          { "@type": "ListItem", "position": 50, "item": { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" } },
+          { "@type": "ListItem", "position": 51, "item": { "@id": "https://www.bencritt.net/projects/ai-token-cost-estimator/#app" } },
+          { "@type": "ListItem", "position": 52, "item": { "@id": "https://www.bencritt.net/projects/cron-builder/#app" } },
+          { "@type": "ListItem", "position": 53, "item": { "@id": "https://www.bencritt.net/projects/unix-timestamp-converter/#app" } },
+          { "@type": "ListItem", "position": 54, "item": { "@id": "https://www.bencritt.net/projects/og-previewer/#app" } },
+          { "@type": "ListItem", "position": 55, "item": { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" } },
+          { "@type": "ListItem", "position": 56, "item": { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" } }
+        ]
+      },
+      "hasPart": [
+        { "@id": "https://www.bencritt.net/projects/qr-code-generator/#app" },
+        { "@id": "https://www.bencritt.net/projects/monte-carlo-simulator/#app" },
+        { "@id": "https://www.bencritt.net/projects/weather/#app" },
+        { "@id": "https://www.bencritt.net/projects/grade-level-analyzer/#app" },
+        { "@id": "https://www.bencritt.net/projects/dns-lookup/#app" },
+        { "@id": "https://www.bencritt.net/projects/ssl-check/#app" },
+        { "@id": "https://www.bencritt.net/projects/ip-tool/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-safety/#app" },
+        { "@id": "https://www.bencritt.net/projects/seo-head-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/iss-tracker/#app" },
+        { "@id": "https://www.bencritt.net/projects/xml-splitter/#app" },
+        { "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app" },
+        { "@id": "https://www.bencritt.net/projects/repeater-finder/#app" },
+        { "@id": "https://www.bencritt.net/projects/band-plan-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/grid-square-converter/#app" },
+        { "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/font-inspector/#app" },
+        { "@id": "https://www.bencritt.net/projects/cookie-audit/#app" },
+        { "@id": "https://www.bencritt.net/projects/stained-glass-materials/#app" },
+        { "@id": "https://www.bencritt.net/projects/glass-volume-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/kiln-schedule-generator/#app" },
+        { "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app" },
+        { "@id": "https://www.bencritt.net/projects/stained-glass-cost-estimator/#app" },
+        { "@id": "https://www.bencritt.net/projects/lampwork-materials/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" },
+        { "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-margin-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/subnet-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/email-auth-validator/#app" },
+        { "@id": "https://www.bencritt.net/projects/whois-lookup/#app" },
+        { "@id": "https://www.bencritt.net/projects/http-header-inspector/#app" },
+        { "@id": "https://www.bencritt.net/projects/jsonld-validator/#app" },
+        { "@id": "https://www.bencritt.net/projects/redirect-checker/#app" },
+        { "@id": "https://www.bencritt.net/projects/robots-analyzer/#app" },
+        { "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app" },
+        { "@id": "https://www.bencritt.net/projects/ai-token-cost-estimator/#app" },
+        { "@id": "https://www.bencritt.net/projects/cron-builder/#app" },
+        { "@id": "https://www.bencritt.net/projects/unix-timestamp-converter/#app" },
+        { "@id": "https://www.bencritt.net/projects/og-previewer/#app" },
+        { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" },
+        { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" }
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/qr-code-generator/#app",
+      "name": "QR Code Generator",
+      "description": "Generate a high-quality QR code from any text input and download it as a PNG file. Supports URLs, plain text, contact information, and any other string content.",
+      "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/qr-code-generator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/qr-code-generator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Encode any text string — URLs, phone numbers, plain text, or contact data — into a QR code.",
+        "Generates a high-quality, downloadable PNG file placed directly in the user's downloads folder.",
+        "Supports a wide range of characters for diverse encoding needs.",
+        "Web-based and accessible from any device without software installation."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/monte-carlo-simulator/#app",
+      "name": "Monte Carlo Simulator",
+      "description": "Run probabilistic Monte Carlo simulations with single or dual random variable ranges, a configurable target value, and graphical PDF output for statistical modeling and analysis.",
+      "applicationCategory": "Simulation Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/monte-carlo-simulator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/monte-carlo-simulator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Run simulations with single or dual number ranges for flexible statistical modeling.",
+        "Set a target value to estimate the probability of outcomes exceeding a threshold.",
+        "Generates random values within user-defined min/max bounds across a configurable trial count.",
+        "Outputs a histogram graph and downloadable PDF report of simulation results.",
+        "Web-based platform accessible from any device without installation."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/weather/#app",
+      "name": "Weather Forecast App",
+      "description": "Enter a US ZIP code to retrieve a localized weather forecast including temperature, precipitation, wind speed, and extended conditions powered by real-time weather data.",
+      "applicationCategory": "Weather Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/weather/",
+      "image": "https://www.bencritt.net/static/img/all-projects/weather.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Enter any US ZIP code to retrieve a localized weather forecast.",
+        "Displays current conditions including temperature, humidity, wind speed, and precipitation.",
+        "Uses Google Maps Platform to convert ZIP codes into precise geographic coordinates.",
+        "Provides an extended forecast with daily high/low temperatures.",
+        "Web-based and accessible from any internet-connected device."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/grade-level-analyzer/#app",
+      "name": "Grade Level Text Analyzer",
+      "description": "Determine the reading level of any text using three established readability indices: Flesch-Kincaid, Gunning Fog, and Coleman-Liau. Returns individual scores, a uniform average, and a weighted average grade level.",
+      "applicationCategory": "Educational Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/grade-level-analyzer/",
+      "image": "https://www.bencritt.net/static/img/all-projects/grade-level-analyzer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Analyze any text passage using the Flesch-Kincaid Grade Level formula.",
+        "Calculate Gunning Fog Index for complex word and sentence structure analysis.",
+        "Apply the Coleman-Liau Index for character-based readability estimation.",
+        "Return individual index scores plus uniform and weighted averages.",
+        "Useful for educators, content writers, and technical communicators."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/dns-lookup/#app",
+      "name": "DNS Lookup Tool",
+      "description": "Perform DNS lookups for any domain name and retrieve A, AAAA, MX, NS, CNAME, TXT, SOA, SRV, and CAA records for network troubleshooting and domain management.",
+      "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/dns-lookup/",
+      "image": "https://www.bencritt.net/static/img/all-projects/dns-lookup.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Retrieve A and AAAA records for IPv4 and IPv6 address resolution.",
+        "Look up MX records to verify mail exchanger configuration and priority values.",
+        "Query NS, CNAME, TXT, SOA, SRV, and CAA records in a single interface.",
+        "Useful for DNS propagation verification after domain or nameserver changes.",
+        "Accessible from any web-enabled device with no software installation required."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/ssl-check/#app",
+      "name": "SSL Verification Tool",
+      "description": "Verify SSL/TLS certificates for any website. Retrieve the issuer, subject, validity period, expiration date, and certificate chain details to confirm a site is properly secured.",
+      "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/ssl-check/",
+      "image": "https://www.bencritt.net/static/img/all-projects/ssl-check.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Retrieve the certificate issuer, subject CN, and authority chain for any domain.",
+        "Display the validity window including not-before and expiration dates.",
+        "Identify upcoming expirations to prevent unplanned certificate lapses.",
+        "Accessible from any web-enabled device with no installation required."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/ip-tool/#app",
+      "name": "IP Address Lookup Tool",
+      "description": "Perform reverse DNS lookups to retrieve PTR records, geolocation data, and blacklist status for any IP address. Useful for network diagnostics, spam investigation, and deliverability troubleshooting.",
+      "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/ip-tool/",
+      "image": "https://www.bencritt.net/static/img/all-projects/ip-tool.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Perform reverse DNS lookups to retrieve PTR records for any IP address.",
+        "Display geolocation data including country, region, city, and ISP.",
+        "Check blacklist status against major spam and abuse databases.",
+        "User-friendly interface accessible from any internet-connected device."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-safety/#app",
+      "name": "Freight Carrier Safety Reporter",
+      "description": "Retrieve USDOT carrier safety ratings, crash statistics, inspection records, and operating authority status directly from FMCSA. Essential for freight brokers and logistics managers vetting carriers.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-safety/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-safety.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Retrieve safety data using a USDOT number via direct FMCSA lookup.",
+        "View crash statistics, driver OOS rates, and vehicle inspection history.",
+        "Check operating authority status and insurance filing information.",
+        "Essential vetting tool for freight brokers before tendering loads to carriers."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/seo-head-checker/#app",
+      "name": "SEO Head Checker",
+      "description": "Generate a technical SEO report for any web page or sitemap by auditing key head elements including title tags, meta descriptions, canonical URLs, robots directives, Open Graph tags, Twitter Cards, and structured data.",
+      "applicationCategory": "SEO Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/seo-head-checker/",
+      "image": "https://www.bencritt.net/static/img/all-projects/seo-head-checker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Scan a single URL or crawl all URLs in an XML sitemap.",
+        "Audit title tags, meta descriptions, H1s, canonical URLs, and robots directives.",
+        "Check Open Graph and Twitter Card tag presence and completeness.",
+        "Detect structured data (JSON-LD) and flag missing or incomplete implementations.",
+        "Export full audit results as a downloadable CSV report."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/iss-tracker/#app",
+      "name": "ISS Tracker",
+      "description": "Monitor the International Space Station in real time. View current latitude, longitude, altitude, velocity, and regional position. Project upcoming ISS pass times over your location with precise local times.",
+      "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/iss-tracker/",
+      "image": "https://www.bencritt.net/static/img/all-projects/iss-tracker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Real-time ISS position including latitude, longitude, altitude, and orbital velocity.",
+        "Tracks upcoming pass times over any location with rise time, duration, and max elevation.",
+        "Region detection for both land and ocean coverage using geolocation services.",
+        "Auto-refreshes positional data every 60 seconds for continuous live tracking.",
+        "Web-based application accessible from any internet-connected device."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/xml-splitter/#app",
+      "name": "XML Splitter",
+      "description": "Split a single nested XML export into a ZIP archive of well-formed, per-record XML files. Designed for smooth CMS-to-ERP data handoffs and bulk XML processing workflows.",
+      "applicationCategory": "Data Transformation Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/xml-splitter/",
+      "image": "https://www.bencritt.net/static/img/all-projects/xml-splitter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Upload a single XML export and receive a ZIP of one-file-per-record XML documents.",
+        "Preserves XML declarations, encoding attributes, and namespace declarations.",
+        "Validates well-formedness before splitting to prevent malformed output.",
+        "Streams large output archives for reliable processing of big files.",
+        "Simple guided web interface — no command-line tools or scripts required."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/#app",
+      "name": "Ham Radio Call Sign Lookup",
+      "description": "Search any US amateur radio call sign to view license class, grid square, expiration date, FRN, grant and last-action dates, and trustee or club details via real-time FCC lookup.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/ham-radio-call-sign-lookup/",
+      "image": "https://www.bencritt.net/static/img/all-projects/ham-radio-call-sign-lookup.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Real-time FCC licence status for any US amateur radio call sign.",
+        "Returns licence class, expiration date, and grant date.",
+        "Displays grid square and lat/lon location data.",
+        "Shows FRN, last-action date, and trustee or club name when applicable.",
+        "Mobile-friendly interface for on-the-air identity verification."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/repeater-finder/#app",
+      "name": "Repeater Finder",
+      "description": "Find open VHF and UHF amateur radio repeaters along any US driving route. Enter origin and destination ZIP codes to see frequencies, offsets, PL tones, and locations sorted by position along the route.",
+      "applicationCategory": "Amateur Radio Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/repeater-finder/",
+      "image": "https://www.bencritt.net/static/img/all-projects/repeater-finder.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "Route-based repeater search using exact Google Maps driving directions.",
         "Configurable search radius from 10 to 40 miles off the route centerline.",
         "Filter results by band: 2 Meters, 70 Centimeters, 1.25 Meters, and 6 Meters.",
         "Shows output frequency, offset, PL/CTCSS tone, call sign, and location for each repeater.",
-        "Results sorted by approximate mile marker along the route.",
-        "Only includes open repeaters from RepeaterBook.",
-        "Automatic deduplication across overlapping search zones."
+        "Results sorted by approximate mile marker along the route for easy sequential programming.",
+        "Only includes open repeaters sourced from RepeaterBook with automatic deduplication."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/band-plan-checker/#app",
       "name": "Band Plan Checker",
       "description": "Enter any frequency to instantly see which US amateur radio band it falls in, what modes are permitted, and whether your license class grants transmit privileges. Based on FCC Part 97.",
       "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/band-plan-checker/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/band-plan-checker/",
+      "image": "https://www.bencritt.net/static/img/all-projects/band-plan-checker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "Instant frequency-to-band identification for all US amateur allocations.",
         "Permitted mode lookup including CW, Phone, Data, FM, Image, and SSB.",
         "License class privilege check for Technician, General, Advanced, and Extra.",
         "Power limit display per segment with special-case handling for 30m, 60m, and Technician HF CW.",
-        "Quick-reference table of all US amateur band edges."
+        "Quick-reference table of all US amateur band edges for operator reference."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/antenna-length-calculator/#app",
       "name": "Antenna Length Calculator",
-      "description": "Calculate element lengths for amateur radio antennas including dipoles, quarter-wave verticals, end-fed half-waves, J-poles, ground planes, full-wave loops, and five-eighths-wave verticals with optional velocity factor adjustment.",
+      "description": "Calculate element lengths for amateur radio antennas including dipoles, quarter-wave verticals, end-fed half-waves, J-poles, ground planes, full-wave loops, and five-eighths-wave verticals. Results in imperial and metric with construction notes.",
       "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/antenna-length-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/antenna-length-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/antenna-length-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Supports 7 antenna types: dipole, vertical, EFHW, J-pole, ground plane, loop, and five-eighths-wave.",
-        "Results in both imperial (feet/inches) and metric (meters/cm).",
-        "Optional velocity factor adjustment for insulated wire, copper pipe, or twin-lead.",
-        "Practical build notes and construction tips for each antenna type."
+        "Supports 7 antenna types: dipole, quarter-wave vertical, EFHW, J-pole, ground plane, full-wave loop, and five-eighths-wave vertical.",
+        "Results in both imperial (feet and inches) and metric (meters and centimeters).",
+        "Optional velocity factor adjustment for insulated wire, copper pipe, or twin-lead construction.",
+        "Practical build notes and construction tips for each antenna type.",
+        "Quick-reference table of common amateur band center frequencies."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/grid-square-converter/#app",
       "name": "Grid Square Converter",
-      "description": "Convert between Maidenhead grid squares and geographic coordinates at 4, 6, or 8 character precision, with bidirectional conversion and US ZIP code lookup.",
+      "description": "Convert between Maidenhead grid squares and geographic coordinates at 4, 6, or 8 character precision with bidirectional conversion and US ZIP code lookup.",
       "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/grid-square-converter/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/grid-square-converter/",
+      "image": "https://www.bencritt.net/static/img/all-projects/grid-square-converter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "Bidirectional conversion between Maidenhead grid squares and lat/lon coordinates.",
-        "Supports 4, 6, and 8 character precision levels.",
+        "Supports 4, 6, and 8 character precision levels simultaneously.",
         "US ZIP code to grid square lookup via Google Maps geocoding.",
-        "Google Maps link and bounding box for every result."
+        "Returns bounding box coordinates and a Google Maps link for every result."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/rf-exposure-calculator/#app",
       "name": "RF Exposure Calculator",
-      "description": "Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65 with power density and minimum safe distance calculations.",
+      "description": "Evaluate amateur radio station compliance with FCC Maximum Permissible Exposure (MPE) limits per OET Bulletin 65. Calculate power density, minimum safe distances, and pass/fail status for controlled and uncontrolled environments.",
       "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/rf-exposure-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/rf-exposure-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/rf-exposure-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "FCC OET Bulletin 65 compliant power density and MPE calculation.",
+        "FCC OET Bulletin 65 compliant power density and MPE limit calculation.",
         "Separate compliance evaluation for controlled and uncontrolled environments.",
-        "Minimum safe distance calculation with duty cycle adjustment by mode.",
-        "Antenna gain input in dBi or dBd with optional feed line loss deduction."
+        "Minimum safe distance calculation with duty cycle adjustment by transmission mode.",
+        "Antenna gain input in dBi or dBd with automatic conversion and optional feed line loss deduction.",
+        "Results in both imperial and metric units."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/coax-cable-loss-calculator/#app",
       "name": "Coax Cable Loss Calculator",
       "description": "Calculate feed line attenuation for common coaxial cable types. Determine matched loss, SWR mismatch loss, power delivered to the antenna, and feed line efficiency at any operating frequency.",
       "applicationCategory": "Amateur Radio Utility",
-      "url": "https://www.bencritt.net/projects/coax-cable-loss-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/coax-cable-loss-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/coax-cable-loss-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Matched-line loss calculation using log-log interpolation from manufacturer specs.",
+        "Matched-line loss calculation using log-log interpolation from manufacturer specifications.",
         "Built-in database of 10 common coaxial cable types from RG-174 to hardline.",
-        "SWR mismatch loss calculation with combined total system loss.",
+        "SWR mismatch loss calculation with combined total system loss output.",
         "Power delivered and power lost in watts when transmitter power is provided.",
         "Feed line efficiency percentage for quick comparison between cable types."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/font-inspector/#app",
       "name": "Font Inspector",
-      "description": "Detect font families, weights, styles, sources, and file formats used on any webpage, with CSV export.",
+      "description": "Detect font families, weights, styles, sources (Google Fonts, Adobe Fonts, local), and file formats used on any public webpage. Supports performance auditing and brand typography consistency review with CSV export.",
       "applicationCategory": "Web Development Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/font-inspector/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/font-inspector.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Scans HTML and linked stylesheets to detect fonts.",
-        "Identifies sources: local, @font-face, Google Fonts, Adobe Fonts.",
-        "Reports family, weight/style variants, and file formats (WOFF2/WOFF/TTF).",
-        "Flags licensing considerations with guidance.",
-        "Exports results to CSV for audits and hand-offs."
+        "Scan HTML and linked stylesheets to detect all fonts referenced on a page.",
+        "Identify font sources: local, @font-face declarations, Google Fonts, and Adobe Fonts.",
+        "Report family name, weight and style variants, and file formats (WOFF2, WOFF, TTF).",
+        "Flag licensing considerations and performance implications.",
+        "Export full results to CSV for audits and team handoffs."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/cookie-audit/#app",
       "name": "Cookie Audit",
-      "description": "Scan a public webpage to detect cookies in use and view key attributes such as domain, expiration, HttpOnly, Secure, and SameSite.",
+      "description": "Scan any public webpage to inventory cookies in use and review key attributes including domain, expiration, HttpOnly, Secure, and SameSite for compliance and security assessment.",
       "applicationCategory": "Web Security Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/cookie-audit/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/cookie-audit.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Scans public webpages to detect cookies in use.",
-        "Identifies first-party and third-party cookies.",
-        "Shows cookie attributes including domain, expiration, HttpOnly, Secure, and SameSite.",
-        "Indicates cookie source such as Set-Cookie headers or document.cookie.",
-        "Displays results in a structured, audit-friendly table."
+        "Inventory all cookies set by a public webpage in a structured audit table.",
+        "Distinguish first-party and third-party cookies by domain.",
+        "Display cookie attributes: name, domain, path, expiration, HttpOnly, Secure, and SameSite.",
+        "Flag cookies missing security attributes that could expose the site to risk.",
+        "Useful for GDPR and CCPA compliance pre-auditing."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/stained-glass-materials/#app",
       "name": "Stained Glass Materials Calculator",
-      "description": "Estimate exactly how much copper foil, lead came, solder, and flux/putty is needed for a stained glass project based on dimensions and piece count.",
+      "description": "Estimate the exact amounts of copper foil, lead came, solder, and flux needed for a stained glass project based on panel dimensions and piece count.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/stained-glass-materials/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/glass-materials.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Supports calculations for both Copper Foil and Lead Came methods.",
-        "Estimates total linear footage and number of rolls/sticks needed.",
-        "Calculates required solder weight and chemical (flux/cement) volume.",
-        "Adjusts estimates based on waste factor."
+        "Supports material estimates for both the Copper Foil (Tiffany) and Lead Came methods.",
+        "Estimates total linear footage and number of rolls or sticks of foil or came needed.",
+        "Calculates required solder weight and flux or cement volume.",
+        "Adjustable waste factor for more precise planning and material purchasing."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/glass-volume-calculator/#app",
       "name": "Glass Volume & Weight Calculator",
-      "description": "Calculate the exact amount of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density.",
+      "description": "Calculate the exact weight of glass needed for pot melts, casting molds, or thick fused slabs using standard glass density. Supports cylindrical and rectangular mold shapes in metric and imperial units.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/glass-volume-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/glass-calc.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate glass weight for cylindrical or rectangular molds.",
-        "Switch between Metric (grams/cm) and Imperial (oz/inches) units.",
-        "Automatically calculates a recommended input weight including 5% waste.",
-        "Uses standard glass density (2.5g/cm³) for accurate casting results."
+        "Calculate glass weight for cylindrical and rectangular mold shapes.",
+        "Supports both metric (grams/cm) and imperial (oz/inches) unit systems.",
+        "Automatically applies a 5% waste factor recommendation for casting accuracy.",
+        "Uses standard glass density (2.5 g/cm³) for reliable, consistent results."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/kiln-schedule-generator/#app",
       "name": "Kiln Firing Schedule Generator",
-      "description": "Generate safe firing schedules for fused glass projects based on COE (90/96) and thickness. Automatically adjusts ramp rates to prevent thermal shock.",
+      "description": "Generate safe firing schedules for Bullseye (COE 90) and System 96 fused glass projects. Automatically adjusts ramp rates based on project thickness to prevent thermal shock.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/kiln-schedule-generator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/kiln-schedule.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Generate firing schedules for Bullseye (90) and System 96 glass.",
-        "Automatic rate adjustment based on project thickness.",
-        "Print-friendly schedule output for studio use.",
-        "Includes segments for process temp, annealing, and cooling."
+        "Generate firing schedules for Bullseye (COE 90) and System 96 compatible glass.",
+        "Automatically adjusts ramp rates based on total project thickness.",
+        "Includes all firing segments: process temperature, annealing hold, and controlled cooling.",
+        "Print-friendly schedule output formatted for studio use."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/kiln-controller-utils/#app",
       "name": "Kiln Controller Utilities",
-      "description": "Quick math helpers for programming digital kiln controllers, including temperature conversion (F/C) and ramp segment duration calculations.",
+      "description": "Quick math helpers for programming digital kiln controllers, including Fahrenheit/Celsius conversion and segment time calculations based on start temperature, target temperature, and ramp rate.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/kiln-controller-utils/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/kiln-utils.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Convert temperatures between Fahrenheit and Celsius instantly.",
-        "Calculate the duration of a firing segment based on start temp, target temp, and rate.",
-        "Simplifies programming for Bartlett and other digital kiln controllers."
+        "Instantly convert temperatures between Fahrenheit and Celsius.",
+        "Calculate the duration of a firing segment from start temperature, target temperature, and ramp rate.",
+        "Simplifies manual programming for Bartlett and other digital kiln controllers.",
+        "Mobile-friendly layout designed for use in the studio."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/stained-glass-cost-estimator/#app",
       "name": "Stained Glass Cost Estimator",
-      "description": "Calculate a fair price for stained glass art by factoring in hidden costs like waste glass, solder, foil, and labor time.",
+      "description": "Price stained glass art confidently by calculating material costs including waste, consumable costs for solder and foil, labor, and a recommended retail price based on standard markup.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/stained-glass-cost-estimator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/stained-glass-calc.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates base glass cost including standard waste percentage.",
-        "Estimates consumable costs for solder and foil based on piece count.",
-        "Computes labor cost based on hourly rate and project duration.",
-        "Provides a recommended retail price based on standard art markup."
+        "Calculate base glass cost including a configurable waste percentage.",
+        "Estimate consumable costs for solder and foil based on project piece count.",
+        "Compute labor cost from hourly rate and estimated project duration.",
+        "Output a recommended retail price based on standard art markup percentage."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/lampwork-materials/#app",
       "name": "Lampwork Glass Calculator",
-      "description": "Calculate required weight for Boro (COE 33), Soft Glass (104), Satake, or Lead Crystal rods and tubing based on length and diameter.",
+      "description": "Calculate the required weight for borosilicate, soft glass, Satake, or lead crystal rods and tubing based on length and diameter. Uses type-specific glass density values for accurate results.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/lampwork-materials/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/lampwork-glass-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate weight for solid rods and hollow tubing.",
-        "Supports Borosilicate (COE 33), Soft Glass (COE 104), Satake, and Lead Crystal.",
-        "Uses specific density values for accurate weight estimation.",
-        "Metric (mm) inputs with Imperial (lb/oz) outputs."
+        "Calculate weight for both solid rods and hollow tubing.",
+        "Supports borosilicate (COE 33), soft glass (COE 104), Satake, and lead crystal glass types.",
+        "Uses type-specific glass density values for high-accuracy weight estimation.",
+        "Metric (mm) dimension inputs with Imperial (lb/oz) weight output."
       ]
-    }
-    ,
+    },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app",
       "name": "Freight Class Calculator",
-      "description": "Avoid costly re-bills by accurately estimating the NMFC Freight Class for LTL shipments. Simply input dimensions and weight to calculate density (PCF) and determine the correct class based on the standard density scale.",
+      "description": "Avoid costly LTL re-bills by accurately estimating NMFC Freight Class for shipments based on density (PCF). Supports pallet quantity inputs for full-shipment density calculations.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/freight-class-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-class-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate shipment density (PCF) based on dimensions and weight.",
-        "Estimate NMFC Class using the standard industry density scale.",
-        "Supports pallet quantity input for calculating total shipment density."
+        "Calculate shipment density (pounds per cubic foot) from dimensions and weight.",
+        "Determine NMFC Freight Class using the standard 18-class density scale.",
+        "Supports multi-pallet quantity inputs for full-shipment density calculations."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app",
       "name": "Fuel Surcharge Calculator",
-      "description": "Calculate the fair Fuel Surcharge (FSC) for any shipment based on current diesel prices and your contract's base peg.",
+      "description": "Calculate the fair fuel surcharge for any shipment based on current diesel prices, your contract base peg, and trip mileage. Outputs FSC per mile, total surcharge, and fuel cost spread.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/fuel-surcharge-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/fuel-surcharge-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate Fuel Surcharge (FSC) per mile and total trip cost.",
-        "Adjust inputs for Base Peg Price, Current Diesel Price, and MPG.",
-        "Visualize the fuel spread/difference instantly."
+        "Calculate FSC per mile and total trip surcharge based on diesel price and base peg.",
+        "Adjustable inputs for base peg price, current diesel price, truck MPG, and trip miles.",
+        "Visualize the fuel spread between contract peg and current prices instantly."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app",
       "name": "HOS Trip Planner",
-      "description": "Plan realistic ETAs compliant with FMCSA Hours of Service rules (11-hour driving limits, 10-hour resets, and 30-minute breaks).",
+      "description": "Plan realistic truck ETAs compliant with FMCSA Hours of Service rules. Simulates 11-hour driving limits, mandatory 30-minute breaks, and 10-hour rest resets to generate a step-by-step driving itinerary.",
       "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/hos-trip-planner/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/hos-trip-planner.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Simulates truck trips while strictly adhering to FMCSA rules.",
-        "Automatically inserts mandatory 10-hour resets and 30-minute breaks.",
-        "Generates a detailed, step-by-step driving itinerary."
+        "Simulate truck trips while strictly enforcing FMCSA 11-hour driving limit rules.",
+        "Automatically inserts mandatory 10-hour resets and 30-minute break requirements.",
+        "Generates a detailed, step-by-step driving itinerary with segment times and ETAs."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/glass-reaction-checker/#app",
       "name": "Glass Reaction Checker",
-      "description": "Check for chemical reactions between different glass families (Sulfur, Copper, Lead, Silver) to prevent dark lines and discoloration in fused glass projects.",
+      "description": "Check for chemical reactions between glass families (Sulfur, Copper, Lead, Silver) before fusing. Prevents dark staining lines caused by Lead Sulfide, Copper Sulfide, and other reactive combinations.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/glass-reaction-checker/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/glass-reaction-checker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Identifies potential chemical reactions between distinct glass families.",
-        "Prevents costly mistakes like Lead Sulfide or Copper Sulfide staining.",
-        "Categorizes glass by chemical bearing (Sulfur, Copper, Lead, Silver).",
-        "Offers actionable tips to safely combine reactive colors using clear spacers."
+        "Identifies potential chemical reactions between any two glass chemical families.",
+        "Prevents costly mistakes from Lead Sulfide and Copper Sulfide staining in fused glass.",
+        "Categorizes glass by chemical bearing: Sulfur, Copper, Lead, or Silver.",
+        "Provides actionable tips for safely combining reactive colors using clear glass spacers."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/frit-mixing-calculator/#app",
       "name": "Enamel & Frit Mixing Calculator",
-      "description": "Calculate the exact medium-to-powder ratio for mixing glass enamels and frits based on the desired application style (brush, screen print, palette knife, or airbrush).",
+      "description": "Calculate the exact medium-to-powder ratio for mixing glass enamels and frits based on the desired application style. Supports fluid painting, screen printing, palette knife application, and airbrushing.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/frit-mixing-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/frit-mixing-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate the exact weight or drops of medium needed for dry glass powder.",
-        "Select specific application styles including fluid painting, screen printing, stiff paste, and airbrushing.",
-        "Uses industry-standard medium-topowder viscosity ratios.",
-        "Prevents separation and bubbling in the kiln caused by improper mixing."
+        "Calculate exact weight or drops of medium needed for a given amount of dry glass powder.",
+        "Select application style: fluid painting, screen printing, stiff paste, or airbrushing.",
+        "Uses industry-standard medium-to-powder viscosity ratios for each application method.",
+        "Prevents kiln defects caused by improper mixing ratios, including separation and bubbling."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/circle-cutter-calculator/#app",
       "name": "Circle & Oval Cutter Calculator",
-      "description": "Calculate the exact radius setting for Silberschnitt, Morton, and other glass circle cutters by factoring in the tool head offset and grinding allowances.",
+      "description": "Calculate the exact radius setting for glass circle cutters by factoring in the tool head offset from pivot to blade and adding configurable allowances for edge grinding.",
       "applicationCategory": "Utility Software",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/circle-cutter-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/circle-cutter-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Automatically subtracts the cutting wheel offset (pivot to blade).",
-        "Adds customizable allowances for material lost during edge grinding.",
-        "Supports standard circle cuts and oval measurements (major/minor axes).",
-        "Prevents wasted glass from undersized or oversized cuts."
+        "Automatically subtracts the cutting wheel offset (pivot to blade distance).",
+        "Adds customizable grinding allowances for material lost during edge finishing.",
+        "Supports standard circle cuts and oval shapes using major and minor axis inputs.",
+        "Prevents wasted glass from undersized or oversized cuts due to tool head geometry."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app",
       "name": "FMCSA Tie-Down & Load Securement Calculator",
-      "description": "Calculate the exact number of tie-downs required to secure cargo according to FMCSA § 393.102 and § 393.106 rules, factoring in Working Load Limits (WLL), cargo weight, and length.",
+      "description": "Calculate the minimum number of tie-downs required to secure cargo under FMCSA § 393.102 and § 393.106. Factors in aggregate Working Load Limit, cargo weight, and cargo length.",
       "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/tie-down-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/tie-down-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates minimum tie-downs required based on the 50% Aggregate WLL rule.",
-        "Calculates required tie-downs based on cargo length and weight limits.",
-        "Automatically enforces the stricter FMCSA standard to ensure legal compliance."
+        "Calculates minimum tie-downs required under the 50% Aggregate WLL rule.",
+        "Calculates minimum tie-downs required based on cargo length per FMCSA tables.",
+        "Automatically enforces the stricter of the two FMCSA standards to ensure legal compliance.",
+        "Includes standard presets for web straps (1-inch, 2-inch, 4-inch) and Grade 70 chains."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app",
       "name": "Owner-Operator Cost Per Mile (CPM) Calculator",
-      "description": "Calculate the exact Break-Even Rate Per Mile for owner-operators by factoring in fixed monthly costs and variable costs.",
+      "description": "Calculate the exact break-even rate per mile for owner-operators by combining fixed monthly costs and variable per-mile costs into a total cost-per-mile figure.",
       "applicationCategory": "Business Application",
-      "url": "https://www.bencritt.net/projects/cost-per-mile-calculator",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/cost-per-mile-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/cost-per-mile-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates Fixed Cost Per Mile based on monthly mileage.",
-        "Combines variable costs like fuel, tires, and driver pay."
+        "Calculates fixed cost per mile from monthly fixed expenses and monthly mileage.",
+        "Combines variable costs including fuel, tires, maintenance, and driver pay.",
+        "Outputs a total break-even CPM for use in load rate negotiation."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app",
       "name": "LTL Linear Foot & Density Visualizer",
-      "description": "Calculate the exact number of linear feet a shipment will occupy in a standard 53-foot trailer and automatically detect potential LTL penalty triggers.",
+      "description": "Calculate the linear feet a shipment will occupy in a standard 53-foot trailer. Detects potential LTL linear foot rule violations that trigger full trailer pricing.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/linear-foot-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/linear-foot-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates exact linear feet occupied.",
-        "Adjusts calculations for stackable vs. non-stackable pallets.",
-        "Warns users of 'Linear Foot Rule' violations."
+        "Calculate exact linear feet occupied based on pallet count and dimensions.",
+        "Adjusts for stackable vs. non-stackable pallet configurations.",
+        "Warns of linear foot rule violations that trigger carrier penalty pricing.",
+        "Displays trailer utilization percentage for load planning."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app",
       "name": "Detention & Layover Fee Calculator",
-      "description": "Calculate exact billable detention hours and fees by subtracting standard free time from total facility time.",
+      "description": "Calculate billable detention hours and fees by comparing actual facility time against contractual free time allowances. Outputs billable decimal hours and total fee owed.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/detention-layover-fee-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/detention-layover-fee-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates exact time difference between arrival and departure.",
-        "Subtracts contracted 'free time'.",
-        "Converts to decimal hours for accurate invoicing."
+        "Calculate total facility time from arrival and departure timestamps.",
+        "Subtract configurable free time allowance before billing begins.",
+        "Convert billable time to decimal hours for accurate invoicing.",
+        "Apply an hourly detention rate to produce the total fee owed."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app",
       "name": "Warehouse Pallet Storage Estimator",
-      "description": "Calculate the exact maximum pallet capacity for any warehouse footprint. This tool automatically tests both standard and rotated orientations.",
+      "description": "Calculate the maximum pallet floor capacity for any warehouse footprint. Automatically tests both standard and rotated pallet orientations and accounts for aisle width and unusable space.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/warehouse-storage-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/warehouse-storage-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculates maximum floor capacity.",
-        "Determines optimal pallet orientation.",
-        "Supports variable stacking heights."
+        "Calculate maximum floor pallet capacity for any warehouse footprint.",
+        "Automatically tests both standard and rotated pallet orientations for optimal density.",
+        "Accounts for configurable aisle width and unusable perimeter space.",
+        "Supports variable stacking heights for multi-level floor stack calculations."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/partial-rate-calculator/#app",
       "name": "Freight Partial & Volume LTL Rate Calculator",
-      "description": "Calculate Volume LTL and Partial Truckload estimates based on exact trailer utilization, road distance, and custom brokerage margins.",
+      "description": "Calculate Volume LTL and Partial Truckload rate estimates based on trailer utilization, exact Google Maps road miles, and custom brokerage margins. Supports Dry Van, Reefer, and Flatbed trailer types.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/partial-rate-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/partial-rate-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Compare Volume LTL vs Full Truckload rates.",
-        "Calculate trailer utilization for Dry Van, Reefer, and Flatbeds.",
-        "ZIP to ZIP freight rate estimator using exact Google Maps highway miles."
+        "Compare Volume LTL vs. Full Truckload rates side by side.",
+        "Calculate trailer utilization for Dry Van, Reefer, and Flatbed equipment.",
+        "Determine the limiting freight factor (space vs. weight) for accurate rating.",
+        "ZIP-to-ZIP freight rate estimator using exact Google Maps highway miles."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/deadhead-calculator/#app",
       "name": "Deadhead Mileage & Cost Calculator",
-      "description": "Calculate the true cost of running empty using exact Google Maps road miles and your all-in operating CPM. Optionally evaluate load profitability after deadhead repositioning costs.",
+      "description": "Calculate the true cost of running empty using exact Google Maps road miles. Evaluate load profitability after deadhead repositioning costs, effective Rate Per Mile, and deadhead ratio.",
       "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/deadhead-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
+      "image": "https://www.bencritt.net/static/img/all-projects/deadhead-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate true deadhead costs using exact Google Maps road miles.",
-        "Evaluate load profitability after repositioning costs.",
-        "Calculate Deadhead Ratio and Effective Rate Per Mile (RPM).",
-        "Determine minimum flat rates required to break even on a haul."
+        "Calculate deadhead costs using exact Google Maps road miles and operating CPM.",
+        "Evaluate full load profitability after repositioning cost deduction.",
+        "Calculate Deadhead Ratio and Effective Rate Per Mile across the combined run.",
+        "Determine minimum flat rate required to break even on a given haul."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app",
       "name": "Multi-Stop Route Mileage Splitter",
-      "description": "Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles and calculate stop-off charges for invoicing.",
+      "description": "Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles. Calculates per-leg mileage share and stop-off charges for invoicing. Supports up to 7 total route points.",
       "applicationCategory": "Business Application",
-      "url": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/",
+      "image": "https://www.bencritt.net/static/img/all-projects/multi-stop-mileage-splitter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Split routes into per-leg mileage breakdowns via Google Maps.",
-        "Support up to 5 intermediate stops.",
-        "Calculate stop-off charges for multi-stop invoicing."
+        "Split routes into per-leg mileage breakdowns via Google Maps Directions API.",
+        "Supports up to 5 intermediate stops for a total of 7 route points.",
+        "Calculate stop-off charges for multi-stop invoicing.",
+        "Shows per-leg percentage of total miles and cumulative running mileage."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app",
       "name": "Freight Lane Rate-Per-Mile Analyzer",
-      "description": "Analyze any quoted freight rate against exact Google Maps road miles. Calculate effective RPM, all-in rate with FSC, and margin analysis.",
+      "description": "Analyze any quoted freight rate against exact Google Maps road miles. Calculates effective RPM, all-in rate with FSC, market context comparison, and carrier margin analysis.",
       "applicationCategory": "Business Application",
-      "url": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-lane-rate-analyzer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "Calculate effective Rate Per Mile using exact Google Maps road miles.",
         "Compare rates against general dry van market benchmarks.",
-        "Analyze carrier margin against operating cost per mile."
+        "Show all-in RPM including fuel surcharge in a single output.",
+        "Analyze carrier margin against configurable operating cost per mile."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-margin-calculator/#app",
       "name": "Freight Margin & Gross Profit Calculator",
-      "description": "Calculate brokerage gross profit and margin percentage on any freight load with optional FSC spread, accessorial breakdown, and per-mile profitability analysis.",
+      "description": "Calculate brokerage gross profit and margin percentage on any freight load. Includes optional FSC spread breakdown, accessorial charge analysis, and per-mile profitability metrics using exact Google Maps road miles.",
       "applicationCategory": "Business Application",
-      "url": "https://www.bencritt.net/projects/freight-margin-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-margin-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-margin-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate brokerage gross profit and margin percentage.",
-        "Break down FSC and accessorial spreads between customer and carrier.",
+        "Calculate brokerage gross profit and margin percentage for any freight load.",
+        "Break down FSC spread earned between customer charge and carrier cost.",
+        "Track accessorial charge-backs on both sides of the brokerage transaction.",
         "Show per-mile revenue, cost, and profit using exact Google Maps road miles."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/subnet-calculator/#app",
       "name": "Subnet / CIDR Calculator",
       "description": "Calculate IPv4 network ranges, broadcast addresses, and wildcard masks using CIDR notation. Determine usable host counts, binary netmasks, and IP classes for network planning.",
       "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/subnet-calculator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/subnet-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate network address, broadcast address, and wildcard mask from IP/CIDR.",
+        "Calculate network address, broadcast address, and wildcard mask from any IP/CIDR input.",
         "Determine total and usable host counts for any subnet mask.",
-        "Visual binary netmask representation for subnetting education.",
-        "Identify IP Class (A, B, C, D, E) and public/private status."
+        "Display a visual binary netmask representation for subnetting education.",
+        "Identify IP Class (A, B, C, D, E) and public vs. private address status."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/email-auth-validator/#app",
       "name": "SPF, DKIM, and DMARC Validator",
-      "description": "A comprehensive email authentication tool. Verify SPF records for authorized senders, analyze DMARC policies for enforcement, and lookup DKIM public keys.",
+      "description": "Analyze SPF records, parse DMARC policies for enforcement level, and validate DKIM public keys by selector. Verify email authentication configuration to improve deliverability and prevent domain spoofing.",
       "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/email-auth-validator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/email-auth-validator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Analyze SPF records for syntax and security mechanisms.",
-        "Check DMARC existence and parse policy tags.",
-        "Perform DKIM lookups using specific selectors."
+        "Parse SPF TXT records and identify all authorized sending mechanisms.",
+        "Evaluate DMARC policy enforcement level with full tag breakdown.",
+        "Validate DKIM public keys via selector lookup.",
+        "Flag missing or misconfigured records that cause deliverability failures."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/whois-lookup/#app",
       "name": "WHOIS Lookup Tool",
-      "description": "Perform domain registration lookups to find ownership details, expiration dates, registrars, and nameservers. Includes a safe timeout to ensure fast performance.",
+      "description": "Retrieve domain registration details including registrar, creation and expiration dates, nameservers, and raw WHOIS data for any registered domain name.",
       "applicationCategory": "Network Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/whois-lookup/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/whois-lookup.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Retrieve domain registrar and organization details.",
-        "Check domain creation, update, and expiration dates.",
-        "View authoritative nameservers and raw WHOIS data."
+        "Retrieve registrar name, organization, and IANA registrar ID.",
+        "Display domain creation, last updated, and expiration dates.",
+        "List authoritative nameservers and domain status flags.",
+        "Returns raw WHOIS response for advanced review alongside structured output."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/http-header-inspector/#app",
       "name": "HTTP Header Inspector",
-      "description": "Inspect the HTTP response headers of any website. Reveal server software, caching policies, cookies, and security headers like HSTS and CSP.",
+      "description": "View the raw HTTP response headers for any URL to analyze server settings, caching policies, and security headers including HSTS and Content-Security-Policy.",
       "applicationCategory": "Web Development Utility",
-      "url": "https://www.bencritt.net/projects/http-header-inspector/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/http-header-inspector/",
       "image": "https://www.bencritt.net/static/img/all-projects/http-header-inspector.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "View HTTP status codes and reasons (e.g. 200 OK, 404 Not Found).",
-        "Analyze security headers (HSTS, CSP, X-Frame-Options).",
-        "Check caching policies (Cache-Control, Expires)."
+        "Display the HTTP status code and reason phrase for any URL.",
+        "Inspect security headers including HSTS, CSP, and X-Frame-Options.",
+        "Review caching directives from Cache-Control, Pragma, and Expires headers.",
+        "Identify server software disclosures from Server and X-Powered-By headers."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/jsonld-validator/#app",
       "name": "Structured Data / JSON-LD Validator",
-      "description": "Extract and validate JSON-LD structured data from any web page. Check for valid JSON syntax, required and recommended schema.org properties, and SEO best practices.",
+      "description": "Extract and validate JSON-LD structured data from any public URL. Check for valid JSON syntax, required and recommended schema.org properties per type, and SEO implementation best practices.",
       "applicationCategory": "SEO Tool",
-      "url": "https://www.bencritt.net/projects/jsonld-validator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/jsonld-validator/",
       "image": "https://www.bencritt.net/static/img/all-projects/jsonld-validator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Extract all JSON-LD blocks from any public URL.",
-        "Validate JSON syntax with line and column error reporting.",
+        "Extract all JSON-LD script blocks from any public URL.",
+        "Validate JSON syntax with precise line and column error reporting.",
         "Check required and recommended schema.org properties per @type.",
         "Handle @graph arrays with inherited @context resolution.",
-        "Flag http vs https @context, missing @id, and other SEO issues.",
-        "Pretty-print parsed JSON-LD for easy review."
+        "Flag http vs. https @context, missing @id, and other SEO best-practice issues.",
+        "Pretty-print parsed JSON-LD for easy review and debugging."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/redirect-checker/#app",
       "name": "Redirect Chain Checker",
-      "description": "Trace HTTP redirect chains hop-by-hop. Detects redirect loops, identifies temporary vs. permanent redirects (301/302/307/308), and analyzes chain latency for SEO health.",
+      "description": "Trace HTTP redirect chains hop-by-hop. Detects redirect loops, identifies temporary vs. permanent redirects (301/302/307/308), and analyzes per-hop latency for SEO health assessment.",
       "applicationCategory": "SEO Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/redirect-checker/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/redirect-checker.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Trace full redirect paths (301, 302, 303, 307, 308)",
-        "Detect redirect loops and runaway chains",
-        "Analyze hop-by-hop latency and server headers",
-        "Identify mixed redirect types (permanent vs. temporary)"
+        "Trace full redirect paths through 301, 302, 303, 307, and 308 status codes.",
+        "Detect redirect loops and runaway chains that waste crawl budget.",
+        "Analyze per-hop latency and server response headers at each step.",
+        "Identify mixed redirect types (permanent vs. temporary) in a single chain."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/robots-analyzer/#app",
       "name": "Robots.txt Analyzer",
-      "description": "Parse and validate robots.txt files. Check syntax, analyze crawl rules per user-agent, and test URL paths against specific bot permissions.",
+      "description": "Parse and validate robots.txt files. Check syntax, analyze crawl rules per user-agent, test URL paths against bot permissions, and detect sitemap references.",
       "applicationCategory": "SEO Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/robots-analyzer/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/robots-analyzer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Parse robots.txt files for syntax errors",
-        "Test specific paths against Allow/Disallow rules",
-        "Analyze user-agent groups and crawl delays",
-        "Detect and list sitemap references"
+        "Fetch and parse robots.txt files from any public domain.",
+        "Identify syntax errors and malformed directives.",
+        "Test specific URL paths against Allow/Disallow rules for any user-agent.",
+        "Analyze user-agent groups, crawl delays, and sitemap references."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/satellite-pass-predictor/#app",
       "name": "Satellite Pass Predictor",
-      "description": "Predict upcoming visible passes for 25+ satellites, including the ISS, Hubble, Landsat, and amateur radio transponders. Calculates rise/set times in your local timezone.",
+      "description": "Predict upcoming visible passes for 30 satellites across six categories: space stations, amateur radio, weather, search and rescue, science, and educational satellites. Enter a ZIP code to see rise, culmination, and set times in your local timezone.",
       "applicationCategory": "AstronomyApplication",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
       "url": "https://www.bencritt.net/projects/satellite-pass-predictor/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
-      "operatingSystem": "Web-based",
       "image": "https://www.bencritt.net/static/img/all-projects/satellite-pass-predictor.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Predict satellite passes for 25+ satellites including ISS, Hubble, and Landsat",
-        "Rise, culmination, and set times displayed in the observer's local timezone",
-        "Supports amateur radio satellites (RS-44, SO-50, AO-91) and weather satellites (NOAA)",
-        "Visual targets tracking (ISS, Hubble, Ajisai)"
+        "Predict satellite passes for 30 satellites across six mission categories.",
+        "Rise, culmination, and set times with azimuth, maximum elevation, and duration.",
+        "Covers the ISS, Tiangong, Hubble, Landsat, NOAA weather satellites, and amateur radio transponders.",
+        "TLE data sourced from CelesTrak with aggressive server-side caching.",
+        "ZIP code lookup with timezone-aware local time display."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/ai-token-cost-estimator/#app",
       "name": "AI Token & API Cost Estimator",
-      "description": "Calculate exact token counts for raw text and code snippets. Compare total API costs (input and output) across leading language models from OpenAI, Anthropic, and Google.",
+      "description": "Calculate exact token counts for any text or code snippet and compare total API costs across leading language models from OpenAI, Anthropic, and Google.",
       "applicationCategory": "DeveloperApplication",
-      "url": "https://www.bencritt.net/projects/ai-token-cost-estimator/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/ai-token-cost-estimator/",
       "image": "https://www.bencritt.net/static/img/all-projects/ai-api-cost-estimator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Calculate token counts for prompts and data using OpenAI's cl100k_base encoding.",
-        "Instantly estimate total API costs (input and output) based on your selected task.",
-        "Compare pricing tiers across OpenAI, Anthropic, and Google language models."
+        "Calculate exact token counts for prompts and responses using OpenAI cl100k_base encoding.",
+        "Estimate total API costs (input and output) based on configurable task type and model.",
+        "Compare pricing tiers across models from OpenAI, Anthropic, and Google side by side."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/cron-builder/#app",
       "name": "Cron Expression Builder & Parser",
-      "description": "Validate 5-field cron expressions and get plain-English descriptions of what they do. Preview the next N scheduled run times in any timezone, with a one-click preset library and field-by-field breakdown.",
+      "description": "Validate 5-field cron expressions and get plain-English descriptions. Preview the next N scheduled run times in any timezone with a one-click preset library and field-by-field breakdown.",
       "applicationCategory": "DeveloperApplication",
-      "url": "https://www.bencritt.net/projects/cron-builder/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/cron-builder/",
       "image": "https://www.bencritt.net/static/img/all-projects/cron-builder.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
         "Validate any standard 5-field cron expression against croniter syntax rules.",
         "Generate plain-English descriptions of cron schedule logic.",
         "Preview the next N scheduled run times in any major timezone.",
-        "One-click preset library covering common schedules (hourly, daily, weekly, monthly).",
+        "One-click preset library covering common schedules.",
         "Field-by-field breakdown with valid range and wildcard indicators."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/unix-timestamp-converter/#app",
       "name": "Unix Timestamp Converter",
-      "description": "Convert Unix epoch timestamps to human-readable datetimes and back. Auto-detects seconds vs. milliseconds, displays results across all major timezones, and shows ISO 8601 and relative time output.",
+      "description": "Convert Unix epoch timestamps to human-readable datetimes and back. Auto-detects seconds vs. milliseconds, displays results across all major timezones, and shows a live epoch ticker.",
       "applicationCategory": "DeveloperApplication",
-      "url": "https://www.bencritt.net/projects/unix-timestamp-converter/",
-      "creator": { "@type": "Person", "name": "Ben Crittenden" },
       "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/unix-timestamp-converter/",
       "image": "https://www.bencritt.net/static/img/all-projects/unix-timestamp-converter.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Convert epoch timestamps (seconds or milliseconds) to human-readable datetimes.",
+        "Convert Unix epoch timestamps (seconds or milliseconds) to human-readable datetimes.",
         "Convert human-readable dates and times back to Unix epoch values.",
-        "Auto-detect seconds vs. milliseconds — no manual selection needed.",
-        "Display results across all major timezones in a full timezone table.",
-        "Live epoch ticker showing the current Unix timestamp in real time."
+        "Auto-detect seconds vs. milliseconds — no manual format selection needed.",
+        "Display results across all major timezones in a full timezone comparison table.",
+        "Live epoch ticker showing the current Unix timestamp incrementing in real time."
       ]
     },
+
     {
-    "@type": "SoftwareApplication",
-    "name": "Open Graph & Social Card Previewer",
-    "description": "Preview how your page appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all Open Graph, Twitter Card, and core meta tags in one place.",
-    "applicationCategory": "SEO Tool",
-    "url": "https://www.bencritt.net/projects/og-previewer/",
-    "creator": { "@type": "Person", "name": "Ben Crittenden" },
-    "operatingSystem": "Web-based",
-    "image": "https://www.bencritt.net/static/img/all-projects/og-previewer.webp",
-    "featureList": [
-      "Google SERP snippet preview",
-      "Twitter/X Summary and Summary Large Image card preview",
-      "Full tag audit table with pass/warn/fail indicators",
-      "OG health score with visual donut ring"
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/og-previewer/#app",
+      "name": "Open Graph & Social Card Previewer",
+      "description": "Preview how any public URL appears when shared on Google, Twitter/X, Facebook, and LinkedIn. Audits all Open Graph, Twitter Card, and core meta tags with a visual health score.",
+      "applicationCategory": "SEO Tool",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/og-previewer/",
+      "image": "https://www.bencritt.net/static/img/all-projects/og-previewer.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Google SERP snippet preview with title, description, and URL rendering.",
+        "Twitter/X Summary and Summary Large Image card previews.",
+        "Facebook and LinkedIn share card previews.",
+        "Full tag audit table with pass/warn/fail indicators for every meta tag.",
+        "OG health score with visual donut ring and per-category breakdown."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
       "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app",
       "name": "Lunar Phase Calendar",
-      "description": "Monthly moon phase calendar with illumination percentages, rise/set times by ZIP code, and countdowns to the next four major lunar phases.",
-      "url": "https://www.bencritt.net/projects/lunar-phase-calendar/",
+      "description": "An interactive monthly lunar phase calendar showing moon phase name, illumination percentage, and optional rise and set times for any US location by ZIP code. Displays countdowns to the next four major phases. Powered by Skyfield astronomical calculations.",
       "applicationCategory": "AstronomyApplication",
       "operatingSystem": "Web-based",
       "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/lunar-phase-calendar/",
       "image": "https://www.bencritt.net/static/img/all-projects/lunar-phase-calendar.webp",
-      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person", "name": "Ben Crittenden" },
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "category": "Free" },
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Monthly calendar grid showing moon phase name and emoji for every day.",
-        "Illumination percentage calculated at solar noon UTC for each date.",
-        "Exact major phase events flagged on calendar days.",
-        "Countdown cards to the next four major phase events with UTC times.",
-        "Optional moon rise and set times for any US location by ZIP code."
+        "Monthly calendar grid with phase name, emoji, and illumination percentage for every day.",
+        "Exact major phase events (new moon, first quarter, full moon, last quarter) flagged with UTC times.",
+        "Countdown cards to the next four major phase events.",
+        "Optional moon rise and set times for any US location by ZIP code.",
+        "Skyfield DE421 ephemeris — no external API dependencies."
       ]
     },
+
     {
       "@type": "SoftwareApplication",
       "@id": "https://www.bencritt.net/projects/night-sky-planner/#app",
       "name": "Night Sky Planner",
-      "description": "Plan your stargazing session with astronomical twilight times, golden hour windows, moon phase and illumination percentage, moonrise and moonset times, visible satellite pass predictions, and an overall stargazing quality rating.",
-      "url": "https://www.bencritt.net/projects/night-sky-planner/",
-      "applicationCategory": "UtilityApplication",
+      "description": "Plan your stargazing session with astronomical twilight times, golden hour windows, moon phase and illumination, moonrise and moonset, visible satellite pass predictions, and an overall stargazing quality rating. Enter a US ZIP code to get tonight's conditions.",
+      "applicationCategory": "AstronomyApplication",
       "operatingSystem": "Web-based",
       "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/night-sky-planner/",
       "image": "https://www.bencritt.net/static/img/all-projects/night-sky-planner.webp",
-      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person", "name": "Ben Crittenden" },
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "category": "Free" },
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "featureList": [
-        "Astronomical twilight start and end times (true dark window)",
-        "Civil and nautical twilight boundaries",
-        "Evening and morning golden hour windows for photography",
-        "Moon phase name with illumination percentage",
-        "Visible satellite pass predictions including space stations, amateur radio, weather, and science satellites",
-        "Overall stargazing quality rating (1-5 stars) with score breakdown"
+        "Astronomical twilight start and end times (true dark window) for any US location.",
+        "Civil and nautical twilight boundaries and golden hour windows for photography.",
+        "Moon phase name with illumination percentage, moonrise, and moonset times.",
+        "Visible satellite pass predictions including space stations, amateur radio, weather, and science satellites.",
+        "Overall stargazing quality rating (1–5 stars) with per-factor score breakdown."
       ]
     }
+
   ]
 }
 </script>
