@@ -6,12 +6,16 @@ moon phase/illumination/rise/set, satellite pass predictions, and an
 overall stargazing quality rating. Uses the ephem library for all
 astronomical computations (Jean Meeus algorithms).
 
+Also integrates OpenWeatherMap OneCall API for real-time cloud cover and
+visibility data, incorporated into the stargazing quality rating.
+
 Geocoding reuses the existing Google Maps Geocoding API with Django's
 cache framework to minimize API calls.
 """
 
 import ephem
 import math
+import os
 import requests
 import logging
 from datetime import datetime, timedelta, timezone
@@ -27,6 +31,7 @@ logger = logging.getLogger(__name__)
 # Cache TTL values (seconds)
 TLE_CACHE_TTL = 60 * 60 * 12           # 12 hours – TLEs update ~twice daily
 RESULTS_CACHE_TTL = 60 * 15            # 15 minutes – same ZIP, same night
+WEATHER_CACHE_TTL = 60 * 60            # 1 hour – cloud cover changes meaningfully
 
 # CelesTrak TLE endpoints by satellite category
 TLE_SOURCES = {
@@ -424,6 +429,138 @@ def _get_phase_emoji(illumination, is_waxing):
 
 
 # ---------------------------------------------------------------------------
+# Cloud Cover & Weather (OpenWeatherMap OneCall API)
+# ---------------------------------------------------------------------------
+
+def get_cloud_forecast(lat, lon):
+    """
+    Fetch current cloud cover and tonight's hourly cloud forecast
+    from the OpenWeatherMap OneCall 3.0 API.
+
+    Used to incorporate real-time weather into the stargazing quality
+    rating. Results are cached for 1 hour since conditions change.
+
+    NOTE: The env var name must match what your weather app uses.
+    Default expected: OPENWEATHERMAP_API_KEY. Check your Heroku config
+    vars and update below if your key uses a different name.
+
+    Args:
+        lat: Latitude in decimal degrees.
+        lon: Longitude in decimal degrees.
+
+    Returns:
+        dict with keys:
+            available (bool):               True if API call succeeded.
+            current_clouds (int):           Current cloud cover, 0–100%.
+            current_visibility_miles (float): Current visibility in miles.
+            current_condition (str):        E.g., "Clear Sky".
+            avg_clouds (float):             Average cloud cover over next 12 h.
+            cloud_score (float):            0–100, higher = clearer.
+            condition_label (str):          E.g., "Mostly Clear".
+            hourly (list):                  Next 12 h [{dt, clouds, condition, pop}, ...].
+        Returns {"available": False} on any failure (missing key, API error, etc.).
+    """
+    # Round to 2 decimal places for the cache key (~1 km precision, fine for weather).
+    cache_key = f"nightsky_clouds_{round(lat, 2)}_{round(lon, 2)}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # ── OpenWeatherMap API Key ──────────
+    API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
+    # ──────────────────────────────────────────────────────────────────────────
+    if not API_KEY_WEATHER:
+        logger.warning(
+            "OPENWEATHERMAP_API_KEY not set — cloud data unavailable for Night Sky Planner."
+        )
+        return {"available": False}
+
+    url = (
+        f"https://api.openweathermap.org/data/3.0/onecall"
+        f"?lat={lat}&lon={lon}"
+        f"&exclude=minutely,daily,alerts"
+        f"&appid={API_KEY_WEATHER}&units=imperial"
+    )
+
+    try:
+        response = requests.get(url, timeout=8)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        logger.warning("OpenWeatherMap cloud forecast error (lat=%s, lon=%s): %s", lat, lon, e)
+        return {"available": False}
+
+    current = data.get("current", {})
+    hourly_raw = data.get("hourly", [])
+
+    current_clouds = current.get("clouds", 0)
+
+    # Visibility: API returns meters; convert to miles, cap at 10 mi for display.
+    vis_meters = current.get("visibility", 10000)
+    vis_miles = round(min(vis_meters * 0.000621371, 10.0), 1)
+
+    # Current condition description, title-cased for display.
+    weather_list = current.get("weather", [{}])
+    current_condition = (
+        weather_list[0].get("description", "Unknown").title()
+        if weather_list else "Unknown"
+    )
+
+    # Build hourly forecast for next 12 hours — covers tonight's entire dark window
+    # for most latitudes. Each entry includes time (UTC), cloud %, condition, and
+    # precipitation probability.
+    hourly = []
+    for h in hourly_raw[:12]:
+        dt = datetime.fromtimestamp(h["dt"], tz=timezone.utc)
+        clouds = h.get("clouds", 0)
+        cond_list = h.get("weather", [{}])
+        cond = cond_list[0].get("description", "").title() if cond_list else ""
+        hourly.append({
+            "dt": dt,
+            "clouds": clouds,
+            "condition": cond,
+            # pop = probability of precipitation (0.0–1.0) → convert to integer %
+            "pop": round(h.get("pop", 0) * 100),
+        })
+
+    # Average cloud cover: weight the current hour 2× since it's most relevant.
+    # This smooths out brief fluctuations while still emphasizing current conditions.
+    if hourly:
+        avg_clouds = (current_clouds * 2 + sum(h["clouds"] for h in hourly)) / (2 + len(hourly))
+    else:
+        avg_clouds = float(current_clouds)
+
+    # Cloud score: 0% clouds → 100 points, 100% clouds → 0 points (linear).
+    cloud_score = max(0.0, 100.0 - avg_clouds)
+
+    # Human-readable condition label based on average cloud cover over tonight.
+    if avg_clouds <= 10:
+        condition_label = "Clear"
+    elif avg_clouds <= 30:
+        condition_label = "Mostly Clear"
+    elif avg_clouds <= 50:
+        condition_label = "Partly Cloudy"
+    elif avg_clouds <= 75:
+        condition_label = "Mostly Cloudy"
+    else:
+        condition_label = "Overcast"
+
+    result = {
+        "available": True,
+        "current_clouds": current_clouds,
+        "current_visibility_miles": vis_miles,
+        "current_condition": current_condition,
+        "avg_clouds": round(avg_clouds, 1),
+        "cloud_score": round(cloud_score, 1),
+        "condition_label": condition_label,
+        "hourly": hourly,
+    }
+
+    cache.set(cache_key, result, WEATHER_CACHE_TTL)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Satellite Pass Predictions
 # ---------------------------------------------------------------------------
 
@@ -590,71 +727,95 @@ def predict_satellite_passes(lat, lon, target_date=None, tz_name="UTC", max_pass
 # Stargazing Quality Rating
 # ---------------------------------------------------------------------------
 
-def calculate_stargazing_quality(twilight_data, moon_data):
+def calculate_stargazing_quality(twilight_data, moon_data, cloud_data=None):
     """
     Calculate an overall stargazing quality rating from 1 to 5 stars.
 
-    Factors considered:
-        - Moon illumination (40% weight): Less light = better viewing
-        - Moon position at 9 PM (25% weight): Below horizon = better
-        - Dark window duration (25% weight): Longer = better
-        - Twilight completeness (10% weight): Full astro twilight available
+    When cloud data IS available (5 factors, total = 100%):
+        - Moon illumination  (35%): Less moon light = better viewing.
+        - Cloud cover        (20%): Clear sky = better viewing.
+        - Moon position      (20%): Moon below horizon at 9 PM = better.
+        - Dark window        (20%): Longer darkness = better.
+        - Twilight quality   ( 5%): Full astro twilight achievable = better.
+
+    When cloud data is NOT available (API failure or key not set),
+    falls back to original 4-factor weights so existing behavior is
+    preserved:
+        - Moon illumination (40%), Moon position (25%),
+          Dark window (25%), Twilight quality (10%).
 
     Args:
         twilight_data: dict from calculate_twilight_times()
-        moon_data: dict from calculate_moon_info()
+        moon_data:     dict from calculate_moon_info()
+        cloud_data:    dict from get_cloud_forecast(), or None.
 
     Returns:
-        dict with rating (1-5), score (0-100), label, and breakdown.
+        dict with rating (1–5), score (0–100), label, description, and breakdown.
     """
     scores = {}
-    weights = {
-        "moon_illumination": 0.40,
-        "moon_position": 0.25,
-        "dark_window": 0.25,
-        "twilight_quality": 0.10,
-    }
+    cloud_available = cloud_data is not None and cloud_data.get("available", False)
 
-    # --- Moon Illumination Score (0-100) ---
-    # New moon (0%) = 100, Full moon (100%) = 0
+    # ── Weights ──────────────────────────────────────────────────────────────
+    if cloud_available:
+        weights = {
+            "moon_illumination": 0.35,
+            "cloud_cover":       0.20,
+            "moon_position":     0.20,
+            "dark_window":       0.20,
+            "twilight_quality":  0.05,
+        }
+    else:
+        # Original weights — unchanged when weather data unavailable.
+        weights = {
+            "moon_illumination": 0.40,
+            "moon_position":     0.25,
+            "dark_window":       0.25,
+            "twilight_quality":  0.10,
+        }
+
+    # ── Moon Illumination Score (0–100) ─────────────────────────────────────
+    # New moon (0%) = 100 pts, Full moon (100%) = 0 pts.
     illum = moon_data.get("illumination", 50)
-    scores["moon_illumination"] = max(0, 100 - illum)
+    scores["moon_illumination"] = max(0.0, 100.0 - illum)
 
-    # --- Moon Position Score (0-100) ---
-    # Below horizon = 100, high in sky = 0
+    # ── Moon Position Score (0–100) ──────────────────────────────────────────
+    # Below horizon = 100 pts; 60° above = 0 pts (linear between 0° and 60°).
     alt = moon_data.get("altitude_deg", 0)
     if alt <= 0:
-        scores["moon_position"] = 100
+        scores["moon_position"] = 100.0
     elif alt >= 60:
-        scores["moon_position"] = 0
+        scores["moon_position"] = 0.0
     else:
-        scores["moon_position"] = max(0, 100 - (alt / 60.0) * 100)
+        scores["moon_position"] = max(0.0, 100.0 - (alt / 60.0) * 100.0)
 
-    # --- Dark Window Duration Score (0-100) ---
-    # 8+ hours = 100, 0 hours = 0
+    # ── Dark Window Duration Score (0–100) ───────────────────────────────────
+    # 8+ hours = 100 pts, 0 hours = 0 pts (linear).
     dark_hours = twilight_data.get("dark_window_hours")
     if dark_hours is None or dark_hours <= 0:
-        scores["dark_window"] = 0
+        scores["dark_window"] = 0.0
     elif dark_hours >= 8:
-        scores["dark_window"] = 100
+        scores["dark_window"] = 100.0
     else:
-        scores["dark_window"] = (dark_hours / 8.0) * 100
+        scores["dark_window"] = (dark_hours / 8.0) * 100.0
 
-    # --- Twilight Quality Score (0-100) ---
-    # All twilight data present = 100
+    # ── Twilight Quality Score (0–100) ───────────────────────────────────────
+    # Full astronomical twilight achievable = 100 pts; partial = 30 pts.
     has_astro = (
         twilight_data.get("astro_twilight_end") is not None
         and twilight_data.get("astro_twilight_start") is not None
     )
-    scores["twilight_quality"] = 100 if has_astro else 30
+    scores["twilight_quality"] = 100.0 if has_astro else 30.0
 
-    # Weighted total
-    total_score = sum(
-        scores[key] * weights[key] for key in weights
-    )
+    # ── Cloud Cover Score (0–100) — only when data available ─────────────────
+    # Pre-computed in get_cloud_forecast(): 0% clouds = 100, 100% clouds = 0.
+    if cloud_available:
+        scores["cloud_cover"] = cloud_data.get("cloud_score", 50.0)
+
+    # ── Weighted Total ────────────────────────────────────────────────────────
+    total_score = sum(scores[key] * weights[key] for key in weights)
     total_score = round(total_score, 1)
 
-    # Convert to 1-5 star rating
+    # ── Star Rating ───────────────────────────────────────────────────────────
     if total_score >= 85:
         stars = 5
         label = "Excellent"
@@ -681,11 +842,14 @@ def calculate_stargazing_quality(twilight_data, moon_data):
         "score": total_score,
         "label": label,
         "description": description,
+        "cloud_data_available": cloud_available,
         "breakdown": {
             "moon_illumination": round(scores["moon_illumination"], 1),
-            "moon_position": round(scores["moon_position"], 1),
-            "dark_window": round(scores["dark_window"], 1),
-            "twilight_quality": round(scores["twilight_quality"], 1),
+            "moon_position":     round(scores["moon_position"], 1),
+            "dark_window":       round(scores["dark_window"], 1),
+            "twilight_quality":  round(scores["twilight_quality"], 1),
+            # cloud_cover key only present when available — template checks with |default
+            **({"cloud_cover": round(scores["cloud_cover"], 1)} if cloud_available else {}),
         },
     }
 
@@ -713,21 +877,37 @@ def get_night_sky_report(zip_code):
     lon = geo["lon"]
     locality = geo["locality"]
     state = geo["state"]
-    
-    # 1. Get the actual timezone string
+
+    # Step 2: Timezone
     tz_name = _get_timezone_name(lat, lon)
 
-    # 2. Pass it to the calculators
+    # Step 3: Astronomical calculations
     twilight = calculate_twilight_times(lat, lon, tz_name=tz_name)
     moon = calculate_moon_info(lat, lon, tz_name=tz_name)
 
+    # Step 4: Satellite passes
     try:
         satellites = predict_satellite_passes(lat, lon, tz_name=tz_name)
     except Exception as e:
         logger.error("Satellite prediction error: %s", e)
         satellites = []
 
-    quality = calculate_stargazing_quality(twilight, moon)
+    # Step 5: Cloud cover / weather (gracefully optional — won't block the report)
+    cloud_data = get_cloud_forecast(lat, lon)
+
+    # Convert each hourly forecast entry's UTC datetime to a pre-formatted local
+    # time string so the template can display it without relying on Django's
+    # |date filter timezone handling (which uses settings.TIME_ZONE, not the
+    # user's ZIP timezone). Storing a plain string sidesteps the ambiguity.
+    if cloud_data.get("available") and cloud_data.get("hourly"):
+        local_tz = ZoneInfo(tz_name)
+        for h in cloud_data["hourly"]:
+            local_dt = h["dt"].astimezone(local_tz)
+            # %-I removes zero-padding (e.g., "9 PM" not "09 PM")
+            h["local_time_label"] = local_dt.strftime("%I %p").lstrip("0")
+
+    # Step 6: Quality rating (passes cloud_data; falls back gracefully if unavailable)
+    quality = calculate_stargazing_quality(twilight, moon, cloud_data=cloud_data)
 
     moon["azimuth_compass"] = _degrees_to_compass(moon.get("azimuth_deg", 0))
 
@@ -749,11 +929,14 @@ def get_night_sky_report(zip_code):
         "state": state,
         "lat": round(lat, 4),
         "lon": round(lon, 4),
-        "timezone": tz_name,  # <-- Replaces offset_hours
+        "timezone": tz_name,
         "twilight": twilight,
         "moon": moon,
         "satellites": satellites,
         "quality": quality,
+        # cloud_data is included in the report for the Weather card in the template.
+        # If unavailable, the template gracefully hides the card.
+        "cloud": cloud_data,
         "generated_at": datetime.now(timezone.utc),
     }
 

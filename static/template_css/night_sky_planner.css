@@ -112,3 +112,39 @@
         font-size: 2.5rem;
     }
 }
+
+/* =========================================================================
+   Extracted inline styles — previously defined directly on elements
+   ========================================================================= */
+
+/* Error alert — constrain width so it doesn't stretch full-container on desktop */
+.nsp-error-alert {
+    max-width: 600px;
+}
+
+/* Results scroll anchor — offset ensures the heading clears any sticky nav */
+#results-section {
+    scroll-margin-top: 1.5rem;
+}
+
+/* Score breakdown progress bars — thin track height */
+.nsp-score-bar {
+    height: 6px;
+}
+
+/* Cloud average note below the Sky Clarity bar */
+.nsp-cloud-note {
+    font-size: 0.7rem;
+}
+
+/* Hourly cloud timeline — allows horizontal scroll on narrow viewports
+   without blowing out the page width */
+.nsp-hourly-timeline {
+    overflow-x: auto;
+}
+
+/* Mini per-hour cloud bar track — fixed width keeps all cells the same size */
+.nsp-hourly-bar-track {
+    height: 4px;
+    width: 44px;
+}

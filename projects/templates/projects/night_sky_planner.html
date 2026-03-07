@@ -27,9 +27,10 @@
     <p class="text-muted text-center mb-5">
         Enter your ZIP code to find out if tonight is good for stargazing.
         Get astronomical twilight times, golden hour windows, moon phase, visible
-        satellite passes, and an overall stargazing quality rating.
+        satellite passes, current cloud cover, and an overall stargazing quality rating.
     </p>
 
+    <!-- ZIP Code Form -->
     <form method="POST" class="mb-5 text-center w-100 nsp-form-container" id="night-sky-form"
           data-gtm-tool="Night Sky Planner" data-gtm-category="Space and Astronomy">
         {% csrf_token %}
@@ -38,7 +39,7 @@
         </div>
         <input type="submit" id="nsp-submit-btn" class="btn btn-primary w-100" value="Check Tonight's Sky" aria-label="Check Tonight's Sky">
 
-        {# ── Back Button (Inside Form) ── #}
+        {# ── Back Button ── #}
         <p class="mt-3 text-center">
             <a href="{% url 'projects:space_and_astronomy' %}" class="btn btn-secondary w-100 mt-2">
                 <i class="bi bi-grid-3x3-gap-fill me-2"></i>Back to Space Toolkit
@@ -47,17 +48,21 @@
     </form>
 
     {% if error %}
-    <div class="alert alert-danger w-100 text-center mb-4" style="max-width: 600px;" role="alert">
+    <div class="alert alert-danger w-100 text-center mb-4 nsp-error-alert" role="alert">
         {{ error }}
     </div>
     {% endif %}
 
     {% if report %}
-    
-    <div id="results-section" style="scroll-margin-top: 1.5rem;"></div>
+
+    <!-- Scroll anchor sits above results-container so scrollIntoView lands
+         cleanly without clipping the heading. scroll-margin-top accounts for
+         any sticky nav offset. -->
+    <div id="results-section"></div>
 
     <div class="results-container w-100">
 
+        <!-- ── Location & Date Header ── -->
         <div class="text-center mb-4">
             <h2 class="h4">
                 Tonight's Sky in {{ report.locality }}{% if report.state %}, {{ report.state }}{% endif %}
@@ -69,6 +74,7 @@
             </p>
         </div>
 
+        <!-- ── Stargazing Quality Rating ── -->
         <div class="row justify-content-center mb-4">
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow-sm quality-card">
@@ -93,12 +99,13 @@
                             Overall Score: {{ report.quality.score }}/100
                         </div>
 
+                        <!-- Score Breakdown -->
                         <div class="mt-3">
                             <div class="row text-start small">
                                 <div class="col-6">
                                     <div class="mb-2">
                                         <span class="text-secondary">Moon Darkness:</span>
-                                        <div class="progress bg-secondary" style="height: 6px;">
+                                        <div class="progress bg-secondary nsp-score-bar">
                                             <div class="progress-bar bg-info quality-progress"
                                                  data-width="{{ report.quality.breakdown.moon_illumination }}"
                                                  role="progressbar"
@@ -111,7 +118,7 @@
                                 <div class="col-6">
                                     <div class="mb-2">
                                         <span class="text-secondary">Moon Position:</span>
-                                        <div class="progress bg-secondary" style="height: 6px;">
+                                        <div class="progress bg-secondary nsp-score-bar">
                                             <div class="progress-bar bg-info quality-progress"
                                                  data-width="{{ report.quality.breakdown.moon_position }}"
                                                  role="progressbar"
@@ -124,7 +131,7 @@
                                 <div class="col-6">
                                     <div class="mb-2">
                                         <span class="text-secondary">Dark Window:</span>
-                                        <div class="progress bg-secondary" style="height: 6px;">
+                                        <div class="progress bg-secondary nsp-score-bar">
                                             <div class="progress-bar bg-info quality-progress"
                                                  data-width="{{ report.quality.breakdown.dark_window }}"
                                                  role="progressbar"
@@ -137,7 +144,7 @@
                                 <div class="col-6">
                                     <div class="mb-2">
                                         <span class="text-secondary">Twilight Quality:</span>
-                                        <div class="progress bg-secondary" style="height: 6px;">
+                                        <div class="progress bg-secondary nsp-score-bar">
                                             <div class="progress-bar bg-info quality-progress"
                                                  data-width="{{ report.quality.breakdown.twilight_quality }}"
                                                  role="progressbar"
@@ -147,6 +154,39 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Cloudiness row — only when OWM cloud data is available.
+                                     Bar shows cloudiness (avg_clouds%), so overcast = full red bar. -->
+                                {% if report.quality.cloud_data_available %}
+                                <div class="col-12">
+                                    <div class="mb-2">
+                                        <span class="text-secondary">
+                                            Cloudiness:
+                                            <span class="badge ms-1
+                                                {% if report.cloud.avg_clouds <= 20 %}bg-success
+                                                {% elif report.cloud.avg_clouds <= 50 %}bg-warning text-dark
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ report.cloud.condition_label }}
+                                            </span>
+                                        </span>
+                                        <div class="progress bg-secondary nsp-score-bar">
+                                            <div class="progress-bar
+                                                        {% if report.cloud.avg_clouds <= 20 %}bg-success
+                                                        {% elif report.cloud.avg_clouds <= 50 %}bg-warning
+                                                        {% else %}bg-danger{% endif %}"
+                                                 data-width="{{ report.cloud.avg_clouds }}"
+                                                 role="progressbar"
+                                                 aria-valuenow="{{ report.cloud.avg_clouds }}"
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <div class="text-secondary nsp-cloud-note">
+                                            {{ report.cloud.avg_clouds|floatformat:0 }}% avg cloud cover (bar = cloudiness, red is worse)
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                             </div>
                         </div>
                     </div>
@@ -154,6 +194,7 @@
             </div>
         </div>
 
+        <!-- ── Dark Sky Window + Moon Conditions ── -->
         <div class="row g-4 mb-4">
 
             <div class="col-md-6">
@@ -272,6 +313,94 @@
             </div>
         </div>
 
+        <!-- ── Weather & Sky Clarity ──
+             Only rendered when OWM API data is available. If the API key is
+             missing or the call fails, this block is hidden entirely; the rest
+             of the report remains fully functional. -->
+        {% if report.cloud.available %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">☁️ Weather &amp; Sky Clarity</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+
+                            <!-- Current Conditions Summary -->
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="display-6 mb-1">
+                                    {% if report.cloud.current_clouds <= 10 %}☀️
+                                    {% elif report.cloud.current_clouds <= 30 %}🌤️
+                                    {% elif report.cloud.current_clouds <= 60 %}⛅
+                                    {% elif report.cloud.current_clouds <= 85 %}🌥️
+                                    {% else %}☁️{% endif %}
+                                </div>
+                                <div class="h5 mb-1">{{ report.cloud.condition_label }}</div>
+                                <div class="text-secondary small">{{ report.cloud.current_condition }}</div>
+                                <div class="mt-2">
+                                    <span class="badge fs-6
+                                        {% if report.cloud.current_clouds <= 20 %}bg-success
+                                        {% elif report.cloud.current_clouds <= 50 %}bg-warning text-dark
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ report.cloud.current_clouds }}% Cloud Cover
+                                    </span>
+                                </div>
+                                <div class="text-secondary small mt-2">
+                                    Visibility: {{ report.cloud.current_visibility_miles }} mi
+                                </div>
+                            </div>
+
+                            <!-- Hourly Cloud Cover Timeline -->
+                            <div class="col-md-8">
+                                <h4 class="h6 mb-2 text-secondary">Cloud Cover — Next 12 Hours (Local Time)</h4>
+                                {% if report.cloud.hourly %}
+                                <!-- overflow-x: auto keeps the hourly strip from pushing page width on narrow viewports -->
+                                <div class="d-flex flex-wrap gap-2 nsp-hourly-timeline">
+                                    {% for h in report.cloud.hourly %}
+                                    <div class="text-center nsp-hourly-cell">
+                                        <!-- local_time_label is pre-formatted in Python using the ZIP timezone -->
+                                        <div class="small text-secondary">{{ h.local_time_label }}</div>
+                                        <div class="small fw-bold
+                                            {% if h.clouds <= 20 %}text-success
+                                            {% elif h.clouds <= 50 %}text-warning
+                                            {% else %}text-danger{% endif %}">
+                                            {{ h.clouds }}%
+                                        </div>
+                                        <div class="progress bg-secondary mt-1 nsp-hourly-bar-track">
+                                            <div class="progress-bar
+                                                {% if h.clouds <= 20 %}bg-success
+                                                {% elif h.clouds <= 50 %}bg-warning
+                                                {% else %}bg-danger{% endif %}"
+                                                data-width="{{ h.clouds }}"
+                                                role="progressbar"
+                                                aria-valuenow="{{ h.clouds }}"
+                                                aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        {% if h.pop > 20 %}
+                                        <div class="small text-info mt-1">💧{{ h.pop }}%</div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <p class="small text-secondary mt-2 mb-0">
+                                    🟢 ≤ 20% (clear) &nbsp;🟡 ≤ 50% (partly cloudy) &nbsp;🔴 &gt; 50% (cloudy).
+                                    💧 = precipitation probability.
+                                </p>
+                                {% else %}
+                                <p class="text-secondary small">Hourly forecast unavailable.</p>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Golden Hour + Tips for Tonight ── -->
         <div class="row g-4 mb-4">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
@@ -282,21 +411,13 @@
                         <div class="row">
                             <div class="col-6">
                                 <h4 class="h6 text-warning">Evening</h4>
-                                <p class="mb-1">
-                                    {{ local_times.golden_hour_evening_start }}
-                                </p>
-                                <p class="text-secondary">
-                                    to {{ local_times.golden_hour_evening_end }}
-                                </p>
+                                <p class="mb-1">{{ local_times.golden_hour_evening_start }}</p>
+                                <p class="text-secondary">to {{ local_times.golden_hour_evening_end }}</p>
                             </div>
                             <div class="col-6">
                                 <h4 class="h6 text-warning">Morning</h4>
-                                <p class="mb-1">
-                                    {{ local_times.golden_hour_morning_start }}
-                                </p>
-                                <p class="text-secondary">
-                                    to {{ local_times.golden_hour_morning_end }}
-                                </p>
+                                <p class="mb-1">{{ local_times.golden_hour_morning_start }}</p>
+                                <p class="text-secondary">to {{ local_times.golden_hour_morning_end }}</p>
                             </div>
                         </div>
                         <p class="text-secondary small mt-2 mb-0">
@@ -314,6 +435,18 @@
                     </div>
                     <div class="card-body">
                         <ul class="list-unstyled mb-0">
+
+                            <!-- Cloud cover tip first — most immediately actionable -->
+                            {% if report.cloud.available %}
+                                {% if report.cloud.current_clouds > 75 %}
+                                    <li class="mb-2">☁️ Heavy cloud cover ({{ report.cloud.current_clouds }}%) — significant obstruction expected. Check back tomorrow.</li>
+                                {% elif report.cloud.current_clouds > 40 %}
+                                    <li class="mb-2">⛅ Partial clouds ({{ report.cloud.current_clouds }}%) — viewing will be intermittent between gaps.</li>
+                                {% else %}
+                                    <li class="mb-2">✅ Sky looks clear ({{ report.cloud.current_clouds }}% cloud cover) — good transparency for observation.</li>
+                                {% endif %}
+                            {% endif %}
+
                             {% if report.quality.stars >= 4 %}
                                 <li class="mb-2">✅ Excellent conditions — great night for deep-sky objects like galaxies and nebulae.</li>
                             {% elif report.quality.stars >= 3 %}
@@ -343,6 +476,7 @@
             </div>
         </div>
 
+        <!-- ── Visible Satellite Passes Tonight ── -->
         {% if report.satellites %}
         <div class="row mb-4">
             <div class="col-12">
@@ -370,9 +504,7 @@
                                 <tbody>
                                     {% for sat_pass in report.satellites %}
                                     <tr>
-                                        <td>
-                                            <strong>{{ sat_pass.satellite_name }}</strong>
-                                        </td>
+                                        <td><strong>{{ sat_pass.satellite_name }}</strong></td>
                                         <td>
                                             <span class="badge bg-secondary">{{ sat_pass.category }}</span>
                                         </td>
@@ -402,26 +534,26 @@
             </div>
         </div>
         {% else %}
-            {% if report %}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-header">
-                            <h3 class="h5 mb-0">🛰️ Visible Satellite Passes Tonight</h3>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-secondary">
-                                No visible satellite passes predicted for tonight at this location.
-                                Satellite visibility depends on orbital geometry and solar illumination
-                                angles — check back tomorrow for updated predictions.
-                            </p>
-                        </div>
+        <!-- Always show the satellite card — empty state is more informative than silence -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">🛰️ Visible Satellite Passes Tonight</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-secondary mb-0">
+                            No visible satellite passes predicted for tonight at this location.
+                            Satellite visibility depends on orbital geometry and solar illumination
+                            angles — check back tomorrow for updated predictions.
+                        </p>
                     </div>
                 </div>
             </div>
-            {% endif %}
+        </div>
         {% endif %}
 
+        <!-- ── Understanding the Data ── -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card shadow-sm">
@@ -443,11 +575,17 @@
                             <div class="col-md-6">
                                 <h4 class="h6">Stargazing Quality Score</h4>
                                 <p class="small text-secondary">
-                                    The quality rating factors in moon brightness (40%), moon position relative to the
-                                    horizon (25%), length of the dark sky window (25%), and whether full astronomical
-                                    darkness is achievable (10%). A new moon below the horizon during a long dark window
-                                    yields the best scores. Note that this rating does not account for weather or
-                                    local light pollution — always check your local forecast.
+                                    {% if report.quality.cloud_data_available %}
+                                        The quality rating factors in moon brightness (35%), sky clarity from live
+                                        cloud cover data (20%), moon position (20%), length of the dark sky window
+                                        (20%), and whether full astronomical darkness is achievable (5%).
+                                    {% else %}
+                                        The quality rating factors in moon brightness (40%), moon position relative
+                                        to the horizon (25%), length of the dark sky window (25%), and whether full
+                                        astronomical darkness is achievable (10%). Cloud cover data was unavailable —
+                                        always check your local forecast before heading out.
+                                    {% endif %}
+                                    A new moon below the horizon on a clear night yields the best scores.
                                 </p>
                             </div>
                         </div>
@@ -459,18 +597,36 @@
     </div>
     {% endif %}
 
-    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    {# --- Educational + Related Tools — hidden when embedded via .related-tools-block --- #}
     <div class="row justify-content-center mt-5 related-tools-block">
         <div class="col-md-8 col-lg-6">
             <h3 class="h5 mb-3 text-muted">What Affects Stargazing Quality</h3>
             <p class="small text-muted mb-2">
-                <strong>Moon illumination:</strong> The single biggest factor for visual astronomy. A full moon washes out all but the brightest stars; a new moon leaves skies dark enough for faint galaxies and nebulae. This tool weights moon brightness at 40% of the overall quality score.
+                <strong>Moon illumination:</strong> The single biggest factor for visual astronomy. A full moon
+                washes out all but the brightest stars; a new moon leaves skies dark enough for faint galaxies
+                and nebulae. This tool weights moon brightness at 35% of the overall quality score when weather
+                data is available (40% otherwise).
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Cloud cover:</strong> Even a clear new moon night is wasted under overcast skies. When
+                available, live cloud cover from the OpenWeatherMap API is factored in at 20% of the quality
+                score and shown as a 12-hour hourly forecast. Clear skies (≤ 20% cloud cover) score highest;
+                overcast (&gt; 75%) scores zero.
             </p>
             <p class="small text-muted">
-                <strong>Twilight and dark windows:</strong> True astronomical darkness begins when the Sun drops 18° below the horizon. The interval between evening and morning astronomical twilight is your dark window — the wider it is, the more time you have under genuinely dark skies. At high latitudes in summer, this window can shrink to zero.
+                <strong>Twilight and dark windows:</strong> True astronomical darkness begins when the Sun drops
+                18° below the horizon. The interval between evening and morning astronomical twilight is your
+                dark window — the wider it is, the more time you have under genuinely dark skies. At high
+                latitudes in summer, this window can shrink to zero.
             </p>
             <p class="small text-muted mt-3">
-                <strong>Related space tools:</strong> Browse a full month of moon phases, illumination percentages, and rise/set times with the <a href="{% url 'projects:lunar_phase_calendar' %}" class="related-tool-link">Lunar Phase Calendar</a>. Track the ISS in real time with the <a href="{% url 'projects:iss_tracker' %}" class="related-tool-link">ISS Tracker</a>, or predict visible passes for dozens of other satellites with the <a href="{% url 'projects:satellite_pass_predictor' %}" class="related-tool-link">Satellite Pass Predictor</a>.
+                <strong>Related space tools:</strong> Browse a full month of moon phases, illumination
+                percentages, and rise/set times with the
+                <a href="{% url 'projects:lunar_phase_calendar' %}" class="related-tool-link">Lunar Phase Calendar</a>.
+                Track the ISS in real time with the
+                <a href="{% url 'projects:iss_tracker' %}" class="related-tool-link">ISS Tracker</a>,
+                or predict visible passes for dozens of other satellites with the
+                <a href="{% url 'projects:satellite_pass_predictor' %}" class="related-tool-link">Satellite Pass Predictor</a>.
             </p>
         </div>
     </div>
@@ -480,40 +636,40 @@
     </div>
 
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
+    // Placed at the bottom of the content block so it runs unconditionally.
     document.addEventListener('DOMContentLoaded', function() {
         var isEmbedded = document.documentElement.classList.contains('embedded');
 
         // Set progress bar widths from data-width attributes.
-        var bars = document.querySelectorAll('.quality-progress');
+        // All .progress-bar elements with data-width get their width set here
+        // so the CSS file stays clean of dynamic values.
+        var bars = document.querySelectorAll('[data-width]');
         for (var i = 0; i < bars.length; i++) {
-            var width = bars[i].getAttribute('data-width');
-            if (width !== null) {
+            var width = parseFloat(bars[i].getAttribute('data-width'));
+            if (!isNaN(width)) {
                 bars[i].style.width = width + '%';
             }
         }
 
-        // Auto-scroll to results (Do this BEFORE deciding to auto-focus)
-        var resultsDiv = document.getElementById("results-section");
+        // Auto-scroll to results anchor, then auto-focus ZIP input only when NOT
+        // scrolling. If both run together, focus() snaps the viewport back to the
+        // top of the page, fighting the scroll.
+        var resultsDiv = document.getElementById('results-section');
         if (resultsDiv && window.self === window.top) {
-            // Increase timeout slightly so massive flexboxes have fully painted
             setTimeout(function() {
                 resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 150);
         } else if (!isEmbedded && window.innerWidth >= 768) {
-            // Only auto-focus ZIP code input on page load IF we aren't scrolling.
-            // (If they fight, the focus command instantly drags you back up to the top!)
             var input = document.getElementById('id_zip_code');
             if (input && !input.value) {
                 input.focus();
             }
         }
 
-        // When embedded in an iframe on the hub page, report content height
-        // to the parent so iframe-handler.js can resize the iframe.
+        // When embedded in an iframe, report content height to the parent so
+        // iframe-handler.js can resize the iframe accordingly.
         if (isEmbedded && window.parent !== window) {
             var reportHeight = function() {
                 window.parent.postMessage(
@@ -526,4 +682,5 @@
         }
     });
 </script>
+
 {% endblock %}
