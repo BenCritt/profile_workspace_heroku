@@ -44,7 +44,7 @@ setuptools==82.0.0
 six==1.17.0
 skyfield==1.50
 soupsieve==2.6
-sqlparse==0.5.3
+sqlparse==0.5.4
 textstat==0.7.5
 timezonefinder==8.2.1
 tinycss2==1.2.1
