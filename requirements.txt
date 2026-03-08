@@ -10,7 +10,7 @@ cryptography==46.0.5
 cssutils==2.9.0
 cycler==0.12.1
 dj-database-url==2.3.0
-Django==5.2.11
+Django==5.2.12
 django-heroku==0.3.1
 dnspython==2.7.0
 ephem==4.2
