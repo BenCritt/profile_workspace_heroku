@@ -1,299 +1,339 @@
-# views/__init__.py
+# views/views_misc.py
 #
 # ============================================================================
-# PACKAGE OVERVIEW
+# Miscellaneous Standalone Tool Views
 # ============================================================================
-# This file turns the `views/` directory into a proper Python package and
-# serves as its public re-export surface.
+# Contains view functions for tools that don't belong to any larger thematic
+# category (freight, glass, radio, etc.) and that are light enough to live
+# in a single shared module rather than their own package.
 #
-# BACKGROUND — WHY THIS FILE EXISTS:
-#   The original codebase used a single monolithic views.py file.  As the
-#   tool count grew past 50, that file became unwieldy to navigate and edit.
-#   It was split into per-category modules:
+# Tools in this module:
+#   qr_code_generator    — Converts any text or URL to a downloadable QR PNG
+#   monte_carlo_simulator— Runs a probability distribution simulation and
+#                          returns a rendered PDF chart
+#   weather              — ZIP-code current conditions + 7-day forecast
+#                          via the OpenWeatherMap One Call 3.0 API
+#   ai_api_cost_estimator— Estimates token count and per-provider API cost
+#                          for a given input text + task type
 #
-#       views_core.py          — home, all_projects, manifest, sitemap helpers
-#       views_it_tools.py      — IT/SysAdmin tool views
-#       views_seo_tools.py     — SEO Professional Toolkit views
-#       views_freight_tools.py — Freight Professional Toolkit views
-#       views_glass_tools.py   — Glass Artist Toolkit views
-#       views_radio_tools.py   — Radio Hobbyist Toolkit views
-#       views_space_tools.py   — Space & Astronomy Toolkit views
-#       views_misc.py          — Standalone miscellaneous tool views
+# All views follow the same decorator conventions used throughout the project:
+#   @trim_memory_after          — gc.collect() + malloc_trim() post-response
+#   @cache_control(no_cache=…)  — prevents browser/CDN result caching
 #
-#   urls.py was written to do `from . import views` (or equivalently
-#   `from .views import some_view`).  Rather than rewrite all those import
-#   paths, every public view function is re-exported here so the existing
-#   urls.py continues to work unchanged.
-#
-# RULE: This file must contain ONLY import/re-export statements.
-#       Business logic, constants, and helper functions belong in their
-#       respective sub-modules.
-#
-# MAINTENANCE CHECKLIST:
-#   When you add a new view function to any sub-module:
-#     1. Add it to the `from .views_<category> import (...)` block below.
-#     2. Add its name to __all__ in the matching section.
-#   When you add a new sub-module entirely:
-#     1. Create a new `from .views_<category> import (...)` block.
-#     2. Add a new __all__ section for it.
+# See views_glass_tools.py for a full explanation of the decorator rationale
+# and the lazy-import pattern.
 # ============================================================================
 
+import os
 
-# ----------------------------------------------------------------------------
-# Core / Site-wide views
-# ----------------------------------------------------------------------------
-# home          — the portfolio landing page
-# all_projects  — the full tool/project listing
-# view_404      — custom 404 handler (registered in urls.py / settings.py)
-# manifest      — serves /manifest.json for PWA support
-# llms_txt      — serves /llms.txt (machine-readable site summary for AI crawlers)
-# robots_txt    — serves /robots.txt (rendered from template, not static file)
-# requirements_txt — serves /requirements.txt for transparency / llms context
-# privacy_cookies  — privacy & cookie policy page
-from .views_core import (
-    home,
-    all_projects,
-    view_404,
-    manifest,
-    llms_txt,
-    robots_txt,
-    requirements_txt,
-    privacy_cookies,
-)
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.views.decorators.cache import cache_control
 
-# ----------------------------------------------------------------------------
-# IT & SysAdmin Toolkit views
-# ----------------------------------------------------------------------------
-# cookie_audit_*      — 5-endpoint async cookie audit tool (start/poll/download)
-# it_tools            — hub page listing all IT tools
-# Network/domain:     dns_tool, ip_tool, ssl_check, subnet_calculator,
-#                     email_auth_validator, whois_lookup,
-#                     http_header_inspector, redirect_checker_view,
-#                     jsonld_validator_view, robots_analyzer_view
-# File/utility:       font_inspector, xml_splitter
-# Sysadmin helpers:   cron_builder, timestamp_converter
-from .views_it_tools import (
-    # Cookie Audit — async crawl pipeline (5 endpoints total)
-    cookie_audit_view,    # renders the main form page
-    cookie_audit_start,   # POST: kicks off the background crawl task
-    cookie_audit_status,  # GET: polls task progress by task_id
-    cookie_audit_results, # GET: fetches completed scan results
-    cookie_audit_download,# GET: streams the results CSV to the browser
-    # IT Toolkit hub page
-    it_tools,
-    # Network & domain analysis tools
-    dns_tool,
-    ip_tool,
-    ssl_check,
-    subnet_calculator,
-    email_auth_validator,
-    whois_lookup,
-    http_header_inspector,
-    redirect_checker_view,
-    jsonld_validator_view,
-    robots_analyzer_view,
-    # File & encoding utilities
-    font_inspector,
-    xml_splitter,
-    # Sysadmin command/time helpers
-    cron_builder,
-    timestamp_converter,
-)
+from ..decorators import trim_memory_after
 
-# ----------------------------------------------------------------------------
-# SEO Professional Toolkit views
-# ----------------------------------------------------------------------------
-# seo_tools               — hub page
-# seo_head_checker        — main form page for the sitemap/head auditor
-# start_sitemap_processing— POST: launches Celery task to crawl sitemap URLs
-# get_task_status         — GET: polls Celery task progress
-# download_task_file      — GET: streams the completed audit CSV
-# grade_level_analyzer    — Flesch-Kincaid / SMOG / Gunning Fog readability tool
-# og_previewer            — Open Graph & Twitter Card social preview tool
-from .views_seo_tools import (
-    seo_tools,
-    seo_head_checker,
-    start_sitemap_processing,
-    get_task_status,
-    download_task_file,
-    grade_level_analyzer,
-    og_previewer,
-)
 
-# ----------------------------------------------------------------------------
-# Freight Professional Toolkit views
-# ----------------------------------------------------------------------------
-# freight_tools              — hub page
-# freight_class_calculator   — NMFC class from dims/weight (density method)
-# fuel_surcharge_calculator  — carrier FSC based on DOE index
-# hos_trip_planner           — FMCSA Hours of Service itinerary generator
-# freight_safety             — FMCSA carrier safety lookup (by USDOT number)
-# tie_down_calculator        — FMCSA-compliant tie-down count / WLL calculator
-# cost_per_mile_calculator   — trucker CPM breakdown (fixed + variable costs)
-# linear_foot_calculator     — LTL trailer linear foot & density visualizer
-# detention_layover_fee_calculator — dwell time fee estimator
-# warehouse_storage_calculator     — pallet/sqft storage cost calculator
-# partial_rate_calculator    — partial TL rate from pallet count vs FTL base
-# deadhead_calculator        — deadhead miles & cost vs loaded revenue
-# multi_stop_splitter        — per-leg mileage split for multi-stop routes
-# lane_rate_analyzer         — RPM breakdown with FSC for a given lane
-# freight_margin_calculator  — gross margin / GP between customer & carrier
-from .views_freight_tools import (
-    freight_tools,
-    freight_class_calculator,
-    fuel_surcharge_calculator,
-    hos_trip_planner,
-    freight_safety,
-    tie_down_calculator,
-    cost_per_mile_calculator,
-    linear_foot_calculator,
-    detention_layover_fee_calculator,
-    warehouse_storage_calculator,
-    partial_rate_calculator,
-    deadhead_calculator,
-    multi_stop_splitter,
-    lane_rate_analyzer,
-    freight_margin_calculator,
-    accessorial_fee_calculator,
-)
-
-# ----------------------------------------------------------------------------
-# Glass Artist Toolkit views
-# ----------------------------------------------------------------------------
-# glass_artist_toolkit        — hub page
-# glass_volume_calculator     — volume & weight for various glass blank shapes
-# kiln_schedule_generator     — firing schedule by brand/project/thickness
-# stained_glass_cost_estimator— labor + material cost estimator for commissions
-# kiln_controller_utils       — temperature unit converter + ramp time calculator
-# stained_glass_materials     — lead/copper foil/solder material estimator
-# lampwork_materials          — rod/tube weight calculator for torchwork beads
-# glass_reaction_checker      — silver/sulfur reaction lookup between glass codes
-# frit_mixing_calculator      — frit-to-medium ratio for painting/screen work
-# circle_cutter_calculator    — compass-cutter pivot offset for circles/ovals
-from .views_glass_tools import (
-    glass_artist_toolkit,
-    glass_volume_calculator,
-    kiln_schedule_generator,
-    stained_glass_cost_estimator,
-    kiln_controller_utils,
-    stained_glass_materials,
-    lampwork_materials,
-    glass_reaction_checker,
-    frit_mixing_calculator,
-    circle_cutter_calculator,
-)
-
-# ----------------------------------------------------------------------------
-# Radio Hobbyist Toolkit views
-# ----------------------------------------------------------------------------
-# radio_tools               — hub page
-# ham_radio_call_sign_lookup— QRZ/HamDB callsign lookup (with fallback)
-# band_plan_checker         — frequency → US amateur band + license privileges
-# repeater_finder           — 3-endpoint async repeater search pipeline
-# antenna_calculator        — dipole/quarter-wave/Yagi length from frequency
-# grid_square_converter     — Maidenhead grid ↔ lat/lon ↔ ZIP code
-# rf_exposure_calculator    — FCC OET Bulletin 65 MPE distance/compliance tool
-# coax_cable_loss_calculator— per-100-ft coax loss by cable type & frequency
-from .views_radio_tools import (
-    radio_tools,
-    ham_radio_call_sign_lookup,
-    band_plan_checker,
-    repeater_finder,
-    repeater_finder_start,    # POST AJAX: starts the repeater search task
-    repeater_finder_status,   # GET  AJAX: polls task status by task_id
-    antenna_calculator,
-    grid_square_converter,
-    rf_exposure_calculator,
-    coax_cable_loss_calculator,
-)
-
-# ----------------------------------------------------------------------------
-# Space & Astronomy Toolkit views
-# ----------------------------------------------------------------------------
-# space_and_astronomy   — hub page
-# iss_tracker           — real-time ISS position + next visible pass events
-# satellite_pass_predictor — TLE-based satellite rise/culminate/set predictor
-# lunar_phase_calendar  — monthly lunar phase grid with optional rise/set times
-# night_sky_planner     — comprehensive dark-window, planet, and satellite report
+# ===========================================================================
+# QR Code Generator
+# ===========================================================================
+# Accepts arbitrary text or a URL and returns a PNG image of the corresponding
+# QR code as a file download (not a page render).
 #
-# NOTE: _format_local_times is a private helper used only inside
-# views_space_tools.py.  It is intentionally NOT exported here.
-from .views_space_tools import (
-    space_and_astronomy,
-    iss_tracker,
-    satellite_pass_predictor,
-    lunar_phase_calendar,
-    night_sky_planner,
-)
+# GET  → renders the input form (QRForm).
+# POST → validates the form; if valid, calls qr_utils.generate_qr_code_image()
+#        which returns a BytesIO buffer.  The buffer is streamed directly as an
+#        image/png response with a Content-Disposition attachment header so the
+#        browser triggers a Save dialog rather than trying to display the PNG
+#        inline.  No template is rendered on a successful POST.
+#
+# On an invalid POST the form is re-rendered with validation errors as usual.
+# ===========================================================================
 
-# ----------------------------------------------------------------------------
-# Miscellaneous standalone tool views
-# ----------------------------------------------------------------------------
-# qr_code_generator    — text/URL → downloadable QR code PNG
-# monte_carlo_simulator— probability distribution simulator (PDF output)
-# weather              — ZIP-code weather forecast via OpenWeatherMap API
-# ai_api_cost_estimator— token count + multi-provider API cost estimator
-from .views_misc import (
-    qr_code_generator,
-    monte_carlo_simulator,
-    weather,
-    ai_api_cost_estimator,
-    job_fit_analyzer,
-    job_fit_analyzer_status,
-)
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def qr_code_generator(request):
+    from .. import qr_utils
+    from ..forms import QRForm
+
+    if request.method == "POST":
+        form = QRForm(request.POST)
+        if form.is_valid():
+            data      = form.cleaned_data["qr_text"]
+            qr_buffer = qr_utils.generate_qr_code_image(data)
+
+            # Stream the PNG bytes directly — no template involved.
+            response  = HttpResponse(qr_buffer, content_type="image/png")
+            # "attachment" triggers a browser download dialog; "inline" would
+            # try to display the image in-tab.
+            response["Content-Disposition"] = 'attachment; filename="qrcode.png"'
+            return response
+    else:
+        form = QRForm()
+
+    # GET, or invalid POST — render the form page.
+    return render(
+        request, "projects/qr_code_generator.html", context={"form": form}
+    )
 
 
-# ----------------------------------------------------------------------------
-# __all__
-# ----------------------------------------------------------------------------
-# Explicit public API declaration.  This controls what `from .views import *`
-# exposes and serves as an authoritative inventory of every routable view.
-# Keep this in sync with the import blocks above.
-# ----------------------------------------------------------------------------
-__all__ = [
-    # ── Core ──────────────────────────────────────────────────────────────
-    "home", "all_projects", "view_404", "manifest",
-    "llms_txt", "robots_txt", "requirements_txt", "privacy_cookies",
+# ===========================================================================
+# Monte Carlo Probability Simulator
+# ===========================================================================
+# Runs one or two Monte Carlo probability distribution simulations and returns
+# a rendered PDF chart as a file download.  The chart shows the distribution
+# histogram, probability density curve, and the target-value percentile marker.
+#
+# This is the heaviest tool on the site in terms of CPU + memory: it uses
+# NumPy/SciPy for simulation and Matplotlib for rendering.  Three strategies
+# are in place to manage resource usage:
+#
+#   1. SUBPROCESS ISOLATION (preferred):
+#      monte_carlo_utils.render_probability_pdf_isolated() forks a child
+#      process to do the heavy lifting, enforces a 20-second timeout, and
+#      ensures that Matplotlib's memory is fully released when the child exits.
+#      If that import is unavailable (e.g. the multiprocessing-based module
+#      hasn't been installed), the code falls back to the in-process renderer.
+#
+#   2. FALLBACK IN-PROCESS RENDERER:
+#      monte_carlo_utils.render_probability_pdf() runs directly in the Gunicorn
+#      worker.  Memory is not as cleanly reclaimed, but it still works.
+#
+#   3. EXPLICIT MEMORY TRIM (_trim_memory_safely):
+#      After rendering (or even after an exception), gc.collect() + malloc_trim()
+#      are called via the nested helper to encourage the OS to reclaim freed
+#      heap pages.  This runs in a finally block so it fires regardless of
+#      whether the render succeeded or raised.
+#
+# GET  → renders the form page (MonteCarloForm with primary + optional secondary
+#        simulation inputs).
+# POST → validates form; runs the simulation; returns a PDF binary response.
+#        The finally block always runs the memory trim.
+#
+# SECOND SIMULATION:
+#   If second_sim_quantity is provided, the form also collects a second
+#   distribution's min/max/target/n.  These are bundled into a `second_params`
+#   dict and passed to the renderer, which overlays the second distribution on
+#   the same chart for comparison.
+# ===========================================================================
 
-    # ── IT Tools ──────────────────────────────────────────────────────────
-    "cookie_audit_view", "cookie_audit_start", "cookie_audit_status",
-    "cookie_audit_results", "cookie_audit_download",
-    "it_tools", "dns_tool", "ip_tool", "ssl_check",
-    "subnet_calculator", "email_auth_validator", "whois_lookup",
-    "http_header_inspector", "redirect_checker_view",
-    "jsonld_validator_view", "robots_analyzer_view",
-    "font_inspector", "xml_splitter", "cron_builder", "timestamp_converter",
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def monte_carlo_simulator(request):
+    from ..forms import MonteCarloForm
 
-    # ── SEO Tools ─────────────────────────────────────────────────────────
-    "seo_tools", "seo_head_checker", "start_sitemap_processing",
-    "get_task_status", "download_task_file", "grade_level_analyzer",
-    "og_previewer",
+    def _trim_memory_safely():
+        """
+        Encourage the OS to reclaim freed memory after simulation completes.
 
-    # ── Freight Tools ─────────────────────────────────────────────────────
-    "freight_tools", "freight_class_calculator", "fuel_surcharge_calculator",
-    "hos_trip_planner", "freight_safety", "tie_down_calculator",
-    "cost_per_mile_calculator", "linear_foot_calculator",
-    "detention_layover_fee_calculator", "warehouse_storage_calculator",
-    "partial_rate_calculator", "deadhead_calculator", "multi_stop_splitter",
-    "lane_rate_analyzer", "freight_margin_calculator", "accessorial_fee_calculator",
+        gc.collect() returns reference-cycle garbage to Python's allocator.
+        malloc_trim(0) then asks libc to release free pages back to the OS —
+        critical on Heroku where resident set size (RSS) is tightly monitored.
+        Both calls are wrapped in a try/except so a missing libc (Windows dev
+        environment, musl libc, etc.) doesn't break the response.
+        """
+        try:
+            import gc, ctypes
+            gc.collect()
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
 
-    # ── Glass Tools ───────────────────────────────────────────────────────
-    "glass_artist_toolkit", "glass_volume_calculator", "kiln_schedule_generator",
-    "stained_glass_cost_estimator", "kiln_controller_utils",
-    "stained_glass_materials", "lampwork_materials", "glass_reaction_checker",
-    "frit_mixing_calculator", "circle_cutter_calculator",
+    if request.method == "POST":
+        form = MonteCarloForm(request.POST)
+        if form.is_valid():
+            sim_quantity = form.cleaned_data["sim_quantity"]
+            min_val      = form.cleaned_data["min_val"]
+            max_val      = form.cleaned_data["max_val"]
+            target_val   = form.cleaned_data["target_val"]
 
-    # ── Radio Tools ───────────────────────────────────────────────────────
-    "radio_tools", "ham_radio_call_sign_lookup", "band_plan_checker",
-    "repeater_finder", "repeater_finder_start", "repeater_finder_status",
-    "antenna_calculator", "grid_square_converter",
-    "rf_exposure_calculator", "coax_cable_loss_calculator",
+            # Second simulation is optional.  Only assemble second_params if
+            # the user filled in second_sim_quantity; the other second_* fields
+            # are conditional on that field being present.
+            second_sim_quantity = form.cleaned_data["second_sim_quantity"]
+            second_params = None
+            if second_sim_quantity is not None:
+                second_params = {
+                    "min":    form.cleaned_data["second_min_val"],
+                    "max":    form.cleaned_data["second_max_val"],
+                    "n":      second_sim_quantity,
+                    "target": form.cleaned_data["second_target_val"],
+                }
 
-    # ── Space Tools ───────────────────────────────────────────────────────
-    "space_and_astronomy", "iss_tracker", "satellite_pass_predictor",
-    "lunar_phase_calendar", "night_sky_planner",
+            # Prefer the subprocess-isolated renderer; fall back to in-process.
+            # The `use_timeout` flag signals whether the isolated renderer's
+            # `timeout` kwarg is supported.
+            try:
+                from ..monte_carlo_utils import (
+                    render_probability_pdf_isolated as render_pdf,
+                )
+                use_timeout = True
+            except ImportError:
+                from ..monte_carlo_utils import render_probability_pdf as render_pdf
+                use_timeout = False
 
-    # ── Misc ──────────────────────────────────────────────────────────────
-    "qr_code_generator", "monte_carlo_simulator", "weather",
-    "ai_api_cost_estimator","job_fit_analyzer", "job_fit_analyzer_status",
-]
+            try:
+                if use_timeout:
+                    pdf_bytes = render_pdf(
+                        min_val, max_val, sim_quantity, target_val,
+                        second=second_params, timeout=20,
+                    )
+                else:
+                    pdf_bytes = render_pdf(
+                        min_val, max_val, sim_quantity, target_val,
+                        second=second_params,
+                    )
+
+                # Stream the rendered PDF bytes directly to the browser.
+                response = HttpResponse(pdf_bytes, content_type="application/pdf")
+                response["Content-Disposition"] = (
+                    'attachment; filename="probability_graph.pdf"'
+                )
+                # Prevent MIME-type sniffing; we know exactly what this is.
+                response["X-Content-Type-Options"] = "nosniff"
+                return response
+            finally:
+                # Always trim memory, even if the render raised an exception.
+                _trim_memory_safely()
+    else:
+        form = MonteCarloForm()
+
+    return render(
+        request,
+        "projects/monte_carlo_simulator.html",
+        context={"form": form},
+    )
+
+
+# ===========================================================================
+# Weather Forecast
+# ===========================================================================
+# Provides current conditions and a 7-day daily forecast for a US ZIP code
+# using the OpenWeatherMap One Call 3.0 API (imperial units).
+#
+# GEOCODING:
+#   ZIP → lat/lon is resolved locally via zip_data.local_get_location_data(),
+#   which reads a bundled ZIP-code dataset rather than calling the Google Maps
+#   Geocoding API.  This avoids a per-request Maps API charge and is faster.
+#   The function also returns city and state names so we can display
+#   "Chicago, IL" without a second lookup.
+#
+# GET  → renders an empty WeatherForm (single ZIP code field).
+# POST → geocodes the ZIP, calls OpenWeatherMap, parses the response via
+#        weather_utils.parse_weather_data(), and injects the parsed data into
+#        context.  Two distinct error paths:
+#          - Geocoding failure  → "error_message" (coordinates not found)
+#          - API/network error  → "error_message" (service unavailable)
+#
+# CONTEXT KEYS on success:
+#   city_name, state_name       — display location
+#   current_weather_report      — today's conditions dict
+#   daily_forecast              — list of 7 daily forecast dicts
+#   (all injected via **weather_data unpacking from parse_weather_data())
+#
+# NOTE: The API key is currently hardcoded as a fallback while the env var
+# comment is preserved.  In production, set OPEN_WEATHER_MAP_KEY in Heroku
+# Config Vars and uncomment the os.environ.get() line.
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def weather(request):
+    import requests
+    from ..forms import WeatherForm
+    from ..zip_data import local_get_location_data as get_location_data
+    from ..weather_utils import parse_weather_data
+
+    form    = WeatherForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        zip_code = form.cleaned_data["zip_code"]
+
+        # Single call returns lat, lon, city, and state together.
+        # Returns None if the ZIP is not in the local dataset.
+        location = get_location_data(zip_code)
+
+        if not location:
+            # Geocoding failed — not a network issue, just an unknown ZIP.
+            context["error_message"] = (
+                "The ZIP code you entered is valid, but the server was unable to "
+                "find coordinates for it. This is a Google Maps Platform API error "
+                "and not a problem with my code."
+            )
+            return render(request, "projects/weather.html", context)
+
+        latitude   = location["lat"]
+        longitude  = location["lng"]
+        city_name  = location["city"]  or "Unknown City"
+        state_name = location["state"] or ""
+
+        API_KEY_WEATHER = os.environ.get("OPEN_WEATHER_MAP_KEY")
+        API_URL = (
+            f"https://api.openweathermap.org/data/3.0/onecall"
+            f"?lat={latitude}&lon={longitude}"
+            f"&appid={API_KEY_WEATHER}&units=imperial"
+        )
+
+        try:
+            response = requests.get(API_URL, timeout=5)
+            response.raise_for_status()  # raises HTTPError for 4xx/5xx responses
+
+            # parse_weather_data() normalises the raw OWM JSON into two
+            # template-friendly dicts: current_weather_report and daily_forecast.
+            weather_data = parse_weather_data(response.json())
+
+            context.update({
+                "city_name":  city_name,
+                "state_name": state_name,
+                **weather_data,   # spreads current_weather_report + daily_forecast
+            })
+
+        except requests.RequestException:
+            # Covers connection errors, timeouts, and HTTP error status codes.
+            context["error_message"] = (
+                "Weather service is currently unavailable. Please try again later."
+            )
+        except Exception as e:
+            # Catch-all for unexpected parse errors; log for diagnostics.
+            print(f"Weather App Error: {e}")
+            context["error_message"] = (
+                "An unexpected error occurred while processing weather data."
+            )
+
+    return render(request, "projects/weather.html", context)
+
+
+# ===========================================================================
+# AI Token & API Cost Estimator
+# ===========================================================================
+# Estimates the number of tokens in a given text and projects the API cost
+# across multiple AI providers (OpenAI, Anthropic, Google, etc.) for a
+# specified task type (chat, completion, embedding, etc.).
+#
+# Token counting uses a heuristic (chars/4 approximation or tiktoken if
+# available) implemented in ai_api_cost_estimator_utils.  Per-provider pricing
+# tables are maintained in that same utils module and should be updated when
+# providers change their rates.
+#
+# GET  → renders an empty AITokenCostForm (textarea + task_type dropdown).
+# POST → validates form; calls estimate_tokens_and_cost(); injects the
+#        results dict into context.  The results dict contains:
+#          token_count        — estimated input token count
+#          provider_estimates — list of {provider, model, input_cost, output_cost}
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def ai_api_cost_estimator(request):
+    from ..forms import AITokenCostForm
+    from ..ai_api_cost_estimator_utils import estimate_tokens_and_cost
+
+    form    = AITokenCostForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        input_text = form.cleaned_data["input_text"]
+        task_type  = form.cleaned_data["task_type"]
+        context["results"] = estimate_tokens_and_cost(input_text, task_type)
+
+    return render(request, "projects/ai_api_cost_estimator.html", context)

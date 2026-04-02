@@ -147,31 +147,3 @@ class AITokenCostForm(forms.Form):
         choices=TASK_CHOICES,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-
-# --- Job Fit Analyzer ---
-class JobFitForm(forms.Form):
-    # --- The Honeypot Field ---
-    company_website = forms.CharField(
-        required=False,
-        label="Company Website",
-        widget=forms.TextInput(attrs={
-            "tabindex": "-1",       # Prevents keyboard navigation focus
-            "autocomplete": "off",  # Prevents browser autofill from breaking it
-        })
-    )
-    job_description = forms.CharField(
-        label="Job Description",
-        widget=forms.Textarea(attrs={
-            "class": "form-control",
-            "placeholder": "Paste the full job description here...",
-            "rows": 12,
-            "autofocus": True,
-            "aria-label": "Job description text for AI fit analysis",
-        }),
-        validators=[
-            MinLengthValidator(50,  message="Please paste the full job description (at least 50 characters)."),
-            MaxLengthValidator(20000, message="Job description exceeds the 20,000-character limit. Please trim and try again."),
-        ],
-        help_text="Paste the complete job posting for the most accurate analysis. There is a rate limit of 5 requests per hour per IP address to limit my API costs.",
-        required=True,
-    )

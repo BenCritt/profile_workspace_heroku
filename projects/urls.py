@@ -433,17 +433,4 @@ urlpatterns = [
          views.night_sky_planner,
          name="night_sky_planner",
     ),
-    path("projects/accessorial-fee-calculator/",
-        views.accessorial_fee_calculator,
-        name="accessorial_fee_calculator",
-    ),
-    path("job-fit-analyzer/",
-        views.job_fit_analyzer,
-        name="job_fit_analyzer",
-    ),
-    path(
-    "projects/job-fit-analyzer-status/<uuid:job_id>/",
-        views.job_fit_analyzer_status,
-        name="job_fit_analyzer_status",
-),
 ]
