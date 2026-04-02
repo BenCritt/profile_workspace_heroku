@@ -169,16 +169,25 @@ django_heroku.settings(locals())
 import os
 
 # Define the cache backend as file-based
+import tempfile
+
+_TMPDIR = tempfile.gettempdir()  # C:\Users\bencr\AppData\Local\Temp on Windows, /tmp on Linux
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": os.path.join(BASE_DIR, "cache"),  # Define a directory for the cache
-        "TIMEOUT": 60 * 60,  # Cache timeout in seconds (1 hour)
-        "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Limit the number of cache entries.
-        },
+        "LOCATION": os.path.join(_TMPDIR, "django_cache_default"),
+        "TIMEOUT": 60 * 60,
+        "OPTIONS": {"MAX_ENTRIES": 1000},
     }
 }
+
+CACHES.setdefault("jobfit", {
+    "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+    "LOCATION": os.path.join(_TMPDIR, "django_cache_jfa"),
+    "TIMEOUT": 600,
+    "OPTIONS": {"MAX_ENTRIES": 50},
+})
 
 CACHES.setdefault("fontinspector", {
     "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
