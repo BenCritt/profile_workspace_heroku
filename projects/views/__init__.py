@@ -154,6 +154,7 @@ from .views_freight_tools import (
     multi_stop_splitter,
     lane_rate_analyzer,
     freight_margin_calculator,
+    accessorial_fee_calculator,
 )
 
 # ----------------------------------------------------------------------------
@@ -237,6 +238,8 @@ from .views_misc import (
     monte_carlo_simulator,
     weather,
     ai_api_cost_estimator,
+    job_fit_analyzer,
+    job_fit_analyzer_status,
 )
 
 
@@ -272,7 +275,7 @@ __all__ = [
     "cost_per_mile_calculator", "linear_foot_calculator",
     "detention_layover_fee_calculator", "warehouse_storage_calculator",
     "partial_rate_calculator", "deadhead_calculator", "multi_stop_splitter",
-    "lane_rate_analyzer", "freight_margin_calculator",
+    "lane_rate_analyzer", "freight_margin_calculator", "accessorial_fee_calculator",
 
     # ── Glass Tools ───────────────────────────────────────────────────────
     "glass_artist_toolkit", "glass_volume_calculator", "kiln_schedule_generator",
@@ -292,5 +295,5 @@ __all__ = [
 
     # ── Misc ──────────────────────────────────────────────────────────────
     "qr_code_generator", "monte_carlo_simulator", "weather",
-    "ai_api_cost_estimator",
+    "ai_api_cost_estimator","job_fit_analyzer", "job_fit_analyzer_status",
 ]
