@@ -83,7 +83,6 @@ from .forms_freight_tools import (
     MultiStopSplitterForm,
     LaneRateAnalyzerForm,
     FreightMarginForm,
-    AccessorialFeeForm,
 )
 
 from .forms_glass_tools import (
@@ -119,7 +118,6 @@ from .forms_misc import (
     QRForm,
     MonteCarloForm,
     AITokenCostForm,
-    JobFitForm,
 )
 
 __all__ = [
@@ -138,7 +136,7 @@ __all__ = [
     "HOSTripPlannerForm", "TieDownForm", "CPMCalculatorForm",
     "LinearFootForm", "DetentionFeeForm", "WarehouseStorageForm",
     "PartialRateForm", "DeadheadCalculatorForm", "MultiStopSplitterForm",
-    "LaneRateAnalyzerForm", "FreightMarginForm","AccessorialFeeForm",
+    "LaneRateAnalyzerForm", "FreightMarginForm",
     # Glass Tools
     "GlassVolumeForm", "KilnScheduleForm", "StainedGlassCostForm",
     "TempConverterForm", "RampCalculatorForm", "StainedGlassMaterialsForm",
@@ -149,5 +147,5 @@ __all__ = [
     # Space Tools
     "SatellitePassForm", "LunarPhaseCalendarForm", "NightSkyPlannerForm",
     # Misc
-    "QRForm", "MonteCarloForm", "AITokenCostForm", "JobFitForm",
+    "QRForm", "MonteCarloForm", "AITokenCostForm",
 ]
