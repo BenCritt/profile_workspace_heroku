@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
 ]
 
 # To allow embedding for iframes everywhere
-X_FRAME_OPTIONS = "ALLOWALL" 
+X_FRAME_OPTIONS = "ALLOWALL"
 
 # Tells Django to trust the 'X-Forwarded-Proto' header set by Heroku's load balancer
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -160,32 +160,48 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
 
+# Apply Heroku-specific settings (DATABASE_URL, logging, etc.)
+# Must come before any overrides below so our values take precedence.
 django_heroku.settings(locals())
 
-import os
+# Static file storage — replaces deprecated STATICFILES_STORAGE (removed in Django 5.1).
+# Placed after django_heroku.settings() so it wins over anything that call injects.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-# Define the cache backend as file-based
+# Cache backends.
+# "default" — general-purpose, 1-hour TTL, stored in system temp dir.
+# "jobfit"  — Job Fit Assessment async results, 10-minute TTL, separate namespace.
+import tempfile
+_TMPDIR = tempfile.gettempdir()
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": os.path.join(BASE_DIR, "cache"),  # Define a directory for the cache
-        "TIMEOUT": 60 * 60,  # Cache timeout in seconds (1 hour)
-        "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Limit the number of cache entries.
-        },
-    }
+        "LOCATION": os.path.join(_TMPDIR, "django_cache_default"),
+        "TIMEOUT": 60 * 60,
+        "OPTIONS": {"MAX_ENTRIES": 1000},
+    },
+    "jobfit": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.path.join(_TMPDIR, "django_cache_jfa"),
+        "TIMEOUT": 600,
+        "OPTIONS": {"MAX_ENTRIES": 50},
+    },
+    "fontinspector": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.environ.get("FI_CACHE_DIR", "/tmp/django_cache_fi"),
+        "TIMEOUT": None,             # per-key timeouts from code will apply
+        "OPTIONS": {"MAX_ENTRIES": 1000},
+    },
 }
-
-CACHES.setdefault("fontinspector", {
-    "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-    "LOCATION": os.environ.get("FI_CACHE_DIR", "/tmp/django_cache_fi"),
-    "TIMEOUT": None,             # per-key timeouts from code will apply
-    "OPTIONS": {"MAX_ENTRIES": 1000},
-})
 
 
 # Limits file upload sizes.
@@ -194,7 +210,6 @@ FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 ]
 
-
-# Additional hard abort if the request body exceeds 25 MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB
+# Additional hard abort if the request body exceeds 25 MB.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024     # 25 MB
