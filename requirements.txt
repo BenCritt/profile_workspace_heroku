@@ -53,7 +53,7 @@ timezonefinder==8.2.1
 tinycss2==1.2.1
 tiktoken>=0.8.0
 tldextract==5.1.2
-typing_extensions==4.12.2
+typing_extensions==4.13.2
 tzdata==2025.1
 urllib3==2.6.3
 webencodings==0.5.1
