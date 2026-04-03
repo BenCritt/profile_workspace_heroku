@@ -237,6 +237,8 @@ from .views_misc import (
     monte_carlo_simulator,
     weather,
     ai_api_cost_estimator,
+    job_fit_analyzer,
+    job_fit_analyzer_status,
 )
 
 
@@ -292,5 +294,5 @@ __all__ = [
 
     # ── Misc ──────────────────────────────────────────────────────────────
     "qr_code_generator", "monte_carlo_simulator", "weather",
-    "ai_api_cost_estimator",
+    "ai_api_cost_estimator","job_fit_analyzer", "job_fit_analyzer_status",
 ]

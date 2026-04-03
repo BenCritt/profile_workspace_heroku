@@ -1,0 +1,332 @@
+{% extends "projects/base.html" %}
+{% load markdown_extras %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/job_fit_analyzer_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/job_fit_analyzer_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/job-fit-analyzer/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/job_fit_analyzer.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Am I a Good Fit? | AI-Powered Candidate Evaluation Tool{% endblock title %}
+
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center">
+
+    <h1 class="mb-4">Am I a Good Fit?</h1>
+
+    {# ── Input Form ──────────────────────────────────────────────────── #}
+    <form method="POST" class="mb-5 text-center w-100 jfa-form-container"
+          id="job-fit-form"
+          data-gtm-tool="Job Fit Analyzer"
+          data-gtm-category="Miscellaneous"
+          data-status-url-template="{% url 'projects:job_fit_analyzer_status' job_id='00000000-0000-0000-0000-000000000000' %}">
+        {% csrf_token %}
+
+        <div class="mb-3 text-start">
+            {{ form.job_description.label_tag }}
+            {{ form.job_description }}
+            {% if form.job_description.help_text %}
+                <div class="form-text">{{ form.job_description.help_text }}</div>
+            {% endif %}
+            {% if form.job_description.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.job_description.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        {# ── Honeypot — hidden from humans, visible to bots ─── #}
+        <div class="jfa-trap" aria-hidden="true">
+            {{ form.company_website.label_tag }}
+            {{ form.company_website }}
+        </div>
+
+        <button
+            type="submit"
+            id="analyze-btn"
+            class="btn btn-primary w-100"
+            data-gtm-tool="job_fit_analyzer"
+            data-gtm-action="analyze_submitted"
+            aria-label="Analyze job fit"
+        >
+            <span id="analyze-btn-text">Analyze Job Fit</span>
+            <span id="analyze-btn-spinner"
+                class="spinner-border spinner-border-sm ms-2 d-none"
+                role="status"
+                aria-hidden="true">
+            </span>
+        </button>
+
+        {# ── Back Button ─────────────────────────────────────────────── #}
+        <p class="mt-3 text-center">
+            {# Update the URL name below if JFA lives under a specific hub page #}
+            <a href="{% url 'projects:all_projects' %}" class="btn btn-secondary w-100 mt-2">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>View my Python Projects
+            </a>
+        </p>
+    </form>
+
+    {# ── Error State ─────────────────────────────────────────────────── #}
+    {% if error_message %}
+    <div class="alert alert-danger w-100 text-center jfa-result-container" role="alert">
+        {{ error_message }}
+    </div>
+    {% endif %}
+
+    {# ── Analysis Result ─────────────────────────────────────────────── #}
+    {% if result %}
+    <div id="results-section"></div>
+    <h2 class="h4 mb-3">Analysis Results</h2>
+    <div class="w-100 mb-4 shadow-sm rounded p-4 jfa-result-container">
+        <div class="jfa-markdown text-start">
+            {{ result|render_markdown }}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Educational + Related Tools ─────────────────────────────────── #}
+    {# .related-tools-block is hidden when this page is embedded in an iframe #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">About This Tool</h3>
+            <p class="small text-muted mb-2">
+                <strong>How it works:</strong> This tool uses Google Gemini to compare a job
+                description's stated requirements against a structured profile of my background,
+                skills, and current career trajectory. The AI identifies direct matches,
+                transferable skills, and honest gaps before returning a detailed verdict.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>What it evaluates:</strong> The analysis covers technical skills,
+                management and project experience, certifications, and transferable background 
+                experience from prior roles including IT support and education.
+            </p>
+            <p class="small text-muted">
+                The analysis is AI-generated and intended as a starting point for conversation.
+                For a complete portfolio and résumé, connect on
+                <a href="https://www.linkedin.com/in/bencritt/" class="related-tool-link"
+                   target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+
+</div>
+{% endblock content %}
+
+{% block page_scripts %}
+
+{% if result %}
+<script>
+if (window.dataLayer) {
+    window.dataLayer.push({
+        event:     "tool_interaction",
+        tool_name: "job_fit_analyzer",
+        action:    "analysis_displayed",
+    });
+}
+</script>
+{% endif %}
+
+<script>
+(function () {
+    "use strict";
+
+    const form       = document.getElementById("job-fit-form");
+    const btn        = document.getElementById("analyze-btn");
+    const btnText    = document.getElementById("analyze-btn-text");
+    const btnSpinner = document.getElementById("analyze-btn-spinner");
+
+    if (!form || !btn) return;
+
+    const STATUS_MESSAGES = [
+        "Reading job description…",
+        "Comparing against skills and experience…",
+        "Evaluating transferable skills…",
+        "Identifying gaps…",
+        "Drafting the verdict…",
+        "Almost there…",
+    ];
+    let msgIndex     = 0;
+    let pollInterval = null;
+    let msgInterval  = null;
+
+    function setButtonState(processing) {
+        btn.disabled = processing;
+        if (processing) {
+            btnText.textContent = STATUS_MESSAGES[0];
+            btnSpinner.classList.remove("d-none");
+        } else {
+            btnText.textContent = "Analyze Job Fit";
+            btnSpinner.classList.add("d-none");
+        }
+    }
+
+    function advanceMessage() {
+        if (msgIndex < STATUS_MESSAGES.length - 1) { msgIndex++; }
+        btnText.textContent = STATUS_MESSAGES[msgIndex];
+    }
+
+    function stopPolling() {
+        clearInterval(pollInterval);
+        clearInterval(msgInterval);
+        pollInterval = null;
+        msgInterval  = null;
+    }
+
+    function showError(message) {
+        stopPolling();
+        setButtonState(false);
+        msgIndex = 0;
+
+        const alert = document.createElement("div");
+        alert.className = "alert alert-danger w-100 text-center jfa-result-container mt-3";
+        alert.setAttribute("role", "alert");
+        alert.textContent = message;
+
+        const anchor = document.getElementById("results-section");
+        if (anchor) {
+            anchor.parentNode.insertBefore(alert, anchor);
+        } else {
+            form.parentNode.insertBefore(alert, form.nextSibling);
+        }
+    }
+
+    function injectResult(html) {
+        stopPolling();
+        setButtonState(false);
+        msgIndex = 0;
+
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = `
+            <div id="results-section"></div>
+            <h2 class="h4 mb-3">Analysis Results</h2>
+            <div class="w-100 mb-4 shadow-sm rounded p-4 jfa-result-container">
+                <div class="jfa-markdown text-start">${html}</div>
+            </div>
+        `;
+
+        const existing = document.getElementById("results-section");
+        if (existing) existing.parentNode.removeChild(existing);
+
+        form.parentNode.insertBefore(wrapper, form.nextSibling);
+
+        if (window.self === window.top) {
+            setTimeout(function () {
+                document.getElementById("results-section")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                event:     "tool_interaction",
+                tool_name: "job_fit_analyzer",
+                action:    "analysis_displayed",
+            });
+        }
+    }
+
+    function startPolling(jobId, statusUrlTemplate) {
+        const sentinel  = "00000000-0000-0000-0000-000000000000";
+        const statusUrl = statusUrlTemplate.replace(sentinel, jobId);
+
+        msgInterval = setInterval(advanceMessage, 6000);
+
+        pollInterval = setInterval(function () {
+            fetch(statusUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(function (res) {
+                    if (res.status === 404) {
+                        showError(
+                            "The analysis job expired before completing — this can happen " +
+                            "during server restarts. Please submit the description again."
+                        );
+                        return null;
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (!data) return;
+                    if (data.status === "complete") {
+                        injectResult(data.html);
+                    } else if (data.status === "error") {
+                        showError(data.message || "An unexpected error occurred. Please try again.");
+                    }
+                    // "pending" → do nothing; next interval polls again
+                })
+                .catch(function () {
+                    showError("Lost connection while waiting for the analysis. Please try again.");
+                });
+        }, 3000);
+    }
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // Clear any previous result or error from a prior submission.
+        const existingResult = document.getElementById("results-section");
+        if (existingResult) existingResult.parentNode.removeChild(existingResult);
+        document.querySelectorAll(".alert-danger").forEach(function (el) { el.remove(); });
+
+        setButtonState(true);
+        msgIndex = 0;
+
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                event:     "tool_interaction",
+                tool_name: "job_fit_analyzer",
+                action:    "analyze_submitted",
+            });
+        }
+
+        const csrfToken      = form.querySelector("[name=csrfmiddlewaretoken]").value;
+        const formData       = new FormData(form);
+        const statusTemplate = form.dataset.statusUrlTemplate;
+
+        fetch(form.action || window.location.href, {
+            method:  "POST",
+            headers: {
+                "X-CSRFToken":      csrfToken,
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            body: formData,
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (data.job_id) {
+                startPolling(data.job_id, statusTemplate);
+            } else {
+                showError(data.error || "An unexpected error occurred. Please try again.");
+            }
+        })
+        .catch(function () {
+            showError("Could not reach the server. Please check your connection and try again.");
+        });
+    });
+
+    // Auto-scroll to a server-rendered result on initial page load (non-JS fallback).
+    const existingResult = document.getElementById("results-section");
+    if (existingResult && window.self === window.top) {
+        setTimeout(function () {
+            existingResult.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+    }
+
+})();
+</script>
+
+{% endblock page_scripts %}

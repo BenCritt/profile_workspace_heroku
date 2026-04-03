@@ -337,3 +337,114 @@ def ai_api_cost_estimator(request):
         context["results"] = estimate_tokens_and_cost(input_text, task_type)
 
     return render(request, "projects/ai_api_cost_estimator.html", context)
+
+# ===========================================================================
+# Job Fit Analyzer
+# ===========================================================================
+# Two-phase async pattern to avoid Heroku's 30-second request timeout:
+#
+#   Phase 1 — POST /job-fit-analyzer/
+#     Validates the form, writes a "pending" cache entry, spawns a daemon
+#     thread to call Gemini, and immediately returns a JSON {job_id}.
+#     Response time: ~50ms.
+#
+#   Phase 2 — GET /job-fit-analyzer/status/<job_id>/
+#     Lightweight polling endpoint. Returns JSON {status} or {status, html}.
+#     Each response completes in milliseconds — well under Heroku's 30-second
+#     ceiling — while the background thread runs freely with no timeout.
+#
+# Cache keys: "jfa:<job_id>" — TTL 10 minutes. Uses the "jobfit"
+# FileBasedCache backend (/tmp/django_cache_jfa). No createcachetable
+# required. See CACHES in settings.py.
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def job_fit_analyzer(request):
+    from ..forms import JobFitForm
+
+    form    = JobFitForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        import uuid
+        import threading
+        from django.core.cache import caches
+        from django.http import JsonResponse
+        from django_ratelimit.core import is_ratelimited
+        from ..job_fit_analyzer_utils import run_gemini_job
+
+        # Rate limit: 5 POSTs per hour per IP
+        '''
+        When testing locally, these are the PowerShell commands to clear cache:
+        Remove-Item -Recurse -Force "$env:TEMP\django_cache_jfa"
+        Remove-Item -Recurse -Force "$env:TEMP\django_cache_default"
+        '''
+        if is_ratelimited(request, group="job_fit_analyzer", key="ip", rate="5/h", method="POST", increment=True):
+            return JsonResponse(
+                {"error": "Thank you for your interest in my profile. This tool is rate-limited to 5 requests per hour per IP address due to API costs. Please try again shortly."},
+                status=429,
+            )
+
+        # Honeypot check
+        if form.cleaned_data.get("company_website"):
+            print(f"Honeypot triggered — IP: {request.META.get('REMOTE_ADDR', 'unknown')}")
+            return JsonResponse({"job_id": str(uuid.uuid4())})
+
+        job_desc   = form.cleaned_data["job_description"]
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+
+        if not gemini_key:
+            return JsonResponse(
+                {"error": "The AI analysis service is temporarily unavailable. Please try again later."},
+                status=503,
+            )
+
+        job_id    = str(uuid.uuid4())
+        cache_key = f"jfa:{job_id}"
+        cache     = caches["jobfit"]
+        cache.set(cache_key, {"status": "pending"}, timeout=600)
+
+        thread = threading.Thread(
+            target=run_gemini_job,
+            args=(job_id, job_desc, gemini_key),
+            daemon=True,
+        )
+        thread.start()
+
+        return JsonResponse({"job_id": job_id})
+
+    return render(request, "job_fit_analyzer.html", context)
+
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def job_fit_analyzer_status(request, job_id):
+    """
+    Polling endpoint called by the client every 3 seconds.
+    Each GET completes in ~10ms, resetting Heroku's timeout clock on
+    every call while the background thread runs without restriction.
+    """
+    from django.core.cache import caches
+    cache = caches["jobfit"]
+    from django.http import JsonResponse
+
+    cache_key = f"jfa:{job_id}"
+    job       = cache.get(cache_key)
+
+    if job is None:
+        return JsonResponse(
+            {"status": "error", "message": "Job expired or not found. Please submit the form again."},
+            status=404,
+        )
+
+    if job["status"] == "complete":
+        # Single-use: evict from cache immediately after delivery.
+        cache.delete(cache_key)
+        return JsonResponse({"status": "complete", "html": job["html"]})
+
+    if job["status"] == "error":
+        cache.delete(cache_key)
+        return JsonResponse({"status": "error", "message": job.get("message", "An error occurred.")})
+
+    # Still pending — client will poll again in 3 seconds.
+    return JsonResponse({"status": "pending"})

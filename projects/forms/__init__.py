@@ -118,6 +118,7 @@ from .forms_misc import (
     QRForm,
     MonteCarloForm,
     AITokenCostForm,
+    JobFitForm,
 )
 
 __all__ = [
@@ -147,5 +148,5 @@ __all__ = [
     # Space Tools
     "SatellitePassForm", "LunarPhaseCalendarForm", "NightSkyPlannerForm",
     # Misc
-    "QRForm", "MonteCarloForm", "AITokenCostForm",
+    "QRForm", "MonteCarloForm", "AITokenCostForm", "JobFitForm",
 ]

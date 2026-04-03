@@ -433,4 +433,12 @@ urlpatterns = [
          views.night_sky_planner,
          name="night_sky_planner",
     ),
+    path("job-fit-analyzer/",
+        views.job_fit_analyzer,
+        name="job_fit_analyzer",
+    ),
+    path("projects/job-fit-analyzer-status/<uuid:job_id>/",
+        views.job_fit_analyzer_status,
+        name="job_fit_analyzer_status",
+    ),
 ]
