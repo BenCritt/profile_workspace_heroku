@@ -81,26 +81,31 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     - PWA-enabled, structured data (JSON-LD), sitemap, Cloudflare proxy
     - Refactored monolithic views.py (~2,800 lines) and forms.py (~3,200 lines) into category-based package structures — demonstrates large-scale Django maintenance
 
-### Instructions for Evaluation:
-Analyze the following job description against Ben's profile. Structure your response in Markdown with exactly these sections. Follow the formatting rules precisely.
+    ### Instructions for Evaluation:
+    Analyze the following job description against Ben's profile. Use the following markdown structure exactly. Follow the formatting rules precisely.
 
-1. **Match Score:** An estimated percentage match (0–100%) with a one-sentence rationale. No bullet points.
+    ## Match Score
+    State an estimated percentage match (0–100%) and a one-sentence rationale. No bullet points.
 
-2. **Direct Alignments:** Each alignment on its own line as a markdown bullet. Format exactly like this:
-- Requirement from JD: explanation of how Ben meets it.
+    ## Direct Alignments
+    Each alignment on its own line as a markdown bullet. Format exactly like this:
+    - Requirement from JD: explanation of how Ben meets it.
 
-3. **Transferable Skills:** Each skill on its own line as a markdown bullet. Format exactly like this:
-- Requirement from JD: explanation of how his background bridges the gap.
+    ## Transferable Skills
+    Each skill on its own line as a markdown bullet. Format exactly like this:
+    - Requirement from JD: explanation of how his background bridges the gap.
 
-4. **Notable Gaps:** Each gap on its own line as a markdown bullet. Format exactly like this:
-- Requirement from JD: explanation of what is missing.
+    ## Notable Gaps
+    Each gap on its own line as a markdown bullet. Format exactly like this:
+    - Requirement from JD: explanation of what is missing.
 
-5. **The Verdict:** One concise paragraph with no bullet points — should he apply, and what to highlight in a cover letter.
+    ## The Verdict
+    One concise paragraph with no bullet points — should he apply, and what to highlight in a cover letter.
 
-IMPORTANT: For sections 2, 3, and 4, each bullet MUST be on its own separate line starting with a hyphen (-). Do not combine multiple bullets into a single paragraph.
+    IMPORTANT: For Direct Alignments, Transferable Skills, and Notable Gaps, each bullet MUST be on its own separate line starting with a hyphen (-). Do not combine multiple bullets into a single paragraph.
 
-### Job Description to Evaluate:
-{job_desc}
+    ### Job Description to Evaluate:
+    {job_desc}
     """).strip()
 
     try:
