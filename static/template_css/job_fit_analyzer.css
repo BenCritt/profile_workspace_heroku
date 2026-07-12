@@ -1,71 +1,280 @@
-/* ==========================================================================
-   Job Fit Analyzer
-   ========================================================================== */
+/* ════════════════════════════════════════════════════════════════════
+   static/template_css/job_fit_analyzer.css — FULL FILE (stand-in edition)
+   ────────────────────────────────────────────────────────────────────
+   Use this file ONLY if the original stylesheet cannot be recovered
+   from git or VS Code Timeline. The "Baseline" block below is a
+   reconstruction of the lost original rules (honeypot concealment,
+   container sizing, markdown fallback typography) — if you recover the
+   real original, use it instead and append only the "Enhanced results"
+   block from job_fit_analyzer_css_additions.css.
+   ════════════════════════════════════════════════════════════════════ */
 
-/* ── Form container max-width (mirrors .iss-form-container pattern) ───── */
-.jfa-form-container {
-    max-width: 700px;
-}
+/* ── Baseline (stand-in for the replaced original rules) ─────────── */
 
-/* ── Result card max-width ────────────────────────────────────────────── */
+/* Constrain the form and raw-fallback result to a readable width. */
+.jfa-form-container,
 .jfa-result-container {
-    max-width: 800px;
+    max-width: 720px;
 }
 
-/* ── Loading indicator ────────────────────────────────────────────────── */
-.jfa-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color, #adb5bd);
-}
-
-/* ── Markdown output — Bootstrap doesn't style raw markdown HTML ──────── */
-.jfa-markdown h2 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid var(--bs-border-color, #495057);
-    color: var(--bs-body-color, #dee2e6);
-}
-
-.jfa-markdown h1,
-.jfa-markdown h3 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-    color: var(--bs-body-color, #dee2e6);
-}
-
-.jfa-markdown ul,
-.jfa-markdown ol {
-    padding-left: 1.4rem;
-    margin-bottom: 0.75rem;
-}
-
-.jfa-markdown li {
-    margin-bottom: 0.25rem;
-}
-
-.jfa-markdown p {
-    margin-bottom: 0.75rem;
-    line-height: 1.65;
-}
-
-.jfa-markdown strong {
-    color: var(--bs-body-color, #dee2e6);
-}
-
-/* ── Honeypot — visually hidden from humans, submitted to server ──────── */
+/* Honeypot: rendered in the DOM so bots parsing raw HTML fill it, but
+   positioned off-screen so humans never see it. Do NOT use display:none
+   here — some form-fillers skip display:none fields, which weakens the
+   trap. aria-hidden on the wrapper keeps it out of screen readers. */
 .jfa-trap {
     position: absolute;
     left: -9999px;
-    top: -9999px;
+    top: auto;
     width: 1px;
     height: 1px;
     overflow: hidden;
+}
+
+/* Raw-fallback markdown rendering (used only if JS enhancement fails). */
+.jfa-markdown h2 {
+    font-size: 1.35rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.jfa-markdown h2:first-child {
+    margin-top: 0;
+}
+
+.jfa-markdown ul {
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.jfa-markdown li {
+    margin-bottom: 0.4rem;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Enhanced results presentation — APPEND to static/template_css/job_fit_analyzer.css
+   Added 2026-07-03. Styles the JS-rebuilt results layout (score hero card,
+   verdict callout, collapsible icon-bulleted sections). All colors derive
+   from Bootstrap CSS variables so the dark theme is inherited automatically.
+   The raw-fallback path still uses the existing .jfa-result-container /
+   .jfa-markdown rules — nothing below overrides those.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Score hero card ─────────────────────────────────────────────── */
+.jfa-summary {
+    background: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.25);
+}
+
+.jfa-score-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.jfa-score-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    opacity: 0.85;
+    margin-left: 0.6rem;
+}
+
+.jfa-score-progress {
+    height: 0.75rem;
+    border-radius: 1rem;
+    margin: 0.85rem 0;
+}
+
+/* Width is set by JS after insertion; the transition animates 0% → score%. */
+.jfa-score-progress .progress-bar {
+    border-radius: 1rem;
+    transition: width 900ms ease-out;
+}
+
+.jfa-score-rationale {
+    margin: 0 0 0.85rem;
+}
+
+/* ── Count badges (anchor-jump pills under the score bar) ────────── */
+.jfa-count-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.jfa-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 2rem;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.jfa-badge:hover,
+.jfa-badge:focus-visible {
+    border-color: var(--bs-primary);
+    color: var(--bs-body-color);
+}
+
+/* ── Section cards ───────────────────────────────────────────────── */
+.jfa-section {
+    background: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-left-width: 4px;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.jfa-accent-success { border-left-color: var(--bs-success); }
+.jfa-accent-info    { border-left-color: var(--bs-info); }
+.jfa-accent-warning { border-left-color: var(--bs-warning); }
+.jfa-accent-primary { border-left-color: var(--bs-primary); }
+
+/* <h3> wrapper exists for heading semantics; the button is the visual. */
+.jfa-section-heading {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.jfa-section-toggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    background: transparent;
+    border: 0;
+    color: var(--bs-body-color);
+    font-size: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.jfa-section-toggle:hover {
+    background: var(--bs-tertiary-bg);
+}
+
+.jfa-section-toggle:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: -2px;
+}
+
+.jfa-chevron {
+    transition: transform 200ms ease;
+}
+
+.jfa-section-toggle[aria-expanded="false"] .jfa-chevron {
+    transform: rotate(-90deg);
+}
+
+.jfa-count-pill {
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-weight: 600;
+}
+
+.jfa-section-body {
+    padding: 0.25rem 1.25rem 1.1rem;
+}
+
+.jfa-section-body.jfa-collapsed {
+    display: none;
+}
+
+.jfa-section-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Icon-bulleted lists ─────────────────────────────────────────── */
+.jfa-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.jfa-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.jfa-list-item:last-child {
+    border-bottom: 0;
+}
+
+.jfa-item-icon {
+    flex: 0 0 auto;
+    margin-top: 0.15rem;
+}
+
+.jfa-item-text {
+    flex: 1 1 auto;
+}
+
+/* Bolded requirement clause (from the prompt tweak) pops slightly. */
+.jfa-item-text strong {
+    color: var(--bs-emphasis-color);
+}
+
+/* ── Empty state ("None identified.") ────────────────────────────── */
+.jfa-empty {
+    padding: 0.35rem 0;
+    font-style: italic;
+}
+
+/* ── Verdict callout ─────────────────────────────────────────────── */
+.jfa-section-header-static {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.25rem 0.25rem;
+}
+
+.jfa-verdict-body {
+    padding: 0.5rem 1.25rem 1.1rem;
+    font-size: 1.02rem;
+}
+
+.jfa-verdict-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Mobile sizing ───────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .jfa-summary {
+        padding: 1rem 1.1rem;
+    }
+    .jfa-score-value {
+        font-size: 2.25rem;
+    }
+    .jfa-section-toggle,
+    .jfa-section-header-static {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .jfa-section-body,
+    .jfa-verdict-body {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .jfa-score-progress .progress-bar,
+    .jfa-chevron {
+        transition: none;
+    }
 }

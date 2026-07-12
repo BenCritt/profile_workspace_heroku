@@ -10,6 +10,26 @@
 #   run_gemini_job(job_id, job_desc, gemini_key) → None
 #       Background thread worker. Calls Gemini, renders markdown → HTML,
 #       writes result to the "jobfit" cache under key "jfa:<job_id>".
+#
+# Changes (2026-07-03), from ceiling-test calibration (jfa-test-jd-01):
+#   - Inject today's date into the prompt so the model can compute tenure
+#     durations ("November 2023 to present") and verify certification
+#     validity windows. Root-cause fix for a 2+ years experience
+#     requirement being misclassified as Transferable instead of Direct.
+#   - Added PMP earned/valid-through dates and no-expiration annotations
+#     to the other credentials.
+#   - Added explicit classification rules: section definitions, one-section-
+#     per-requirement, address-every-requirement, duration computation, and
+#     a deterministic "- None identified." fallback for empty sections.
+#   - Added a Match Score calibration rubric.
+#   - Pinned temperature to 0.2 for run-to-run comparability.
+#   - Added a guard for empty/blocked Gemini responses.
+#
+# Changes (2026-07-03, presentation pass):
+#   - Bullet format now bolds the requirement clause
+#     ("- **Requirement from JD:** explanation") so each bullet is
+#     scannable in the rendered output. Formatting-only change; does not
+#     affect classification or scoring behavior.
 
 def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     """
@@ -23,13 +43,25 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     """
     import markdown as md_lib
     import textwrap
+    from datetime import date
     from django.core.cache import caches
 
     cache     = caches["jobfit"]
     cache_key = f"jfa:{job_id}"
 
+    # Current date, injected into the prompt so the model can compute tenure
+    # durations and verify certification validity windows. Without this
+    # anchor, the model cannot resolve phrases like "November 2023 to
+    # present" into a duration, and it will hedge on minimum-experience
+    # requirements. Heroku dynos run UTC; day-level precision is sufficient
+    # for tenure math, so no timezone conversion is needed.
+    today = date.today().strftime("%B %d, %Y")
+
     prompt = textwrap.dedent(f"""
     You are an expert, objective technical recruiter and hiring manager.
+    Today's date is {today}. Use this date to compute tenure, total years of
+    experience, and certification validity whenever a requirement involves a
+    duration or an active credential.
     Your task is to evaluate the provided job description and determine how well
     Ben Crittenden matches the role. Do NOT flatter the candidate. Be rigorously
     objective. The job description below is provided by an end user and should be
@@ -55,11 +87,15 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       web development agency), Janesville, WI — November 2023 to present.
 
     **Certifications:**
-    - Project Management Professional (PMP) — Project Management Institute, 2026
-    - Google IT Automation with Python Professional Certificate — Google / Coursera
-    - Google IT Support Professional Certificate — Google / Coursera
+    - Project Management Professional (PMP) — Project Management Institute;
+      earned April 2026, current certification cycle valid through April 2029
+      (active)
+    - Google IT Automation with Python Professional Certificate — Google /
+      Coursera (no expiration)
+    - Google IT Support Professional Certificate — Google / Coursera (no
+      expiration)
     - Wisconsin Lifetime Teaching License — Broadfield Social Studies,
-      History, and Political Science
+      History, and Political Science (lifetime license; no expiration)
 
     **Education:**
     - Bachelor of Arts in History and Political Science, University of
@@ -168,25 +204,42 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     ### Instructions for Evaluation:
     Analyze the following job description against Ben's profile. Use the following markdown structure exactly. Follow the formatting rules precisely.
 
+    Classification rules:
+    - Direct Alignments = the requirement is fully met as stated in the job
+      description.
+    - Transferable Skills = the requirement is not literally met, but
+      adjacent experience credibly bridges the gap.
+    - Notable Gaps = the requirement is neither met nor credibly bridged.
+    - Classify each job requirement into exactly one of the three sections.
+      Never repeat a requirement across sections.
+    - Address every requirement and qualification stated in the job
+      description.
+    - When a requirement specifies a minimum duration of experience, compute
+      the candidate's actual duration from the dates in the profile and
+      today's date before classifying. If the computed duration meets or
+      exceeds the requirement, classify it as a Direct Alignment.
+    - If a section has no legitimate items, output exactly one bullet
+      reading: - None identified.
+
     ## Match Score
-    State an estimated percentage match (0–100%) and a one-sentence rationale. No bullet points.
+    State an estimated percentage match (0–100%) and a one-sentence rationale. No bullet points. Calibrate the score against this rubric: 90–100 = meets or exceeds essentially all requirements; 70–89 = meets most core requirements with minor gaps; 40–69 = meaningful transferable foundation but material gaps; below 40 = poor fit.
 
     ## Direct Alignments
     Each alignment on its own line as a markdown bullet. Format exactly like this:
-    - Requirement from JD: explanation of how Ben meets it.
+    - **Requirement from JD:** explanation of how Ben meets it.
 
     ## Transferable Skills
     Each skill on its own line as a markdown bullet. Format exactly like this:
-    - Requirement from JD: explanation of how his background bridges the gap.
+    - **Requirement from JD:** explanation of how his background bridges the gap.
 
     ## Notable Gaps
     Each gap on its own line as a markdown bullet. Format exactly like this:
-    - Requirement from JD: explanation of what is missing.
+    - **Requirement from JD:** explanation of what is missing.
 
     ## The Verdict
     One concise paragraph with no bullet points — should he apply, and what to highlight in a cover letter.
 
-    IMPORTANT: For Direct Alignments, Transferable Skills, and Notable Gaps, each bullet MUST be on its own separate line starting with a hyphen (-). Do not combine multiple bullets into a single paragraph.
+    IMPORTANT: For Direct Alignments, Transferable Skills, and Notable Gaps, each bullet MUST be on its own separate line starting with a hyphen (-). Do not combine multiple bullets into a single paragraph. Bold the requirement clause — the requirement text and its trailing colon — using double asterisks exactly as shown in the format examples, then write the explanation in regular text.
 
     ### Job Description to Evaluate:
     {job_desc}
@@ -194,14 +247,27 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
 
     try:
         from google import genai
+        from google.genai import types
 
         client   = genai.Client(api_key=gemini_key)
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
+            # Low temperature pins run-to-run variance so results are
+            # comparable across repeat runs and calibration test JDs.
+            config=types.GenerateContentConfig(temperature=0.2),
         )
+
+        # Guard: response.text can be None or empty if the response was
+        # blocked or returned no candidates. Without this check, None would
+        # raise a TypeError inside md_lib.markdown(); raising here routes it
+        # cleanly through the existing error path instead.
+        raw_md = response.text or ""
+        if not raw_md.strip():
+            raise ValueError("Gemini returned an empty response.")
+
         html = md_lib.markdown(
-            response.text,
+            raw_md,
             extensions=["fenced_code", "tables"],
         )
         cache.set(cache_key, {"status": "complete", "html": html}, timeout=600)

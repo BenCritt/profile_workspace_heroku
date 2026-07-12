@@ -85,13 +85,18 @@
     </div>
     {% endif %}
 
-    {# ── Analysis Result ─────────────────────────────────────────────── #}
+    {# ── Analysis Result (non-JS / server-rendered fallback) ─────────── #}
+    {# When JS is enabled, the enhancer below re-renders this block into  #}
+    {# the sectioned card layout on page load. Without JS, it displays   #}
+    {# exactly as before.                                                 #}
     {% if result %}
-    <div id="results-section"></div>
-    <h2 class="h4 mb-3">Analysis Results</h2>
-    <div class="w-100 mb-4 shadow-sm rounded p-4 jfa-result-container">
-        <div class="jfa-markdown text-start">
-            {{ result|render_markdown }}
+    <div id="jfa-results-wrapper" class="w-100">
+        <div id="results-section"></div>
+        <h2 class="h4 mb-3">Analysis Results</h2>
+        <div class="w-100 mb-4 shadow-sm rounded p-4 jfa-result-container">
+            <div class="jfa-markdown text-start">
+                {{ result|render_markdown }}
+            </div>
         </div>
     </div>
     {% endif %}
@@ -165,6 +170,367 @@ if (window.dataLayer) {
     let pollInterval = null;
     let msgInterval  = null;
 
+    /* ════════════════════════════════════════════════════════════════
+       Results presentation layer
+       ────────────────────────────────────────────────────────────────
+       Gemini returns flat markdown → HTML. buildEnhancedResults() parses
+       that HTML and rebuilds it as: score hero card (color-banded number,
+       animated bar, count badges) → Verdict → Direct Alignments →
+       Transferable Skills → Notable Gaps, each as a collapsible card with
+       per-item icons.
+
+       Every step degrades gracefully:
+       - Unrecognized structure  → raw HTML injected exactly as before.
+       - Score not parseable     → sections render without the hero card.
+       - A section missing       → simply omitted (no fabricated zeroes).
+       - Section is prose, not a list → original nodes shown untouched.
+       Sanitization remains a server-side responsibility (nh3); this layer
+       only reorganizes HTML the server already produced.
+       ════════════════════════════════════════════════════════════════ */
+
+    // Keyed by normalized <h2> text from the prompt's fixed structure.
+    const SECTION_META = {
+        "match score": {
+            slug: "score",
+        },
+        "the verdict": {
+            slug: "verdict", title: "The Verdict",
+            icon: "bi-award-fill", accent: "primary",
+        },
+        "direct alignments": {
+            slug: "direct", title: "Direct Alignments",
+            icon: "bi-check-circle-fill", accent: "success",
+            badgeLabel: "Direct",
+        },
+        "transferable skills": {
+            slug: "transfer", title: "Transferable Skills",
+            icon: "bi-arrow-left-right", accent: "info",
+            badgeLabel: "Transferable",
+        },
+        "notable gaps": {
+            slug: "gaps", title: "Notable Gaps",
+            icon: "bi-exclamation-triangle-fill", accent: "warning",
+            badgeLabel: "Gaps",
+        },
+    };
+
+    // Score bands mirror the rubric in the Gemini prompt.
+    function bandFor(score) {
+        if (score >= 90) return { bar: "bg-success", text: "text-success", label: "Strong Match" };
+        if (score >= 70) return { bar: "bg-info",    text: "text-info",    label: "Good Match" };
+        if (score >= 40) return { bar: "bg-warning", text: "text-warning", label: "Partial Match" };
+        return                  { bar: "bg-danger",  text: "text-danger",  label: "Low Match" };
+    }
+
+    function el(tag, className) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        return node;
+    }
+
+    function makeIcon(iconClass, colorClass) {
+        const i = el("i", "bi " + iconClass + (colorClass ? " " + colorClass : ""));
+        i.setAttribute("aria-hidden", "true");
+        return i;
+    }
+
+    function toggleSection(toggleBtn, body, forceExpand) {
+        const isExpanded = toggleBtn.getAttribute("aria-expanded") === "true";
+        const next = (typeof forceExpand === "boolean") ? forceExpand : !isExpanded;
+        toggleBtn.setAttribute("aria-expanded", String(next));
+        body.classList.toggle("jfa-collapsed", !next);
+    }
+
+    // Builds one collapsible card for a bulleted section.
+    // Returns null if the bucket is absent, else the card + item count
+    // (count is null when the model emitted prose instead of a list).
+    function buildListSection(meta, nodes) {
+        if (!nodes) return null;
+
+        // Collect top-level <li> elements across any <ul>/<ol> in the bucket.
+        const listItems = [];
+        nodes.forEach(function (node) {
+            if (node.tagName === "UL" || node.tagName === "OL") {
+                Array.from(node.children).forEach(function (child) {
+                    if (child.tagName === "LI") listItems.push(child);
+                });
+            }
+        });
+
+        const proseOnly = listItems.length === 0;
+        // "- None identified." (new fallback) or "None: ..." (older runs).
+        const isEmptyState =
+            listItems.length === 1 && /^none\b/i.test(listItems[0].textContent.trim());
+        const count = proseOnly ? null : (isEmptyState ? 0 : listItems.length);
+
+        const section = el("section", "jfa-section jfa-accent-" + meta.accent);
+        section.id = "jfa-sec-" + meta.slug;
+
+        const heading = el("h3", "jfa-section-heading");
+        const toggleBtn = el("button", "jfa-section-toggle");
+        toggleBtn.type = "button";
+        toggleBtn.setAttribute("aria-expanded", "true");
+        toggleBtn.setAttribute("aria-controls", section.id + "-body");
+        toggleBtn.appendChild(makeIcon(meta.icon, "text-" + meta.accent + " me-2"));
+        const titleSpan = el("span", "jfa-section-title");
+        titleSpan.textContent = meta.title;
+        toggleBtn.appendChild(titleSpan);
+        if (count !== null) {
+            const pill = el("span", "badge jfa-count-pill ms-2");
+            pill.textContent = String(count);
+            toggleBtn.appendChild(pill);
+        }
+        toggleBtn.appendChild(makeIcon("bi-chevron-down", "jfa-chevron ms-auto"));
+        heading.appendChild(toggleBtn);
+        section.appendChild(heading);
+
+        const body = el("div", "jfa-section-body");
+        body.id = section.id + "-body";
+
+        if (isEmptyState) {
+            const p = el("p", "jfa-empty text-body-secondary mb-0");
+            p.appendChild(makeIcon("bi-dash-circle", "me-2"));
+            p.appendChild(document.createTextNode(listItems[0].textContent.trim()));
+            body.appendChild(p);
+        } else if (proseOnly) {
+            // Model deviated from bullet format — show its output untouched.
+            nodes.forEach(function (node) { body.appendChild(node); });
+        } else {
+            const ul = el("ul", "jfa-list");
+            listItems.forEach(function (li) {
+                const item = el("li", "jfa-list-item");
+                item.appendChild(makeIcon(meta.icon, "jfa-item-icon text-" + meta.accent));
+                const textWrap = el("span", "jfa-item-text");
+                while (li.firstChild) textWrap.appendChild(li.firstChild);
+                item.appendChild(textWrap);
+                ul.appendChild(item);
+            });
+            body.appendChild(ul);
+        }
+        section.appendChild(body);
+
+        toggleBtn.addEventListener("click", function () {
+            toggleSection(toggleBtn, body);
+        });
+
+        return { section: section, count: count, isEmptyState: isEmptyState };
+    }
+
+    // Non-collapsible highlighted card for the verdict paragraph(s).
+    function buildVerdictSection(meta, nodes) {
+        if (!nodes || nodes.length === 0) return null;
+        const section = el("section", "jfa-section jfa-accent-" + meta.accent);
+        section.id = "jfa-sec-" + meta.slug;
+
+        const heading = el("h3", "jfa-section-heading jfa-section-header-static");
+        heading.appendChild(makeIcon(meta.icon, "text-" + meta.accent + " me-2"));
+        const titleSpan = el("span", "jfa-section-title");
+        titleSpan.textContent = meta.title;
+        heading.appendChild(titleSpan);
+        section.appendChild(heading);
+
+        const body = el("div", "jfa-verdict-body");
+        nodes.forEach(function (node) { body.appendChild(node); });
+        section.appendChild(body);
+        return section;
+    }
+
+    function makeBadge(iconClass, colorClass, label, targetId) {
+        const a = el("a", "jfa-badge");
+        a.href = "#" + targetId;
+        a.dataset.jfaJump = targetId;
+        a.appendChild(makeIcon(iconClass, colorClass));
+        const span = document.createElement("span");
+        span.textContent = label;
+        a.appendChild(span);
+        return a;
+    }
+
+    // Score hero: big banded number, animated bar, rationale, count badges.
+    function buildSummary(scoreNodes, listResults) {
+        if (!scoreNodes) return { node: null, score: null };
+
+        const fullText = scoreNodes.map(function (n) { return n.textContent; }).join(" ").trim();
+        const match    = fullText.match(/(\d{1,3})\s*%/);
+        if (!match) return { node: null, score: null };
+
+        const score = Math.min(100, parseInt(match[1], 10));
+        const band  = bandFor(score);
+        // Strip the leading "98% -" so the rationale doesn't repeat the number.
+        const rationale = fullText.replace(/^\s*\d{1,3}\s*%\s*[-–—:.]?\s*/, "");
+
+        const card = el("div", "jfa-summary");
+
+        const topRow = el("div", "d-flex align-items-baseline flex-wrap");
+        const value  = el("span", "jfa-score-value " + band.text);
+        value.textContent = score + "%";
+        const label  = el("span", "jfa-score-label");
+        label.textContent = band.label;
+        topRow.appendChild(value);
+        topRow.appendChild(label);
+        card.appendChild(topRow);
+
+        const progress = el("div", "progress jfa-score-progress");
+        progress.setAttribute("role", "progressbar");
+        progress.setAttribute("aria-label", "Match score");
+        progress.setAttribute("aria-valuenow", String(score));
+        progress.setAttribute("aria-valuemin", "0");
+        progress.setAttribute("aria-valuemax", "100");
+        const bar = el("div", "progress-bar " + band.bar);
+        bar.style.width = "0%";
+        bar.dataset.jfaTarget = score + "%";
+        progress.appendChild(bar);
+        card.appendChild(progress);
+
+        if (rationale) {
+            const p = el("p", "jfa-score-rationale");
+            p.textContent = rationale;
+            card.appendChild(p);
+        }
+
+        const badges = el("div", "jfa-count-badges");
+        listResults.forEach(function (entry) {
+            if (!entry.result || entry.result.count === null) return;
+            const meta  = entry.meta;
+            const count = entry.result.count;
+            if (meta.slug === "gaps" && count === 0) {
+                badges.appendChild(makeBadge(
+                    "bi-check-circle-fill", "text-success", "No Gaps", "jfa-sec-gaps"
+                ));
+            } else {
+                badges.appendChild(makeBadge(
+                    meta.icon, "text-" + meta.accent,
+                    count + " " + meta.badgeLabel, "jfa-sec-" + meta.slug
+                ));
+            }
+        });
+        if (badges.children.length > 0) card.appendChild(badges);
+
+        return { node: card, score: score };
+    }
+
+    // Parses the raw HTML and rebuilds it. Returns { node, score } or null
+    // (null → caller falls back to injecting the raw HTML unchanged).
+    function buildEnhancedResults(rawHtml) {
+        try {
+            const doc = new DOMParser().parseFromString(rawHtml, "text/html");
+
+            // Bucket flat output into named sections keyed by <h2> text.
+            const buckets = {};
+            let currentKey = null;
+            Array.from(doc.body.children).forEach(function (node) {
+                if (node.tagName === "H2") {
+                    const key = node.textContent.trim().toLowerCase().replace(/:\s*$/, "");
+                    currentKey = SECTION_META[key] ? key : null;
+                    if (currentKey && !buckets[currentKey]) buckets[currentKey] = [];
+                } else if (currentKey) {
+                    buckets[currentKey].push(node);
+                }
+            });
+
+            const listKeys = ["direct alignments", "transferable skills", "notable gaps"];
+            const hasAnyList = listKeys.some(function (k) { return buckets[k]; });
+            if (!hasAnyList) return null;
+
+            // Build the three list sections first so the summary knows counts.
+            const listResults = listKeys.map(function (key) {
+                return {
+                    meta:   SECTION_META[key],
+                    result: buildListSection(SECTION_META[key], buckets[key]),
+                };
+            });
+
+            const summary = buildSummary(buckets["match score"], listResults);
+            const verdict = buildVerdictSection(
+                SECTION_META["the verdict"], buckets["the verdict"]
+            );
+
+            // Assembly order: conclusion first, evidence after.
+            const root = el("div", "jfa-enhanced w-100 text-start mb-4");
+            if (summary.node) root.appendChild(summary.node);
+            if (verdict)      root.appendChild(verdict);
+            listResults.forEach(function (entry) {
+                if (entry.result) root.appendChild(entry.result.section);
+            });
+
+            // Badge clicks: expand the target section, then smooth-scroll to it.
+            root.addEventListener("click", function (e) {
+                const a = e.target.closest("a[data-jfa-jump]");
+                if (!a) return;
+                e.preventDefault();
+                const target = document.getElementById(a.dataset.jfaJump);
+                if (!target) return;
+                const toggleBtn = target.querySelector(".jfa-section-toggle");
+                const body      = target.querySelector(".jfa-section-body");
+                if (toggleBtn && body) toggleSection(toggleBtn, body, true);
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+
+            return { node: root, score: summary.score };
+        } catch (err) {
+            // Any parsing surprise → raw fallback. Never lose the analysis.
+            console.error("JFA results enhancement failed, using raw output:", err);
+            return null;
+        }
+    }
+
+    function removeExistingResults() {
+        const wrapper = document.getElementById("jfa-results-wrapper");
+        if (wrapper) wrapper.remove();
+        // Safety net for any stray legacy anchor.
+        const legacyAnchor = document.getElementById("results-section");
+        if (legacyAnchor) legacyAnchor.remove();
+        document.querySelectorAll(".jfa-error-alert").forEach(function (n) { n.remove(); });
+    }
+
+    // Builds and inserts the full results block. Returns parsed score or null.
+    function renderResults(rawHtml) {
+        removeExistingResults();
+
+        const wrapper = el("div", "w-100");
+        wrapper.id = "jfa-results-wrapper";
+
+        const anchor = document.createElement("div");
+        anchor.id = "results-section";
+        wrapper.appendChild(anchor);
+
+        const heading = el("h2", "h4 mb-3");
+        heading.textContent = "Analysis Results";
+        wrapper.appendChild(heading);
+
+        const enhanced = buildEnhancedResults(rawHtml);
+        let score = null;
+        if (enhanced) {
+            wrapper.appendChild(enhanced.node);
+            score = enhanced.score;
+        } else {
+            // Raw fallback — identical presentation to the original design.
+            const container = el("div", "w-100 mb-4 shadow-sm rounded p-4 jfa-result-container");
+            const inner     = el("div", "jfa-markdown text-start");
+            inner.innerHTML = rawHtml;
+            container.appendChild(inner);
+            wrapper.appendChild(container);
+        }
+
+        form.parentNode.insertBefore(wrapper, form.nextSibling);
+
+        // Animate the score bar after insertion (CSS handles reduced motion).
+        const bar = wrapper.querySelector(".jfa-score-progress .progress-bar");
+        if (bar) {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    bar.style.width = bar.dataset.jfaTarget;
+                });
+            });
+        }
+
+        return score;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       Submission, polling, and status UI
+       ════════════════════════════════════════════════════════════════ */
+
     function setButtonState(processing) {
         btn.disabled = processing;
         if (processing) {
@@ -194,16 +560,11 @@ if (window.dataLayer) {
         msgIndex = 0;
 
         const alert = document.createElement("div");
-        alert.className = "alert alert-danger w-100 text-center jfa-result-container mt-3";
+        alert.className =
+            "alert alert-danger w-100 text-center jfa-result-container jfa-error-alert mt-3";
         alert.setAttribute("role", "alert");
         alert.textContent = message;
-
-        const anchor = document.getElementById("results-section");
-        if (anchor) {
-            anchor.parentNode.insertBefore(alert, anchor);
-        } else {
-            form.parentNode.insertBefore(alert, form.nextSibling);
-        }
+        form.insertAdjacentElement("afterend", alert);
     }
 
     function injectResult(html) {
@@ -211,33 +572,23 @@ if (window.dataLayer) {
         setButtonState(false);
         msgIndex = 0;
 
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = `
-            <div id="results-section"></div>
-            <h2 class="h4 mb-3">Analysis Results</h2>
-            <div class="w-100 mb-4 shadow-sm rounded p-4 jfa-result-container">
-                <div class="jfa-markdown text-start">${html}</div>
-            </div>
-        `;
-
-        const existing = document.getElementById("results-section");
-        if (existing) existing.parentNode.removeChild(existing);
-
-        form.parentNode.insertBefore(wrapper, form.nextSibling);
+        const score = renderResults(html);
 
         if (window.self === window.top) {
             setTimeout(function () {
-                document.getElementById("results-section")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                const anchor = document.getElementById("results-section");
+                if (anchor) anchor.scrollIntoView({ behavior: "smooth", block: "start" });
             }, 100);
         }
 
         if (window.dataLayer) {
-            window.dataLayer.push({
+            const payload = {
                 event:     "tool_interaction",
                 tool_name: "job_fit_analyzer",
                 action:    "analysis_displayed",
-            });
+            };
+            if (typeof score === "number") payload.match_score = score;
+            window.dataLayer.push(payload);
         }
     }
 
@@ -278,9 +629,10 @@ if (window.dataLayer) {
         e.preventDefault();
 
         // Clear any previous result or error from a prior submission.
-        const existingResult = document.getElementById("results-section");
-        if (existingResult) existingResult.parentNode.removeChild(existingResult);
-        document.querySelectorAll(".alert-danger").forEach(function (el) { el.remove(); });
+        // (Removes the whole #jfa-results-wrapper — the old code removed only
+        // the empty #results-section anchor, which stacked duplicate result
+        // blocks on resubmission.)
+        removeExistingResults();
 
         setButtonState(true);
         msgIndex = 0;
@@ -318,13 +670,25 @@ if (window.dataLayer) {
         });
     });
 
-    // Auto-scroll to a server-rendered result on initial page load (non-JS fallback).
-    const existingResult = document.getElementById("results-section");
-    if (existingResult && window.self === window.top) {
-        setTimeout(function () {
-            existingResult.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
-    }
+    /* ── Progressive enhancement of a server-rendered result ──────────
+       Covers the non-AJAX POST path: if the page loaded with a result
+       already in the DOM, rebuild it into the enhanced layout. The inline
+       GTM push above already fired for this case, so none is sent here. */
+    (function upgradeServerRenderedResult() {
+        const wrapper = document.getElementById("jfa-results-wrapper");
+        if (!wrapper) return;
+        const md = wrapper.querySelector(".jfa-markdown");
+        if (!md) return;
+
+        renderResults(md.innerHTML);
+
+        if (window.self === window.top) {
+            setTimeout(function () {
+                const anchor = document.getElementById("results-section");
+                if (anchor) anchor.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+    })();
 
 })();
 </script>
