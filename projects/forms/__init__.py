@@ -32,7 +32,9 @@
 #                          CoaxCableLossForm
 #   forms_space_tools.py   SatellitePassForm, LunarPhaseCalendarForm,
 #                          NightSkyPlannerForm
-#   forms_misc.py          QRForm, MonteCarloForm, AITokenCostForm
+#   forms_pm_tools.py      EVMCalculatorForm, PERTCalculatorForm,
+#                          CriticalPathCalculatorForm
+#   forms_misc.py          QRForm, MonteCarloForm, AITokenCostForm, JobFitForm
 #
 # MAINTENANCE: When you add a new form class to any sub-module, add its name
 # to the corresponding import block below AND to __all__.
@@ -114,6 +116,15 @@ from .forms_space_tools import (
     NightSkyPlannerForm,
 )
 
+# NOTE: the Critical Path form is deliberately NOT named CPMCalculatorForm —
+# that name already belongs to the freight toolkit's Cost Per Mile form
+# above, and a duplicate import here would silently rebind it site-wide.
+from .forms_pm_tools import (
+    EVMCalculatorForm,
+    PERTCalculatorForm,
+    CriticalPathCalculatorForm,
+)
+
 from .forms_misc import (
     QRForm,
     MonteCarloForm,
@@ -147,6 +158,8 @@ __all__ = [
     "AntennaCalculatorForm", "GridSquareForm", "RFExposureForm", "CoaxCableLossForm",
     # Space Tools
     "SatellitePassForm", "LunarPhaseCalendarForm", "NightSkyPlannerForm",
+    # Project Management Tools
+    "EVMCalculatorForm", "PERTCalculatorForm", "CriticalPathCalculatorForm",
     # Misc
     "QRForm", "MonteCarloForm", "AITokenCostForm", "JobFitForm",
 ]

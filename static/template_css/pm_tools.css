@@ -1,0 +1,38 @@
+/* 
+ * static/template_css/pm_tools.css
+ * Hub layout rules for the Project Management Toolkit.
+ * Card/iframe rules match freight_tools.css so the PM hub renders like
+ * the other toolkit hubs — these rules are intentionally duplicated per
+ * hub rather than shared in a global stylesheet.
+ */
+
+/* ── Tool Cards (Link-only cards at the top) ──────────────── */
+.tool-card {
+    width: 300px;      /* Standard width for the top link cards */
+    max-width: 100%;
+}
+
+/* ── Iframe Wrappers (Cards containing tools) ─────────────── */
+.iframe-card-wrapper {
+    width: 100%;
+    max-width: 450px;  /* Wider than link cards to fit tool UIs */
+}
+
+/* ── Iframe Styling ───────────────────────────────────────── */
+/* min-height matches freight_tools.css and is the NO-JS FALLBACK.
+   The auto-resize script in pm_tools.html grows each iframe to fit
+   its embedded tool page, so the full form is visible with no inner
+   scrolling once JavaScript runs. */
+.iframe-card-wrapper iframe {
+    width: 100%;
+    height: auto;
+    min-height: 553px;
+    border: none;
+}
+
+/* ── Mobile Overrides ─────────────────────────────────────── */
+@media (max-width: 600px) {
+    .tool-card {
+        width: 100%;
+    }
+}

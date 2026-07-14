@@ -1,0 +1,27 @@
+/* 
+ * Critical Path Calculator — schedule table styling.
+ * The rest of the template uses standard Bootstrap utility classes.
+ */
+
+/* Keep the 9-column schedule table compact and scannable. */
+.cpm-table th,
+.cpm-table td {
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Left-align the activity ID and predecessor columns for readability. */
+.cpm-table th:first-child,
+.cpm-table td:first-child,
+.cpm-table th:nth-child(3),
+.cpm-table td:nth-child(3) {
+    text-align: left;
+}
+
+/* Slightly smaller type on small screens; .table-responsive handles overflow. */
+@media (max-width: 576px) {
+    .cpm-table {
+        font-size: 0.85rem;
+    }
+}

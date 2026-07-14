@@ -1,0 +1,144 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+  {% include "includes/schemas/pm_tools_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/pm_tools_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/pm-tools/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/pm_tools.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Project Management Toolkit | EVM & Project Controls Utilities{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4" data-gtm-hub="PM Tools">
+    <div class="text-center">
+        <h1 class="mb-4">Project Management Toolkit</h1>
+        <p class="lead text-muted mb-5">Free tools for Project Managers.</p>
+
+        {# --- Standard Link Cards (Width: 300px) --- #}
+        <div class="card-container non-iframe-cards d-flex flex-wrap justify-content-center gap-4">
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">EVM Calculator</h2>
+                    <img src="{% static 'img/all-projects/evm-calculator.webp' %}" alt="Earned Value Management (EVM) Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text">Calculate CV, SV, CPI, SPI, all three EAC forecasts, ETC, VAC, and TCPI from your project's BAC, PV, EV, and AC.</p>
+                    <a href="{% url 'projects:evm_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="EVM Calculator">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">PERT Calculator</h2>
+                    <img src="{% static 'img/all-projects/pert-calculator.webp' %}" alt="PERT Three-Point Estimation Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text">Turn optimistic, most likely, and pessimistic estimates into a PERT weighted average, standard deviation, confidence ranges, and target probability.</p>
+                    <a href="{% url 'projects:pert_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="PERT Calculator">Open Calculator</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4">Critical Path Calculator</h2>
+                    <img src="{% static 'img/all-projects/critical-path-calculator.webp' %}" alt="Critical Path Method Calculator" class="img-fluid rounded my-3">
+                    <p class="card-text">Run forward and backward passes on your activity network to find the critical path, project duration, and total and free float for every activity.</p>
+                    <a href="{% url 'projects:critical_path_calculator' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="Critical Path Calculator">Open Calculator</a>
+                </div>
+            </div>
+
+        </div>
+
+        {# --- Iframe Preview Cards (Width: 450px) --- #}
+        <div class="card-container iframe-cards d-flex flex-wrap justify-content-center gap-4 mt-4">
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:evm_calculator' %}" class="tool-iframe" title="Earned Value Management (EVM) Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:evm_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:pert_calculator' %}" class="tool-iframe" title="PERT Three-Point Estimation Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:pert_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe src="{% url 'projects:critical_path_calculator' %}" class="tool-iframe" title="Critical Path Method Calculator" loading="lazy" scrolling="yes"></iframe>
+                    <a href="{% url 'projects:critical_path_calculator' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    /*
+     * Same-origin iframe auto-resize.
+     * The three embedded tool pages differ in height (the EVM form alone
+     * runs well past the fixed hub-card height), so each iframe is grown
+     * to fit its document once loaded.  The CSS min-height (553px, matching
+     * freight_tools.css) remains as the no-JS fallback, where scrolling="yes"
+     * still lets users reach every field.  The load handler re-fires after
+     * an in-iframe form submit, so results pages expand the card too.
+     */
+    document.addEventListener("DOMContentLoaded", function () {
+        const frames = document.querySelectorAll(".iframe-card-wrapper iframe");
+
+        function fit(frame) {
+            try {
+                const doc = frame.contentDocument;
+                if (!doc || !doc.documentElement) {
+                    return; // not ready — keep the CSS min-height fallback
+                }
+                const height = Math.max(
+                    doc.documentElement.scrollHeight,
+                    doc.body ? doc.body.scrollHeight : 0
+                );
+                if (height > 0) {
+                    // Small buffer prevents a sliver of inner scrollbar.
+                    frame.style.height = (height + 24) + "px";
+                }
+            } catch (err) {
+                // Cross-origin or transient access issue — fallback stands.
+            }
+        }
+
+        frames.forEach(function (frame) {
+            frame.addEventListener("load", function () {
+                fit(frame);
+                // Re-measure once fonts and late layout settle.
+                setTimeout(function () { fit(frame); }, 500);
+            });
+            // Cached iframes can be complete before this script runs.
+            if (frame.contentDocument && frame.contentDocument.readyState === "complete") {
+                fit(frame);
+            }
+        });
+
+        // Width changes reflow the embedded pages; re-fit after resizes.
+        let timer;
+        window.addEventListener("resize", function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () { frames.forEach(fit); }, 200);
+        });
+    });
+</script>
+{% endblock content %}

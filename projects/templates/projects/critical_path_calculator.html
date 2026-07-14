@@ -1,0 +1,220 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/critical_path_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/critical_path_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/critical-path-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/critical_path_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Critical Path Calculator | CPM Forward & Backward Pass{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        {# Wider column than sibling tools — the ES/EF/LS/LF/TF/FF results table needs the room. #}
+        <div class="col-md-10 col-lg-8">
+            <h1 class="text-center mb-4"><i class="bi bi-diagram-3 me-2"></i>Critical Path Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Enter your activity network to run a full Critical Path Method analysis:
+                forward and backward passes, total and free float for every activity,
+                and the critical path that sets your project duration.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="Critical Path Calculator" data-gtm-category="PM Tools">
+                        {% csrf_token %}
+
+                        {# --- Required: Activity Network --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Activity Network</legend>
+                            {{ form.activities.label_tag }}
+                            {{ form.activities }}
+                            {% if form.activities.help_text %}
+                                <small class="form-text text-muted">{{ form.activities.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.activities.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Find the Critical Path</button>
+                        <a href="{% url 'projects:pm_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Project Management Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {# --- Circular dependency error (raised by the util, not the form) --- #}
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+
+                {# --- Multiple Critical Paths Banner --- #}
+                {% if results.has_multiple_critical_paths %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>Multiple Critical Paths</h5>
+                    <p class="mb-0 text-center small">{{ results.multi_path_note }}</p>
+                </div>
+                {% endif %}
+
+                {# --- Near-Critical Activities Banner --- #}
+                {% if results.has_near_critical %}
+                <div class="alert alert-info shadow-sm border-info" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-info-circle-fill me-2"></i>Near-Critical: {{ results.near_critical_display }}</h5>
+                    <p class="mb-0 text-center small">{{ results.near_critical_note }}</p>
+                </div>
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Headline --- #}
+                <h4 class="alert-heading text-center mb-1">
+                    Project Duration: {{ results.project_duration|floatformat:"-2" }}
+                </h4>
+                <p class="text-center mb-1">
+                    <strong>Critical Path:</strong> {{ results.critical_path_display }}
+                </p>
+                {% if results.has_multiple_critical_paths %}
+                <div class="text-center mb-1">
+                    {% for path in results.critical_paths %}
+                        {% if not forloop.first %}
+                        <p class="small text-muted mb-1">also: {{ path }}</p>
+                        {% endif %}
+                    {% endfor %}
+                    {% if results.paths_truncated %}
+                    <p class="small text-muted mb-1">Additional critical paths exist beyond the {{ results.num_critical_paths }} shown.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <hr>
+
+                {# --- Network Summary --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Activities</small><br>
+                        <span class="fs-5 fw-bold">{{ results.activity_count }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">On Critical Path</small><br>
+                        <span class="fs-5 fw-bold">{{ results.critical_count }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Near-Critical</small><br>
+                        <span class="fs-5 fw-bold">{{ results.near_critical_count }}</span>
+                    </div>
+                </div>
+
+                {# --- Schedule Table --- #}
+                <hr>
+                <div class="table-responsive">
+                    <table class="table table-sm cpm-table mb-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">Activity</th>
+                                <th scope="col">Dur</th>
+                                <th scope="col">Preds</th>
+                                <th scope="col">ES</th>
+                                <th scope="col">EF</th>
+                                <th scope="col">LS</th>
+                                <th scope="col">LF</th>
+                                <th scope="col">TF</th>
+                                <th scope="col">FF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in results.activities %}
+                            <tr{% if a.is_critical %} class="fw-bold"{% endif %}>
+                                <td>
+                                    {{ a.id }}
+                                    {% if a.is_critical %}<span class="badge bg-danger ms-1">CP</span>{% elif a.is_near_critical %}<span class="badge bg-warning text-dark ms-1">NC</span>{% endif %}
+                                </td>
+                                <td>{{ a.duration|floatformat:"-2" }}</td>
+                                <td>{{ a.predecessors_display }}</td>
+                                <td>{{ a.es|floatformat:"-2" }}</td>
+                                <td>{{ a.ef|floatformat:"-2" }}</td>
+                                <td>{{ a.ls|floatformat:"-2" }}</td>
+                                <td>{{ a.lf|floatformat:"-2" }}</td>
+                                <td>{{ a.total_float|floatformat:"-2" }}</td>
+                                <td>{{ a.free_float|floatformat:"-2" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-center mb-0">
+                    <small class="text-muted">
+                        ES/EF = early start/finish &nbsp;·&nbsp; LS/LF = late start/finish &nbsp;·&nbsp;
+                        TF = total float &nbsp;·&nbsp; FF = free float &nbsp;·&nbsp;
+                        <span class="badge bg-danger">CP</span> = critical &nbsp;·&nbsp;
+                        <span class="badge bg-warning text-dark">NC</span> = near-critical
+                    </small>
+                </p>
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">Understanding the Critical Path Method</h3>
+            <p class="small text-muted mb-2">
+                <strong>The Critical Path Method (CPM)</strong> turns a list of activities, durations, and dependencies into a schedule. The <strong>forward pass</strong> walks the network from the start, computing each activity's Early Start (the latest Early Finish among its predecessors) and Early Finish (ES + duration). The largest Early Finish in the network is the <strong>project duration</strong>. The <strong>backward pass</strong> then walks from the finish, computing Late Finish (the earliest Late Start among successors) and Late Start (LF &minus; duration) — the latest each activity can run without delaying the project.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Total float vs. free float:</strong> Total float (LS &minus; ES) is how long an activity can slip before the <em>project end date</em> moves. Free float is how long it can slip before the <em>next activity's early start</em> moves — it never exceeds total float. The distinction matters in practice: an activity can have days of total float yet zero free float, meaning any slip immediately disrupts its successor's plan even though the project end survives. This calculator reports both.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>The critical path</strong> is the chain of activities with zero total float — the longest path through the network, and the sequence that sets the project duration. A day lost on the critical path is a day lost on the project. Networks can carry <em>multiple</em> critical paths at once, which increases schedule risk: recovery effort can't focus on a single chain. Near-critical activities (small float relative to project duration) deserve the same attention, since minor slips promote them onto a new critical path.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Zero-duration activities</strong> work here too — enter milestones with a duration of 0 and they'll participate in the passes normally. Dates are expressed in elapsed periods from a project start of 0, the standard classroom convention; map period 0 to your real start date to convert.
+            </p>
+            <p class="small text-muted">
+                <strong>Related tools:</strong> Build your duration inputs with the <a href="{% url 'projects:pert_calculator' %}" class="related-tool-link">PERT Calculator</a>, then track execution against this baseline with the <a href="{% url 'projects:evm_calculator' %}" class="related-tool-link">Earned Value Management (EVM) Calculator</a>.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

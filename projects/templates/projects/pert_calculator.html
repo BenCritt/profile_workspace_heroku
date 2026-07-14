@@ -1,0 +1,268 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/pert_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/pert_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/pert-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/pert_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}PERT Calculator | Three-Point Estimate & Standard Deviation{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-bar-chart-line me-2"></i>PERT Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Enter optimistic, most likely, and pessimistic estimates to calculate the
+                PERT weighted average, standard deviation, variance, and confidence
+                ranges — plus the probability of hitting a target deadline or budget.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="PERT Calculator" data-gtm-category="PM Tools">
+                        {% csrf_token %}
+
+                        {# --- Required: Three-Point Estimates --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Three-Point Estimates</legend>
+                            {{ form.optimistic.label_tag }}
+                            {{ form.optimistic }}
+                            {% if form.optimistic.help_text %}
+                                <small class="form-text text-muted">{{ form.optimistic.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.optimistic.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.most_likely.label_tag }}
+                                {{ form.most_likely }}
+                                {% if form.most_likely.help_text %}
+                                    <small class="form-text text-muted">{{ form.most_likely.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.most_likely.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-3">
+                                {{ form.pessimistic.label_tag }}
+                                {{ form.pessimistic }}
+                                {% if form.pessimistic.help_text %}
+                                    <small class="form-text text-muted">{{ form.pessimistic.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.pessimistic.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Deeper Analysis --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Additional Analysis (Optional)</legend>
+                            {{ form.target_value.label_tag }}
+                            {{ form.target_value }}
+                            {% if form.target_value.help_text %}
+                                <small class="form-text text-muted">{{ form.target_value.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.target_value.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Calculate Estimate</button>
+                        <a href="{% url 'projects:pm_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Project Management Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+
+                {# --- Skew Context Banner (no banner when balanced) --- #}
+                {% if results.skew_context == "pessimistic_anchor" %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.skew_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.skew_context_note }}</p>
+                </div>
+                {% elif results.skew_context == "optimistic_anchor" %}
+                <div class="alert alert-info shadow-sm border-info" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-info-circle-fill me-2"></i>{{ results.skew_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.skew_context_note }}</p>
+                </div>
+                {% endif %}
+
+                {# --- Uncertainty Context Banner (no banner when tight/moderate) --- #}
+                {% if results.uncertainty_context == "very_high" %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.uncertainty_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.uncertainty_context_note }}</p>
+                </div>
+                {% elif results.uncertainty_context == "high" %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.uncertainty_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.uncertainty_context_note }}</p>
+                </div>
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Primary Estimate --- #}
+                <h4 class="alert-heading text-center mb-1">
+                    PERT Estimate: {{ results.beta_estimate|floatformat:2 }}
+                </h4>
+                <p class="text-center small text-muted mb-1">(O + 4M + P) &divide; 6</p>
+                {% if results.abs_ml_delta > 0 %}
+                <p class="text-center small text-muted mb-3">
+                    Sits {{ results.abs_ml_delta|floatformat:2 }}
+                    {% if results.ml_delta_is_positive %}above{% else %}below{% endif %}
+                    your most likely estimate{% if results.ml_delta_is_positive %} to account for the pessimistic tail{% endif %}.
+                </p>
+                {% else %}
+                <p class="text-center small text-muted mb-3">
+                    Matches your most likely estimate.
+                </p>
+                {% endif %}
+                <hr>
+
+                {# --- Input Echo --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Optimistic (O)</small><br>
+                        <span class="fs-5 fw-bold">{{ results.optimistic|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Most Likely (M)</small><br>
+                        <span class="fs-5 fw-bold">{{ results.most_likely|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Pessimistic (P)</small><br>
+                        <span class="fs-5 fw-bold">{{ results.pessimistic|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {# --- Dispersion --- #}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Triangular Average</small><br>
+                        <span class="fs-5 fw-bold">{{ results.triangular_estimate|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Std. Deviation (&sigma;)</small><br>
+                        <span class="fs-5 fw-bold">{{ results.sigma|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Variance (&sigma;&sup2;)</small><br>
+                        <span class="fs-5 fw-bold">{{ results.variance|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {# --- Confidence Ranges (only meaningful with spread) --- #}
+                {% if results.has_spread %}
+                <hr>
+                <p class="text-center small text-muted mb-2">
+                    {{ results.uncertainty_context_label }} — &sigma; is {{ results.uncertainty_pct|floatformat:1 }}% of the estimate
+                </p>
+                <div class="row text-center mb-2">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">&asymp;68.3% (&plusmn;1&sigma;)</small><br>
+                        <span class="fs-6 fw-bold">{{ results.range_1_low|floatformat:2 }} &ndash; {{ results.range_1_high|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">&asymp;95.5% (&plusmn;2&sigma;)</small><br>
+                        <span class="fs-6 fw-bold">{{ results.range_2_low|floatformat:2 }} &ndash; {{ results.range_2_high|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">&asymp;99.7% (&plusmn;3&sigma;)</small><br>
+                        <span class="fs-6 fw-bold">{{ results.range_3_low|floatformat:2 }} &ndash; {{ results.range_3_high|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <p class="text-center mb-1">
+                    <small class="text-muted">Ranges use the normal approximation; the underlying PERT beta distribution is bounded by O and P.</small>
+                </p>
+                {% else %}
+                <hr>
+                <p class="text-center small text-muted mb-1">{{ results.deterministic_note }}</p>
+                {% endif %}
+
+                {# --- Target Probability (optional) --- #}
+                {% if results.has_target %}
+                <hr>
+                <h5 class="text-center mb-1">
+                    Probability of finishing at or under {{ results.target_value|floatformat:2 }}:
+                    {{ results.probability_pct|floatformat:1 }}%
+                </h5>
+                {% if results.has_z %}
+                <p class="text-center small text-muted mb-1">Z-score: {{ results.z_score|floatformat:2 }}</p>
+                {% endif %}
+                {% if results.target_note %}
+                <p class="text-center small text-muted mb-0">{{ results.target_note }}</p>
+                {% endif %}
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">Understanding Three-Point (PERT) Estimation</h3>
+            <p class="small text-muted mb-2">
+                <strong>Three-point estimation</strong> replaces a single guess with a range: an optimistic value (O), a most likely value (M), and a pessimistic value (P). The <strong>PERT weighted average</strong> — (O + 4M + P) &divide; 6 — weights the most likely value four times as heavily as either extreme, reflecting that outcomes cluster around the mode. The simpler <strong>triangular average</strong> — (O + M + P) &divide; 3 — treats all three points equally and is shown for comparison; the gap between the two tells you how much the extremes are pulling on your estimate.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Standard deviation and variance:</strong> &sigma; = (P &minus; O) &divide; 6 comes from the heuristic that a distribution's practical width spans about six standard deviations. Variance is simply &sigma;&sup2; — and it's the quantity that matters when combining activities. Along a schedule path, <em>variances add; standard deviations do not</em>. To get a path's &sigma;, sum the activity variances and take the square root — a classic exam trap and a real-world planning error.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Confidence ranges and probability:</strong> Assuming a roughly normal distribution, about 68.3% of outcomes fall within &plusmn;1&sigma; of the estimate, 95.5% within &plusmn;2&sigma;, and 99.7% within &plusmn;3&sigma;. A target's <strong>Z-score</strong> — (target &minus; estimate) &divide; &sigma; — converts a deadline or budget into "how many standard deviations away is it?", which maps to a completion probability. Strictly speaking, normality is justified when many activities are summed (the central limit theorem); for a single activity, treat the probability as a useful approximation of a distribution that's actually bounded by O and P.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Estimating hygiene:</strong> The most common failure mode is a pessimistic bound that isn't pessimistic enough — people anchor on the most likely value and stretch P only slightly. If your most likely value hugs the worst case, or the spread between bounds rivals the estimate itself, that's a signal to decompose the work into smaller pieces or model it probabilistically rather than committing to a date.
+            </p>
+            <p class="small text-muted">
+                <strong>Related tools:</strong> Feed your estimates into the <a href="{% url 'projects:critical_path_calculator' %}" class="related-tool-link">Critical Path Calculator</a> to find the schedule they produce, and track how the work actually performs against plan with the <a href="{% url 'projects:evm_calculator' %}" class="related-tool-link">Earned Value Management (EVM) Calculator</a>.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

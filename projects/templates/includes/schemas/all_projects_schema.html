@@ -6,7 +6,7 @@
       "@type": "CollectionPage",
       "@id": "https://www.bencritt.net/projects/#webpage",
       "name": "Web Development Projects & Tools",
-      "description": "The complete directory of free, server-side web tools built by Ben Crittenden. Covers IT networking, SEO auditing, freight logistics, glass art, ham radio, space and astronomy, and general developer utilities.",
+      "description": "The complete directory of free, server-side web tools built by Ben Crittenden. Covers IT networking, SEO auditing, freight logistics, project management, glass art, ham radio, space and astronomy, and general developer utilities.",
       "url": "https://www.bencritt.net/projects/",
       "inLanguage": "en-US",
       "isPartOf": {
@@ -87,7 +87,10 @@
           { "@type": "ListItem", "position": 53, "item": { "@id": "https://www.bencritt.net/projects/unix-timestamp-converter/#app" } },
           { "@type": "ListItem", "position": 54, "item": { "@id": "https://www.bencritt.net/projects/og-previewer/#app" } },
           { "@type": "ListItem", "position": 55, "item": { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" } },
-          { "@type": "ListItem", "position": 56, "item": { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" } }
+          { "@type": "ListItem", "position": 56, "item": { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" } },
+          { "@type": "ListItem", "position": 57, "item": { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" } },
+          { "@type": "ListItem", "position": 58, "item": { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" } },
+          { "@type": "ListItem", "position": 59, "item": { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" } }
         ]
       },
       "hasPart": [
@@ -146,7 +149,10 @@
         { "@id": "https://www.bencritt.net/projects/unix-timestamp-converter/#app" },
         { "@id": "https://www.bencritt.net/projects/og-previewer/#app" },
         { "@id": "https://www.bencritt.net/projects/lunar-phase-calendar/#app" },
-        { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" }
+        { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" },
+        { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" }
       ]
     },
 
@@ -1286,6 +1292,69 @@
         "Moon phase name with illumination percentage, moonrise, and moonset times.",
         "Visible satellite pass predictions including space stations, amateur radio, weather, and science satellites.",
         "Overall stargazing quality rating (1–5 stars) with per-factor score breakdown."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/evm-calculator/#app",
+      "name": "Earned Value Management (EVM) Calculator",
+      "description": "Perform a full Earned Value Management analysis from BAC, PV, EV, and AC. Calculates cost and schedule variances, CPI and SPI, all three standard EAC forecasts, ETC, VAC, and TCPI, with plain-English interpretations of project health.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/evm-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/evm-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Cost Variance (CV) and Schedule Variance (SV) with over/under interpretations.",
+        "Cost Performance Index (CPI) and Schedule Performance Index (SPI) with severity bands.",
+        "All three standard EAC forecasts: typical (BAC/CPI), atypical, and combined CPI-times-SPI.",
+        "Estimate to Complete (ETC) and Variance at Completion (VAC).",
+        "To-Complete Performance Index (TCPI) against BAC and an optional target EAC."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/pert-calculator/#app",
+      "name": "PERT Calculator",
+      "description": "Three-point (PERT) estimation from optimistic, most likely, and pessimistic values. Calculates the PERT weighted average, triangular average, standard deviation, variance, 1-3 sigma confidence ranges, and the probability of meeting a target deadline or budget.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/pert-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/pert-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "PERT (beta) weighted average and triangular average from O, M, and P estimates.",
+        "Standard deviation and variance using the (P - O) / 6 approximation.",
+        "One, two, and three sigma confidence ranges around the estimate.",
+        "Z-score probability of completing within any target value.",
+        "Skew and uncertainty diagnostics with plain-English guidance."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app",
+      "name": "Critical Path Calculator",
+      "description": "Full Critical Path Method schedule analysis from a simple activity list. Runs forward and backward passes for ES, EF, LS, and LF, calculates total and free float for every activity, identifies the critical path and project duration, and detects circular dependencies.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/critical-path-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/critical-path-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Forward and backward pass scheduling: ES, EF, LS, and LF for every activity.",
+        "Total float and free float, with near-critical activity flagging.",
+        "Critical path identification and total project duration.",
+        "Simple comma-separated activity list input with line-numbered validation.",
+        "Circular-dependency detection that names the activities involved."
       ]
     }
 

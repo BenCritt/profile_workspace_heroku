@@ -1,4 +1,4 @@
-      <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+<nav class="navbar navbar-expand-xl bg-body-tertiary fixed-top">
         <div class="container-fluid">
           <a 
             class="navbar-brand" 
@@ -53,7 +53,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:freight_tools' %}" id="freightToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Freight Professional
+                  Freight Pro
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="freightToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:freight_safety' %}">Freight Carrier Safety Reporter</a></li>
@@ -79,7 +79,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:it_tools' %}" id="itToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  IT Professional
+                  IT Pro
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="itToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:ssl_check' %}">SSL Verification Tool</a></li>
@@ -100,7 +100,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:seo_tools' %}" id="seoToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  SEO Professional
+                  SEO Pro
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="seoToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:font_inspector' %}">Font Inspector</a></li>
@@ -113,6 +113,21 @@
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="{% url 'projects:seo_tools' %}">View All SEO Tools</a></li>
                   
+                </ul>
+              </li>
+
+              <!-- Project Management Toolkit dropdown -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="{% url 'projects:pm_tools' %}" id="pmToolsDropdown"
+                  role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Project Management
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="pmToolsDropdown">
+                  <li><a class="dropdown-item" href="{% url 'projects:evm_calculator' %}">EVM Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:pert_calculator' %}">PERT Calculator</a></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:critical_path_calculator' %}">Critical Path Calculator</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'projects:pm_tools' %}">View All Project Management Tools</a></li>
                 </ul>
               </li>
 
@@ -140,7 +155,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="{% url 'projects:space_and_astronomy' %}" id="spaceAstronomyDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Space & Astronomy
+                  Astronomy
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="spaceAstronomyDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:iss_tracker' %}">ISS Tracker</a></li>  
@@ -157,7 +172,7 @@
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="moreToolsDropdown"
                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  More Tools
+                  More
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreToolsDropdown">
                   <li><a class="dropdown-item" href="{% url 'projects:weather' %}">Weather Forecast</a></li>

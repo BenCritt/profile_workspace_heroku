@@ -1,0 +1,355 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/evm_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/evm_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/evm-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/evm_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Earned Value Management (EVM) Calculator | CPI, SPI & EAC{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="text-center mb-4"><i class="bi bi-clipboard-data me-2"></i>EVM Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                Enter your project's BAC, PV, EV, and AC to calculate cost and schedule
+                variances, performance indices, all three EAC forecasts, and TCPI —
+                with plain-English project health interpretations.
+            </p>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="EVM Calculator" data-gtm-category="PM Tools">
+                        {% csrf_token %}
+
+                        {# --- Required: Project Budget --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Project Budget</legend>
+                            {{ form.bac.label_tag }}
+                            {{ form.bac }}
+                            {% if form.bac.help_text %}
+                                <small class="form-text text-muted">{{ form.bac.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.bac.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Required: Status Date Values --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Status Date Values</legend>
+                            {{ form.pv.label_tag }}
+                            {{ form.pv }}
+                            {% if form.pv.help_text %}
+                                <small class="form-text text-muted">{{ form.pv.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.pv.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.ac.label_tag }}
+                                {{ form.ac }}
+                                {% if form.ac.help_text %}
+                                    <small class="form-text text-muted">{{ form.ac.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.ac.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Required: Earned Value (exactly one of the two) --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Earned Value — Enter EV or % Complete</legend>
+                            {{ form.ev.label_tag }}
+                            {{ form.ev }}
+                            {% if form.ev.help_text %}
+                                <small class="form-text text-muted">{{ form.ev.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.ev.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="mt-3">
+                                {{ form.percent_complete.label_tag }}
+                                {{ form.percent_complete }}
+                                {% if form.percent_complete.help_text %}
+                                    <small class="form-text text-muted">{{ form.percent_complete.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.percent_complete.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        {# --- Optional: Deeper Analysis --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Additional Analysis (Optional)</legend>
+                            {{ form.target_eac.label_tag }}
+                            {{ form.target_eac }}
+                            {% if form.target_eac.help_text %}
+                                <small class="form-text text-muted">{{ form.target_eac.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.target_eac.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </fieldset>
+
+                        {# --- Form-level (non-field) errors --- #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Analyze Performance</button>
+                        <a href="{% url 'projects:pm_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Project Management Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  RESULTS                                                        #}
+            {# ============================================================= #}
+            {% if results %}
+
+                {# --- Cost Context Banner (no banner when "on budget") --- #}
+                {% if results.cost_context == "sig_over" %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.cost_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.cost_context_note }}</p>
+                </div>
+                {% elif results.cost_context == "over" %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.cost_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.cost_context_note }}</p>
+                </div>
+                {% elif results.cost_context == "under" %}
+                <div class="alert alert-info shadow-sm border-info" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-check-circle-fill me-2"></i>{{ results.cost_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.cost_context_note }}</p>
+                </div>
+                {% endif %}
+
+                {# --- Schedule Context Banner (no banner when "on schedule") --- #}
+                {% if results.schedule_context == "sig_behind" %}
+                <div class="alert alert-danger shadow-sm border-danger" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.schedule_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.schedule_context_note }}</p>
+                </div>
+                {% elif results.schedule_context == "behind" %}
+                <div class="alert alert-warning shadow-sm border-warning" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ results.schedule_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.schedule_context_note }}</p>
+                </div>
+                {% elif results.schedule_context == "ahead" %}
+                <div class="alert alert-info shadow-sm border-info" role="alert">
+                    <h5 class="alert-heading text-center"><i class="bi bi-check-circle-fill me-2"></i>{{ results.schedule_context_label }}</h5>
+                    <p class="mb-0 text-center small">{{ results.schedule_context_note }}</p>
+                </div>
+                {% endif %}
+
+            <div id="results-section" class="alert alert-success shadow-sm" role="alert">
+
+                {# --- Primary Indices --- #}
+                <h4 class="alert-heading text-center mb-1">
+                    CPI: {{ results.cpi|floatformat:3 }} &nbsp;·&nbsp; SPI: {{ results.spi|floatformat:3 }}
+                </h4>
+                <p class="text-center small text-muted mb-3">
+                    {{ results.cost_context_label }} · {{ results.schedule_context_label }}
+                </p>
+                {% if results.ev_source == "percent" %}
+                <p class="text-center small text-muted mb-3">
+                    EV derived from {{ results.percent_complete_input|floatformat:1 }}% complete ×
+                    ${{ results.bac|floatformat:2 }} BAC = ${{ results.ev|floatformat:2 }}
+                </p>
+                {% endif %}
+                <hr>
+
+                {# --- Progress Summary --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">% Complete</small><br>
+                        <span class="fs-5 fw-bold">{{ results.pct_complete|floatformat:1 }}%</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">% Planned</small><br>
+                        <span class="fs-5 fw-bold">{{ results.pct_planned|floatformat:1 }}%</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">% Spent</small><br>
+                        <span class="fs-5 fw-bold">{{ results.pct_spent|floatformat:1 }}%</span>
+                    </div>
+                </div>
+
+                {# --- Variances --- #}
+                <hr>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Cost Variance (CV)</small><br>
+                        <span class="fs-5 fw-bold {% if results.cv_is_favorable %}text-success{% else %}text-danger{% endif %}">
+                            {% if results.cv_is_favorable %}${{ results.cv|floatformat:2 }}{% else %}&minus;${{ results.abs_cv|floatformat:2 }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Schedule Variance (SV)</small><br>
+                        <span class="fs-5 fw-bold {% if results.sv_is_favorable %}text-success{% else %}text-danger{% endif %}">
+                            {% if results.sv_is_favorable %}${{ results.sv|floatformat:2 }}{% else %}&minus;${{ results.abs_sv|floatformat:2 }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">Budget Remaining</small><br>
+                        <span class="fs-5 fw-bold {% if results.budget_remaining_is_negative %}text-danger{% endif %}">
+                            {% if results.budget_remaining_is_negative %}&minus;${{ results.abs_budget_remaining|floatformat:2 }}{% else %}${{ results.budget_remaining|floatformat:2 }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                {# --- Forecast (primary = CPI-based when available) --- #}
+                <hr>
+                <h5 class="text-center mb-1">Estimate at Completion: ${{ results.eac_primary|floatformat:2 }}</h5>
+                <p class="text-center small text-muted mb-3">Method: {{ results.eac_primary_label }}</p>
+                {% if results.forecast_note %}
+                <p class="text-center small text-muted mb-3">{{ results.forecast_note }}</p>
+                {% endif %}
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Estimate to Complete (ETC)</small><br>
+                        <span class="fs-5 fw-bold">${{ results.etc_primary|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">Variance at Completion (VAC)</small><br>
+                        <span class="fs-5 fw-bold {% if results.vac_is_favorable %}text-success{% else %}text-danger{% endif %}">
+                            {% if results.vac_is_favorable %}${{ results.vac_primary|floatformat:2 }}{% else %}&minus;${{ results.abs_vac_primary|floatformat:2 }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                {# --- EAC Method Comparison --- #}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">EAC — Typical<br>(BAC &divide; CPI)</small><br>
+                        {% if results.has_eac_typical %}
+                        <span class="fs-6 fw-bold">${{ results.eac_typical|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="fs-6 fw-bold">N/A</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">EAC — Atypical<br>(AC + BAC &minus; EV)</small><br>
+                        <span class="fs-6 fw-bold">${{ results.eac_atypical|floatformat:2 }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-uppercase text-muted">EAC — Combined<br>(CPI &times; SPI)</small><br>
+                        {% if results.has_eac_combined %}
+                        <span class="fs-6 fw-bold">${{ results.eac_combined|floatformat:2 }}</span>
+                        {% else %}
+                        <span class="fs-6 fw-bold">N/A</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# --- TCPI Feasibility --- #}
+                <hr>
+                {% if results.has_tcpi_bac %}
+                <div class="row text-center mb-1">
+                    <div class="{% if results.has_target %}col-6{% else %}col-12{% endif %}">
+                        <small class="text-uppercase text-muted">TCPI to BAC</small><br>
+                        <span class="fs-5 fw-bold">{{ results.tcpi_bac|floatformat:3 }}</span><br>
+                        <small class="text-muted">{{ results.tcpi_context_label }}</small>
+                    </div>
+                    {% if results.has_target %}
+                    <div class="col-6">
+                        <small class="text-uppercase text-muted">TCPI to Your EAC Target</small><br>
+                        <span class="fs-5 fw-bold">{{ results.tcpi_target|floatformat:3 }}</span><br>
+                        <small class="text-muted">Target: ${{ results.target_eac|floatformat:2 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="text-center small text-muted mb-1">{{ results.tcpi_context_note }}</p>
+                {% else %}
+                <div class="text-center mb-1">
+                    <small class="text-uppercase text-muted">TCPI to BAC</small><br>
+                    <span class="fs-5 fw-bold">{{ results.tcpi_context_label }}</span>
+                </div>
+                <p class="text-center small text-muted mb-1">{{ results.tcpi_context_note }}</p>
+                {% if results.has_target %}
+                <div class="text-center mb-1 mt-3">
+                    <small class="text-uppercase text-muted">TCPI to Your EAC Target</small><br>
+                    <span class="fs-5 fw-bold">{{ results.tcpi_target|floatformat:3 }}</span><br>
+                    <small class="text-muted">Target: ${{ results.target_eac|floatformat:2 }}</small>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                {# --- Target vs. Forecast Note --- #}
+                {% if results.has_target %}
+                <p class="text-center small text-muted mb-0">
+                    Your target is
+                    {% if results.target_is_optimistic %}
+                        ${{ results.abs_target_delta|floatformat:2 }} below the calculated forecast —
+                        the TCPI above shows the efficiency required to close that gap.
+                    {% else %}
+                        ${{ results.abs_target_delta|floatformat:2 }} above the calculated forecast —
+                        a more conservative estimate than current performance implies.
+                    {% endif %}
+                </p>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-8 col-lg-6">
+            <h3 class="h5 mb-3 text-muted">Understanding Earned Value Management</h3>
+            <p class="small text-muted mb-2">
+                <strong>Earned Value Management (EVM)</strong> integrates scope, schedule, and cost into a single measurement framework. It compares three values at a status date: <strong>Planned Value (PV)</strong>, the budgeted cost of work scheduled; <strong>Earned Value (EV)</strong>, the budgeted cost of work actually performed; and <strong>Actual Cost (AC)</strong>, what that work really cost. Everything else — variances, indices, and forecasts — is derived from those three numbers and the total budget (BAC).
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Variances and Indices:</strong> Cost Variance (CV = EV &minus; AC) and Schedule Variance (SV = EV &minus; PV) express performance in dollars, where negative values are unfavorable. The Cost Performance Index (CPI = EV &divide; AC) and Schedule Performance Index (SPI = EV &divide; PV) express the same performance as efficiency ratios — a CPI of 0.90 means you're getting 90 cents of planned work for every dollar spent. Note that SPI naturally trends back toward 1.0 as a project finishes, even when it's late, so pair it with critical path analysis rather than reading it in isolation.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Forecasting with EAC:</strong> The Estimate at Completion answers "what will this project really cost?" The <em>typical</em> formula (BAC &divide; CPI) assumes current cost efficiency continues — the standard default. The <em>atypical</em> formula (AC + BAC &minus; EV) assumes the variance to date was a one-time event and remaining work proceeds at budgeted cost. The <em>combined</em> formula factors in schedule pressure (CPI &times; SPI), producing the most conservative forecast when a project is both over budget and behind schedule. ETC (EAC &minus; AC) is the money still needed; VAC (BAC &minus; EAC) is the projected overrun or underrun.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>TCPI — the reality check:</strong> The To-Complete Performance Index tells you the cost efficiency required on all <em>remaining</em> work to finish within a given budget. A TCPI to BAC above roughly 1.10 demands a substantial, sustained efficiency improvement that rarely materializes in practice. One subtlety worth knowing: the TCPI toward a BAC&nbsp;&divide;&nbsp;CPI-based EAC always equals your current CPI by construction, which is why this tool indexes against BAC — or against your own management EAC target — instead.
+            </p>
+            <p class="small text-muted">
+                <strong>Related tools:</strong> Build your duration estimates with the <a href="{% url 'projects:pert_calculator' %}" class="related-tool-link">PERT Calculator</a>, and find the schedule baseline those estimates produce with the <a href="{% url 'projects:critical_path_calculator' %}" class="related-tool-link">Critical Path Calculator</a> — this tool then tracks execution against that baseline.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+
+    {% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

@@ -18,6 +18,7 @@
 #       views_glass_tools.py   — Glass Artist Toolkit views
 #       views_radio_tools.py   — Radio Hobbyist Toolkit views
 #       views_space_tools.py   — Space & Astronomy Toolkit views
+#       views_pm_tools.py      — Project Management Toolkit views
 #       views_misc.py          — Standalone miscellaneous tool views
 #
 #   urls.py was written to do `from . import views` (or equivalently
@@ -226,6 +227,24 @@ from .views_space_tools import (
 )
 
 # ----------------------------------------------------------------------------
+# Project Management Toolkit views
+# ----------------------------------------------------------------------------
+# pm_tools                 — hub page
+# evm_calculator           — Earned Value: CV/SV, CPI/SPI, EAC forecasts, ETC, VAC, TCPI
+# pert_calculator          — three-point estimate: beta/triangular means, σ, ranges, target probability
+# critical_path_calculator — forward/backward pass, total & free float, critical path
+#
+# NOTE: EVMCalculatorForm / PERTCalculatorForm / CPMCalculatorForm are FORM
+# classes — they are re-exported from forms/__init__.py, not here.  The view
+# functions import them lazily inside their own bodies.
+from .views_pm_tools import (
+    pm_tools,
+    evm_calculator,
+    pert_calculator,
+    critical_path_calculator,
+)
+
+# ----------------------------------------------------------------------------
 # Miscellaneous standalone tool views
 # ----------------------------------------------------------------------------
 # qr_code_generator    — text/URL → downloadable QR code PNG
@@ -291,6 +310,9 @@ __all__ = [
     # ── Space Tools ───────────────────────────────────────────────────────
     "space_and_astronomy", "iss_tracker", "satellite_pass_predictor",
     "lunar_phase_calendar", "night_sky_planner",
+
+    # ── Project Management Tools ─────────────────────────────────────────
+    "pm_tools", "evm_calculator", "pert_calculator", "critical_path_calculator",
 
     # ── Misc ──────────────────────────────────────────────────────────────
     "qr_code_generator", "monte_carlo_simulator", "weather",

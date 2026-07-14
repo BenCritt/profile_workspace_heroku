@@ -457,6 +457,24 @@ def all_projects(request):
             "image": "night-sky-planner.webp",
             "description": "Plan your stargazing session tonight. Get astronomical twilight times, dark sky window, moon phase, visible satellite passes, and an overall stargazing quality rating for your location."
         },
+        {
+            "title": "Earned Value Management (EVM) Calculator",
+            "url_name": "projects:evm_calculator",
+            "image": "evm-calculator.webp",
+            "description": "Enter your project's BAC, PV, EV, and AC to calculate cost and schedule variances, performance indices (CPI and SPI), all three standard EAC forecasts, ETC, VAC, and TCPI — with plain-English interpretations of what each number means for project health."
+        },
+        {
+            "title": "PERT Calculator",
+            "url_name": "projects:pert_calculator",
+            "image": "pert-calculator.webp",
+            "description": "Turn optimistic, most likely, and pessimistic estimates into a PERT weighted average with standard deviation, variance, and 1–3 sigma confidence ranges — plus the probability of hitting any target deadline or budget."
+        },
+        {
+            "title": "Critical Path Calculator",
+            "url_name": "projects:critical_path_calculator",
+            "image": "critical-path-calculator.webp",
+            "description": "Run a full Critical Path Method analysis from a simple activity list. Forward and backward passes calculate ES, EF, LS, and LF, total and free float for every activity, and the critical path that sets your project duration — with circular-dependency detection built in."
+        },
     ]
 
     context = {

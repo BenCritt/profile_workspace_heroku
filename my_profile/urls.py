@@ -11,6 +11,10 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("pm_tools","pm-tools"),
+    ("evm_calculator","evm-calculator"),
+    ("pert_calculator","pert-calculator"),
+    ("critical_path_calculator","critical-path-calculator"),
     ("night_sky_planner", "night-sky-planner"),
     ("lunar_phase_calendar", "lunar-phase-calendar"),
     ("og_previewer", "og-previewer"),

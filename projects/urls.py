@@ -441,4 +441,8 @@ urlpatterns = [
         views.job_fit_analyzer_status,
         name="job_fit_analyzer_status",
     ),
+    path("projects/pm-tools/", views.pm_tools, name="pm_tools"),
+    path("projects/evm-calculator/", views.evm_calculator, name="evm_calculator"),
+    path("projects/pert-calculator/", views.pert_calculator, name="pert_calculator"),
+    path("projects/critical-path-calculator/", views.critical_path_calculator, name="critical_path_calculator"),
 ]
