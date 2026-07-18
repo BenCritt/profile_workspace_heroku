@@ -17,6 +17,7 @@
 #   MultiStopSplitterForm   → views_freight_tools.multi_stop_splitter
 #   LaneRateAnalyzerForm    → views_freight_tools.lane_rate_analyzer
 #   FreightMarginForm       → views_freight_tools.freight_margin_calculator
+#   HOSMultiStopPlannerForm → views_freight_tools.hos_multi_stop_trip_planner
 
 from django import forms
 import re
@@ -875,6 +876,508 @@ class MultiStopSplitterForm(forms.Form):
                 "destination_zip",
                 "Origin and Destination are the same ZIP with no intermediate stops."
             )
+
+        return cleaned_data
+
+# --- HOS Multi-Stop Trip Planner ---
+class HOSMultiStopPlannerForm(forms.Form):
+    """
+    Ordered ZIP route (origin + up to 5 stops + destination) with an
+    on-duty service/dwell time at each point, plus trip parameters and
+    the driver's current clock state for the HOS simulation.
+
+    Fieldset 1 — Route Endpoints (required):    origin_zip (+ service),
+                                                destination_zip (+ service)
+    Fieldset 2 — Intermediate Stops (optional): stop_N + stop_N_hours
+    Fieldset 3 — Trip Parameters:               avg_speed, start_date,
+                                                start_time
+    Fieldset 4 — Driver's Current Clocks        shift_drive_used,
+                 (optional — mid-shift          window_used,
+                 replanning):                   drive_since_break,
+                                                cycle_hours_used
+    Fieldset 5 — Next-Load Lookahead            lookahead_miles
+                 (optional):
+
+    clean() assembles cleaned_data["route_stops"]:
+        [{"zip": str, "service_hours": float}, ...] in route order,
+    which the view iterates to build Google Maps legs.  It also
+    cross-validates the clock-state fields (drive_since_break <=
+    shift_drive_used <= window_used, and cycle_hours_used >=
+    shift_drive_used) and normalizes their blanks to 0.0 floats, so
+    the view never has to handle None for any clock value.
+    """
+
+    # --- Route Endpoints ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        help_text="Driver's starting point. For a deadhead, enter the driver's current ZIP here and the pickup as Stop 1.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "60601",
+            "inputmode": "numeric",
+        }),
+    )
+    origin_service_hours = forms.FloatField(
+        label="Service Time at Origin (hrs)",
+        required=False,
+        help_text="(Optional) On-duty loading time before departure.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "1",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+    destination_zip = forms.CharField(
+        label="Final Destination ZIP Code",
+        max_length=5,
+        help_text="Last delivery or ending location.",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "90210",
+            "inputmode": "numeric",
+        }),
+    )
+    destination_service_hours = forms.FloatField(
+        label="Service Time at Destination (hrs)",
+        required=False,
+        help_text="(Optional) Unloading time. Affects when the driver is free, not the arrival ETA.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+
+    # --- Intermediate Stops (all optional, ZIP + dwell pairs) ---
+    stop_1 = forms.CharField(
+        label="Stop 1 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "46201",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_1_hours = forms.FloatField(
+        label="Stop 1 Service (hrs)",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "2",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+    stop_2 = forms.CharField(
+        label="Stop 2 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "37201",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_2_hours = forms.FloatField(
+        label="Stop 2 Service (hrs)",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+    stop_3 = forms.CharField(
+        label="Stop 3 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_3_hours = forms.FloatField(
+        label="Stop 3 Service (hrs)",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+    stop_4 = forms.CharField(
+        label="Stop 4 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_4_hours = forms.FloatField(
+        label="Stop 4 Service (hrs)",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+    stop_5 = forms.CharField(
+        label="Stop 5 ZIP",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "numeric",
+        }),
+    )
+    stop_5_hours = forms.FloatField(
+        label="Stop 5 Service (hrs)",
+        required=False,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="Service time cannot be negative."),
+            MaxValueValidator(24, message="Service time cannot exceed 24 hours."),
+        ],
+    )
+
+    # --- Trip Parameters ---
+    avg_speed = forms.FloatField(
+        label="Average Speed (mph)",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "55",
+            "inputmode": "decimal",
+            "min": "0.00001",
+        }),
+        validators=[MinValueValidator(0.00001, message="Average speed must be no less than 0.00001 mph.")],
+    )
+    start_date = forms.DateField(
+        label="Start Date",
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    start_time = forms.TimeField(
+        label="Start Time",
+        widget=forms.TimeInput(attrs={"class": "form-control", "type": "time"})
+    )
+
+    # --- Driver's Current Clocks (optional — mid-shift replanning) ---
+    # All four default to blank/0.0, which models a fresh driver coming
+    # off a 10-hour reset — the original happy path is unchanged.
+    # Filling them in carries the driver's live clock state into
+    # generate_multi_stop_hos_itinerary(), which backdates the 14-hour
+    # window anchor by window_used.  clean() cross-validates the four
+    # values and normalizes blanks to 0.0 floats for the view.
+    shift_drive_used = forms.FloatField(
+        label="Hours Driven This Shift",
+        required=False,
+        help_text=(
+            "Driving hours used since the driver's last 10-hour "
+            "reset (the 11-hour clock). Leave blank for a fresh driver."
+        ),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "0",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "11",
+        }),
+        validators=[
+            MinValueValidator(0, message="Hours driven cannot be negative."),
+            MaxValueValidator(11, message="Hours driven this shift cannot exceed the 11-hour driving limit."),
+        ],
+    )
+    window_used = forms.FloatField(
+        label="Hours On Duty This Shift",
+        required=False,
+        help_text=(
+            "Wall-clock hours since the driver came on duty after "
+            "the last 10-hour reset (the 14-hour window). Driving, dock work, "
+            "and short breaks all count. May exceed 14 — the plan will then "
+            "begin with the required 10-hour reset before any driving."
+        ),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "0",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "24",
+        }),
+        validators=[
+            MinValueValidator(0, message="On-duty hours cannot be negative."),
+            MaxValueValidator(24, message="This planner caps the on-duty window entry at 24 hours."),
+        ],
+    )
+    drive_since_break = forms.FloatField(
+        label="Hours Driven Since Last Break",
+        required=False,
+        help_text=(
+            "Driving hours since the driver's last 30+ consecutive "
+            "non-driving minutes (an off-duty break or on-duty dock time both "
+            "qualify under the September 2020 rule)."
+        ),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "0",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "8",
+        }),
+        validators=[
+            MinValueValidator(0, message="Hours driven cannot be negative."),
+            MaxValueValidator(8, message="Cannot exceed 8 — the FMCSA break requirement triggers at 8 hours of driving."),
+        ],
+    )
+    cycle_hours_used = forms.FloatField(
+        label="Cycle Hours Already Used (70-hr/8-day)",
+        required=False,
+        help_text="On-duty hours in the past 8 days before this trip. Leave blank or 0 if fully rested.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "0",
+            "inputmode": "decimal",
+            "step": "0.25",
+            "min": "0",
+            "max": "70",
+        }),
+        validators=[
+            MinValueValidator(0, message="Cycle hours cannot be negative."),
+            MaxValueValidator(70, message="Cycle hours cannot exceed 70."),
+        ],
+    )
+
+    # --- Next-Load Lookahead (optional) ---
+    # Hypothetical repositioning: estimated empty road miles from the
+    # final destination to a next pickup that isn't booked yet.  The
+    # engine appends it as an extra leg after destination service and
+    # reports next_pickup_arrival; blank/0 disables it.
+    lookahead_miles = forms.FloatField(
+        label="Est. Deadhead to Next Pickup (mi)",
+        required=False,
+        help_text=(
+            "Estimated empty road miles from the final destination to a "
+            "next pickup that isn't booked yet. Leave blank to skip."
+        ),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "120",
+            "inputmode": "decimal",
+            "step": "1",
+            "min": "0",
+            "max": "2000",
+        }),
+        validators=[
+            MinValueValidator(0, message="Deadhead miles cannot be negative."),
+            MaxValueValidator(2000, message="Next-load lookahead is capped at 2,000 miles."),
+        ],
+    )
+
+    # --- ZIP Validation Helpers (MultiStopSplitterForm pattern) ---
+    def _validate_zip(self, field_name, label):
+        """Shared ZIP validation for optional stop fields."""
+        zip_code = self.cleaned_data.get(field_name, "").strip()
+        if not zip_code:
+            return ""  # Empty optional fields are fine.
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError(f"Invalid {label} ZIP code.")
+        return zip_code
+
+    def clean_origin_zip(self):
+        zip_code = self.cleaned_data["origin_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Origin ZIP code.")
+        return zip_code
+
+    def clean_destination_zip(self):
+        zip_code = self.cleaned_data["destination_zip"].strip()
+        try:
+            zdb[zip_code]
+        except (KeyError, IndexError):
+            raise forms.ValidationError("Invalid Destination ZIP code.")
+        return zip_code
+
+    def clean_stop_1(self):
+        return self._validate_zip("stop_1", "Stop 1")
+
+    def clean_stop_2(self):
+        return self._validate_zip("stop_2", "Stop 2")
+
+    def clean_stop_3(self):
+        return self._validate_zip("stop_3", "Stop 3")
+
+    def clean_stop_4(self):
+        return self._validate_zip("stop_4", "Stop 4")
+
+    def clean_stop_5(self):
+        return self._validate_zip("stop_5", "Stop 5")
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        origin      = cleaned_data.get("origin_zip", "")
+        destination = cleaned_data.get("destination_zip", "")
+
+        # Assemble ordered route points with paired service hours.
+        # Coerce None (blank optional FloatField) to 0.0 throughout.
+        route_stops = []
+        if origin:
+            route_stops.append({
+                "zip": origin,
+                "service_hours": cleaned_data.get("origin_service_hours") or 0.0,
+            })
+
+        for i in range(1, 6):
+            zip_code = (cleaned_data.get(f"stop_{i}") or "").strip()
+            hours    = cleaned_data.get(f"stop_{i}_hours")
+            if zip_code:
+                route_stops.append({
+                    "zip": zip_code,
+                    "service_hours": hours or 0.0,
+                })
+            elif hours:
+                # Hours entered with no ZIP — almost certainly a mistake;
+                # surface it rather than silently dropping the dwell time.
+                self.add_error(
+                    f"stop_{i}_hours",
+                    f"Service time entered for Stop {i}, but no Stop {i} ZIP was provided."
+                )
+
+        if destination:
+            route_stops.append({
+                "zip": destination,
+                "service_hours": cleaned_data.get("destination_service_hours") or 0.0,
+            })
+
+        cleaned_data["route_stops"] = route_stops
+        cleaned_data["route_zips"]  = [s["zip"] for s in route_stops]
+
+        # Origin and destination must differ when no intermediate stops exist.
+        intermediate_count = len(route_stops) - 2 if len(route_stops) >= 2 else 0
+        if (
+            origin and destination and origin == destination
+            and intermediate_count <= 0
+        ):
+            self.add_error(
+                "destination_zip",
+                "Origin and Destination are the same ZIP with no intermediate stops."
+            )
+
+        # ------------------------------------------------------------------
+        #  Driver's Current Clocks — mid-shift consistency validation.
+        # ------------------------------------------------------------------
+        # Normalize blanks (None) to 0.0 up front.  Field-level
+        # MinValueValidators already block negatives, so `or 0.0` only
+        # ever converts None, never a real value.
+        shift_drive = cleaned_data.get("shift_drive_used") or 0.0
+        window      = cleaned_data.get("window_used") or 0.0
+        since_break = cleaned_data.get("drive_since_break") or 0.0
+        cycle       = cleaned_data.get("cycle_hours_used") or 0.0
+        lookahead   = cleaned_data.get("lookahead_miles") or 0.0
+
+        # Rule 1 — driving since the last qualifying break is a subset of
+        # this shift's driving (a 10-hour reset restarts both clocks), so
+        # it can never exceed the shift total.
+        if since_break > shift_drive:
+            self.add_error(
+                "drive_since_break",
+                (
+                    f"Cannot exceed Hours Driven This Shift ({shift_drive:g} h). "
+                    "Driving since the last break is part of this shift's driving."
+                ),
+            )
+
+        # Rule 2 — driving hours can't exceed wall-clock on-duty hours.
+        # This also catches the common mistake of filling in the driving
+        # clock but leaving the window blank: 5 h of driving is impossible
+        # inside a 0 h on-duty window.
+        if shift_drive > window:
+            self.add_error(
+                "window_used",
+                (
+                    f"Must be at least {shift_drive:g} h — the driver can't have "
+                    f"driven {shift_drive:g} h in a shorter on-duty window. Enter "
+                    "the wall-clock hours since the driver came on duty."
+                ),
+            )
+
+        # Rule 3 — this shift's driving already counts toward the current
+        # 70-hour/8-day cycle, so the cycle counter can never be smaller.
+        if cycle < shift_drive:
+            self.add_error(
+                "cycle_hours_used",
+                (
+                    f"Must be at least {shift_drive:g} h — hours driven this "
+                    "shift already count toward the 70-hour/8-day cycle."
+                ),
+            )
+
+        # Write the normalized values back so the view always reads plain
+        # floats and never has to branch on None.
+        cleaned_data["shift_drive_used"]  = shift_drive
+        cleaned_data["window_used"]       = window
+        cleaned_data["drive_since_break"] = since_break
+        cleaned_data["lookahead_miles"]   = lookahead
 
         return cleaned_data
 

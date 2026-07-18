@@ -1,0 +1,274 @@
+/*
+ * hos_multi_stop_trip_planner.css
+ * ================================
+ * Dark-theme readability overrides for the results itinerary table.
+ *
+ * WHY THIS FILE HAS CONTENT (unlike sibling tool stylesheets):
+ * Bootstrap's contextual table row classes (.table-success, .table-info,
+ * .table-warning, .table-danger) hardcode LIGHT tint backgrounds and dark
+ * text. They do not adapt to [data-bs-theme="dark"] — a known Bootstrap
+ * limitation. On this site's dark theme that produced pale pastel rows,
+ * and base.css's dark-mode brightening of .text-muted (#ced4da !important)
+ * made the Notes column light-gray-on-light-green: effectively invisible.
+ *
+ * THE FIX: re-declare each contextual row's Bootstrap CSS variables
+ * (--bs-table-bg, --bs-table-color, hover + border variants) with dark,
+ * translucent tints plus a solid left accent border. Rows stay visually
+ * categorized (green = arrival, cyan = service, amber = break/reset,
+ * red = cycle warning) while keeping the dark background, so the site's
+ * light text — including the globally brightened .text-muted notes —
+ * is readable again. No template changes required.
+ *
+ * Scoped to #results-section so nothing leaks if this stylesheet is ever
+ * loaded alongside other content (e.g., inside the freight hub iframes).
+ */
+
+
+/* ── CONTEXTUAL ROWS: dark translucent tints ────────────────────────────────
+   Each block overrides the CSS variables Bootstrap's .table-* classes set.
+   --bs-table-bg / --bs-table-color        base row appearance
+   --bs-table-hover-bg / -hover-color      .table-hover state (feeds Bootstrap
+                                           5.3's --bs-table-bg-state mechanism)
+   --bs-table-border-color                 row divider tinted to match       */
+
+/* Arrivals — green */
+#results-section tr.table-success {
+    --bs-table-bg: rgba(25, 135, 84, 0.20);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(25, 135, 84, 0.45);
+    --bs-table-hover-bg: rgba(25, 135, 84, 0.32);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* Service / dwell — cyan */
+#results-section tr.table-info {
+    --bs-table-bg: rgba(13, 202, 240, 0.14);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(13, 202, 240, 0.40);
+    --bs-table-hover-bg: rgba(13, 202, 240, 0.24);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* 30-min breaks & 10-hr resets — amber */
+#results-section tr.table-warning {
+    --bs-table-bg: rgba(255, 193, 7, 0.15);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(255, 193, 7, 0.40);
+    --bs-table-hover-bg: rgba(255, 193, 7, 0.25);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* 70-hr cycle crossing — red */
+#results-section tr.table-danger {
+    --bs-table-bg: rgba(220, 53, 69, 0.20);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(220, 53, 69, 0.50);
+    --bs-table-hover-bg: rgba(220, 53, 69, 0.32);
+    --bs-table-hover-color: #ffffff;
+}
+
+
+/* ── CONTEXTUAL ROWS: left accent borders ───────────────────────────────────
+   A solid 3px accent on the first cell makes row categories scannable at a
+   glance now that the background tints are subtle. Uses Bootstrap's theme
+   color variables so any future theme change follows automatically. */
+#results-section tr.table-success > td:first-child { border-left: 3px solid var(--bs-success); }
+#results-section tr.table-info    > td:first-child { border-left: 3px solid var(--bs-info); }
+#results-section tr.table-warning > td:first-child { border-left: 3px solid var(--bs-warning); }
+#results-section tr.table-danger  > td:first-child { border-left: 3px solid var(--bs-danger); }
+
+
+/* ── COLUMN BEHAVIOR ────────────────────────────────────────────────────────
+   Column order is fixed by the template:
+     1 Event · 2 Start Time · 3 End Time · 4 Duration · 5 Notes
+   Timestamps and durations stay on one line — the screenshot's ragged
+   "Tue 10:45 / PM" two-line wraps came from these columns being squeezed.
+   Horizontal overflow on narrow screens is already handled by the
+   .table-responsive wrapper, so nowrap is safe here. */
+#results-section .table th:nth-child(2),
+#results-section .table th:nth-child(3),
+#results-section .table th:nth-child(4),
+#results-section .table td:nth-child(2),
+#results-section .table td:nth-child(3),
+#results-section .table td:nth-child(4) {
+    white-space: nowrap;
+}
+
+/* The Notes column absorbs remaining width and wraps freely, but never
+   collapses below a readable line length on mid-width viewports. */
+#results-section .table td:nth-child(5) {
+    min-width: 220px;
+}
+
+/* Tabular (fixed-width) numerals keep times, durations, and mileages
+   vertically aligned down the table. */
+#results-section .table {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── DAY SEPARATOR ROWS ─────────────────────────────────────────────────────
+   Engine-inserted rows (is_day=True) marking each calendar-day boundary in
+   multi-day plans. Subtle band on screen; strong rules in print (below).
+   pointer-events: none exempts them from .table-hover flashing. */
+#results-section tr.hos-day-row {
+    pointer-events: none;
+}
+#results-section tr.hos-day-row > td {
+    background: rgba(255, 255, 255, 0.06);
+    border-top: 2px solid #6c757d;
+    color: #ced4da;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.4rem 0.65rem;
+}
+
+/* ── PRINT: light trip sheet ────────────────────────────────────────────────
+   The site theme is dark; an unstyled print job would be unreadable. These
+   rules force a toner-friendly light sheet containing ONLY the plan.
+   
+   WHITELIST STRATEGY: instead of enumerating site chrome to hide (a
+   blocklist that empirically missed the footer include's markup), hide
+   every direct child of <body> EXCEPT <main>. Navbar, footer, analytics
+   noscript frames, and anything added to <body> in the future all vanish
+   without this stylesheet needing to know their markup. position: fixed
+   footers are the classic offender — browsers stamp fixed elements onto
+   EVERY printed page.
+   
+   Inside <main>, the intro paragraph, form card, and export buttons are
+   hidden via d-print-none in the template; .related-tools-block and the
+   attribution wrapper (d-print-none) are handled below/in-template. */
+@media print {
+    @page {
+        margin: 0.5in;
+    }
+
+    html, body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    body { padding-top: 0 !important; }
+    main { padding: 0 !important; }
+
+    /* Hide all body-level site chrome; keep only <main>. */
+    body > :not(main) {
+        display: none !important;
+    }
+
+    /* In-page content that shouldn't print. */
+    .related-tools-block {
+        display: none !important;
+    }
+
+    /* Flatten the results card onto the sheet. */
+    #results-section,
+    #results-section .card-header,
+    #results-section .card-footer {
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+    #results-section .card-header {
+        border-bottom: 2px solid #000;
+    }
+
+    /* All text dark — outranks base.css's dark-mode .text-muted brightening
+       (#id + class specificity beats [data-bs-theme] + class). */
+    #results-section,
+    #results-section * {
+        color: #000 !important;
+    }
+
+    /* Neutralize the dark-theme row tints; keep the accent borders. */
+    #results-section tr.table-success,
+    #results-section tr.table-info,
+    #results-section tr.table-warning,
+    #results-section tr.table-danger {
+        --bs-table-bg: #fff;
+        --bs-table-color: #000;
+        --bs-table-hover-bg: #fff;
+        --bs-table-hover-color: #000;
+        --bs-table-border-color: #666;
+    }
+
+    #results-section .table th,
+    #results-section .table td {
+        border-color: #666 !important;
+        padding: 0.3rem 0.45rem;    /* compact cells for paper */
+    }
+
+    /* ── TABLE PAGINATION & WIDTH ──────────────────────────────────────────
+       .table-responsive is an overflow-x scroll container; when printed,
+       browsers CLIP scroll containers to their visible portion — which is
+       what amputated the Notes column mid-word. Overflow must be visible
+       on paper. The Notes min-width is released and the font compacted so
+       the table's intrinsic width fits the printable area; the nowrap
+       rules on the time columns still apply, keeping timestamps on one
+       line. */
+    #results-section .table-responsive {
+        overflow: visible !important;
+    }
+    #results-section .table {
+        font-size: 10pt;
+    }
+    #results-section .table td:nth-child(5) {
+        min-width: 0;
+    }
+
+    /* Never split an itinerary row, the summary metrics, or the cycle
+       alert across a page break. thead repeating per page is default
+       browser behavior and desirable — made explicit here. */
+    #results-section tr,
+    #results-section .alert,
+    #results-section .card-body .row {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    #results-section thead {
+        display: table-header-group;
+    }
+
+    /* The 70-hr cycle alert must survive printing legibly. */
+    #results-section .alert {
+        background: #fff !important;
+        color: #000 !important;
+        border: 2px solid #000 !important;
+    }
+
+    /* ── PRINT-MEDIUM POLISH ───────────────────────────────────────────────
+       Day separators become bold horizontal rules; break-after keeps a
+       day header attached to at least its first event row. */
+    #results-section tr.hos-day-row > td {
+        background: #fff !important;
+        border-top: 2px solid #000;
+        border-bottom: 1px solid #000;
+        font-size: 10pt;
+        padding: 0.35rem 0.45rem;
+    }
+    #results-section tr.hos-day-row {
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+
+    /* Route context row inside the repeating thead — small, centered,
+       visually subordinate to the column headers beneath it. */
+    #results-section .hos-print-context {
+        font-size: 8pt;
+        text-align: center;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    /* Summary metrics: the print viewport (~720px at letter width) is
+       below Bootstrap's md breakpoint, so col-md-3 never applies and the
+       four metrics collapse to a ragged 2x2. Force the 4-across desktop
+       layout with compact labels. */
+    #results-section .card-body .row > [class*="col-"] {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+    #results-section .card-body .row small {
+        font-size: 7pt;
+    }
+}

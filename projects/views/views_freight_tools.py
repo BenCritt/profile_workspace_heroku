@@ -24,6 +24,7 @@
 #   multi_stop_splitter              — Per-leg mileage split for multi-stop routes
 #   lane_rate_analyzer               — RPM breakdown with FSC for a given lane
 #   freight_margin_calculator        — Gross margin / GP between customer & carrier
+#   hos_multi_stop_trip_planner      — Multi-stop HOS itinerary w/ per-stop dwell & ETAs
 #
 # ============================================================================
 # GOOGLE MAPS API USAGE
@@ -670,6 +671,145 @@ def multi_stop_splitter(request):
         context["route_zips"] = route_zips
 
     return render(request, "projects/multi_stop_splitter.html", context)
+
+
+# ===========================================================================
+# HOS Multi-Stop Trip Planner
+# ===========================================================================
+# Combines the Multi-Stop Route Mileage Splitter and the HOS Trip Planner
+# into a single dispatcher planning tool.  The user enters an ordered ZIP
+# route (origin + up to 5 intermediate stops + destination) with a service /
+# dwell time at each point.  The tool:
+#   1. Resolves exact road miles for each consecutive leg via Google Maps
+#      (utils.get_road_distance — local ZIP dataset for coords, results
+#      cached in the Django cache framework, same as multi_stop_splitter).
+#   2. Simulates the full duty timeline under FMCSA property-carrying HOS
+#      rules (11-hr driving limit, 14-hr driving window, 30-min break after
+#      8 hrs driving, 10-hr reset, optional 70-hr/8-day cycle tracking).
+#   3. Returns a chronological itinerary (drives, breaks, resets, arrivals,
+#      service dwell) plus the "next-load answer": when the driver is free,
+#      how many drivable hours remain, and when they're fresh after a reset.
+#
+# DEADHEAD: No dedicated field.  HOS clocks are identical for loaded and
+# empty miles, so a deadhead is just the first leg — enter the driver's
+# current ZIP as the origin and the pickup as Stop 1.
+#
+# EARLY RETURNS on Maps API failures preserve the form state so the user
+# can fix the specific problematic ZIP code pair (multi_stop_splitter
+# pattern).
+#
+# CLOCK STATE (mid-shift replanning): four optional form fields carry the
+# driver's live clocks into the simulation — shift_drive_used (11-hr
+# clock), window_used (14-hr window), drive_since_break (8-hr break
+# trigger), and cycle_hours_used (70-hr/8-day).  Blank = 0.0 = a fresh
+# driver coming off a 10-hour reset, so the original behavior is
+# unchanged.  When any of the first three is nonzero,
+# context["replanning_summary"] drives a print-visible banner and a GA4
+# tool_feature_use event in the template.
+#
+# NEXT-LOAD LOOKAHEAD: an optional est.-deadhead-miles field appends a
+# hypothetical leg after the final destination; the engine keeps the
+# clocks running and returns next_pickup_arrival ("At Next Pickup").
+# Route totals stay lookahead-free — hypothetical miles never join
+# total_miles or the summary footer.
+#
+# GET  → empty HOSMultiStopPlannerForm.
+# POST → validates; builds legs via get_road_distance; combines
+#        start_date + start_time; calls
+#        freight_calculator_utils.generate_multi_stop_hos_itinerary()
+#        with the clock-state and lookahead kwargs; sets context["results"],
+#        context["route_zips"], and (mid-shift only)
+#        context["replanning_summary"].
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def hos_multi_stop_trip_planner(request):
+    from datetime import datetime
+    from .. import freight_calculator_utils
+    from ..forms import HOSMultiStopPlannerForm
+    from ..utils import get_road_distance
+
+    form    = HOSMultiStopPlannerForm(request.POST or None)
+    context = {"form": form}
+
+    if request.method == "POST" and form.is_valid():
+        d           = form.cleaned_data
+        route_stops = d["route_stops"]  # [{"zip": str, "service_hours": float}, ...]
+
+        if len(route_stops) < 2:
+            context["error_message"] = (
+                "A route requires at least an origin and a destination."
+            )
+            return render(
+                request, "projects/hos_multi_stop_trip_planner.html", context
+            )
+
+        # Build the legs list; fail fast on the first unresolvable leg
+        # (identical error-handling pattern to multi_stop_splitter).
+        legs = []
+        for i in range(len(route_stops) - 1):
+            from_zip = route_stops[i]["zip"]
+            to_zip   = route_stops[i + 1]["zip"]
+            miles    = get_road_distance(from_zip, to_zip)
+
+            if not miles:
+                context["error_message"] = (
+                    f"Unable to calculate a driving route for Leg {i + 1}: "
+                    f"{from_zip} → {to_zip}. Please verify both ZIP codes."
+                )
+                return render(
+                    request, "projects/hos_multi_stop_trip_planner.html", context
+                )
+
+            legs.append({"from_zip": from_zip, "to_zip": to_zip, "miles": miles})
+
+        # Combine separate date and time fields into the start datetime,
+        # matching the hos_trip_planner view's pattern.
+        start_datetime = datetime.combine(d["start_date"], d["start_time"])
+
+        # Driver's current clocks (mid-shift replanning).  The form's
+        # clean() normalizes blanks to 0.0 floats, so these reads never
+        # see None; the `or 0.0` is belt-and-suspenders for the day the
+        # form and view drift apart.
+        shift_drive_used  = d.get("shift_drive_used", 0.0) or 0.0
+        window_used       = d.get("window_used", 0.0) or 0.0
+        drive_since_break = d.get("drive_since_break", 0.0) or 0.0
+
+        context["results"] = freight_calculator_utils.generate_multi_stop_hos_itinerary(
+            stops=route_stops,
+            legs=legs,
+            speed=d["avg_speed"],
+            start_datetime=start_datetime,
+            cycle_hours_used=d.get("cycle_hours_used") or 0.0,
+            # Carry the live clocks into the simulation: the engine
+            # backdates the 14-hour window anchor by window_used and
+            # seeds the 11-hour and break clocks, so the plan starts
+            # from the driver's actual mid-shift state instead of
+            # assuming a fresh 10-hour reset.
+            shift_drive_used=shift_drive_used,
+            window_used=window_used,
+            drive_since_break=drive_since_break,
+            # Next-load lookahead: hypothetical est. deadhead appended
+            # after destination service; 0/blank disables (engine no-op).
+            lookahead_miles=d.get("lookahead_miles", 0.0) or 0.0,
+        )
+        # Echo the ordered ZIP list for the results route string.
+        context["route_zips"] = [s["zip"] for s in route_stops]
+
+        # Mid-shift replan banner (screen + print) and the GA4 feature
+        # event are both keyed off this one context variable in the
+        # template, so omitting it cleanly suppresses both on
+        # fresh-driver plans.
+        if any(v > 0 for v in (shift_drive_used, window_used, drive_since_break)):
+            fmt = freight_calculator_utils._fmt_hos_duration
+            context["replanning_summary"] = (
+                f"{fmt(shift_drive_used)} driven this shift, "
+                f"{fmt(window_used)} on duty, "
+                f"{fmt(drive_since_break)} since last qualifying break"
+            )
+
+    return render(request, "projects/hos_multi_stop_trip_planner.html", context)
 
 
 # ===========================================================================

@@ -445,4 +445,9 @@ urlpatterns = [
     path("projects/evm-calculator/", views.evm_calculator, name="evm_calculator"),
     path("projects/pert-calculator/", views.pert_calculator, name="pert_calculator"),
     path("projects/critical-path-calculator/", views.critical_path_calculator, name="critical_path_calculator"),
+    path(
+    "projects/hos-multi-stop-trip-planner/",
+    views.hos_multi_stop_trip_planner,
+    name="hos_multi_stop_trip_planner",
+),
 ]

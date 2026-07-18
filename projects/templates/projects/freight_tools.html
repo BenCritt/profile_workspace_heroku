@@ -90,6 +90,16 @@
 
             <div class="card tool-card shadow-sm">
                 <div class="card-body">
+                    <h2 class="card-title h4">HOS Multi-Stop Trip Planner</h2>
+                    <img src="{% static 'img/all-projects/hos-multi-stop-trip-planner.webp' %}" alt="HOS Multi-Stop Trip Planner" class="img-fluid rounded my-3">
+                    <p class="card-text small">Chain pickups, deliveries, and deadhead into one HOS-compliant plan. Exact miles per leg plus service time at every stop, with per-stop ETAs and next-load availability.</p>
+                    <a href="{% url 'projects:hos_multi_stop_trip_planner' %}" class="btn btn-primary mt-2"
+                        data-gtm-hub-tool="HOS Multi-Stop Trip Planner">Open Planner</a>
+                </div>
+            </div>
+
+            <div class="card tool-card shadow-sm">
+                <div class="card-body">
                     <h2 class="card-title h4">Freight Class Calculator</h2>
                     <img src="{% static 'img/all-projects/freight-class-calculator.webp' %}" alt="Freight Class Calculator" class="img-fluid rounded my-3">                
                     <p class="card-text small">Avoid re-bills by calculating density (PCF) and estimating the correct NMFC Freight Class for LTL shipments.</p>
@@ -224,6 +234,18 @@
                 </div>
             </div>
         
+            <div class="card iframe-card-wrapper shadow-sm">
+                <div class="card-body p-0 p-md-3">
+                    <iframe
+                        src="{% url 'projects:hos_multi_stop_trip_planner' %}"
+                        title="HOS Multi-Stop Trip Planner"
+                        loading="lazy"
+                        scrolling="yes">
+                    </iframe>
+                    <a href="{% url 'projects:hos_multi_stop_trip_planner' %}" class="btn btn-secondary mt-3">Full Page View</a>
+                </div>
+            </div>
+
             <div class="card iframe-card-wrapper shadow-sm">
                 <div class="card-body p-0 p-md-3">
                     <iframe src="{% url 'projects:freight_class_calculator' %}" title="Freight Class Calculator" loading="lazy" scrolling="no"></iframe>

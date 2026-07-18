@@ -1,0 +1,638 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/hos_multi_stop_trip_planner_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/hos_multi_stop_trip_planner_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/hos-multi-stop-trip-planner/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/hos_multi_stop_trip_planner.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}HOS Multi-Stop Trip Planner | Dispatcher Route &amp; ETA Calculator{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <h1 class="text-center mb-4"><i class="bi bi-truck me-2"></i>HOS Multi-Stop Trip Planner</h1>
+            <p class="text-muted text-center mb-5 d-print-none">
+                Chain pickups, deliveries, and deadhead into one plan. Exact Google Maps miles per leg,
+                on-duty service time at every stop, and a full FMCSA Hours of Service timeline —
+                so you know each ETA and exactly when the driver can take the next load.
+            </p>
+
+            <div class="card shadow-sm mb-5 d-print-none">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="HOS Multi-Stop Trip Planner" data-gtm-category="Freight Tools">
+                        {% csrf_token %}
+
+                        {# --- Route Endpoints --- #}
+                        <fieldset class="mb-4">
+                            <legend class="h6 fw-bold text-muted mb-3">Route Endpoints</legend>
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    {{ form.origin_zip.label_tag }}
+                                    {{ form.origin_zip }}
+                                    {% if form.origin_zip.help_text %}
+                                        <small class="form-text text-muted">{{ form.origin_zip.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.origin_zip.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.origin_service_hours.label_tag }}
+                                    {{ form.origin_service_hours }}
+                                    {% if form.origin_service_hours.help_text %}
+                                        <small class="form-text text-muted">{{ form.origin_service_hours.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.origin_service_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-7">
+                                    {{ form.destination_zip.label_tag }}
+                                    {{ form.destination_zip }}
+                                    {% if form.destination_zip.help_text %}
+                                        <small class="form-text text-muted">{{ form.destination_zip.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.destination_zip.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.destination_service_hours.label_tag }}
+                                    {{ form.destination_service_hours }}
+                                    {% if form.destination_service_hours.help_text %}
+                                        <small class="form-text text-muted">{{ form.destination_service_hours.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.destination_service_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {# --- Intermediate Stops --- #}
+                        <fieldset class="mb-4">
+                            <legend class="h6 fw-bold text-muted mb-3">Intermediate Stops (Optional)</legend>
+                            <small class="form-text text-muted d-block mb-2">
+                                Add up to 5 stops in route order with the on-duty service time at each
+                                (loading, unloading, lumper). Leave unused stops blank.
+                            </small>
+
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    {{ form.stop_1.label_tag }}
+                                    {{ form.stop_1 }}
+                                    {% for error in form.stop_1.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.stop_1_hours.label_tag }}
+                                    {{ form.stop_1_hours }}
+                                    {% for error in form.stop_1_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-md-7">
+                                    {{ form.stop_2.label_tag }}
+                                    {{ form.stop_2 }}
+                                    {% for error in form.stop_2.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.stop_2_hours.label_tag }}
+                                    {{ form.stop_2_hours }}
+                                    {% for error in form.stop_2_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-md-7">
+                                    {{ form.stop_3.label_tag }}
+                                    {{ form.stop_3 }}
+                                    {% for error in form.stop_3.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.stop_3_hours.label_tag }}
+                                    {{ form.stop_3_hours }}
+                                    {% for error in form.stop_3_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-md-7">
+                                    {{ form.stop_4.label_tag }}
+                                    {{ form.stop_4 }}
+                                    {% for error in form.stop_4.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.stop_4_hours.label_tag }}
+                                    {{ form.stop_4_hours }}
+                                    {% for error in form.stop_4_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-md-7">
+                                    {{ form.stop_5.label_tag }}
+                                    {{ form.stop_5 }}
+                                    {% for error in form.stop_5.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-5">
+                                    {{ form.stop_5_hours.label_tag }}
+                                    {{ form.stop_5_hours }}
+                                    {% for error in form.stop_5_hours.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {# --- Trip Parameters --- #}
+                        <fieldset class="mb-4">
+                            <legend class="h6 fw-bold text-muted mb-3">Trip Parameters</legend>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    {{ form.avg_speed.label_tag }}
+                                    {{ form.avg_speed }}
+                                    {% for error in form.avg_speed.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.start_date.label_tag }}
+                                    {{ form.start_date }}
+                                    {% for error in form.start_date.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.start_time.label_tag }}
+                                    {{ form.start_time }}
+                                    {% for error in form.start_time.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="form-text text-muted d-block mt-2">
+                                Planning a fresh driver: Start Date &amp; Time is when the driver comes on duty.
+                                Replanning mid-shift (clocks below): it's the moment you're planning from &mdash; right now.
+                            </small>
+                        </fieldset>
+
+                        {# --- Driver's Current Clocks (mid-shift replanning) --- #}
+                        {% comment %}
+                            All four fields are optional. Blank = a fresh driver coming
+                            off a 10-hour reset, so the original happy path is unchanged.
+                            Filling them in carries the driver's live clock state into
+                            generate_multi_stop_hos_itinerary(), which backdates the
+                            14-hour window anchor by window_used — this is what makes
+                            replanning around a late shipper or breakdown legal.
+                        {% endcomment %}
+                        <fieldset class="mb-4">
+                            <legend class="h6 fw-bold text-muted mb-3">Driver's Current Clocks (Optional)</legend>
+                            <small class="form-text text-muted d-block mb-2">
+                                Leave blank to plan a fresh driver coming off a 10-hour reset. To replan
+                                mid-shift &mdash; a late shipper, a breakdown, a swapped load &mdash; enter where the
+                                driver's clocks stand right now and the whole plan starts from that state.
+                            </small>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.shift_drive_used.label_tag }}
+                                    {{ form.shift_drive_used }}
+                                    {% if form.shift_drive_used.help_text %}
+                                        <small class="form-text text-muted">{{ form.shift_drive_used.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.shift_drive_used.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.window_used.label_tag }}
+                                    {{ form.window_used }}
+                                    {% if form.window_used.help_text %}
+                                        <small class="form-text text-muted">{{ form.window_used.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.window_used.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.drive_since_break.label_tag }}
+                                    {{ form.drive_since_break }}
+                                    {% if form.drive_since_break.help_text %}
+                                        <small class="form-text text-muted">{{ form.drive_since_break.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.drive_since_break.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.cycle_hours_used.label_tag }}
+                                    {{ form.cycle_hours_used }}
+                                    {% if form.cycle_hours_used.help_text %}
+                                        <small class="form-text text-muted">{{ form.cycle_hours_used.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.cycle_hours_used.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {# --- Next-Load Lookahead --- #}
+                        {% comment %}
+                            Booked loads with known ZIPs belong in the route
+                            fieldsets above.  This field is for the load that
+                            ISN'T booked yet: the engine appends the estimated
+                            empty miles as a hypothetical leg after destination
+                            service and reports when the driver can be on site.
+                        {% endcomment %}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Next-Load Lookahead (Optional)</legend>
+                            <small class="form-text text-muted d-block mb-2">
+                                Booked loads with known ZIPs belong in the route above. This is for the load
+                                you haven't booked yet: estimate the empty miles from the final destination
+                                and the plan keeps running under the same HOS clocks to show when the driver
+                                can be on site.
+                            </small>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.lookahead_miles.label_tag }}
+                                    {{ form.lookahead_miles }}
+                                    {% if form.lookahead_miles.help_text %}
+                                        <small class="form-text text-muted">{{ form.lookahead_miles.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.lookahead_miles.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Generate Trip Plan</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger shadow-sm text-center" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                       #}
+            {# ============================================================= #}
+            {% if results %}
+            <div id="results-section" class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0">Estimated Final Arrival: {{ results.arrival_time|date:"l, F jS @ g:i A" }}</h4>
+                </div>
+                <div class="card-body">
+
+                    {% if results.truncated %}
+                    <div class="alert alert-warning small text-center">
+                        This plan exceeded the simulation safety limit and may be incomplete.
+                        Please verify the mileage and speed inputs.
+                    </div>
+                    {% endif %}
+
+                    {% comment %}
+                        Deliberately NOT d-print-none: a printed/PDF plan that
+                        started mid-shift must say so, or an auditor reading the
+                        sheet later can't tell it from a fresh-driver plan.
+                    {% endcomment %}
+                    {% if replanning_summary %}
+                    <div id="replan-banner" class="alert alert-info small text-center">
+                        <i class="bi bi-arrow-repeat me-1"></i>
+                        Mid-shift replan &mdash; clocks carried in: {{ replanning_summary }}.
+                        All times below start from the driver's current state, not a fresh reset.
+                    </div>
+                    {% endif %}
+
+                    {# --- Next-Load Answer --- #}
+                    <div class="row text-center mb-3">
+                        <div class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">Driver Free At</small><br>
+                            <span class="fw-bold">{{ results.driver_free_time|date:"D g:i A" }}</span>
+                        </div>
+                        {% if results.next_pickup_arrival %}
+                        <div id="lookahead-answer" class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">At Next Pickup (Est.)</small><br>
+                            <span class="fw-bold">{{ results.next_pickup_arrival|date:"D g:i A" }}</span><br>
+                            <small class="text-muted">{{ results.lookahead_miles_str }} mi est. deadhead{% if results.lookahead_reset_required %} · after a 10-hr reset{% endif %}</small>
+                        </div>
+                        {% endif %}
+                        <div class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">Drivable Hours Left</small><br>
+                            <span class="fw-bold">{{ results.drivable_now_str }}</span>
+                        </div>
+                        <div class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">Drivable Miles Left</small><br>
+                            <span class="fw-bold">~{{ results.reachable_miles_str }} mi</span>
+                        </div>
+                        <div class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">Fresh After 10-Hr Reset</small><br>
+                            <span class="fw-bold">{{ results.fresh_after_reset|date:"D g:i A" }}</span>
+                        </div>
+                        <div class="col-6 col-md-4 mb-2">
+                            <small class="text-uppercase text-muted">70-Hr Cycle Left</small><br>
+                            <span class="fw-bold">{{ results.cycle_remaining_str }}</span>
+                        </div>
+                    </div>
+
+                    {% if results.cycle_exceeded %}
+                    <div class="alert alert-danger small text-center mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        This plan exceeds the 70-hour/8-day cycle by {{ results.cycle_overage_str }}.
+                        A 34-hour restart or recap hours are required (not modeled in this version).
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center mb-2">
+                        <small class="text-muted">
+                            Route:
+                            {% for zip in route_zips %}{% if not forloop.first %} ➜ {% endif %}{{ zip }}{% endfor %}
+                        </small>
+                    </div>
+                </div>
+
+                {# --- Itinerary Table --- #}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            {% comment %}
+                            Print-only context row: thead repeats on every
+                               printed page, so this stamps the route onto
+                               every sheet of a multi-page trip plan.
+                            {% endcomment %}
+                            <tr class="d-none d-print-table-row">
+                                <th colspan="5" class="hos-print-context fw-normal">
+                                    Route: {% for zip in route_zips %}{% if not forloop.first %} ➜ {% endif %}{{ zip }}{% endfor %}
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>Event</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Duration</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leg in results.itinerary %}
+                            {% if leg.is_day %}
+                            <tr class="hos-day-row">
+                                <td colspan="5">{{ leg.event }}</td>
+                            </tr>
+                            {% else %}
+                            <tr class="{% if leg.is_warning %}table-danger{% elif leg.is_break %}table-warning{% elif leg.is_highlight %}table-success fw-bold{% elif leg.is_service %}table-info{% elif leg.is_lookahead %}table-secondary{% endif %}">
+                                <td>
+                                    {% if leg.event == "Drive" %}
+                                        <i class="bi bi-steering-wheel me-2 text-primary"></i>
+                                    {% elif leg.is_warning %}
+                                        <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                                    {% elif leg.is_break %}
+                                        <i class="bi bi-cup-hot me-2 text-warning"></i>
+                                    {% elif leg.is_service %}
+                                        <i class="bi bi-box-seam me-2 text-info"></i>
+                                    {% elif leg.is_lookahead %}
+                                        <i class="bi bi-geo-alt me-2 text-secondary"></i>
+                                    {% else %}
+                                        <i class="bi bi-geo-alt-fill me-2 text-success"></i>
+                                    {% endif %}
+                                    {{ leg.event }}
+                                </td>
+                                <td>{{ leg.start|date:"D g:i A" }}</td>
+                                <td>{{ leg.end|date:"D g:i A" }}</td>
+                                <td>{{ leg.duration }}</td>
+                                <td class="small text-muted">{{ leg.note }}</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# --- Export actions (hidden in print output) --- #}
+                    <div class="text-center mt-3 d-print-none">
+                        <button type="button" id="print-plan-btn" class="btn btn-outline-light btn-sm me-2">
+                            <i class="bi bi-printer me-1"></i>Print / Save as PDF
+                        </button>
+                        <button type="button" id="copy-driver-btn" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-clipboard-check me-1"></i>Copy Driver Itinerary
+                        </button>
+                    </div>
+                    <br>
+                    {% comment %}
+                        Plain-text plan for the clipboard — visually-hidden (not
+                        d-none) so the selection-based copy fallback can still
+                        select it.
+                    {% endcomment %}
+                    <textarea id="driver-itinerary-text" class="visually-hidden"
+                              readonly aria-hidden="true" tabindex="-1">{{ results.driver_text }}</textarea>
+
+                    <p class="d-none d-print-block small text-center mt-3 mb-0">
+                        Generated by the HOS Multi-Stop Trip Planner at https://www.bencritt.net/ —
+                        planning estimate only, not an official Record of Duty Status. Verify against the ELD.
+                        <span id="print-timestamp" class="d-block"></span>
+                    </p>
+
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        {{ results.total_miles }} route miles across {{ results.total_legs }} leg{{ results.total_legs|pluralize }}{% if results.lookahead_miles_str %} (+{{ results.lookahead_miles_str }} mi est. deadhead){% endif %} ·
+                        Driving {{ results.total_drive_str }} ·
+                        Service {{ results.total_service_str }} ·
+                        Breaks &amp; resets {{ results.total_rest_str }} ·
+                        Start to driver-free {{ results.total_trip_str }}
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational + Related Tools Section — hidden when embedded in an iframe via .related-tools-block --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-10 col-lg-8">
+            <h3 class="h5 mb-3 text-muted">How This Planner Handles Your Day</h3>
+            <p class="small text-muted mb-2">
+                <strong>Deadhead miles</strong> need no special field. Hours of Service clocks run identically
+                whether the trailer is loaded or empty, so enter the driver's current ZIP as the origin and the
+                first pickup as Stop 1 — the opening leg is your deadhead, calculated with the same exact
+                Google Maps road miles as every other leg. That covers every deadhead between known points.
+                For the load you haven't booked yet, use the Next-Load Lookahead field: the plan keeps the
+                clocks running over your estimated empty miles and shows when the driver can be on site.
+                The Drivable Miles Left figure is the quick version — how far out you can shop the load
+                boards right now. Treat it as an upper bound: a required 30-minute break can shave it when
+                the 14-hour window is the binding clock.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Service time counts differently than driving.</strong> On-duty stop time (loading, unloading,
+                lumper work) consumes the 14-hour driving window and the 70-hour cycle, but not the 11-hour driving
+                limit — and under the FMCSA's September 2020 rule, any 30 or more consecutive non-driving minutes,
+                including dock time, satisfies the 30-minute break requirement. Working past the 14th hour is legal;
+                driving past it is not, so the planner inserts the mandatory 10-hour reset before the next leg.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Not modeled in this version:</strong> sleeper-berth splits (8/2, 7/3), the 60-hour/7-day cycle,
+                the 34-hour restart, adverse driving conditions, and the short-haul exception. Verify any borderline
+                plan against the FMCSA Hours of Service regulations at
+                <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" class="related-tool-link" rel="noopener">https://www.fmcsa.dot.gov/regulations/hours-of-service</a>.
+            </p>
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> For a simple point-to-point ETA, use the
+                <a href="{% url 'projects:hos_trip_planner' %}" class="related-tool-link">HOS Trip Planner</a>.
+                To split this route's mileage per leg for invoicing and stop-off charges, use the
+                <a href="{% url 'projects:multi_stop_splitter' %}" class="related-tool-link">Multi-Stop Route Mileage Splitter</a>.
+                If a shipper holds your driver past free time, bill it with the
+                <a href="{% url 'projects:detention_layover_fee_calculator' %}" class="related-tool-link">Detention &amp; Layover Fee Calculator</a>.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center d-print-none">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                // GA4: distinguish mid-shift replans from fresh-driver plans.
+                // The replan banner div only renders when clock state was
+                // carried in, so its presence in the DOM is the server-side
+                // flag. Checking the DOM instead of a Django template
+                // conditional keeps this block pure JavaScript — template
+                // tags inside script blocks trip editors' JS parsers.
+                if (document.getElementById("replan-banner")) {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        event: "tool_feature_use",
+                        tool_name: "HOS Multi-Stop Trip Planner",
+                        feature: "mid_shift_replan"
+                    });
+                }
+
+                // GA4: flag plans that used the next-load lookahead.
+                // Same DOM-presence pattern as the replan flag above —
+                // the cell only renders when the engine produced a
+                // next_pickup_arrival.
+                if (document.getElementById("lookahead-answer")) {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        event: "tool_feature_use",
+                        tool_name: "HOS Multi-Stop Trip Planner",
+                        feature: "next_load_lookahead"
+                    });
+                }
+
+                // --- Export actions ---
+                const printBtn   = document.getElementById("print-plan-btn");
+                const copyBtn    = document.getElementById("copy-driver-btn");
+                const driverText = document.getElementById("driver-itinerary-text");
+
+                // Stamp the sheet with the moment it was printed, in the
+                // visitor's local time. beforeprint fires for both the
+                // Print button (window.print) and Ctrl+P / browser menu.
+                const printStamp = document.getElementById("print-timestamp");
+                if (printStamp) {
+                    window.addEventListener("beforeprint", function() {
+                        printStamp.textContent = "Printed " + new Date().toLocaleString(undefined, {
+                            weekday: "short", year: "numeric", month: "short",
+                            day: "numeric", hour: "numeric", minute: "2-digit"
+                        });
+                    });
+                }
+
+                // GA4 export tracking via the GTM data layer.
+                function gtmExport(type) {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        event: "tool_export",
+                        tool_name: "HOS Multi-Stop Trip Planner",
+                        export_type: type
+                    });
+                }
+
+                if (printBtn) {
+                    printBtn.addEventListener("click", function() {
+                        gtmExport("print");
+                        window.print();
+                    });
+                }
+
+                if (copyBtn && driverText) {
+                    copyBtn.addEventListener("click", function() {
+                        const text = driverText.value;
+
+                        function showCopied() {
+                            const original = copyBtn.innerHTML;
+                            copyBtn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+                            copyBtn.disabled = true;
+                            setTimeout(function() {
+                                copyBtn.innerHTML = original;
+                                copyBtn.disabled = false;
+                            }, 2000);
+                            gtmExport("copy_text");
+                        }
+
+                        // Selection-based fallback for browsers without the
+                        // async Clipboard API (or when it's denied).
+                        function fallbackCopy() {
+                            driverText.classList.remove("visually-hidden");
+                            driverText.select();
+                            driverText.setSelectionRange(0, text.length);
+                            try {
+                                document.execCommand("copy");
+                                showCopied();
+                            } catch (e) {
+                                alert("Copy failed - please select and copy the text manually.");
+                            }
+                            driverText.classList.add("visually-hidden");
+                            window.getSelection().removeAllRanges();
+                        }
+
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
+                        } else {
+                            fallbackCopy();
+                        }
+                    });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

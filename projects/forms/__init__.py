@@ -22,7 +22,7 @@
 #                          LinearFootForm, DetentionFeeForm, WarehouseStorageForm,
 #                          PartialRateForm, DeadheadCalculatorForm,
 #                          MultiStopSplitterForm, LaneRateAnalyzerForm,
-#                          FreightMarginForm
+#                          FreightMarginForm, HOSMultiStopPlannerForm
 #   forms_glass_tools.py   GlassVolumeForm, KilnScheduleForm, StainedGlassCostForm,
 #                          TempConverterForm, RampCalculatorForm,
 #                          StainedGlassMaterialsForm, LampworkMaterialForm,
@@ -85,6 +85,7 @@ from .forms_freight_tools import (
     MultiStopSplitterForm,
     LaneRateAnalyzerForm,
     FreightMarginForm,
+    HOSMultiStopPlannerForm,
 )
 
 from .forms_glass_tools import (
@@ -148,7 +149,7 @@ __all__ = [
     "HOSTripPlannerForm", "TieDownForm", "CPMCalculatorForm",
     "LinearFootForm", "DetentionFeeForm", "WarehouseStorageForm",
     "PartialRateForm", "DeadheadCalculatorForm", "MultiStopSplitterForm",
-    "LaneRateAnalyzerForm", "FreightMarginForm",
+    "LaneRateAnalyzerForm", "FreightMarginForm", "HOSMultiStopPlannerForm",
     # Glass Tools
     "GlassVolumeForm", "KilnScheduleForm", "StainedGlassCostForm",
     "TempConverterForm", "RampCalculatorForm", "StainedGlassMaterialsForm",

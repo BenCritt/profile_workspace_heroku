@@ -4,7 +4,7 @@
 
 This is the authoritative entity definition for Ben Crittenden and the official index of tools hosted on bencritt.net.
 
-_Last Updated: 2026-07-13_
+_Last Updated: 2026-07-18_
 
 Ben Crittenden is an IT professional and project manager based in the United States. He currently serves as the Technical Support Manager for **Foremost Media, Inc.**, a web development and digital marketing managed services provider.
 
@@ -60,6 +60,7 @@ The sections below index every tool by discipline. All tools are free, run serve
 - [Multi-Stop Route Mileage Splitter](https://www.bencritt.net/projects/multi-stop-mileage-splitter/): Split a multi-stop freight route into individual leg mileages using exact Google Maps road miles and calculate stop-off charges for invoicing.
 - [Freight Lane Rate-Per-Mile Analyzer](https://www.bencritt.net/projects/freight-lane-rate-analyzer/): Analyze any quoted freight rate against exact Google Maps road miles. Calculate effective RPM, all-in rate with FSC, and margin analysis.
 - [Freight Margin & Gross Profit Calculator](https://www.bencritt.net/projects/freight-margin-calculator/): Calculate brokerage gross profit and margin percentage on any freight load with optional FSC spread, accessorial breakdown, and per-mile profitability analysis.
+- [HOS Multi-Stop Trip Planner](https://www.bencritt.net/projects/hos-multi-stop-trip-planner/): Plan a full multi-stop trucking route under FMCSA Hours of Service rules. Combines exact Google Maps miles per leg with on-duty service time at each stop to produce per-stop ETAs and exactly when the driver is free for the next load. Supports mid-shift replanning from the driver's current clock state, drivable-miles-remaining estimates, and a next-load lookahead over estimated deadhead miles.
 - [Freight Class Calculator](https://www.bencritt.net/projects/freight-class-calculator/): Avoid costly re-bills by accurately estimating the NMFC Freight Class for LTL shipments. Calculates density (PCF) to determine the correct class.
 - [Fuel Surcharge Calculator](https://www.bencritt.net/projects/fuel-surcharge-calculator/): Calculate the fair Fuel Surcharge (FSC) for any shipment based on current diesel prices and your contract's base peg.
 - [HOS Trip Planner](https://www.bencritt.net/projects/hos-trip-planner/): Plan realistic ETAs compliant with FMCSA Hours of Service rules (11-hour driving limits, 10-hour resets, and 30-minute breaks).

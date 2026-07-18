@@ -139,6 +139,7 @@ from .views_seo_tools import (
 # multi_stop_splitter        — per-leg mileage split for multi-stop routes
 # lane_rate_analyzer         — RPM breakdown with FSC for a given lane
 # freight_margin_calculator  — gross margin / GP between customer & carrier
+# hos_multi_stop_trip_planner      — multi-stop HOS itinerary w/ per-stop dwell & ETAs
 from .views_freight_tools import (
     freight_tools,
     freight_class_calculator,
@@ -155,6 +156,7 @@ from .views_freight_tools import (
     multi_stop_splitter,
     lane_rate_analyzer,
     freight_margin_calculator,
+    hos_multi_stop_trip_planner,
 )
 
 # ----------------------------------------------------------------------------
@@ -294,6 +296,7 @@ __all__ = [
     "detention_layover_fee_calculator", "warehouse_storage_calculator",
     "partial_rate_calculator", "deadhead_calculator", "multi_stop_splitter",
     "lane_rate_analyzer", "freight_margin_calculator",
+    "hos_multi_stop_trip_planner",
 
     # ── Glass Tools ───────────────────────────────────────────────────────
     "glass_artist_toolkit", "glass_volume_calculator", "kiln_schedule_generator",

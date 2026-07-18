@@ -475,6 +475,18 @@ def all_projects(request):
             "image": "critical-path-calculator.webp",
             "description": "Run a full Critical Path Method analysis from a simple activity list. Forward and backward passes calculate ES, EF, LS, and LF, total and free float for every activity, and the critical path that sets your project duration — with circular-dependency detection built in."
         },
+        {
+            "title": "HOS Multi-Stop Trip Planner",
+            "url_name": "projects:hos_multi_stop_trip_planner",
+            "image": "hos-multi-stop-trip-planner.webp",
+            "description": "Plan an entire multi-stop trucking route under "
+                    "FMCSA Hours of Service rules. Combines exact Google Maps "
+                    "road miles per leg with on-duty service time at every "
+                    "stop, then simulates the 11-hour driving limit, 14-hour "
+                    "window, 30-minute break, 10-hour resets, and 70-hour/"
+                    "8-day cycle to produce per-stop ETAs and exactly when "
+                    "the driver is free for the next load."
+        },
     ]
 
     context = {

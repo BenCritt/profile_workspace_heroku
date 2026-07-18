@@ -234,3 +234,54 @@ main {
 [data-bs-theme="dark"] {
     --bs-body-color: #f8f9fa; /* Bootstrap's "gray-100" */
 }
+
+/* ── PRINT: site-wide baseline ──────────────────────────────────────────────
+   The navbar and footer are hidden in print via d-print-none on their
+   elements (includes/navbar.html, includes/footer.html) — utility-class
+   specificity is required there because the footer's .d-flex
+   (display: flex !important) outranks any element-selector hide rule.
+
+   Two things remain for every page:
+
+   1. LAYOUT: body's 100px top padding (clears the fixed navbar) and main's
+      150px bottom padding (clears the fixed footer) are dead space on paper
+      once that chrome is hidden.
+
+   2. COLOR: browsers strip background colors by default when printing but
+      keep text color as-is, so the dark theme's near-white body text
+      (--bs-body-color: #f8f9fa) and this file's brightened .text-muted
+      (#ced4da) would print as light-gray-on-white. The variable overrides
+      below reverse the dark theme for print only. This block sits at the
+      end of the file, so at equal specificity it wins on source order
+      against the dark-mode rules above.
+
+   Per-tool print polish (e.g., the HOS Multi-Stop Trip Planner's trip
+   sheet) stays in each tool's own stylesheet; this block only guarantees
+   every page prints readable. */
+@media print {
+    body {
+        padding-top: 0 !important;
+    }
+    main {
+        padding-bottom: 0 !important;
+    }
+
+    /* Reverse the dark theme's color variables for paper. Components that
+       derive from these (cards, tables, form text) follow automatically. */
+    [data-bs-theme="dark"] {
+        --bs-body-color: #000;
+        --bs-body-bg: #fff;
+        --bs-secondary-color: rgba(0, 0, 0, 0.75);
+    }
+    html, body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    /* Reverses this file's own dark-mode brightening of muted text
+       (identical selectors, later in source, so it wins in print). */
+    [data-bs-theme="dark"] .text-secondary,
+    [data-bs-theme="dark"] .text-muted {
+        color: #333 !important;
+    }
+}

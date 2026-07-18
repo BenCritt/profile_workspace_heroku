@@ -11,6 +11,7 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("hos_multi_stop_trip_planner","hos-multi-stop-trip-planner"),
     ("pm_tools","pm-tools"),
     ("evm_calculator","evm-calculator"),
     ("pert_calculator","pert-calculator"),

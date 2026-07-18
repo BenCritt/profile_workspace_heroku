@@ -38,14 +38,15 @@
           { "@type": "ListItem", "position": 4, "item": { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" } },
           { "@type": "ListItem", "position": 5, "item": { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" } },
           { "@type": "ListItem", "position": 6, "item": { "@id": "https://www.bencritt.net/projects/freight-margin-calculator/#app" } },
-          { "@type": "ListItem", "position": 7, "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" } },
-          { "@type": "ListItem", "position": 8, "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" } },
-          { "@type": "ListItem", "position": 9, "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" } },
-          { "@type": "ListItem", "position": 10, "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" } },
-          { "@type": "ListItem", "position": 11, "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" } },
-          { "@type": "ListItem", "position": 12, "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" } },
-          { "@type": "ListItem", "position": 13, "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" } },
-          { "@type": "ListItem", "position": 14, "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" } }
+          { "@type": "ListItem", "position": 7, "item": { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" } },
+          { "@type": "ListItem", "position": 8, "item": { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" } },
+          { "@type": "ListItem", "position": 9, "item": { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" } },
+          { "@type": "ListItem", "position": 10, "item": { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" } },
+          { "@type": "ListItem", "position": 11, "item": { "@id": "https://www.bencritt.net/projects/hos-trip-planner/#app" } },
+          { "@type": "ListItem", "position": 12, "item": { "@id": "https://www.bencritt.net/projects/tie-down-calculator/#app" } },
+          { "@type": "ListItem", "position": 13, "item": { "@id": "https://www.bencritt.net/projects/cost-per-mile-calculator/#app" } },
+          { "@type": "ListItem", "position": 14, "item": { "@id": "https://www.bencritt.net/projects/detention-layover-fee-calculator/#app" } },
+          { "@type": "ListItem", "position": 15, "item": { "@id": "https://www.bencritt.net/projects/warehouse-storage-calculator/#app" } }
         ]
       },
       "hasPart": [
@@ -55,6 +56,7 @@
         { "@id": "https://www.bencritt.net/projects/multi-stop-mileage-splitter/#app" },
         { "@id": "https://www.bencritt.net/projects/freight-lane-rate-analyzer/#app" },
         { "@id": "https://www.bencritt.net/projects/freight-margin-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" },
         { "@id": "https://www.bencritt.net/projects/freight-class-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/linear-foot-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/fuel-surcharge-calculator/#app" },
@@ -316,6 +318,27 @@
         "Break down FSC spread between customer and carrier",
         "Track accessorial charge-backs on both sides of the transaction",
         "Show per-mile revenue, cost, and profit using exact Google Maps road miles"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app",
+      "name": "HOS Multi-Stop Trip Planner",
+      "description": "Plan multi-stop trucking routes under FMCSA Hours of Service rules. Exact Google Maps miles per leg plus on-duty service time at every stop, simulated against the 11-hour limit, 14-hour window, 30-minute break, 10-hour resets, and 70-hour/8-day cycle. Supports mid-shift replanning and a next-load lookahead over estimated deadhead miles.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/",
+      "image": "https://www.bencritt.net/static/img/all-projects/hos-multi-stop-trip-planner.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Chain up to 5 intermediate stops using exact Google Maps road miles per leg",
+        "Model on-duty service and dwell time at every stop, including deadhead legs",
+        "Simulate the 11-hour driving limit, 14-hour window, and 30-minute break rule",
+        "Insert 10-hour resets automatically and track the 70-hour/8-day cycle",
+        "Produce per-stop ETAs, next-load availability, and a chronological duty timeline",
+        "Replan mid-shift from the driver's current clocks and look ahead to the next load over estimated deadhead miles"
       ]
     }
   ]

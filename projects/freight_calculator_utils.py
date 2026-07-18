@@ -252,6 +252,589 @@ def generate_hos_itinerary(miles_remaining, speed, start_datetime):
         "arrival_time": current_time
     }
 
+def _fmt_hos_duration(hours):
+    """
+    Formats a decimal hour value as 'Xh YYm' (e.g. 2.5 → '2h 30m').
+    Guards against float rounding pushing minutes to 60.
+    """
+    h = int(hours)
+    m = int(round((hours - h) * 60))
+    if m == 60:  # e.g. 1.9999 hours rounding up
+        h += 1
+        m = 0
+    return f"{h}h {m:02d}m"
+
+def _fmt_miles(miles):
+    """
+    Formats a mileage value for display.  Whole-number distances render
+    without a decimal ("186", "2,502"); clock-limited drive chunks that
+    genuinely land on a fraction keep one decimal ("247.5").  Prevents
+    "186.0 of 2502.0" float noise from Google Maps leg values.
+    """
+    rounded = round(miles, 1)
+    if rounded == int(rounded):
+        return f"{int(rounded):,}"
+    return f"{rounded:,}"
+
+def _fmt_txt_time(dt):
+    """
+    Formats a datetime as 'Tue 7:23 PM' for plain-text output.
+    strftime's zero-stripped hour flag is platform-specific (%-I on
+    POSIX, %#I on Windows), so the leading zero is stripped manually to
+    behave identically on Heroku (Linux) and a Windows dev machine.
+    """
+    text = dt.strftime("%a %I:%M %p")   # 'Tue 07:23 PM'
+    return text.replace(" 0", " ", 1)   # first ' 0' is always the hour slot
+
+
+def generate_multi_stop_hos_itinerary(
+    stops, legs, 
+    speed, start_datetime, 
+    cycle_hours_used=0.0,
+    shift_drive_used=0.0,    # hrs driven since last 10-hr reset  (11-hr clock)
+    window_used=0.0,         # hrs since coming on duty this shift (14-hr clock)
+    drive_since_break=0.0,   # hrs driven since last 30+ min non-driving
+    lookahead_miles=0.0,     # est. empty miles to an unbooked next pickup (0 = off)
+):
+    """
+    Simulates a multi-stop truck trip under FMCSA property-carrying HOS
+    rules (49 CFR 395.3), chaining drive legs and on-duty service/dwell
+    stops while the HOS clocks run continuously.
+
+    Extends generate_hos_itinerary() with:
+      - Multiple legs with exact Google Maps miles per leg
+      - On-duty (not driving) service/dwell time at each route point
+      - The 14-hour driving window (binding once dwell time exists —
+        pure-drive trips can never reach it, which is why the single-leg
+        planner omits it)
+      - The Sept 2020 break rule: ANY 30+ consecutive non-driving minutes
+        (including on-duty loading/unloading) satisfies the 30-minute
+        break requirement
+      - Optional 70-hour/8-day cycle tracking (driving + on-duty service
+        accumulate; a marker event is inserted when the plan crosses 70h)
+      - Optional next-load lookahead: estimated deadhead miles appended
+        as a hypothetical leg after destination service.  The clocks
+        keep running and next_pickup_arrival reports when the driver is
+        on site.  Metric boundaries: header capacity (drivable hours /
+        miles) is snapshotted at driver-free time BEFORE the lookahead
+        spends it; cycle figures INCLUDE the lookahead (cycle-left is
+        only useful net of everything the plan draws); route totals and
+        the summary footer EXCLUDE it (hypothetical miles must never
+        leak into anything invoice-shaped)
+
+    NOT modeled in v1 (stated on the tool page): sleeper-berth splits
+    (8/2, 7/3), the 60-hr/7-day cycle, the 34-hour restart, adverse
+    driving conditions, and the short-haul exception.
+
+    Args:
+        stops (list[dict]): Ordered route points, len >= 2.  Each dict:
+            - "zip"           (str):   ZIP code of the point.
+            - "service_hours" (float): On-duty dwell at that point
+              (loading, unloading, lumper, etc.).  0 for rolling stops.
+        legs (list[dict]): Consecutive-pair legs, len == len(stops) - 1.
+            Each dict: "from_zip", "to_zip", "miles" (exact road miles
+            from Google Maps, built by the view).
+        speed (float): Average speed in mph (miles → drive hours).
+        start_datetime (datetime): When the driver comes on duty.  The
+            14-hour window starts here.
+        cycle_hours_used (float): On-duty hours already used in the prior
+            8 days (70-hr cycle).  0 disables nothing — tracking always
+            runs — it just starts the counter at zero.
+        lookahead_miles (float): Estimated empty road miles from the
+            final destination to a next pickup that isn't booked yet.
+            0 (the default) disables the lookahead entirely.
+
+    Returns:
+        dict: Itinerary rows plus summary metrics.  Row dicts use the
+        same keys as generate_hos_itinerary() ("event", "start", "end",
+        "duration", "note", "is_break", "is_highlight") with two new
+        optional flags: "is_service" (dwell rows) and "is_warning"
+        (70-hr cycle crossing marker).
+    """
+    # --- HOS rule constants (property-carrying CMV, 49 CFR 395.3) ---
+    MAX_DRIVE_HOURS     = 11.0  # 395.3(a)(3)(i)  — driving per shift
+    MAX_WINDOW_HOURS    = 14.0  # 395.3(a)(2)     — no driving after 14th hr
+    BREAK_TRIGGER_HOURS = 8.0   # 395.3(a)(3)(ii) — break after 8 hrs driving
+    BREAK_HOURS         = 0.5   # 30-minute break
+    RESET_HOURS         = 10.0  # 395.3(a)(1)     — off-duty reset
+    CYCLE_LIMIT_HOURS   = 70.0  # 395.3(b)(2)     — 70-hr/8-day cycle
+
+    # --- Simulation state ---
+    current_time    = start_datetime
+    # Backdate the 14-hr anchor so window_elapsed() starts at window_used
+    # instead of zero.  A driver 8 hrs into his day has 6 hrs of window left,
+    # not 14 — this is the line that makes mid-shift replanning legal.
+    window_start     = start_datetime - timedelta(hours=window_used or 0.0)
+    shift_drive      = float(shift_drive_used or 0.0)
+    continuous_drive = float(drive_since_break or 0.0)
+    cycle_on_duty    = float(cycle_hours_used or 0.0)
+    cycle_flagged   = False           # only insert one 70-hr crossing marker
+
+    itinerary = []
+
+    # --- Next-load lookahead setup --------------------------------------
+    # A nonzero lookahead_miles appends a synthetic "est. deadhead" leg
+    # after the final destination so the ONE tested drive loop handles
+    # its chunking, breaks, resets, and cycle-crossing marker.  Local
+    # copies keep the caller's lists unmutated; the real_* counts pin
+    # every route-level metric (totals, leg numbering, the SMS route
+    # string) to the REAL route so hypothetical miles never leak into
+    # anything invoice-shaped.
+    stops = list(stops)
+    legs  = [dict(leg) for leg in legs]
+    real_stop_count = len(stops)
+    real_leg_count  = len(legs)
+    lookahead_miles = float(lookahead_miles or 0.0)
+    has_lookahead   = lookahead_miles > 0
+    if has_lookahead:
+        stops.append({
+            "zip": "Next Pickup (Est.)",
+            "service_hours": 0.0,
+            "is_lookahead": True,
+        })
+        legs.append({
+            "from_zip": stops[real_stop_count - 1]["zip"],
+            "to_zip": "Next Pickup (Est.)",
+            "miles": lookahead_miles,
+            "is_lookahead": True,
+        })
+
+    # Outcome slots.  arrival_time / driver_free_time are set when the
+    # real route completes (or by the post-loop fallbacks on truncation);
+    # the driver-free capacity slots are filled by snapshot_driver_free().
+    arrival_time             = None
+    driver_free_time         = None
+    next_pickup_arrival      = None
+    lookahead_reset_required = False
+    drive_remaining = window_remaining = drivable_now = reachable_miles = 0.0
+    real_drive_hours = real_service_hours = real_rest_hours = 0.0
+
+    # Totals for the summary footer (REAL legs only — see above).
+    total_drive_hours   = 0.0
+    total_service_hours = 0.0
+    total_rest_hours    = 0.0  # 30-min breaks + 10-hr resets
+    total_miles         = sum(leg["miles"] for leg in legs[:real_leg_count])
+    cumulative_miles    = 0
+
+    iterations = 0
+    max_iterations = 300  # global safety catch (~50 per leg on a full route)
+    truncated = False
+
+    # ------------------------------------------------------------------
+    # Internal helpers (closures over the state above)
+    # ------------------------------------------------------------------
+    def window_elapsed():
+        """Hours elapsed in the current 14-hour window."""
+        return (current_time - window_start).total_seconds() / 3600.0
+
+    def check_cycle_crossing(chunk_start, cycle_before, hours_added):
+        """
+        Inserts a one-time marker row at the exact moment the plan crosses
+        the 70-hour cycle limit inside a drive or service chunk.  The row
+        is appended after the chunk's own row, timestamped mid-chunk.
+        """
+        nonlocal cycle_flagged
+        if cycle_flagged:
+            return
+        if cycle_before < CYCLE_LIMIT_HOURS <= cycle_before + hours_added:
+            hours_in = CYCLE_LIMIT_HOURS - cycle_before
+            crossing = chunk_start + timedelta(hours=hours_in)
+            itinerary.append({
+                "event": "70-Hour Cycle Exceeded",
+                "start": crossing, "end": "", "duration": "",
+                "note": (
+                    "The driver's 70-hr/8-day on-duty limit is crossed here. "
+                    "A 34-hour restart or recap hours are required — "
+                    "not modeled in this version."
+                ),
+                "is_warning": True,
+            })
+            cycle_flagged = True
+
+    def snapshot_driver_free():
+        """
+        Freeze the driver-free moment and the clock capacity available at
+        it, BEFORE any lookahead driving spends those clocks.  The
+        Next-Load Answer header reports this state; the lookahead (if
+        requested) then consumes it to produce next_pickup_arrival.
+        """
+        nonlocal driver_free_time, drive_remaining, window_remaining
+        nonlocal drivable_now, reachable_miles
+        nonlocal real_drive_hours, real_service_hours, real_rest_hours
+        driver_free_time = current_time
+        drive_remaining  = max(0.0, MAX_DRIVE_HOURS - shift_drive)
+        window_remaining = max(0.0, MAX_WINDOW_HOURS - window_elapsed())
+        cycle_left       = max(0.0, CYCLE_LIMIT_HOURS - cycle_on_duty)
+        drivable_now     = min(drive_remaining, window_remaining, cycle_left)
+        # Reachable distance is an UPPER BOUND: a mid-stretch 30-minute
+        # break consumes window time when the window is the binding
+        # clock — hence the "~" / "up to" phrasing in the template and
+        # SMS.  Rounded to 5 mi so it reads as the estimate it is.
+        reachable_miles  = 5 * round((drivable_now * speed) / 5)
+        # Footer totals freeze here too, so lookahead drive/rest time
+        # never bleeds into the real route's summary line.
+        real_drive_hours   = total_drive_hours
+        real_service_hours = total_service_hours
+        real_rest_hours    = total_rest_hours
+
+    def perform_reset(reason):
+        """10 consecutive off-duty hours: restarts the 11-hr, 14-hr, and
+        break clocks.  The fresh 14-hr window anchors to the return to
+        duty (the end of the reset)."""
+        nonlocal current_time, window_start, shift_drive, continuous_drive
+        nonlocal total_rest_hours
+        start_break = current_time
+        current_time += timedelta(hours=RESET_HOURS)
+        itinerary.append({
+            "event": "10-Hour Reset",
+            "start": start_break, "end": current_time,
+            "duration": "10h 00m",
+            "note": f"Mandatory Daily Reset ({reason})",
+            "is_break": True,
+        })
+        shift_drive      = 0.0
+        continuous_drive = 0.0
+        window_start     = current_time
+        total_rest_hours += RESET_HOURS
+
+    def perform_service(zip_code, hours, label, has_more_driving):
+        """
+        On-duty (not driving) dwell: loading, unloading, lumper, etc.
+        Consumes the 14-hr window and the 70-hr cycle, but NOT the 11-hr
+        driving clock.  A dwell of 30+ minutes satisfies the 30-minute
+        break requirement (FMCSA Sept 2020 final rule — the break may be
+        on-duty/not-driving, not only off-duty).
+        """
+        nonlocal current_time, continuous_drive, cycle_on_duty
+        nonlocal total_service_hours
+        if hours <= 0:
+            return
+        start_service = current_time
+        cycle_before  = cycle_on_duty
+        current_time += timedelta(hours=hours)
+        cycle_on_duty += hours
+        total_service_hours += hours
+
+        note_parts = [f"On-duty (not driving) at {zip_code}"]
+        if hours >= BREAK_HOURS:
+            continuous_drive = 0.0
+            note_parts.append("satisfies the 30-minute break requirement")
+        # Legal to work past the 14th hour — but driving is then prohibited
+        # until a reset, which the pre-drive limit check below will insert.
+        if window_elapsed() > MAX_WINDOW_HOURS and has_more_driving:
+            note_parts.append(
+                "extends past the 14-hour window; a 10-hour reset is "
+                "required before driving resumes"
+            )
+
+        itinerary.append({
+            "event": label,
+            "start": start_service, "end": current_time,
+            "duration": _fmt_hos_duration(hours),
+            "note": " · ".join(note_parts),
+            "is_service": True,
+        })
+        check_cycle_crossing(start_service, cycle_before, hours)
+
+    # ------------------------------------------------------------------
+    # 1. Service at the origin (loading), if any.
+    # ------------------------------------------------------------------
+    origin = stops[0]
+    perform_service(
+        origin["zip"], origin.get("service_hours") or 0.0,
+        f"Load / Service — Origin {origin['zip']}",
+        has_more_driving=True,
+    )
+
+    # ------------------------------------------------------------------
+    # 2. Drive each leg, inserting breaks/resets as the clocks demand,
+    #    then handle arrival + service at the leg's destination point.
+    # ------------------------------------------------------------------
+    for leg_index, leg in enumerate(legs):
+        miles_remaining   = float(leg["miles"])
+        dest_point        = stops[leg_index + 1]
+        is_lookahead_leg  = bool(leg.get("is_lookahead"))
+        is_final_real_leg = leg_index == real_leg_count - 1
+
+        while miles_remaining > 0.1 and iterations < max_iterations:
+            iterations += 1
+
+            time_left_shift      = MAX_DRIVE_HOURS - shift_drive
+            time_left_window     = MAX_WINDOW_HOURS - window_elapsed()
+            time_left_continuous = BREAK_TRIGGER_HOURS - continuous_drive
+
+            # --- A) Daily driving clocks exhausted? → 10-hour reset. ---
+            if time_left_shift <= 0.01 or time_left_window <= 0.01:
+                reason = (
+                    "11-hour driving limit reached"
+                    if time_left_shift <= 0.01
+                    else "14-hour on-duty window reached"
+                )
+                perform_reset(reason)
+                if is_lookahead_leg:
+                    lookahead_reset_required = True
+                continue
+
+            # --- B) 8 hours driving since last break? → 30-min break,
+            #        unless the window can't fit driving after it. ---
+            if time_left_continuous <= 0.01:
+                if time_left_window <= BREAK_HOURS + 0.01:
+                    # A break would eat the rest of the window; go
+                    # straight to the reset instead of wasting 30 min.
+                    perform_reset("14-hour on-duty window reached")
+                    if is_lookahead_leg:
+                        lookahead_reset_required = True
+                else:
+                    start_break = current_time
+                    current_time += timedelta(hours=BREAK_HOURS)
+                    itinerary.append({
+                        "event": "30-Min Break",
+                        "start": start_break, "end": current_time,
+                        "duration": "0h 30m",
+                        "note": "Mandatory FMCSA break (8 hours driving "
+                                "since last qualifying break)",
+                        "is_break": True,
+                    })
+                    continuous_drive = 0.0
+                    total_rest_hours += BREAK_HOURS
+                continue
+
+            # --- C) Drive the largest chunk the clocks allow. ---
+            time_to_finish = miles_remaining / speed
+            leg_duration = min(
+                time_to_finish,
+                time_left_shift,
+                time_left_window,
+                time_left_continuous,
+            )
+            if leg_duration < 0.01:  # avoid float fragments
+                continue
+
+            dist_covered   = leg_duration * speed
+            start_leg_time = current_time
+            cycle_before   = cycle_on_duty
+            current_time  += timedelta(hours=leg_duration)
+
+            miles_remaining  -= dist_covered
+            shift_drive      += leg_duration
+            continuous_drive += leg_duration
+            cycle_on_duty    += leg_duration
+            total_drive_hours += leg_duration
+
+            if is_lookahead_leg:
+                drive_note = (
+                    f"Covered {_fmt_miles(dist_covered)} mi · "
+                    "Est. deadhead toward next pickup"
+                )
+            else:
+                drive_note = (
+                    f"Covered {_fmt_miles(dist_covered)} mi · "
+                    f"{leg['from_zip']} → {leg['to_zip']} "
+                    f"(Leg {leg_index + 1} of {real_leg_count})"
+                )
+            drive_row = {
+                "event": "Drive",
+                "start": start_leg_time, "end": current_time,
+                "duration": _fmt_hos_duration(leg_duration),
+                "note": drive_note,
+            }
+            if is_lookahead_leg:
+                # Event name stays "Drive" — the driver_text builder
+                # keys on it to append the note.  The flag drives the
+                # muted row styling in the template instead.
+                drive_row["is_lookahead"] = True
+            itinerary.append(drive_row)
+            check_cycle_crossing(start_leg_time, cycle_before, leg_duration)
+
+        if iterations >= max_iterations:
+            truncated = True
+            break
+
+        # --- Arrival at this leg's destination point. ---
+        if is_lookahead_leg:
+            # Hypothetical arrival at the unbooked next pickup.  No
+            # service dwell — loading time is unknown until it's booked —
+            # and no cumulative-miles line, because lookahead miles are
+            # not route miles.
+            next_pickup_arrival = current_time
+            itinerary.append({
+                "event": "Next Pickup Reached (Est.)",
+                "start": current_time, "end": "", "duration": "",
+                "note": (
+                    f"~{_fmt_miles(lookahead_miles)} est. deadhead mi beyond "
+                    "the route · time shown is arrival, before loading"
+                ),
+                "is_lookahead": True,
+            })
+        else:
+            cumulative_miles += leg["miles"]
+            if is_final_real_leg:
+                arrive_event = "Arrive — Final Destination"
+            else:
+                arrive_event = f"Arrive — Stop {leg_index + 1}"
+            itinerary.append({
+                "event": arrive_event,
+                "start": current_time, "end": "", "duration": "",
+                "note": (
+                    f"{dest_point['zip']} · "
+                    f"{_fmt_miles(cumulative_miles)} of {_fmt_miles(total_miles)} route miles"
+                ),
+                "is_highlight": True,
+            })
+
+            if is_final_real_leg:
+                arrival_time = current_time
+                # Unloading at the destination happens after the ETA; it
+                # affects when the driver is FREE, not when the load arrives.
+                perform_service(
+                    dest_point["zip"], dest_point.get("service_hours") or 0.0,
+                    f"Unload / Service — Destination {dest_point['zip']}",
+                    # A lookahead (if any) is more driving: keep the
+                    # 14-hr overrun warning and the pre-drive reset
+                    # logic armed for it.
+                    has_more_driving=has_lookahead,
+                )
+                # Freeze the driver-free state BEFORE any lookahead
+                # driving spends the remaining clocks.
+                snapshot_driver_free()
+            else:
+                perform_service(
+                    dest_point["zip"], dest_point.get("service_hours") or 0.0,
+                    f"Service — Stop {leg_index + 1} ({dest_point['zip']})",
+                    has_more_driving=True,
+                )
+
+    if truncated and arrival_time is None:
+        # Safety catch tripped before the real destination was reached —
+        # return what we have with a flag; the template surfaces a
+        # warning instead of an incomplete-looking plan.  (Truncation
+        # during a lookahead leaves the real arrival_time intact.)
+        arrival_time = current_time
+    if driver_free_time is None:
+        # The real route never completed (truncation): freeze whatever
+        # state the simulation ended in so the header still renders
+        # coherent numbers.
+        snapshot_driver_free()
+
+    # ------------------------------------------------------------------
+    # 2.5 Day separator rows (multi-day readability, esp. printed sheets).
+    #     Inserted wherever the calendar date of an event's START differs
+    #     from the previous event's. A marker means "rows below begin on
+    #     this day" — an event that crosses midnight stays under the day
+    #     it started. Markers carry is_day=True; the template renders them
+    #     as full-width divider rows and the driver_text builder skips
+    #     them (each SMS line already carries its own weekday prefix).
+    # ------------------------------------------------------------------
+    dated_itinerary = []
+    current_day = None
+    for row in itinerary:
+        row_day = row["start"].date()
+        if row_day != current_day:
+            current_day = row_day
+            dated_itinerary.append({
+                # "Friday, July 17" — strip %d's leading zero the same
+                # platform-safe way _fmt_txt_time does.
+                "event": row["start"].strftime("%A, %B %d").replace(" 0", " "),
+                "start": row["start"], "end": "", "duration": "",
+                "note": "", "is_day": True,
+            })
+        dated_itinerary.append(row)
+    itinerary = dated_itinerary
+
+    # ------------------------------------------------------------------
+    # 3. The "next-load answer" — Max's actual question.
+    #    Clock capacity (drive / window / drivable / reachable) comes
+    #    from the driver-free snapshot, taken BEFORE any lookahead
+    #    driving spent it.  Cycle figures deliberately run post-lookahead:
+    #    "cycle left" is only useful net of everything the plan drew.
+    # ------------------------------------------------------------------
+    cycle_remaining = max(0.0, CYCLE_LIMIT_HOURS - cycle_on_duty)
+
+    fresh_after_reset = driver_free_time + timedelta(hours=RESET_HOURS)
+    total_trip_hours = (
+        (driver_free_time - start_datetime).total_seconds() / 3600.0
+    )
+
+    # ------------------------------------------------------------------
+    # 4. Plain-text driver itinerary (Copy button → SMS/WhatsApp handoff).
+    #    Kept strictly GSM-7 (plain ASCII) — unicode arrows or bullets
+    #    force SMS into UCS-2 encoding, which cuts segments from 160 to
+    #    70 characters and multiplies the dispatcher's message count.
+    # ------------------------------------------------------------------
+    txt_lines = [
+        "HOS TRIP PLAN (planning estimate - not an official RODS log)",
+        f"Route: {' > '.join(s['zip'] for s in stops[:real_stop_count])} "
+        f"({_fmt_miles(total_miles)} mi)",
+        "",
+    ]
+    for row in itinerary:
+        if row.get("is_day"):
+            continue  # visual divider only — SMS lines already carry the weekday
+        line = f"- {_fmt_txt_time(row['start'])}  {row['event']}"
+        if row.get("duration"):
+            line += f", {row['duration']}"
+        if row["event"] == "Drive":
+            line += f" ({row['note']})"
+        txt_lines.append(line)
+    txt_lines += [
+        "",
+        f"Driver free: {_fmt_txt_time(driver_free_time)}",
+        f"Drivable hours left: {_fmt_hos_duration(drivable_now)}",
+        # "up to" (not "~"): tilde sits in the GSM-7 extension table and
+        # costs a second septet per use.
+        f"Drivable miles left: up to {_fmt_miles(reachable_miles)} mi",
+        f"Fresh after 10-hr reset: {_fmt_txt_time(fresh_after_reset)}",
+    ]
+    if next_pickup_arrival is not None:
+        txt_lines.append(
+            f"At next pickup (est. {_fmt_miles(lookahead_miles)} mi): "
+            f"{_fmt_txt_time(next_pickup_arrival)}"
+        )
+    driver_text = "\n".join(txt_lines)
+    # Sanitize unicode that leaks in from event names and drive notes.
+    for bad, good in {"—": "-", "·": "-", "→": ">", "➜": ">"}.items():
+        driver_text = driver_text.replace(bad, good)
+
+    return {
+        "itinerary": itinerary,
+        "truncated": truncated,
+        "driver_text": driver_text,
+
+        # --- Headline times ---
+        "arrival_time": arrival_time,           # ETA at the final stop
+        "driver_free_time": driver_free_time,   # after destination service
+        "fresh_after_reset": fresh_after_reset, # driver_free + 10 hrs
+
+        # --- Clocks at driver-free time (pre-lookahead snapshot) ---
+        "drive_remaining_str": _fmt_hos_duration(drive_remaining),
+        "window_remaining_str": _fmt_hos_duration(window_remaining),
+        "drivable_now_str": _fmt_hos_duration(drivable_now),
+        "can_drive_now": drivable_now > 0.25,   # at least 15 usable minutes
+        "reachable_miles_str": _fmt_miles(reachable_miles),
+
+        # --- Next-load lookahead (None / "" / False when not requested) ---
+        "next_pickup_arrival": next_pickup_arrival,
+        "lookahead_miles_str": _fmt_miles(lookahead_miles) if has_lookahead else "",
+        "lookahead_reset_required": lookahead_reset_required,
+
+        # --- 70-hr cycle ---
+        "cycle_used": round(cycle_on_duty, 2),
+        "cycle_remaining_str": _fmt_hos_duration(cycle_remaining),
+        "cycle_exceeded": cycle_on_duty > CYCLE_LIMIT_HOURS,
+        "cycle_overage_str": _fmt_hos_duration(
+            max(0.0, cycle_on_duty - CYCLE_LIMIT_HOURS)
+        ),
+
+        # --- Totals footer ---
+        "total_miles": _fmt_miles(total_miles),
+        "total_legs": real_leg_count,
+        "num_intermediate_stops": max(real_stop_count - 2, 0),
+        "total_drive_str": _fmt_hos_duration(real_drive_hours),
+        "total_service_str": _fmt_hos_duration(real_service_hours),
+        "total_rest_str": _fmt_hos_duration(real_rest_hours),
+        "total_trip_str": _fmt_hos_duration(total_trip_hours),
+    }
+
 def calculate_required_tie_downs(weight, length, strap_wll):
     """
     Calculates the minimum required tie-downs based on FMCSA § 393.102 (Weight/Aggregate WLL)

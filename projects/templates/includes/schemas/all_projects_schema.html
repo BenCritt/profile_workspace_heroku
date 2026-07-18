@@ -90,7 +90,8 @@
           { "@type": "ListItem", "position": 56, "item": { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" } },
           { "@type": "ListItem", "position": 57, "item": { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" } },
           { "@type": "ListItem", "position": 58, "item": { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" } },
-          { "@type": "ListItem", "position": 59, "item": { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" } }
+          { "@type": "ListItem", "position": 59, "item": { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" } },
+          { "@type": "ListItem", "position": 60, "item": { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" } }
         ]
       },
       "hasPart": [
@@ -152,7 +153,8 @@
         { "@id": "https://www.bencritt.net/projects/night-sky-planner/#app" },
         { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" }
+        { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" }
       ]
     },
 
@@ -1355,6 +1357,28 @@
         "Critical path identification and total project duration.",
         "Simple comma-separated activity list input with line-numbered validation.",
         "Circular-dependency detection that names the activities involved."
+      ]
+    },
+
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app",
+      "name": "HOS Multi-Stop Trip Planner",
+      "description": "Plan multi-stop trucking routes under FMCSA Hours of Service rules. Combines exact Google Maps road miles per leg with on-duty service time at each stop, then simulates the 11-hour driving limit, 14-hour window, 30-minute break rule, 10-hour resets, and the 70-hour/8-day cycle to produce per-stop ETAs and next-load availability. Supports mid-shift replanning from the driver's current clock state and a next-load lookahead over estimated deadhead miles.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/",
+      "image": "https://www.bencritt.net/static/img/all-projects/hos-multi-stop-trip-planner.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Multi-stop route planning with up to 5 intermediate stops using exact Google Maps road miles per leg.",
+        "On-duty service and dwell time modeled at every stop, with deadhead legs planned identically to loaded legs.",
+        "Full FMCSA simulation: 11-hour driving limit, 14-hour window, 30-minute break rule, and automatic 10-hour resets.",
+        "70-hour/8-day cycle tracking with per-stop arrival ETAs.",
+        "Driver-free time, next-load availability, and a chronological duty timeline.",
+        "Mid-shift replanning from the driver's current clocks, plus a next-load lookahead over estimated deadhead miles."
       ]
     }
 
