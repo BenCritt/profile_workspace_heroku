@@ -15,7 +15,8 @@
  * (--bs-table-bg, --bs-table-color, hover + border variants) with dark,
  * translucent tints plus a solid left accent border. Rows stay visually
  * categorized (green = arrival, cyan = service, amber = break/reset,
- * red = cycle warning) while keeping the dark background, so the site's
+ * red = cycle warning, dashed gray = est. lookahead) while keeping the
+ * dark background, so the site's
  * light text — including the globally brightened .text-muted notes —
  * is readable again. No template changes required.
  *
@@ -67,15 +68,30 @@
     --bs-table-hover-color: #ffffff;
 }
 
+/* Est. next-load lookahead — muted gray. Added with the lookahead feature:
+   .table-secondary has the same dark-theme gap as the classes above, so it
+   needs the same variable treatment. Row text sits one deliberate step
+   dimmer (#ced4da) than the real categories — these rows are hypothetical —
+   and brightens fully on hover. */
+#results-section tr.table-secondary {
+    --bs-table-bg: rgba(108, 117, 125, 0.16);
+    --bs-table-color: #ced4da;
+    --bs-table-border-color: rgba(108, 117, 125, 0.45);
+    --bs-table-hover-bg: rgba(108, 117, 125, 0.28);
+    --bs-table-hover-color: #ffffff;
+}
+
 
 /* ── CONTEXTUAL ROWS: left accent borders ───────────────────────────────────
-   A solid 3px accent on the first cell makes row categories scannable at a
-   glance now that the background tints are subtle. Uses Bootstrap's theme
+   A 3px accent on the first cell makes row categories scannable at a
+   glance now that the background tints are subtle — solid for real events,
+   dashed for the estimated lookahead rows. Uses Bootstrap's theme
    color variables so any future theme change follows automatically. */
 #results-section tr.table-success > td:first-child { border-left: 3px solid var(--bs-success); }
 #results-section tr.table-info    > td:first-child { border-left: 3px solid var(--bs-info); }
 #results-section tr.table-warning > td:first-child { border-left: 3px solid var(--bs-warning); }
 #results-section tr.table-danger  > td:first-child { border-left: 3px solid var(--bs-danger); }
+#results-section tr.table-secondary > td:first-child { border-left: 3px dashed var(--bs-secondary); }
 
 
 /* ── COLUMN BEHAVIOR ────────────────────────────────────────────────────────
@@ -184,7 +200,8 @@
     #results-section tr.table-success,
     #results-section tr.table-info,
     #results-section tr.table-warning,
-    #results-section tr.table-danger {
+    #results-section tr.table-danger,
+    #results-section tr.table-secondary {
         --bs-table-bg: #fff;
         --bs-table-color: #000;
         --bs-table-hover-bg: #fff;
