@@ -429,14 +429,49 @@ if (window.dataLayer) {
         try {
             const doc = new DOMParser().parseFromString(rawHtml, "text/html");
 
-            // Bucket flat output into named sections keyed by <h2> text.
+            // Bucket flat output into named sections keyed by heading text.
+            // Tolerant matching (2026-07-19): the model occasionally drifted
+            // from the exact "## Match Score" shape — folding content into
+            // the heading ("Match Score: 45% — …") or emitting a different
+            // heading level — which made the score bucket miss and dropped
+            // the hero card. Known section names now match any H1–H4 as a
+            // case-insensitive prefix, and content folded into a heading is
+            // salvaged as a synthetic paragraph so the score regex downstream
+            // still finds it. With the server now emitting canonical
+            // markdown this is defense in depth, not the primary guarantee.
+            // Unmatched headings keep their original behavior: an unknown H2
+            // ends the current bucket; unknown H1/H3/H4 inside a section are
+            // kept as content.
             const buckets = {};
             let currentKey = null;
             Array.from(doc.body.children).forEach(function (node) {
+                if (/^H[1-4]$/.test(node.tagName)) {
+                    const headingText = node.textContent.trim();
+                    const normalized  = headingText.toLowerCase();
+                    const matchedKey  = Object.keys(SECTION_META).find(function (key) {
+                        return normalized.indexOf(key) === 0;
+                    }) || null;
+                    if (matchedKey) {
+                        currentKey = matchedKey;
+                        if (!buckets[currentKey]) buckets[currentKey] = [];
+                        // Salvage anything folded into the heading line
+                        // (e.g. "Match Score: 45% — rationale").
+                        const remainder = headingText
+                            .slice(matchedKey.length)
+                            .replace(/^[\s:–—-]+/, "")
+                            .trim();
+                        if (remainder) {
+                            const p = document.createElement("p");
+                            p.textContent = remainder;
+                            buckets[currentKey].push(p);
+                        }
+                        return;
+                    }
+                }
                 if (node.tagName === "H2") {
-                    const key = node.textContent.trim().toLowerCase().replace(/:\s*$/, "");
-                    currentKey = SECTION_META[key] ? key : null;
-                    if (currentKey && !buckets[currentKey]) buckets[currentKey] = [];
+                    // Unknown top-level section — stop bucketing, matching
+                    // the original exact-match implementation's behavior.
+                    currentKey = null;
                 } else if (currentKey) {
                     buckets[currentKey].push(node);
                 }
