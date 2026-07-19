@@ -489,7 +489,7 @@
                 <strong>Deadhead miles</strong> need no special field. Hours of Service clocks run identically
                 whether the trailer is loaded or empty, so enter the driver's current ZIP as the origin and the
                 first pickup as Stop 1 — the opening leg is your deadhead, calculated with the same exact
-                Google Maps road miles as every other leg. That covers every deadhead between known points.
+                Google Maps road miles as every other leg. That covers every deadhead between known points — and the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> can put a dollar cost on those empty miles at your operating CPM.
                 For the load you haven't booked yet, use the Next-Load Lookahead field: the plan keeps the
                 clocks running over your estimated empty miles and shows when the driver can be on site.
                 The Drivable Miles Left figure is the quick version — how far out you can shop the load
@@ -507,7 +507,7 @@
                 <strong>Not modeled in this version:</strong> sleeper-berth splits (8/2, 7/3), the 60-hour/7-day cycle,
                 the 34-hour restart, adverse driving conditions, and the short-haul exception. Verify any borderline
                 plan against the FMCSA Hours of Service regulations at
-                <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" class="related-tool-link" rel="noopener">https://www.fmcsa.dot.gov/regulations/hours-of-service</a>.
+                <a href="https://www.fmcsa.dot.gov/regulations/hours-of-service" target="_blank" class="related-tool-link" rel="noopener">https://www.fmcsa.dot.gov/regulations/hours-of-service</a>.
             </p>
             <p class="small text-muted">
                 <strong>Related freight tools:</strong> For a simple point-to-point ETA, use the

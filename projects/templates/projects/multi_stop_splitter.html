@@ -229,7 +229,7 @@
                 <strong>Stop-off charges</strong> are flat fees billed for each additional stop beyond a standard point-to-point haul. Typical rates range from $50 to $150 per stop, depending on the carrier and lane. This tool calculates the total stop-off cost so you can include it on rate confirmations and invoices.
             </p>
             <p class="small text-muted">
-                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> to evaluate whether repositioning to the first pickup on this route is worthwhile, or the <a href="{% url 'projects:hos_trip_planner' %}" class="related-tool-link">HOS Trip Planner</a> to estimate realistic transit times with mandatory rest breaks.
+                <strong>Related freight tools:</strong> Use the <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Calculator</a> to evaluate whether repositioning to the first pickup on this route is worthwhile. To run this same route — up to five intermediate stops with on-duty service time at each — under full FMCSA Hours of Service clocks and get per-stop ETAs, use the <a href="{% url 'projects:hos_multi_stop_trip_planner' %}" class="related-tool-link">HOS Multi-Stop Trip Planner</a>.
             </p>
         </div>
     </div>
