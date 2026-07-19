@@ -8,37 +8,8 @@
 #
 # Public interface:
 #   run_gemini_job(job_id, job_desc, gemini_key) → None
-#       Background thread worker. Calls Gemini with a structured-output
-#       schema, renders the parsed report to canonical markdown → HTML,
+#       Background thread worker. Calls Gemini, renders markdown → HTML,
 #       writes result to the "jobfit" cache under key "jfa:<job_id>".
-#
-# Changes (2026-07-19), intermittently-missing Match Score hero fix:
-#   - Root cause: the model was asked for free-form markdown, and the
-#     frontend enhancer (buildEnhancedResults in job_fit_analyzer.html)
-#     keys the score hero card off an exact "## Match Score" <h2> followed
-#     by an "NN% — rationale" paragraph. Even at temperature 0.2 the model
-#     intermittently drifted from that shape (score folded into the heading
-#     line, different heading level, bolded pseudo-heading). The enhancer's
-#     section bucketing then missed, buildSummary() returned null, and —
-#     per its documented graceful-degradation design — the page rendered
-#     every other card but silently omitted the hero.
-#   - Fix: the Gemini call now uses structured output
-#     (response_mime_type="application/json" + response_schema), and THIS
-#     module renders the canonical markdown from the parsed object. The
-#     five H2 sections and the "NN% — rationale" score line are emitted by
-#     our own code on every run, so the hero card can no longer disappear
-#     due to model formatting drift.
-#   - Schema field order is deliberate: evidence → score → verdict. The
-#     google-genai SDK forwards pydantic field order as the schema's
-#     property_ordering, so the model generates its JSON in that order —
-#     the score is produced after the classification work, mirroring the
-#     reasoning chain.
-#   - Empty sections render as "- None identified." to preserve the
-#     frontend's existing empty-state detection and "No Gaps" badge.
-#   - Function signature, cache contract, TTL, and error path unchanged.
-#     No changes required in views_misc.py or the status endpoint.
-#   - pydantic is a hard dependency of google-genai, so this adds no new
-#     entry to requirements.txt.
 #
 # Changes (2026-07-03), from ceiling-test calibration (jfa-test-jd-01):
 #   - Inject today's date into the prompt so the model can compute tenure
@@ -50,8 +21,6 @@
 #   - Added explicit classification rules: section definitions, one-section-
 #     per-requirement, address-every-requirement, duration computation, and
 #     a deterministic "- None identified." fallback for empty sections.
-#     (2026-07-19: the fallback string is now rendered server-side from an
-#     empty list rather than requested from the model.)
 #   - Added a Match Score calibration rubric.
 #   - Pinned temperature to 0.2 for run-to-run comparability.
 #   - Added a guard for empty/blocked Gemini responses.
@@ -59,175 +28,14 @@
 # Changes (2026-07-03, presentation pass):
 #   - Bullet format now bolds the requirement clause
 #     ("- **Requirement from JD:** explanation") so each bullet is
-#     scannable in the rendered output. (2026-07-19: the bolding is now
-#     applied server-side in _bullet_lines(); the model returns plain-text
-#     requirement/explanation pairs.)
-
-import re
-
-# pydantic is imported at module level (unlike the heavier lazy imports
-# inside run_gemini_job) so the schema and the markdown renderer below can
-# be unit-tested without touching the Gemini SDK or Django settings.
-from pydantic import BaseModel, Field
-
-
-# ════════════════════════════════════════════════════════════════════════
-# Structured-output schema
-# ════════════════════════════════════════════════════════════════════════
-
-class RequirementAssessment(BaseModel):
-    """One job-description requirement and how Ben's profile relates to it."""
-
-    requirement: str = Field(
-        description=(
-            "The requirement clause, quoted or closely paraphrased from the "
-            "job description. Plain text only — no markdown formatting and "
-            "no trailing colon."
-        )
-    )
-    explanation: str = Field(
-        description=(
-            "One or two sentences justifying the classification of this "
-            "requirement."
-        )
-    )
-
-
-class JobFitReport(BaseModel):
-    """Complete evaluation returned by Gemini.
-
-    Field order is deliberate and mirrors the reasoning chain: classify the
-    evidence first, then score, then conclude. The google-genai SDK
-    forwards pydantic field declaration order as the schema's
-    property_ordering, so the model generates its JSON in this order.
-    Display order is decided by _report_to_markdown(), not by this class.
-    """
-
-    direct_alignments: list[RequirementAssessment] = Field(
-        description=(
-            "Requirements fully met as stated in the job description. "
-            "Empty list if none."
-        )
-    )
-    transferable_skills: list[RequirementAssessment] = Field(
-        description=(
-            "Requirements not literally met, but where adjacent experience "
-            "credibly bridges the gap. Empty list if none."
-        )
-    )
-    notable_gaps: list[RequirementAssessment] = Field(
-        description=(
-            "Requirements neither met nor credibly bridged. Empty list if "
-            "none."
-        )
-    )
-    match_score: int = Field(
-        ge=0,
-        le=100,
-        description=(
-            "Estimated percentage match from 0 to 100, calibrated against "
-            "the scoring rubric in the instructions."
-        ),
-    )
-    score_rationale: str = Field(
-        description=(
-            "One sentence explaining the score. Do not restate the numeric "
-            "percentage."
-        )
-    )
-    verdict: str = Field(
-        description=(
-            "One concise paragraph with no bullet points: should he apply, "
-            "and what to highlight in a cover letter."
-        )
-    )
-
-
-# ════════════════════════════════════════════════════════════════════════
-# Canonical markdown rendering
-# ════════════════════════════════════════════════════════════════════════
-
-def _bullet_lines(items: list[RequirementAssessment]) -> str:
-    """Render one section's items as canonical markdown bullets.
-
-    Output shape is the format contract with the frontend enhancer:
-        - **Requirement clause:** explanation
-
-    An empty section renders as exactly "- None identified." — the string
-    the enhancer's empty-state detection (/^none\\b/i on a single <li>) and
-    the "No Gaps" badge logic already key on.
-    """
-    lines = []
-    for item in items:
-        # Strip stray markdown emphasis and trailing colons the model may
-        # add despite the schema description — this module owns the bolding.
-        req = re.sub(r"^[\s*]+|[\s*:]+$", "", item.requirement or "")
-        exp = (item.explanation or "").strip()
-        if not req and not exp:
-            continue
-        if not req:
-            lines.append(f"- {exp}")
-        else:
-            lines.append(f"- **{req}:** {exp}".rstrip())
-    if not lines:
-        return "- None identified."
-    return "\n".join(lines)
-
-
-def _report_to_markdown(report: JobFitReport) -> str:
-    """Render the parsed report as canonical markdown.
-
-    This is the format contract with buildEnhancedResults() in
-    job_fit_analyzer.html: exactly these five H2 headings, a score
-    paragraph formatted "NN% — rationale", bulleted evidence sections, and
-    a prose verdict. Because this function — not the model — now owns the
-    structure, the enhancer's section bucketing and score regex match on
-    every run.
-    """
-    # Clamp defensively. The pydantic ge/le constraints already reject
-    # out-of-range values at validation, so this only matters if those
-    # constraints are ever relaxed.
-    score = max(0, min(100, int(report.match_score)))
-
-    # The frontend strips a leading "NN% —" from the rationale defensively;
-    # normalize here too so the non-JS fallback never shows the number
-    # twice if the model restates it despite the schema description.
-    rationale = re.sub(
-        r"^\s*\d{1,3}\s*%\s*[-–—:.]?\s*",
-        "",
-        (report.score_rationale or "").strip(),
-    )
-    if not rationale:
-        rationale = "See the section breakdown below."
-
-    verdict = (report.verdict or "").strip() or "No verdict was generated."
-
-    return "\n\n".join(
-        [
-            "## Match Score",
-            f"{score}% — {rationale}",
-            "## Direct Alignments",
-            _bullet_lines(report.direct_alignments),
-            "## Transferable Skills",
-            _bullet_lines(report.transferable_skills),
-            "## Notable Gaps",
-            _bullet_lines(report.notable_gaps),
-            "## The Verdict",
-            verdict,
-        ]
-    )
-
-
-# ════════════════════════════════════════════════════════════════════════
-# Background worker
-# ════════════════════════════════════════════════════════════════════════
+#     scannable in the rendered output. Formatting-only change; does not
+#     affect classification or scoring behavior.
 
 def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     """
-    Background thread worker. Calls Gemini with a structured-output schema,
-    renders the parsed report to HTML, and writes the result to cache. Runs
-    outside the HTTP request/response cycle so Heroku's 30-second request
-    timeout does not apply.
+    Background thread worker. Calls Gemini, renders the response to HTML,
+    and writes the result to cache. Runs outside the HTTP request/response
+    cycle so Heroku's 30-second request timeout does not apply.
 
     Cache backend: "jobfit" (FileBasedCache at /tmp/django_cache_jfa).
     Cache key:     "jfa:<job_id>"
@@ -394,39 +202,44 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       gtm-events.js module across all tools.
 
     ### Instructions for Evaluation:
-    Analyze the following job description against Ben's profile and return
-    your evaluation as structured data conforming to the response schema.
-    Field-level formatting requirements are given in the schema itself; the
-    rules below govern classification and scoring.
+    Analyze the following job description against Ben's profile. Use the following markdown structure exactly. Follow the formatting rules precisely.
 
     Classification rules:
-    - direct_alignments = the requirement is fully met as stated in the job
+    - Direct Alignments = the requirement is fully met as stated in the job
       description.
-    - transferable_skills = the requirement is not literally met, but
+    - Transferable Skills = the requirement is not literally met, but
       adjacent experience credibly bridges the gap.
-    - notable_gaps = the requirement is neither met nor credibly bridged.
-    - Classify each job requirement into exactly one of the three lists.
-      Never repeat a requirement across lists.
+    - Notable Gaps = the requirement is neither met nor credibly bridged.
+    - Classify each job requirement into exactly one of the three sections.
+      Never repeat a requirement across sections.
     - Address every requirement and qualification stated in the job
       description.
     - When a requirement specifies a minimum duration of experience, compute
       the candidate's actual duration from the dates in the profile and
       today's date before classifying. If the computed duration meets or
       exceeds the requirement, classify it as a Direct Alignment.
-    - If a list has no legitimate items, return it as an empty list.
+    - If a section has no legitimate items, output exactly one bullet
+      reading: - None identified.
 
-    Scoring rules:
-    - match_score is an integer from 0 to 100. Calibrate the score against
-      this rubric: 90–100 = meets or exceeds essentially all requirements;
-      70–89 = meets most core requirements with minor gaps; 40–69 =
-      meaningful transferable foundation but material gaps; below 40 = poor
-      fit.
-    - score_rationale is one sentence and must not restate the numeric
-      percentage.
+    ## Match Score
+    State an estimated percentage match (0–100%) and a one-sentence rationale, formatted exactly as: NN% — rationale sentence (integer percentage, space, em dash, space, rationale; no words between the percentage and the dash, and do not repeat the percentage in the rationale). No bullet points. Calibrate the score against this rubric: 90–100 = meets or exceeds essentially all requirements; 70–89 = meets most core requirements with minor gaps; 40–69 = meaningful transferable foundation but material gaps; below 40 = poor fit.
+    
+    ## Direct Alignments
+    Each alignment on its own line as a markdown bullet. Format exactly like this:
+    - **Requirement from JD:** explanation of how Ben meets it.
 
-    Verdict rules:
-    - verdict is one concise paragraph with no bullet points — should he
-      apply, and what to highlight in a cover letter.
+    ## Transferable Skills
+    Each skill on its own line as a markdown bullet. Format exactly like this:
+    - **Requirement from JD:** explanation of how his background bridges the gap.
+
+    ## Notable Gaps
+    Each gap on its own line as a markdown bullet. Format exactly like this:
+    - **Requirement from JD:** explanation of what is missing.
+
+    ## The Verdict
+    One concise paragraph with no bullet points — should he apply, and what to highlight in a cover letter.
+
+    IMPORTANT: For Direct Alignments, Transferable Skills, and Notable Gaps, each bullet MUST be on its own separate line starting with a hyphen (-). Do not combine multiple bullets into a single paragraph. Bold the requirement clause — the requirement text and its trailing colon — using double asterisks exactly as shown in the format examples, then write the explanation in regular text.
 
     ### Job Description to Evaluate:
     {job_desc}
@@ -440,35 +253,19 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            # temperature 0.2: with structured output the response SHAPE is
-            # fixed by the schema, so temperature now only influences
-            # classification judgment and wording. Kept low for run-to-run
-            # comparability across calibration JDs.
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                response_mime_type="application/json",
-                response_schema=JobFitReport,
-            ),
+            # Low temperature pins run-to-run variance so results are
+            # comparable across repeat runs and calibration test JDs.
+            config=types.GenerateContentConfig(temperature=0.2),
         )
 
-        # Parse the structured response. response.parsed is the SDK's own
-        # validation of the JSON against JobFitReport; fall back to
-        # validating response.text directly if the SDK returns None (e.g., a
-        # finish reason that left text intact but skipped parsing). Both
-        # paths raise on malformed or empty data, which routes cleanly
-        # through the existing error handler below.
-        report = response.parsed
-        if report is None:
-            raw_json = (response.text or "").strip()
-            if not raw_json:
-                raise ValueError("Gemini returned an empty response.")
-            report = JobFitReport.model_validate_json(raw_json)
-        elif isinstance(report, dict):
-            # Some SDK versions return a plain dict for dict-style schemas;
-            # normalize to the model for uniform downstream access.
-            report = JobFitReport.model_validate(report)
+        # Guard: response.text can be None or empty if the response was
+        # blocked or returned no candidates. Without this check, None would
+        # raise a TypeError inside md_lib.markdown(); raising here routes it
+        # cleanly through the existing error path instead.
+        raw_md = response.text or ""
+        if not raw_md.strip():
+            raise ValueError("Gemini returned an empty response.")
 
-        raw_md = _report_to_markdown(report)
         html = md_lib.markdown(
             raw_md,
             extensions=["fenced_code", "tables"],

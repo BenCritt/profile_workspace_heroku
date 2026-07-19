@@ -4,7 +4,6 @@ from django.contrib.sitemaps.views import sitemap
 from .sitemap import StaticViewSitemap, RootSitemap
 from django.views.generic import RedirectView
 from django.views.generic import TemplateView
-from django.views.decorators.cache import cache_control
 
 app_name = "projects"
 
@@ -107,11 +106,9 @@ urlpatterns = [
     ),
     path(
         "service-worker.js",
-        cache_control(no_cache=True, must_revalidate=True)(
-            TemplateView.as_view(
-                template_name="service-worker.js",
-                content_type="application/javascript",
-            )
+        TemplateView.as_view(
+            template_name="service-worker.js",
+            content_type="application/javascript"
         ),
     ),
     path(
