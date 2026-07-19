@@ -118,13 +118,45 @@ def space_and_astronomy(request):
 
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# WHAT CHANGED AND WHY (2026-07):
+#   - The old code fetched https://celestrak.org/NORAD/elements/stations.txt
+#     inside the POST branch.  CelesTrak removed all legacy .txt element
+#     files (final removal 2024-12-24; see
+#     https://celestrak.org/NORAD/documentation/gp-data-formats.php), so
+#     every ZIP-code form submission now dies with a 404 -> HTTPError 500.
+#   - Orbital elements now come from projects/iss_utils.py's
+#     get_iss_satellite(), the same OMM/GP-API path the /current-iss-data/
+#     polling endpoint uses, behind one shared three-tier cache
+#     (6 h fresh / 14 d stale-if-error backup / 15 min failure backoff per
+#     https://celestrak.org/usage-policy.php).
+#   - Deprecated Skyfield calls modernized: Topos() -> wgs84.latlon(),
+#     .subpoint() -> wgs84.geographic_position_of() / wgs84.subpoint_of().
+#   - Per-POST TimezoneFinder construction replaced by the process-wide
+#     singleton in iss_utils (in_memory=False keeps shapefiles on disk).
+#   - Upstream failure now renders a friendly in-page message via the
+#     template's existing `error` key instead of a 500 debug page.
+# ============================================================================
+
+
 def iss_tracker(request):
+    """
+    Track the ISS and show current location + next visible events.
+    Memory-optimized: lazy heavy imports, shared TimezoneFinder singleton,
+    explicit cleanup.
+
+    2026-07 FIX: orbital elements now come from iss_utils.get_iss_satellite()
+    (CelesTrak GP API, OMM JSON, three-tier cache).  The legacy nested
+    stations.txt fetch + TLE parsing that lived here 404s permanently —
+    CelesTrak removed all legacy .txt element files, and as of 2026-07-11
+    new catalog numbers (100000+) can't even be expressed in TLE format.
+    This view and the /current-iss-data/ polling endpoint now ride the
+    same cached record, so CelesTrak sees at most ~4 requests per day per
+    worker from this app regardless of traffic.
+    """
     from ..iss_utils import detect_region
     from ..zip_data import local_get_coordinates as get_coordinates
-    from django.core.cache import cache
     from datetime import timedelta
-    # WeatherForm is reused here because it's a simple single-field ZIP form;
-    # the ISS tracker doesn't need a dedicated form class.
+    # WeatherForm is a ZIP-code form shared with the weather view.
     from ..forms import WeatherForm
 
     form           = WeatherForm(request.POST or None)
@@ -132,12 +164,17 @@ def iss_tracker(request):
     iss_pass_times = []
 
     if request.method == "POST" and form.is_valid():
-        # ── Heavy imports — deferred to POST path only ──────────────────────
+        # Heavy imports only when actually needed.
         from zoneinfo import ZoneInfo
-        from timezonefinder import TimezoneFinder
-        from skyfield.api import load, Topos
-        from skyfield.sgp4lib import EarthSatellite
-        import requests, gc, ctypes
+        from skyfield.api import load, wgs84
+        # Deliberate reuse of app-internal helpers from iss_utils —
+        # they exist precisely so multiple code paths share one
+        # TimezoneFinder instance and one memory-trim routine.
+        from ..iss_utils import (
+            get_iss_satellite,     # OMM-backed EarthSatellite (shared cache)
+            _get_timezone_finder,  # process-wide TimezoneFinder singleton
+            _trim_memory_safely,   # gc.collect() + glibc malloc_trim
+        )
 
         zip_code = form.cleaned_data["zip_code"]
         coords   = get_coordinates(zip_code)
@@ -150,57 +187,48 @@ def iss_tracker(request):
 
         lat, lon = coords
 
-        # ── Fetch (or retrieve cached) TLE text ─────────────────────────────
-        # cache.get_or_set() returns the cached value if the key exists, or
-        # calls the lambda, stores its result, and returns it.  TTL = 3600s.
-        def _fetch_tle_text():
-            r = requests.get(
-                "https://celestrak.org/NORAD/elements/stations.txt", timeout=10
-            )
-            r.raise_for_status()
-            return r.text
-
-        tle_text = cache.get_or_set("tle_data_text", _fetch_tle_text, 3600)
-
-        # ── Extract ISS (ZARYA) TLE lines from the multi-satellite file ──────
-        # stations.txt contains many objects; the ISS entry is identified by
-        # its canonical name "ISS (ZARYA)" followed by the two TLE data lines.
-        line1 = line2 = None
-        lines = tle_text.splitlines()
-        for i, line in enumerate(lines):
-            if line.strip() == "ISS (ZARYA)":
-                line1, line2 = lines[i + 1], lines[i + 2]
-                break
-
-        if not line1 or not line2:
-            # This would only happen if Celestrak changed the station name.
+        # ── Build the ISS satellite from the cached CelesTrak OMM record ──
+        # Replaces the old in-view stations.txt fetch + "ISS (ZARYA)" TLE
+        # line parsing.  Raises RuntimeError only when the live fetch fails
+        # AND no backup copy (<= 14 days old) exists in the cache.
+        ts = load.timescale()
+        try:
+            satellite = get_iss_satellite(ts)
+        except RuntimeError:
             return render(
                 request,
                 "projects/iss_tracker.html",
-                {"form": form, "error": "ISS TLE not found."},
+                {
+                    "form": form,
+                    "error": (
+                        "ISS orbital data is temporarily unavailable. "
+                        "Please try again in a few minutes."
+                    ),
+                },
             )
 
-        # ── Skyfield orbital mechanics ───────────────────────────────────────
-        ts        = load.timescale()
-        satellite = EarthSatellite(line1, line2, "ISS (ZARYA)", ts)
-        observer  = Topos(latitude_degrees=lat, longitude_degrees=lon)
+        # ── Pass prediction over the next 24 hours ────────────────────────
+        # wgs84.latlon() replaces the deprecated Topos() observer.
+        observer = wgs84.latlon(latitude_degrees=lat, longitude_degrees=lon)
 
         now      = ts.now()
         end_time = ts.utc(now.utc_datetime() + timedelta(days=1))
 
         # find_events() returns parallel arrays: times[] and events[].
-        # event codes: 0=Rise above horizon, 1=Culminate (max elevation), 2=Set
+        # Event codes: 0 = Rise above 10°, 1 = Culminate, 2 = Set below 10°.
         times, events = satellite.find_events(
             observer, now, end_time, altitude_degrees=10.0
         )
 
-        # ── Current ISS position ─────────────────────────────────────────────
+        # ── Current ISS position (server-rendered snapshot) ───────────────
+        # The live table keeps itself fresh by polling /current-iss-data/
+        # every 10 s; this block just seeds the initial values on the POST
+        # response.  wgs84.geographic_position_of() replaces the deprecated
+        # .subpoint() — same latitude/longitude/elevation attributes.
         geocentric = satellite.at(now)
-        subpoint   = geocentric.subpoint()
-
-        # Compute scalar speed from the 3D velocity vector (km/s components).
-        v     = geocentric.velocity.km_per_s
-        speed = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) ** 0.5
+        subpoint   = wgs84.geographic_position_of(geocentric)
+        v          = geocentric.velocity.km_per_s
+        speed      = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) ** 0.5
 
         region = detect_region(
             subpoint.latitude.degrees, subpoint.longitude.degrees
@@ -214,56 +242,43 @@ def iss_tracker(request):
             "region":    region,
         }
 
-        # ── Timezone resolution for pass event times ─────────────────────────
-        # in_memory=False = lite mode: keeps shapefiles on disk, lower RSS.
-        tf       = TimezoneFinder(in_memory=False)
+        # ── Localize pass event times to the observer's timezone ──────────
+        # _get_timezone_finder() reuses the singleton from iss_utils
+        # instead of constructing a fresh TimezoneFinder on every POST.
+        tf       = _get_timezone_finder()
         tzname   = tf.timezone_at(lat=lat, lng=lon) or "UTC"
         local_tz = ZoneInfo(tzname)
 
         for t, event in zip(times, events):
-            name       = ("Rise", "Culminate", "Set")[event]  # decode event code
+            name       = ("Rise", "Culminate", "Set")[event]
             local_time = t.utc_datetime().astimezone(local_tz)
             iss_pass_times.append({
-                "event": name,
-                "date":  local_time.strftime("%A, %B %d"),
-                "time":  local_time.strftime("%I:%M %p %Z"),
-                # Rough compass bearing: if ISS ground track is north of observer,
-                # it's approaching from the south and the pass is "North".
+                "event":    name,
+                "date":     local_time.strftime("%A, %B %d"),
+                "time":     local_time.strftime("%I:%M %p %Z"),
                 "position": (
+                    # wgs84.subpoint_of() is the modern (and cheaper)
+                    # lat/lon-only replacement for .subpoint() here.
                     "North"
-                    if satellite.at(t).subpoint().latitude.degrees > lat
+                    if wgs84.subpoint_of(satellite.at(t)).latitude.degrees > lat
                     else "South"
                 ),
             })
 
-        # ── Explicit memory cleanup ───────────────────────────────────────────
-        # Delete the largest objects individually before gc runs so the
-        # reference counts drop and cyclic garbage is minimised.
-        try:
-            del satellite, geocentric, subpoint, lines, tle_text, ts, tf
-        except Exception:
-            pass
-        try:
-            gc.collect()
-            ctypes.CDLL("libc.so.6").malloc_trim(0)
-        except Exception:
-            pass
+        # Explicit cleanup to return memory to the OS.  The
+        # @trim_memory_after decorator also runs on exit; doing it here
+        # too releases the Skyfield objects before the render.
+        del satellite, times, events, geocentric
+        _trim_memory_safely()
 
-        return render(
-            request,
-            "projects/iss_tracker.html",
-            {
-                "form":           form,
-                "current_data":   current_data,
-                "iss_pass_times": iss_pass_times,
-            },
-        )
-
-    # GET — render the empty form; no heavy libraries loaded.
     return render(
         request,
         "projects/iss_tracker.html",
-        {"form": form, "current_data": current_data},
+        {
+            "form":           form,
+            "current_data":   current_data,
+            "iss_pass_times": iss_pass_times,
+        },
     )
 
 

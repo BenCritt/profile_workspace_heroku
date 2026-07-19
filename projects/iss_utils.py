@@ -281,6 +281,48 @@ def _fetch_iss_omm() -> dict:
     raise RuntimeError("ISS orbital data is temporarily unavailable from CelesTrak.")
 
 
+# ---------------------------- Satellite construction ----------------------------
+
+def get_iss_satellite(ts):
+    """
+    Build and return a Skyfield EarthSatellite for the ISS from the
+    current CelesTrak OMM record.
+
+    This is the single shared entry point for ISS orbital elements.
+    Both consumers ride the same three-tier cache in _fetch_iss_omm()
+    (fresh 6 h / backup 14 d / backoff 15 min), so CelesTrak sees at
+    most ~4 requests per day per worker no matter how many code paths
+    need a satellite object:
+
+      - current_iss_data() below — the /current-iss-data/ JSON endpoint
+        polled every 10 s by the live-position table.
+      - iss_tracker() in projects/views/views_space_tools.py — the page
+        view's ZIP-code pass-prediction form.  (This helper replaced
+        that view's own legacy stations.txt fetch, which 404s
+        permanently now that CelesTrak has removed all legacy .txt
+        element files.)
+
+    Args:
+        ts: A Skyfield timescale, i.e. skyfield.api.load.timescale().
+
+    Returns:
+        A skyfield EarthSatellite — a drop-in equivalent of the object
+        the legacy code built from TLE lines; .at(), .find_events(),
+        etc. all behave identically.
+
+    Raises:
+        RuntimeError: Orbital data is unavailable from every cache tier.
+        Callers should catch this and degrade gracefully (render a
+        friendly message) rather than let it surface as a 500.
+    """
+    # Heavy import deferred until actually needed, matching the rest
+    # of this module.
+    from skyfield.api import EarthSatellite
+
+    record = _fetch_iss_omm()
+    return EarthSatellite.from_omm(ts, record)
+
+
 # ---------------------------- Formatting ----------------------------
 
 def _fmt(v: float, places=2, unit: str | None = None) -> str:
@@ -309,13 +351,11 @@ def current_iss_data(request):
     instead of blanking the table.
     """
     # Heavy imports only when this endpoint is called
-    from skyfield.api import load, wgs84, EarthSatellite
+    from skyfield.api import load, wgs84
 
     try:
-        record = _fetch_iss_omm()
-
         ts = load.timescale()
-        sat = EarthSatellite.from_omm(ts, record)
+        sat = get_iss_satellite(ts)
         now = ts.now()
         geo = sat.at(now)
 
