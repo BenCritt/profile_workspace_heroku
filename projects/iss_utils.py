@@ -38,10 +38,11 @@ def _get_timezone_finder():
 
 # ---------------------------- Region detection ----------------------------
 
-# Cache the region result for 30 seconds.  The ISS moves ~230 km in that
-# window — enough to cross a coastline in the worst case, but totally
-# acceptable for a live tracker UI.  This drops Nominatim calls from
-# "every poll" to roughly 2/minute, well within OSM's usage policy.
+# Cache the region result for a short TTL.  The ISS moves ~75 km in 10
+# seconds — acceptable drift for a live tracker UI.  This drops Nominatim
+# calls from "every poll" to at most 6/minute (and in practice far fewer,
+# since ~70% of the orbit is over water and skips Nominatim entirely),
+# well within OSM's usage policy.
 _REGION_CACHE_KEY = "iss_current_region"
 _REGION_CACHE_TTL = 10  # seconds
 _NOMINATIM_BACKOFF_KEY = "nominatim_backoff"
@@ -128,7 +129,7 @@ def detect_region(latitude: float, longitude: float) -> str:
     Detect the region (land or water) for a lat/lon coordinate.
 
     Strategy:
-      1. Check the short-lived region cache (30 s TTL).
+      1. Check the short-lived region cache.
       2. Use timezonefinder's timezone_at_land() as a fast, offline
          land/water discriminator (~microseconds, no network).
          - Over water (~70% of ISS orbit): skip Nominatim entirely,
@@ -164,27 +165,120 @@ def detect_region(latitude: float, longitude: float) -> str:
     return region
 
 
-# ---------------------------- TLE helper ----------------------------
+# ---------------------------- Orbital data (CelesTrak GP API) ----------------------------
+#
+# WHY THIS SECTION CHANGED (2026-07):
+#
+#   The previous implementation fetched the legacy static file
+#   https://celestrak.org/NORAD/elements/stations.txt and parsed TLE lines.
+#   CelesTrak removed ALL legacy static .txt element files (final removal
+#   2024-12-24; see https://celestrak.org/NORAD/documentation/gp-data-formats.php)
+#   and, on 2026-07-11, the SATCAT ran out of 5-digit catalog numbers —
+#   newly cataloged objects (100000+) cannot be expressed in TLE format
+#   at all.  The supported interface is the GP query API:
+#
+#       https://celestrak.org/NORAD/elements/gp.php?CATNR=<id>&FORMAT=<fmt>
+#
+#   We request FORMAT=json (the OMM record format CelesTrak is urging
+#   everyone toward) and build the Skyfield satellite with
+#   EarthSatellite.from_omm() — available in Skyfield >= 1.43.
+#
+#   CelesTrak usage policy (https://celestrak.org/usage-policy.php):
+#   GP data updates at most every 2 hours; never re-download more often
+#   than that, identify your client with a User-Agent, and stop querying
+#   entirely when the server is erroring.  The three-tier cache below
+#   (fresh / backup / backoff) implements exactly that.
 
-_TLE_CACHE_KEY = "tle_data"
-_TLE_TTL_SECONDS = 3600  # 1 hour; ISS TLEs update multiple times per day
+_ISS_NORAD_ID = 25544
+_GP_URL = (
+    "https://celestrak.org/NORAD/elements/gp.php"
+    f"?CATNR={_ISS_NORAD_ID}&FORMAT=json"
+)
 
-def _fetch_tle_lines() -> tuple[str, str]:
-    tle_data = cache.get(_TLE_CACHE_KEY)
-    if not tle_data:
-        import requests
-        url = "https://celestrak.org/NORAD/elements/stations.txt"
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        tle_data = resp.text.splitlines()
-        cache.set(_TLE_CACHE_KEY, tle_data, timeout=_TLE_TTL_SECONDS)
+_GP_HEADERS = {
+    "User-Agent": "ISS Tracker by Ben Crittenden (+https://www.bencritt.net)",
+    "Accept": "application/json,text/plain;q=0.9,*/*;q=0.8",
+}
 
-    iss_name = "ISS (ZARYA)"
-    try:
-        idx = next(i for i, line in enumerate(tle_data) if line.strip() == iss_name)
-        return tle_data[idx + 1], tle_data[idx + 2]
-    except (StopIteration, IndexError) as e:
-        raise RuntimeError("Unable to parse ISS TLE from Celestrak.") from e
+# Cache strategy — NOTE the "_v2" suffix: the old keys may hold stale or
+# invalid content cached by the previous implementation, so we deliberately
+# use new key names instead of requiring a cache flush at deploy time.
+#
+#   fresh copy   : 6 h TTL  -> normal operation (~4 fetches/day per worker)
+#   backup copy  : 14 d TTL -> served if a refresh fails (stale-if-error;
+#                              a days-old ISS element set still yields a
+#                              usable position for a live map display)
+#   backoff flag : 15 min   -> after any failure, skip upstream entirely
+_GP_FRESH_KEY = "iss_omm_fresh_v2"
+_GP_BACKUP_KEY = "iss_omm_backup_v2"
+_GP_BACKOFF_KEY = "iss_omm_backoff_v2"
+_GP_FRESH_TTL = 6 * 60 * 60        # 6 hours
+_GP_BACKUP_TTL = 14 * 24 * 60 * 60  # 14 days
+_GP_BACKOFF_TTL = 15 * 60           # 15 minutes
+
+# Fields every usable CelesTrak OMM record must carry.
+_OMM_REQUIRED_FIELDS = (
+    "EPOCH", "MEAN_MOTION", "ECCENTRICITY", "INCLINATION",
+    "RA_OF_ASC_NODE", "ARG_OF_PERICENTER", "MEAN_ANOMALY", "NORAD_CAT_ID",
+)
+
+
+def _validate_omm_record(record) -> bool:
+    """True if `record` looks like a complete CelesTrak OMM element set."""
+    return isinstance(record, dict) and all(k in record for k in _OMM_REQUIRED_FIELDS)
+
+
+def _fetch_iss_omm() -> dict:
+    """
+    Return the current ISS OMM record (dict of orbital elements).
+
+    Order of preference:
+      1. Fresh cached copy (<= 6 h old).
+      2. Live fetch from the CelesTrak GP API — the body is validated
+         BEFORE caching, so a bad response (HTML notice page, plain-text
+         "No GP data found", Cloudflare challenge, etc.) can never poison
+         the cache the way the old .txt implementation could.
+      3. Stale backup copy (<= 14 d old) if the live fetch fails.
+
+    Raises RuntimeError only when all three fail.
+    """
+    fresh = cache.get(_GP_FRESH_KEY)
+    if fresh:
+        return fresh
+
+    # During a backoff window, skip upstream entirely (the usage policy
+    # asks clients to stop querying while the service is erroring) and
+    # rely on the backup copy below.
+    if not cache.get(_GP_BACKOFF_KEY):
+        import requests  # heavy-ish import deferred until actually needed
+        try:
+            resp = requests.get(_GP_URL, headers=_GP_HEADERS, timeout=10)
+            resp.raise_for_status()
+
+            # A non-JSON body (e.g. "No GP data found") raises ValueError here.
+            data = resp.json()
+            record = data[0] if isinstance(data, list) and data else None
+            if not _validate_omm_record(record):
+                raise ValueError(
+                    f"GP response did not contain a valid OMM record: {str(data)[:120]!r}"
+                )
+
+            # Validation passed — safe to cache.
+            cache.set(_GP_FRESH_KEY, record, timeout=_GP_FRESH_TTL)
+            cache.set(_GP_BACKUP_KEY, record, timeout=_GP_BACKUP_TTL)
+            return record
+
+        except Exception as e:
+            logger.warning(
+                "CelesTrak GP fetch failed (%s). Backing off for 15 minutes.", e
+            )
+            cache.set(_GP_BACKOFF_KEY, True, timeout=_GP_BACKOFF_TTL)
+
+    backup = cache.get(_GP_BACKUP_KEY)
+    if backup:
+        return backup
+
+    raise RuntimeError("ISS orbital data is temporarily unavailable from CelesTrak.")
 
 
 # ---------------------------- Formatting ----------------------------
@@ -208,21 +302,28 @@ def current_iss_data(request):
         "velocity": "7.66 km/s",
         "region": "North Atlantic Ocean" | "United States" | ...
     }
+
+    Error responses use {"error": "..."} with a 5xx status.  The frontend
+    poller in iss_tracker.html treats any non-OK response as "keep showing
+    the last good values", so a transient upstream outage degrades quietly
+    instead of blanking the table.
     """
     # Heavy imports only when this endpoint is called
-    from skyfield.api import load
-    from skyfield.sgp4lib import EarthSatellite
+    from skyfield.api import load, wgs84, EarthSatellite
 
     try:
-        line1, line2 = _fetch_tle_lines()
+        record = _fetch_iss_omm()
 
         ts = load.timescale()
-        sat = EarthSatellite(line1, line2, "ISS (ZARYA)", ts)
+        sat = EarthSatellite.from_omm(ts, record)
         now = ts.now()
         geo = sat.at(now)
 
-        # Subpoint and velocity
-        sub = geo.subpoint()
+        # Subpoint and velocity.
+        # wgs84.geographic_position_of() replaces the deprecated
+        # geo.subpoint() — same latitude/longitude/elevation attributes,
+        # without the DeprecationWarning on modern Skyfield.
+        sub = wgs84.geographic_position_of(geo)
         lat = sub.latitude.degrees
         lon = sub.longitude.degrees
         alt_km = sub.elevation.km
@@ -240,8 +341,18 @@ def current_iss_data(request):
         }
         return JsonResponse(payload)
 
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except RuntimeError as e:
+        # Upstream data unavailable (all three cache tiers exhausted).
+        # 503 is the semantically correct status for "dependency down".
+        logger.error("current_iss_data unavailable: %s", e)
+        return JsonResponse({"error": str(e)}, status=503)
+
+    except Exception:
+        # Unexpected failure — log the full traceback server-side, but
+        # return a clean message instead of leaking internals to a
+        # public, unauthenticated endpoint.
+        logger.exception("Unexpected error in current_iss_data")
+        return JsonResponse({"error": "Unable to compute current ISS data."}, status=500)
 
     finally:
         _trim_memory_safely()

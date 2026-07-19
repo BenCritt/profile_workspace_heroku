@@ -356,8 +356,22 @@ if (window.dataLayer) {
 
         const score = Math.min(100, parseInt(match[1], 10));
         const band  = bandFor(score);
-        // Strip the leading "98% -" so the rationale doesn't repeat the number.
-        const rationale = fullText.replace(/^\s*\d{1,3}\s*%\s*[-–—:.]?\s*/, "");
+        // Strip the leading score phrase so the rationale doesn't repeat
+        // the number. Two passes, each independently simple:
+        //
+        // Pass 1 — numeric prefix plus optional separator punctuation:
+        //   "95% — Ben meets…"  → "Ben meets…"
+        //   "95%: Ben meets…"   → "Ben meets…"
+        //
+        // Pass 2 — leftover match-phrase fragment. Gemini sometimes words
+        // the score as a phrase ("95% match. …", "95% — Strong match: …"),
+        // and pass 1 leaves the words behind. This only fires when "match"
+        // (with at most one qualifier word before it, e.g. "Strong") is
+        // followed by separator punctuation, so a legitimate rationale
+        // beginning with "Matching…" or "Match quality…" is untouched.
+        // Nothing is lost: bandFor() already renders the strength label.
+        let rationale = fullText.replace(/^\s*\d{1,3}\s*%\s*[-–—:.]?\s*/, "");
+        rationale = rationale.replace(/^(?:[A-Za-z]+\s+)?match(?:\s+score)?\s*[-–—:.]\s*/i, "");
 
         const card = el("div", "jfa-summary");
 

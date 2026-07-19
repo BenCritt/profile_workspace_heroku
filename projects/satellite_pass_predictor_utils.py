@@ -1,7 +1,6 @@
 # projects/satellite_pass_predictor_utils.py
 from django.core.cache import cache
-from skyfield.api import load, wgs84
-from skyfield.sgp4lib import EarthSatellite
+from skyfield.api import load, wgs84, EarthSatellite
 from zoneinfo import ZoneInfo
 import requests
 import datetime
@@ -10,30 +9,53 @@ import logging
 logger = logging.getLogger(__name__)
 
 # ---------------------------- Config ----------------------------
+#
+# WHY THE SOURCES CHANGED (2026-07):
+#
+#   The previous implementation fetched five legacy static files
+#   (stations.txt, amateur.txt, weather.txt, sarsat.txt, science.txt).
+#   CelesTrak removed ALL legacy static .txt element files (final removal
+#   2024-12-24; see https://celestrak.org/NORAD/documentation/gp-data-formats.php)
+#   and, on 2026-07-11, the SATCAT ran out of 5-digit catalog numbers —
+#   newly cataloged objects (100000+) cannot be expressed in TLE format
+#   at all.  The supported interface is the GP query API (gp.php), and
+#   CelesTrak is urging everyone onto the OMM formats (JSON/CSV) instead
+#   of TLE.  Every source below now requests FORMAT=json, and satellites
+#   are built with EarthSatellite.from_omm() (Skyfield >= 1.43).
+#
+#   Legacy-to-GP group mapping is 1:1 for the groups we use:
+#       stations.txt -> gp.php?GROUP=stations
+#       amateur.txt  -> gp.php?GROUP=amateur
+#       weather.txt  -> gp.php?GROUP=weather
+#       sarsat.txt   -> gp.php?GROUP=sarsat
+#       science.txt  -> gp.php?GROUP=science
 
 HEADERS = {
     'User-Agent': 'Satellite Pass Predictor by Ben Crittenden (+https://www.bencritt.net)',
-    'Accept': 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8',
 }
 
-# Map internal keys to Celestrak URLs
-# "Special" satellites are fetched individually to avoid API parsing errors with lists.
+_GP_BASE = "https://celestrak.org/NORAD/elements/gp.php"
+
+# Map internal keys to CelesTrak GP API URLs (all OMM JSON).
+# "Special" satellites are fetched individually because they are not
+# carried in the group sets above.
 SOURCES = {
-    'stations': 'https://celestrak.org/NORAD/elements/stations.txt',
-    'amateur': 'https://celestrak.org/NORAD/elements/amateur.txt',
-    'weather': 'https://celestrak.org/NORAD/elements/weather.txt',
-    'sarsat': 'https://celestrak.org/NORAD/elements/sarsat.txt',
-    'science': 'https://celestrak.org/NORAD/elements/science.txt',
-    
-    # Individual fetch URLs for satellites missing from standard lists
-    'noaa_15': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=25338&FORMAT=tle',
-    'noaa_18': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=28654&FORMAT=tle',
-    'noaa_19': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=33591&FORMAT=tle',
-    'aqua':    'https://celestrak.org/NORAD/elements/gp.php?CATNR=27424&FORMAT=tle',
-    'landsat_8': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=39084&FORMAT=tle',
-    'landsat_9': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=49260&FORMAT=tle',
-    'sentinel_2a': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=40697&FORMAT=tle',
-    'ajisai': 'https://celestrak.org/NORAD/elements/gp.php?CATNR=16908&FORMAT=tle',
+    'stations': f'{_GP_BASE}?GROUP=stations&FORMAT=json',
+    'amateur':  f'{_GP_BASE}?GROUP=amateur&FORMAT=json',
+    'weather':  f'{_GP_BASE}?GROUP=weather&FORMAT=json',
+    'sarsat':   f'{_GP_BASE}?GROUP=sarsat&FORMAT=json',
+    'science':  f'{_GP_BASE}?GROUP=science&FORMAT=json',
+
+    # Individual fetch URLs for satellites missing from the group sets
+    'noaa_15':     f'{_GP_BASE}?CATNR=25338&FORMAT=json',
+    'noaa_18':     f'{_GP_BASE}?CATNR=28654&FORMAT=json',
+    'noaa_19':     f'{_GP_BASE}?CATNR=33591&FORMAT=json',
+    'aqua':        f'{_GP_BASE}?CATNR=27424&FORMAT=json',
+    'landsat_8':   f'{_GP_BASE}?CATNR=39084&FORMAT=json',
+    'landsat_9':   f'{_GP_BASE}?CATNR=49260&FORMAT=json',
+    'sentinel_2a': f'{_GP_BASE}?CATNR=40697&FORMAT=json',
+    'ajisai':      f'{_GP_BASE}?CATNR=16908&FORMAT=json',
 }
 
 # The definitive catalog of supported satellites
@@ -256,7 +278,25 @@ SATELLITE_CATALOG = [
     },
 ]
 
-TLE_CACHE_TIMEOUT = 3600 * 4  # 4 hours
+# Cache strategy (CelesTrak usage policy: GP data updates at most every
+# 2 hours; never re-download more often than that, and stop querying
+# entirely while the service is erroring):
+#
+#   fresh copy   : 12 h TTL -> matches the "refreshes its orbital data
+#                              every 12 hours" copy on the tool page, and
+#                              a <=12 h-old element set is well within
+#                              accuracy limits for 24 h pass prediction
+#   backup copy  : 14 d TTL -> served if a refresh fails (stale-if-error)
+#   backoff flag : 15 min   -> after a failure, skip upstream entirely
+OMM_CACHE_TIMEOUT = 3600 * 12       # 12 hours (fresh)
+OMM_BACKUP_TIMEOUT = 3600 * 24 * 14  # 14 days (stale-if-error)
+OMM_BACKOFF_TIMEOUT = 60 * 15        # 15 minutes
+
+# Fields every usable CelesTrak OMM record must carry.
+_OMM_REQUIRED_FIELDS = (
+    "EPOCH", "MEAN_MOTION", "ECCENTRICITY", "INCLINATION",
+    "RA_OF_ASC_NODE", "ARG_OF_PERICENTER", "MEAN_ANOMALY", "NORAD_CAT_ID",
+)
 
 # ---------------------------- Helpers ----------------------------
 
@@ -283,77 +323,119 @@ def get_satellite_choices():
     groups = get_satellite_groups()
     choices = []
     GROUP_ORDER = ["Space Stations", "Educational", "Amateur Radio", "Weather", "Science", "Search & Rescue"]
-    
+
     for group_name in GROUP_ORDER:
         if group_name in groups:
             sats = groups[group_name]
             group_choices = [(sat['name'], sat['name']) for sat in sats]
             choices.append((group_name, group_choices))
-            
+
     for group_name, sats in groups.items():
         if group_name not in GROUP_ORDER:
             group_choices = [(sat['name'], sat['name']) for sat in sats]
             choices.append((group_name, group_choices))
-            
+
     return choices
 
 # EXPORTED FOR FORMS.PY
 SATELLITE_CHOICES = get_satellite_choices()
 
-def _fetch_tle_for_group(group_key):
+
+def _valid_omm_record(record) -> bool:
+    """True if `record` looks like a complete CelesTrak OMM element set."""
+    return isinstance(record, dict) and all(k in record for k in _OMM_REQUIRED_FIELDS)
+
+
+def _fetch_omm_for_group(group_key):
+    """
+    Return a list of OMM record dicts for a source key.
+
+    Order of preference:
+      1. Fresh cached copy (<= 12 h old).
+      2. Live fetch from the CelesTrak GP API — records are validated
+         BEFORE caching, so a bad response body (HTML notice page,
+         plain-text "No GP data found", Cloudflare challenge, etc.)
+         can never poison the cache.
+      3. Stale backup copy (<= 14 d old) if the live fetch fails.
+
+    Raises ConnectionError only when all three fail.
+    """
     if group_key not in SOURCES:
         raise ValueError(f"Unknown source group: {group_key}")
-    
+
     url = SOURCES[group_key]
-    cache_key = f"tle_source_{group_key}_v4" # Updated cache key to v4
-    
-    cached = cache.get(cache_key)
+    # v5 key generation: the v4 keys may hold TLE-format content cached
+    # by the previous implementation, so we deliberately use new key
+    # names instead of requiring a cache flush at deploy time.
+    fresh_key = f"omm_source_{group_key}_v5"
+    backup_key = f"omm_backup_{group_key}_v5"
+    backoff_key = f"omm_backoff_{group_key}_v5"
+
+    cached = cache.get(fresh_key)
     if cached:
         return cached
 
-    try:
-        # Pass HEADERS to mimic a browser
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status()
-        text = resp.text.splitlines()
-        text = [line.strip() for line in text if line.strip()]
-        
-        # Validation: Ensure we actually got TLE data
-        if not text or not any(line.startswith("1 ") for line in text[:20]):
-            snippet = text[0] if text else "Empty response"
-            raise ValueError(f"Response from {url} does not look like TLE data. Content: '{snippet}'")
-
-        cache.set(cache_key, text, TLE_CACHE_TIMEOUT)
-        return text
-    except requests.RequestException as e:
-        raise ConnectionError(f"Failed to fetch TLE from {url}: {e}")
-
-def _extract_tle(sat_name, norad_id, tle_lines):
-    target_id = int(norad_id)
-    
-    # 1. Standard search for 2-line format
-    for i, line in enumerate(tle_lines):
-        if line.startswith("2 "):
-            try:
-                line_id = int(line[2:7].strip())
-                if line_id == target_id:
-                    if i > 0:
-                        return tle_lines[i-1], line
-            except (ValueError, IndexError):
-                continue
-                
-    # 2. Fallback for Single-Sat fetch (where only 3 lines might exist: Name, Line1, Line2)
-    # If the file is just one satellite, sometimes Line 1 is the first line.
-    if len(tle_lines) >= 2 and tle_lines[0].startswith("1 ") and tle_lines[1].startswith("2 "):
+    # During a backoff window, skip upstream entirely (the usage policy
+    # asks clients to stop querying while the service is erroring) and
+    # rely on the backup copy below.
+    if not cache.get(backoff_key):
         try:
-             # Verify ID in line 2
-             line_id = int(tle_lines[1][2:7].strip())
-             if line_id == target_id:
-                 return tle_lines[0], tle_lines[1]
-        except ValueError:
-            pass
+            resp = requests.get(url, headers=HEADERS, timeout=15)
+            resp.raise_for_status()
+
+            # A non-JSON body (e.g. "No GP data found") raises ValueError here.
+            data = resp.json()
+            if not isinstance(data, list):
+                raise ValueError(
+                    f"Response from {url} is not a JSON array: {str(data)[:120]!r}"
+                )
+
+            # Keep only structurally valid records; require at least one so a
+            # single malformed entry can't take down the whole group.
+            records = [r for r in data if _valid_omm_record(r)]
+            if not records:
+                raise ValueError(f"Response from {url} contained no valid OMM records.")
+
+            # Validation passed — safe to cache.
+            cache.set(fresh_key, records, OMM_CACHE_TIMEOUT)
+            cache.set(backup_key, records, OMM_BACKUP_TIMEOUT)
+            return records
+
+        except (requests.RequestException, ValueError) as e:
+            logger.warning(
+                "CelesTrak GP fetch failed for '%s' (%s). Backing off for 15 minutes.",
+                group_key, e,
+            )
+            cache.set(backoff_key, True, OMM_BACKOFF_TIMEOUT)
+
+    backup = cache.get(backup_key)
+    if backup:
+        return backup
+
+    raise ConnectionError(
+        f"Orbital data for source '{group_key}' is temporarily unavailable from CelesTrak."
+    )
+
+
+def _extract_omm(sat_name, norad_id, records):
+    """
+    Find the OMM record matching a NORAD catalog ID.
+
+    Matching on NORAD_CAT_ID replaces the old TLE line-2 column parsing —
+    no fixed-width slicing, no name-line lookups, and it keeps working
+    when CelesTrak reorders or renames entries within a group.
+    """
+    target_id = int(norad_id)
+
+    for record in records:
+        try:
+            if int(record.get("NORAD_CAT_ID", -1)) == target_id:
+                return record
+        except (TypeError, ValueError):
+            continue
 
     raise ValueError(f"Satellite '{sat_name}' (ID {norad_id}) not found in source.")
+
 
 def az_direction(degrees):
     dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
@@ -373,13 +455,13 @@ def predict_passes(satellite_name, lat, lon):
         tz_name = tf.timezone_at(lng=lon, lat=lat)
         local_tz = ZoneInfo(tz_name) if tz_name else datetime.timezone.utc
 
-        # 2. Fetch TLE
-        tle_lines = _fetch_tle_for_group(sat_config['celestrak_group'])
-        line1, line2 = _extract_tle(sat_config['name'], sat_config['norad_id'], tle_lines)
-        
+        # 2. Fetch orbital elements (OMM JSON) and pick this satellite's record
+        records = _fetch_omm_for_group(sat_config['celestrak_group'])
+        record = _extract_omm(sat_config['name'], sat_config['norad_id'], records)
+
         # 3. Calculate
         ts = load.timescale()
-        satellite = EarthSatellite(line1, line2, sat_config['name'], ts)
+        satellite = EarthSatellite.from_omm(ts, record)
         observer = wgs84.latlon(lat, lon)
 
         t0 = ts.now()
@@ -389,30 +471,30 @@ def predict_passes(satellite_name, lat, lon):
 
         pass_list = []
         current_pass = {}
-        
+
         for t, event in zip(times, events):
             utc_dt = t.utc_datetime()
             local_dt = utc_dt.astimezone(local_tz)
-            
+
             if event == 0:  # Rise
                 current_pass['rise_time'] = local_dt
                 az, alt, dist = (satellite - observer).at(t).altaz()
                 current_pass['rise_az'] = f"{az.degrees:.0f}° {az_direction(az.degrees)}"
-                
+
             elif event == 1:  # Culminate
                 current_pass['max_time'] = local_dt
                 az, alt, dist = (satellite - observer).at(t).altaz()
                 current_pass['max_alt'] = f"{alt.degrees:.0f}°"
-                
+
             elif event == 2:  # Set
                 current_pass['set_time'] = local_dt
                 az, alt, dist = (satellite - observer).at(t).altaz()
                 current_pass['set_az'] = f"{az.degrees:.0f}° {az_direction(az.degrees)}"
-                
+
                 if 'rise_time' in current_pass:
                     duration = current_pass['set_time'] - current_pass['rise_time']
                     mins, secs = divmod(duration.total_seconds(), 60)
-                    
+
                     pass_data = {
                         "event": f"Pass ({int(mins)}m)",
                         "date": current_pass['rise_time'].strftime("%a, %b %d"),
@@ -420,7 +502,7 @@ def predict_passes(satellite_name, lat, lon):
                         "position": f"Max: {current_pass.get('max_alt', '?')} ({current_pass.get('rise_az')} -> {current_pass.get('set_az')})"
                     }
                     pass_list.append(pass_data)
-                
+
                 current_pass = {}
 
         return {
@@ -444,12 +526,12 @@ def get_next_passes(lat, lon, sat_key, hours=24):
         'NOAA-15': 'NOAA 15',
         'NOAA-18': 'NOAA 18',
     }
-    
+
     new_name = LEGACY_MAP.get(sat_key, sat_key)
     result = predict_passes(new_name, lat, lon)
-    
+
     if "error" in result:
         logger.warning(f"Legacy get_next_passes failed for {sat_key}: {result['error']}")
         return []
-        
+
     return result.get('passes', [])

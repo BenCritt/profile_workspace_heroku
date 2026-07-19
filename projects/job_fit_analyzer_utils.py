@@ -222,8 +222,8 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       reading: - None identified.
 
     ## Match Score
-    State an estimated percentage match (0–100%) and a one-sentence rationale. No bullet points. Calibrate the score against this rubric: 90–100 = meets or exceeds essentially all requirements; 70–89 = meets most core requirements with minor gaps; 40–69 = meaningful transferable foundation but material gaps; below 40 = poor fit.
-
+    State an estimated percentage match (0–100%) and a one-sentence rationale, formatted exactly as: NN% — rationale sentence (integer percentage, space, em dash, space, rationale; no words between the percentage and the dash, and do not repeat the percentage in the rationale). No bullet points. Calibrate the score against this rubric: 90–100 = meets or exceeds essentially all requirements; 70–89 = meets most core requirements with minor gaps; 40–69 = meaningful transferable foundation but material gaps; below 40 = poor fit.
+    
     ## Direct Alignments
     Each alignment on its own line as a markdown bullet. Format exactly like this:
     - **Requirement from JD:** explanation of how Ben meets it.
