@@ -87,6 +87,13 @@ class StaticViewSitemap(Sitemap):
             "projects:og_previewer",
             "projects:lunar_phase_calendar",
             "projects:night_sky_planner",
+            "projects:job_fit_analyzer",
+            "projects:privacy_cookies",
+            "projects:hos_multi_stop_trip_planner",
+            "projects:pm_tools",
+            "projects:evm_calculator",
+            "projects:pert_calculator",
+            "projects:critical_path_calculator",
         ]
 
     def location(self, item):
