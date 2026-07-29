@@ -928,3 +928,83 @@ def freight_margin_calculator(request):
         )
 
     return render(request, "projects/freight_margin_calculator.html", context)
+
+# ===========================================================================
+# Freight Quote Builder & Max Buy Rate Calculator
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_quote_builder(request):
+    from .. import freight_quote_builder_utils
+    from ..forms import FreightQuoteBuilderForm
+    from ..utils import get_road_distance
+
+    form    = FreightQuoteBuilderForm(request.POST or None)
+    context = {"form": form}
+
+    # Built on every request (GET and POST) so the template can render label
+    # + two bound fields per accessorial row without needing the raw catalog
+    # constant in template scope. Mirrors the AccessorialFeeForm
+    # catalog_with_fields pattern used elsewhere in this package.
+    context["accessorial_field_rows"] = [
+        (label, form[f"{key}_customer"], form[f"{key}_carrier"])
+        for key, label in freight_quote_builder_utils.ACCESSORIAL_PRESETS
+    ]
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+
+        # 1. Resolve miles. Manual entry always wins and skips the API
+        #    entirely - API cost discipline caps this at one call per
+        #    submission, and manual entry means zero calls.
+        used_manual_miles = bool(d.get("manual_miles"))
+        if used_manual_miles:
+            raw_miles = d["manual_miles"]
+        else:
+            raw_miles = get_road_distance(d["origin_zip"], d["destination_zip"])
+            if not raw_miles:
+                # No retry - direct the user to manual entry and preserve
+                # everything else they typed (form is already bound with POST data).
+                context["error_message"] = (
+                    "Unable to calculate a driving route between these ZIP codes. "
+                    "Enter the mileage manually below and resubmit - everything "
+                    "else you entered has been preserved."
+                )
+                return render(request, "projects/freight_quote_builder.html", context)
+
+        try:
+            miles = freight_quote_builder_utils.ensure_positive_miles(raw_miles)
+        except freight_quote_builder_utils.QuoteBuilderError:
+            context["error_message"] = "Resolved mileage must be greater than zero."
+            return render(request, "projects/freight_quote_builder.html", context)
+
+        # Same-ZIP local drayage is real and allowed - just flag it instead
+        # of blocking it (edge case table §11).
+        if not used_manual_miles and d["origin_zip"] == d["destination_zip"] and miles < 1:
+            context["warning_message"] = (
+                "Origin and destination are the same ZIP code - treating this as local drayage."
+            )
+
+        try:
+            results = freight_quote_builder_utils.build_quote(cleaned_data=d, miles=miles)
+        except freight_quote_builder_utils.QuoteBuilderError:
+            # In practice only reachable via the Mode B percent-FSC +
+            # pass-through combination at an extreme target margin - every
+            # other invalid configuration is caught by form validation above.
+            context["error_message"] = (
+                "This combination of fuel surcharge percentage and target margin "
+                "has no valid solution in Buy-Known mode. Try a lower target "
+                "margin or a non-percentage fuel surcharge method."
+            )
+            return render(request, "projects/freight_quote_builder.html", context)
+
+        equipment_label = dict(form.fields["equipment_type"].choices)[d["equipment_type"]]
+        context["results"] = results
+        context["used_manual_miles"] = used_manual_miles
+        context["equipment_label"] = equipment_label
+        context["quote_text"] = freight_quote_builder_utils.format_customer_quote_text(
+            results, d.get("origin_zip") or "N/A", d.get("destination_zip") or "N/A", equipment_label
+        )
+
+    return render(request, "projects/freight_quote_builder.html", context)

@@ -1,0 +1,146 @@
+/*
+ * freight_quote_builder.css
+ * ==========================
+ * Freight Quote Builder & Max Buy Rate Calculator.
+ *
+ * PRINT NOTE: unlike hos_multi_stop_trip_planner.css, this file does NOT
+ * need a @media print override block for the broker economics panel or
+ * ladder table. Both are hidden via Bootstrap's `d-print-none` utility
+ * directly in the template - the same mechanism this site already uses
+ * for the footer/navbar (chosen there specifically because it wins the
+ * specificity fight against `.d-flex !important` that a custom CSS rule
+ * would otherwise lose). The customer quote block intentionally carries
+ * no print-hiding class, so it prints normally.
+ *
+ * DARK THEME TABLE OVERRIDES: the Max Buy Ladder reuses `.table-info`
+ * (user's target-margin row) and `.table-secondary` (unreachable tiers)
+ * exactly as documented in hos_multi_stop_trip_planner.css - Bootstrap's
+ * contextual row classes hardcode light tints that don't adapt to
+ * [data-bs-theme="dark"], so every one used here gets its CSS variables
+ * re-declared with dark, translucent tints plus a left accent border.
+ */
+
+/* ── Form layout ─────────────────────────────────────────────────────────── */
+
+fieldset legend {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+/* ── Accessorial input table ────────────────────────────────────────────── */
+
+.accessorial-input-table th,
+.accessorial-input-table td {
+    vertical-align: middle;
+}
+.accessorial-input-table input {
+    max-width: 140px;
+}
+
+/* ── Customer quote block ───────────────────────────────────────────────── */
+
+.quote-text-block {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.quote-copy-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+/* ── Broker economics panel ─────────────────────────────────────────────── */
+
+.broker-panel {
+    background: rgba(255, 193, 7, 0.06);
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    position: relative;
+}
+.broker-panel__badge {
+    position: absolute;
+    top: -0.6rem;
+    left: 1rem;
+    background: var(--bs-warning);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+}
+.broker-metric-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--bs-secondary);
+}
+.broker-metric-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* ── Walk-away callout ───────────────────────────────────────────────────── */
+/* The single most prominent figure in the internal panel, per spec - larger
+   and higher-contrast than the broker-panel metrics above it. */
+
+.walkaway-callout {
+    background: rgba(220, 53, 69, 0.12);
+    border: 2px solid var(--bs-danger);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    text-align: center;
+}
+.walkaway-callout__label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #f8d7da;
+}
+.walkaway-callout__value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #ff8b96;
+}
+.walkaway-callout__note {
+    font-size: 0.85rem;
+    color: var(--bs-secondary);
+}
+
+/* ── Max Buy Ladder: dark-theme contextual row overrides ────────────────── */
+/* Same variable set / values as hos_multi_stop_trip_planner.css so ladder
+   rows read consistently with the rest of the freight hub's tables. */
+
+#results-section tr.table-info {
+    --bs-table-bg: rgba(13, 202, 240, 0.14);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(13, 202, 240, 0.40);
+    --bs-table-hover-bg: rgba(13, 202, 240, 0.24);
+    --bs-table-hover-color: #ffffff;
+}
+#results-section tr.table-secondary {
+    --bs-table-bg: rgba(108, 117, 125, 0.16);
+    --bs-table-color: #ced4da;
+    --bs-table-border-color: rgba(108, 117, 125, 0.45);
+    --bs-table-hover-bg: rgba(108, 117, 125, 0.28);
+    --bs-table-hover-color: #ffffff;
+}
+#results-section tr.table-info > td:first-child { border-left: 3px solid var(--bs-info); }
+#results-section tr.table-secondary > td:first-child { border-left: 3px dashed var(--bs-secondary); }
+
+/* ── FSC conditional field groups ───────────────────────────────────────── */
+/* Toggled by JS in the template; .d-none is applied/removed there. This
+   transition is purely cosmetic - hidden fields remain in the DOM and in
+   the POST body, since clean() (not the browser) enforces which are
+   actually required for the selected method. */
+
+[data-fsc-fields] {
+    transition: opacity 0.15s ease;
+}

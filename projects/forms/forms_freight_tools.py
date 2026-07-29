@@ -28,9 +28,11 @@ from django.core.validators import (
     MaxLengthValidator,
     URLValidator
 )
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from ..zip_data import _load_dataset
 zdb = _load_dataset()
+from ..freight_quote_builder_utils import ACCESSORIAL_PRESETS
 
 # --- Freight Carrier Safety Reporter ---
 class CarrierSearchForm(forms.Form):
@@ -1628,5 +1630,238 @@ class FreightMarginForm(forms.Form):
                 "origin_zip",
                 "An Origin ZIP is required when a Destination ZIP is provided."
             )
+
+        return cleaned_data
+
+# --- Freight Quote Builder & Max Buy Rate Calculator ---
+class FreightQuoteBuilderForm(forms.Form):
+    """
+    Forward/reverse freight quote builder. Named FreightQuoteBuilderForm
+    (not e.g. QuoteForm) to avoid any collision with the freight package's
+    existing CPMCalculatorForm naming.
+
+    clean() enforces:
+      - origin_zip/destination_zip required unless manual_miles is given
+      - fsc_method-specific required fields (peg needs doe_price+mpg,
+        percent needs fsc_percent, flat needs fsc_flat)
+      - target_margin_pct < 100 (>=100 is mathematically impossible - a
+        MaxValueValidator below already blocks >99.99, this just makes the
+        error message explicit about *why*)
+
+    cleaned_data["accessorial_rows"] is assembled here from the 28
+    dynamically-generated per-preset fields into the list-of-dicts shape
+    freight_quote_builder_utils.build_quote() expects.
+    """
+
+    PRICING_MODE_CHOICES = [
+        ("sell_known", "I know my sell rate to the customer"),
+        ("buy_known", "I know my buy rate to the carrier"),
+        ("from_scratch", "I'm starting from a market rate-per-mile"),
+    ]
+    EQUIPMENT_CHOICES = [
+        ("dry_van", "Dry Van"),
+        ("reefer", "Reefer"),
+        ("flatbed", "Flatbed"),
+        ("step_deck", "Step Deck"),
+        ("power_only", "Power Only"),
+        ("box_truck", "Box Truck"),
+        ("sprinter_cargo_van", "Sprinter / Cargo Van"),
+    ]
+    LINEHAUL_BASIS_CHOICES = [("flat", "Flat Total $"), ("per_mile", "$ / Mile")]
+    FSC_METHOD_CHOICES = [
+        ("peg", "DOE Peg (calculate from diesel price)"),
+        ("percent", "Percent of Linehaul"),
+        ("flat", "Flat $ Amount"),
+        ("none", "No Fuel Surcharge"),
+    ]
+
+    # --- Lane ---
+    origin_zip = forms.CharField(
+        label="Origin ZIP Code",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "60601", "inputmode": "numeric"}),
+    )
+    destination_zip = forms.CharField(
+        label="Destination ZIP Code",
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "90210", "inputmode": "numeric"}),
+    )
+    manual_miles = forms.DecimalField(
+        label="Manual Mileage Override",
+        required=False,
+        min_value=Decimal("1"),
+        max_value=Decimal("5000"),
+        decimal_places=1,
+        max_digits=6,
+        help_text="Optional. Skips the mileage lookup entirely - use this if you already know the miles or the ZIP lookup fails.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "e.g. 810", "inputmode": "decimal", "step": "0.1"}),
+    )
+    equipment_type = forms.ChoiceField(
+        label="Equipment Type", choices=EQUIPMENT_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    # --- Pricing mode ---
+    pricing_mode = forms.ChoiceField(
+        label="Pricing Mode", choices=PRICING_MODE_CHOICES, initial="sell_known",
+        widget=forms.Select(attrs={"class": "form-select", "data-gtm-category": "Freight Tools"}),
+    )
+
+    # --- Linehaul ---
+    linehaul_basis = forms.ChoiceField(
+        label="Linehaul Basis", choices=LINEHAUL_BASIS_CHOICES, initial="per_mile",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    linehaul_amount = forms.DecimalField(
+        label="Linehaul Rate", min_value=Decimal("0"), decimal_places=2, max_digits=10,
+        help_text="Interpreted per Linehaul Basis above, and per your Pricing Mode: the rate you know (sell, buy, or market RPM).",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "2.25", "inputmode": "decimal", "step": "0.01"}),
+    )
+
+    # --- Fuel surcharge ---
+    fsc_method = forms.ChoiceField(
+        label="Fuel Surcharge Method", choices=FSC_METHOD_CHOICES, initial="peg",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    doe_price = forms.DecimalField(
+        label="Current DOE Diesel Price ($/gal)", required=False, min_value=Decimal("0"), decimal_places=3, max_digits=6,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "3.85", "inputmode": "decimal", "step": "0.001"}),
+    )
+    peg_price = forms.DecimalField(
+        label="FSC Peg Price ($/gal)", required=False, initial=Decimal("1.25"), min_value=Decimal("0"), decimal_places=3, max_digits=6,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "1.25", "inputmode": "decimal", "step": "0.001"}),
+    )
+    mpg = forms.DecimalField(
+        label="Truck MPG", required=False, initial=Decimal("6.0"),
+        decimal_places=2, max_digits=5,
+        validators=[MinValueValidator(Decimal("0.01"), message="MPG must be greater than 0.")],
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "6.0", "inputmode": "decimal", "step": "0.1"}),
+    )
+    fsc_percent = forms.DecimalField(
+        label="FSC (% of Linehaul)", required=False, min_value=Decimal("0"), max_value=Decimal("100"),
+        decimal_places=2, max_digits=5,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "12", "inputmode": "decimal", "step": "0.01"}),
+    )
+    fsc_flat = forms.DecimalField(
+        label="FSC (Flat $)", required=False, min_value=Decimal("0"), decimal_places=2, max_digits=8,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "150", "inputmode": "decimal", "step": "0.01"}),
+    )
+    fsc_carrier_pass_through = forms.BooleanField(
+        label="Pass FSC Through to Carrier At Cost", required=False, initial=True,
+        help_text="On: carrier is paid the same FSC billed to the customer. Off: enter what you actually pay the carrier below (the FSC spread).",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    fsc_buy_override = forms.DecimalField(
+        label="FSC Paid to Carrier ($)", required=False, min_value=Decimal("0"), decimal_places=2, max_digits=8,
+        help_text="Only used when the pass-through toggle above is off.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "100", "inputmode": "decimal", "step": "0.01"}),
+    )
+
+    # --- Margin & risk ---
+    target_margin_pct = forms.DecimalField(
+        label="Target Margin (%)", initial=Decimal("15.0"), min_value=Decimal("0"), max_value=Decimal("99.99"),
+        decimal_places=2, max_digits=5,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "15", "inputmode": "decimal", "step": "0.01"}),
+    )
+    contingency_pct = forms.DecimalField(
+        label="Contingency / Risk Reserve (%)", required=False, initial=Decimal("0"), min_value=Decimal("0"), max_value=Decimal("50"),
+        decimal_places=2, max_digits=5,
+        help_text="Held off the top before the walk-away line is calculated.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "0", "inputmode": "decimal", "step": "0.01"}),
+    )
+    expected_detention_hours = forms.DecimalField(
+        label="Expected Detention (hrs)", required=False, initial=Decimal("0"), min_value=Decimal("0"),
+        decimal_places=2, max_digits=5,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "0", "inputmode": "decimal", "step": "0.25"}),
+    )
+    detention_rate_customer = forms.DecimalField(
+        label="Detention Rate Billed to Customer ($/hr)", required=False, min_value=Decimal("0"), decimal_places=2, max_digits=8,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "50", "inputmode": "decimal", "step": "0.01"}),
+    )
+    detention_rate_carrier = forms.DecimalField(
+        label="Detention Rate Paid to Carrier ($/hr)", required=False, min_value=Decimal("0"), decimal_places=2, max_digits=8,
+        widget=forms.NumberInput(attrs={"class": "form-control", "placeholder": "40", "inputmode": "decimal", "step": "0.01"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically add two DecimalFields per accessorial preset (customer
+        # charge + carrier cost). Mirrors the AccessorialFeeForm pattern of
+        # generating fields from a shared catalog constant rather than
+        # hand-writing 28 near-identical declarations.
+        for key, label in ACCESSORIAL_PRESETS:
+            self.fields[f"{key}_customer"] = forms.DecimalField(
+                label=f"{label} - Customer Charge ($)", required=False, initial=Decimal("0"), min_value=Decimal("0"),
+                decimal_places=2, max_digits=8,
+                widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "placeholder": "0.00", "inputmode": "decimal", "step": "0.01"}),
+            )
+            self.fields[f"{key}_carrier"] = forms.DecimalField(
+                label=f"{label} - Carrier Cost ($)", required=False, initial=Decimal("0"), min_value=Decimal("0"),
+                decimal_places=2, max_digits=8,
+                widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "placeholder": "0.00", "inputmode": "decimal", "step": "0.01"}),
+            )
+
+    def clean_origin_zip(self):
+        # NOTE: sibling freight forms validate ZIPs against a `zdb` zip-code
+        # database (see e.g. HOSMultiStopPlannerForm.clean_origin_zip). This
+        # tool's build spec only calls for 5-digit format validation, so
+        # that's what's implemented here. If you want existence-checking
+        # parity with your other freight forms, replace the digit check
+        # with `zdb[zip_code]` in a try/except KeyError/IndexError, exactly
+        # like your other freight forms do.
+        zip_code = self.cleaned_data.get("origin_zip", "").strip()
+        if zip_code and not zip_code.isdigit():
+            raise ValidationError("Origin ZIP code must be 5 digits.")
+        if zip_code and len(zip_code) != 5:
+            raise ValidationError("Origin ZIP code must be exactly 5 digits.")
+        return zip_code
+
+    def clean_destination_zip(self):
+        zip_code = self.cleaned_data.get("destination_zip", "").strip()
+        if zip_code and not zip_code.isdigit():
+            raise ValidationError("Destination ZIP code must be 5 digits.")
+        if zip_code and len(zip_code) != 5:
+            raise ValidationError("Destination ZIP code must be exactly 5 digits.")
+        return zip_code
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # --- Mileage source: manual_miles OR both ZIPs, not neither ---
+        manual_miles = cleaned_data.get("manual_miles")
+        origin_zip = cleaned_data.get("origin_zip")
+        destination_zip = cleaned_data.get("destination_zip")
+        if not manual_miles:
+            if not origin_zip:
+                self.add_error("origin_zip", "Required unless you supply manual mileage below.")
+            if not destination_zip:
+                self.add_error("destination_zip", "Required unless you supply manual mileage below.")
+
+        # --- FSC method cross-validation ---
+        fsc_method = cleaned_data.get("fsc_method")
+        if fsc_method == "peg":
+            if cleaned_data.get("doe_price") is None:
+                self.add_error("doe_price", "Required when using the DOE peg fuel surcharge method.")
+            if not cleaned_data.get("mpg"):
+                self.add_error("mpg", "Required when using the DOE peg fuel surcharge method, and must be greater than 0.")
+        elif fsc_method == "percent":
+            if cleaned_data.get("fsc_percent") is None:
+                self.add_error("fsc_percent", "Required when using the percent-of-linehaul fuel surcharge method.")
+        elif fsc_method == "flat":
+            if cleaned_data.get("fsc_flat") is None:
+                self.add_error("fsc_flat", "Required when using the flat fuel surcharge method.")
+
+        # --- Assemble the accessorial rows the utils layer expects ---
+        accessorial_rows = []
+        for key, label in ACCESSORIAL_PRESETS:
+            accessorial_rows.append({
+                "key": key,
+                "label": label,
+                "customer_charge": cleaned_data.get(f"{key}_customer") or Decimal("0"),
+                "carrier_cost": cleaned_data.get(f"{key}_carrier") or Decimal("0"),
+            })
+        cleaned_data["accessorial_rows"] = accessorial_rows
 
         return cleaned_data

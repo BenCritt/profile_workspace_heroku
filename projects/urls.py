@@ -449,5 +449,10 @@ urlpatterns = [
     "projects/hos-multi-stop-trip-planner/",
     views.hos_multi_stop_trip_planner,
     name="hos_multi_stop_trip_planner",
-),
+    ),
+    path(
+        "projects/freight-quote-builder/",
+        views.freight_quote_builder,
+        name="freight_quote_builder",
+    ),
 ]
