@@ -111,11 +111,8 @@
           </div>
         </fieldset>
 
-        <div class="d-grid mb-5">
-          <button type="submit" class="btn btn-primary btn-lg" data-gtm-event="stance_form_submit" data-gtm-category="Freight Tools">
-            Get My Stance
-          </button>
-        </div>
+        <button type="submit" class="btn btn-primary w-100 mt-3" data-gtm-event="stance_form_submit" data-gtm-category="Freight Tools">Get My Stance</button>
+        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
       </form>
 
       {% if result %}
