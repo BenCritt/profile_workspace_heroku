@@ -201,8 +201,18 @@ CACHES = {
         "TIMEOUT": None,             # per-key timeouts from code will apply
         "OPTIONS": {"MAX_ENTRIES": 1000},
     },
+    "freightbid": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.path.join(_TMPDIR, "django_cache_freightbid"),
+        "TIMEOUT": None,             # per-key timeouts from code will apply
+        "OPTIONS": {"MAX_ENTRIES": 10},
+    },
 }
-
+# Daily Google Distance Matrix element sub-budget for the Freight Bid Sheet
+# Builder. The GCP "Profile Website Maps API" project caps Distance Matrix
+# at 333 elements/day and 333/minute SITE-WIDE, shared with every other
+# freight tool. 150 leaves headroom for everything else.
+FREIGHT_BID_DM_DAILY_BUDGET = 150
 
 # Limits file upload sizes.
 FILE_UPLOAD_HANDLERS = [

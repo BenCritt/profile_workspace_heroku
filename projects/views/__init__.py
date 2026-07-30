@@ -141,6 +141,9 @@ from .views_seo_tools import (
 # freight_margin_calculator  — gross margin / GP between customer & carrier
 # hos_multi_stop_trip_planner      — multi-stop HOS itinerary w/ per-stop dwell & ETAs
 # freight_quote_builder       — builds freight quotes & calculates max buy rate
+# freight_bid_sheet_builder   — prices a pasted shipper lane RFP/mini-bid in one pass
+# spot_market_pricing_stance  — board signals → market-heat/urgency stance + cushion %
+# freight_repositioning_calculator — this-load + roundtrip RPM incl. deadhead/reload legs
 
 from .views_freight_tools import (
     freight_tools,
@@ -160,6 +163,9 @@ from .views_freight_tools import (
     freight_margin_calculator,
     hos_multi_stop_trip_planner,
     freight_quote_builder,
+    freight_bid_sheet_builder,
+    spot_market_pricing_stance,
+    freight_repositioning_calculator,
 )
 
 # ----------------------------------------------------------------------------
@@ -292,7 +298,7 @@ __all__ = [
     "get_task_status", "download_task_file", "grade_level_analyzer",
     "og_previewer",
 
-    # ── Freight Tools ─────────────────────────────────────────────────────
+# ── Freight Tools ─────────────────────────────────────────────────────
     "freight_tools", "freight_class_calculator", "fuel_surcharge_calculator",
     "hos_trip_planner", "freight_safety", "tie_down_calculator",
     "cost_per_mile_calculator", "linear_foot_calculator",
@@ -300,7 +306,8 @@ __all__ = [
     "partial_rate_calculator", "deadhead_calculator", "multi_stop_splitter",
     "lane_rate_analyzer", "freight_margin_calculator",
     "hos_multi_stop_trip_planner",
-    "freight_quote_builder",
+    "freight_quote_builder", "freight_bid_sheet_builder",
+    "spot_market_pricing_stance", "freight_repositioning_calculator",
 
     # ── Glass Tools ───────────────────────────────────────────────────────
     "glass_artist_toolkit", "glass_volume_calculator", "kiln_schedule_generator",

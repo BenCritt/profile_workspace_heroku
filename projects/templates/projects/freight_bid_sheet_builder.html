@@ -1,0 +1,489 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/freight_bid_sheet_builder_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/freight_bid_sheet_builder_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+  {{ block.super }}
+  <link rel="canonical" href="https://www.bencritt.net/projects/freight-bid-sheet-builder/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+  <link href="{% static 'template_css/freight_bid_sheet_builder.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Freight Bid Sheet Builder & Lane RFP Pricing Calculator | Broker Pricing Tool{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-11 col-lg-10">
+            <h1 class="text-center mb-4"><i class="bi bi-clipboard-data me-2"></i>Freight Bid Sheet Builder</h1>
+            <p class="text-muted text-center mb-5 d-print-none">
+                Paste a shipper's lane RFP or mini-bid, apply your cost and margin assumptions, and get
+                per-lane pricing, a portfolio roll-up, do-not-bid flags, a headhaul/backhaul balance by
+                state, and a CSV that drops straight into the shipper's bid template. Prices a whole bid at
+                once — for a single load, use the
+                <a href="{% url 'projects:freight_quote_builder' %}" class="related-tool-link">Freight Quote Builder & Max Buy Rate Calculator</a>.
+            </p>
+
+            <div class="card shadow-sm mb-5 d-print-none">
+                <div class="card-body p-4">
+                    <form method="POST" data-gtm-tool="Freight Bid Sheet Builder" data-gtm-category="Freight Tools">
+                        {% csrf_token %}
+
+                        {# --- Global Pricing Assumptions --- #}
+                        <fieldset class="mb-4">
+                            <legend class="h6 fw-bold text-muted mb-3">Pricing Assumptions</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.target_margin_pct.label_tag }}
+                                    {{ form.target_margin_pct }}
+                                    {% if form.target_margin_pct.help_text %}
+                                        <small class="form-text text-muted">{{ form.target_margin_pct.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.target_margin_pct.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.fsc_per_mile.label_tag }}
+                                    {{ form.fsc_per_mile }}
+                                    {% if form.fsc_per_mile.help_text %}
+                                        <small class="form-text text-muted">{{ form.fsc_per_mile.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.fsc_per_mile.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.contingency_pct.label_tag }}
+                                    {{ form.contingency_pct }}
+                                    {% if form.contingency_pct.help_text %}
+                                        <small class="form-text text-muted">{{ form.contingency_pct.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.contingency_pct.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.min_linehaul_charge.label_tag }}
+                                    {{ form.min_linehaul_charge }}
+                                    {% if form.min_linehaul_charge.help_text %}
+                                        <small class="form-text text-muted">{{ form.min_linehaul_charge.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.min_linehaul_charge.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.rpm_van.label_tag }}
+                                    {{ form.rpm_van }}
+                                    {% if form.rpm_van.help_text %}
+                                        <small class="form-text text-muted">{{ form.rpm_van.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.rpm_van.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.rpm_reefer.label_tag }}
+                                    {{ form.rpm_reefer }}
+                                    {% if form.rpm_reefer.help_text %}
+                                        <small class="form-text text-muted">{{ form.rpm_reefer.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.rpm_reefer.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form.rpm_flatbed.label_tag }}
+                                    {{ form.rpm_flatbed }}
+                                    {% if form.rpm_flatbed.help_text %}
+                                        <small class="form-text text-muted">{{ form.rpm_flatbed.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in form.rpm_flatbed.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        {# --- Lane List --- #}
+                        <fieldset class="mb-3">
+                            <legend class="h6 fw-bold text-muted mb-3">Lane List</legend>
+                            {{ form.lanes_csv.label_tag }}
+                            {{ form.lanes_csv }}
+                            {% if form.lanes_csv.help_text %}
+                                <small class="form-text text-muted d-block mt-1">{{ form.lanes_csv.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.lanes_csv.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="form-check mt-3">
+                                {{ form.use_google }}
+                                <label class="form-check-label" for="{{ form.use_google.id_for_label }}">
+                                    {{ form.use_google.label }}
+                                </label>
+                                {% if form.use_google.help_text %}
+                                    <small class="form-text text-muted d-block">{{ form.use_google.help_text }}</small>
+                                {% endif %}
+                                <small class="form-text text-muted d-block">Capped at 6 submissions per hour per connection when using Google.</small>
+                            </div>
+                        </fieldset>
+
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <div class="alert alert-danger small">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Price This Bid</button>
+                        <a href="{% url 'projects:freight_tools' %}" class="btn btn-secondary mt-3 w-100">Go to Freight Professional Toolkit</a>
+                    </form>
+                </div>
+            </div>
+
+            {# ============================================================= #}
+            {#  WARNINGS                                                      #}
+            {# ============================================================= #}
+            {% if warnings %}
+            <div class="alert alert-warning shadow-sm" role="alert">
+                <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Notices:</strong>
+                <ul class="mb-0 mt-1">
+                    {% for w in warnings %}
+                        <li class="small">{{ w }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {# ============================================================= #}
+            {#  RESULTS                                                       #}
+            {# ============================================================= #}
+            {% if results %}
+            <div id="results-section" class="card shadow-sm border-0">
+                <p class="print-landscape-hint">Printed best in Landscape orientation.</p>
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0">{{ results.rollups.all_lanes.lane_count }} Lane{{ results.rollups.all_lanes.lane_count|pluralize }} Priced</h4>
+                </div>
+                <div class="card-body">
+
+                    {% if used_google %}
+                    <div id="google-mode-used-marker" class="d-none" aria-hidden="true"></div>
+                    {% endif %}
+
+                    {# --- Roll-up: all lanes --- #}
+                    <h6 class="text-muted text-uppercase small mb-2">All Priced Lanes</h6>
+                    <div class="row text-center mb-4">
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Annual Revenue</small><br>
+                            <span class="fw-bold">${{ results.rollups.all_lanes.total_annual_revenue|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Annual GP</small><br>
+                            <span class="fw-bold">${{ results.rollups.all_lanes.total_annual_gp|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Blended Margin</small><br>
+                            <span class="fw-bold">{{ results.rollups.all_lanes.blended_margin_pct|floatformat:2 }}%</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Annual Miles</small><br>
+                            <span class="fw-bold">{{ results.rollups.all_lanes.total_annual_miles|floatformat:0 }}</span>
+                        </div>
+                    </div>
+
+                    {# --- Roll-up: excluding do-not-bid --- #}
+                    <h6 class="text-muted text-uppercase small mb-2">If You Decline the Do-Not-Bid Lanes</h6>
+                    <div class="row text-center mb-3">
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Annual Revenue</small><br>
+                            <span class="fw-bold">${{ results.rollups.excluding_do_not_bid.total_annual_revenue|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Annual GP</small><br>
+                            <span class="fw-bold">${{ results.rollups.excluding_do_not_bid.total_annual_gp|floatformat:2 }}</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Blended Margin</small><br>
+                            <span class="fw-bold">{{ results.rollups.excluding_do_not_bid.blended_margin_pct|floatformat:2 }}%</span>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <small class="text-uppercase text-muted">Lanes / Loads</small><br>
+                            <span class="fw-bold">{{ results.rollups.excluding_do_not_bid.lane_count }} / {{ results.rollups.excluding_do_not_bid.total_annual_loads }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% comment %}
+                    --- Per-Lane Table ---
+                    12 always-visible "decision" columns; the 4 cost
+                    build-up columns (Carrier LH, FSC, Cost Floor, Sell
+                    LH) collapse into a single toggleable text line per
+                    lane instead of 4 more columns — see
+                    freight_bid_sheet_builder.css's file-header note for
+                    why. Flags moved to the FIRST column (was last) since
+                    it's the single most decision-critical thing on the
+                    page and previously the first thing to scroll or
+                    print off the edge.
+                {% endcomment %}
+                <div class="d-flex justify-content-end px-3 pt-3 d-print-none" id="cost-breakdown-toggle-wrap">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="cost-breakdown-toggle">
+                        <label class="form-check-label text-muted" for="cost-breakdown-toggle">
+                            Show cost breakdown (Carrier LH / FSC / Cost Floor / Sell LH)
+                        </label>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Flags</th>
+                                <th scope="col">Origin</th>
+                                <th scope="col">Destination</th>
+                                <th scope="col">Equip</th>
+                                <th scope="col">Miles</th>
+                                <th scope="col">Loads/Yr</th>
+                                <th scope="col">All-In Rate</th>
+                                <th scope="col">RPM</th>
+                                <th scope="col">GP/Load</th>
+                                <th scope="col">Annual GP</th>
+                                <th scope="col">Incumbent</th>
+                                <th scope="col">vs. Inc.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lane in results.lanes %}
+                            <tr class="{% if 'DISTANCE_UNAVAILABLE' in lane.flags %}table-secondary{% elif lane.do_not_bid %}table-danger{% elif lane.margin_squeeze %}table-warning{% endif %}">
+                                <td>
+                                    {% for flag in lane.flags %}
+                                        {% if flag == "SHORT_HAUL" %}
+                                            <span class="badge bg-secondary" title="Short haul — fixed costs dominate; RPM must run high.">Short Haul</span>
+                                        {% elif flag == "FLOOR_APPLIED" %}
+                                            <span class="badge bg-info text-dark" title="Minimum charge applied. Margin exceeds target here — that's correct behavior, not a bug.">Floor Applied</span>
+                                        {% elif flag == "DO_NOT_BID" %}
+                                            <span class="badge bg-danger" title="Incumbent is below your cost line. You cannot win this lane profitably — decline it or rebid the cost assumptions.">Do Not Bid</span>
+                                        {% elif flag == "MARGIN_SQUEEZE" %}
+                                            <span class="badge bg-warning text-dark" title="Beating the incumbent is possible but not at target margin.">
+                                                Margin Squeeze
+                                                {% if lane.max_margin_pct != None %}(max {{ lane.max_margin_pct|floatformat:2 }}% to beat incumbent){% else %}(max n/a){% endif %}
+                                            </span>
+                                        {% elif flag == "DISTANCE_UNAVAILABLE" %}
+                                            <span class="badge bg-dark" title="Google lookup failed for this pair.">Distance Unavailable</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>{{ lane.origin_zip }} <span class="text-muted">({{ lane.origin_state }})</span></td>
+                                <td>{{ lane.dest_zip }} <span class="text-muted">({{ lane.dest_state }})</span></td>
+                                <td>{{ lane.equipment }}</td>
+                                {% if lane.miles %}
+                                <td>{{ lane.miles }}</td>
+                                <td>{{ lane.annual_loads }}</td>
+                                <td class="fw-bold">${{ lane.all_in_rate|floatformat:2 }}</td>
+                                <td>{{ lane.rpm_all_in|floatformat:2 }}</td>
+                                <td>${{ lane.gp_per_load|floatformat:2 }}</td>
+                                <td>${{ lane.annual_gp|floatformat:2 }}</td>
+                                <td>{% if lane.incumbent_rate != None %}${{ lane.incumbent_rate|floatformat:2 }}{% else %}&mdash;{% endif %}</td>
+                                <td>
+                                    {% if lane.vs_incumbent != None %}
+                                        <span class="{% if lane.vs_incumbent >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {% if lane.vs_incumbent >= 0 %}+{% endif %}{{ lane.vs_incumbent|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        &mdash;
+                                    {% endif %}
+                                </td>
+                                {% else %}
+                                <td colspan="8" class="text-muted fst-italic">
+                                    Distance unavailable &mdash; enter miles manually to price this lane.
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% if lane.miles %}
+                            <tr class="cost-breakdown-row d-none {% if 'DISTANCE_UNAVAILABLE' in lane.flags %}table-secondary{% elif lane.do_not_bid %}table-danger{% elif lane.margin_squeeze %}table-warning{% endif %}">
+                                <td colspan="12" class="text-muted">
+                                    <strong>Cost breakdown:</strong>
+                                    Carrier LH ${{ lane.carrier_linehaul|floatformat:2 }}
+                                    &middot; FSC ${{ lane.fsc_per_load|floatformat:2 }}
+                                    &middot; Cost Floor ${{ lane.cost_floor|floatformat:2 }}
+                                    &middot; Sell LH ${{ lane.sell_linehaul|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# --- Headhaul / Backhaul Balance by State --- #}
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-2 mt-2">Headhaul / Backhaul Balance by State</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">State</th>
+                                    <th scope="col">Outbound Lanes</th>
+                                    <th scope="col">Inbound Lanes</th>
+                                    <th scope="col">Outbound Loads/Yr</th>
+                                    <th scope="col">Inbound Loads/Yr</th>
+                                    <th scope="col">Net Loads (Out &minus; In)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in results.state_balance %}
+                                <tr>
+                                    <td>{{ row.state }}</td>
+                                    <td>{{ row.out_lanes }}</td>
+                                    <td>{{ row.in_lanes }}</td>
+                                    <td>{{ row.out_loads }}</td>
+                                    <td>{{ row.in_loads }}</td>
+                                    <td class="fw-bold">{% if row.net_loads >= 0 %}+{% endif %}{{ row.net_loads }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        A large net in either direction means trucks accumulate on one side of the state —
+                        expect deadhead repositioning on those lanes and price accordingly.
+                    </p>
+                </div>
+
+                {# --- CSV Export (hidden re-post form, Section 10) --- #}
+                <div class="text-center mt-2 mb-3 d-print-none">
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="export" value="csv">
+                        <input type="hidden" name="use_google" value="">
+                        <input type="hidden" name="target_margin_pct" value="{{ form.cleaned_data.target_margin_pct }}">
+                        <input type="hidden" name="fsc_per_mile" value="{{ form.cleaned_data.fsc_per_mile }}">
+                        <input type="hidden" name="contingency_pct" value="{{ form.cleaned_data.contingency_pct }}">
+                        <input type="hidden" name="min_linehaul_charge" value="{{ form.cleaned_data.min_linehaul_charge }}">
+                        <input type="hidden" name="rpm_van" value="{{ form.cleaned_data.rpm_van }}">
+                        <input type="hidden" name="rpm_reefer" value="{{ form.cleaned_data.rpm_reefer }}">
+                        <input type="hidden" name="rpm_flatbed" value="{{ form.cleaned_data.rpm_flatbed }}">
+                        <textarea name="lanes_csv" class="visually-hidden" aria-hidden="true" tabindex="-1">{{ results.export_lanes_csv_text }}</textarea>
+                        <button type="submit" class="btn btn-outline-light btn-sm"
+                                data-gtm-download="csv" data-gtm-tool="Freight Bid Sheet Builder" data-gtm-category="Freight Tools">
+                            <i class="bi bi-download me-1"></i>Download CSV
+                        </button>
+                    </form>
+                    <button type="button" id="print-bid-sheet-btn" class="btn btn-outline-light btn-sm ms-2"
+                            data-gtm-print="Freight Bid Sheet Builder">
+                        <i class="bi bi-printer me-1"></i>Print
+                    </button>
+                    <div id="print-landscape-onscreen-hint" class="text-muted mt-2">
+                        Prints best in Landscape &mdash; most browsers will default to it automatically.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Educational + Related Tools Section --- #}
+    <div class="row justify-content-center mt-5 related-tools-block">
+        <div class="col-md-11 col-lg-10">
+            <h3 class="h5 mb-3 text-muted">How the Math Works</h3>
+            <p class="small text-muted mb-2">
+                Each lane's carrier cost is <strong>miles &times; your RPM basis &times; (1 + contingency)</strong> —
+                what you expect to pay the truck, before fuel. The fuel surcharge is a straight $/mile
+                passthrough on both the cost and the sell side, so it never affects margin. Your sell
+                linehaul is computed with <strong>margin on revenue</strong>, not markup on cost
+                (<code>carrier cost &divide; (1 &minus; margin)</code>) — the industry-standard way to hit a
+                true target margin percentage. A minimum linehaul charge floors short lanes so fixed costs
+                stay covered even when the RPM math alone would price too low.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Flags:</strong> <em>Short Haul</em> marks lanes under 250 miles, where per-mile
+                economics break down. <em>Floor Applied</em> means the minimum charge kicked in — your
+                margin on that lane will run above target, which is expected. <em>Do Not Bid</em> means the
+                incumbent's rate sits below your cost floor — you cannot win it profitably as priced.
+                <em>Margin Squeeze</em> means you can beat the incumbent, just not at your full target
+                margin, and shows the best margin still achievable.
+            </p>
+            <p class="small text-muted mb-2">
+                <strong>Manual-miles mode has no limit.</strong> Supply a miles column and price as many
+                bids as you want. The optional Google road-mile lookup is convenient for unknown lanes
+                but shares a site-wide daily quota with every other tool that uses it, so it's capped at
+                <strong>6 submissions per hour</strong> per connection &mdash; leave miles blank only for
+                the lanes you actually need looked up to make the most of that allowance. Separately,
+                every submission on this page &mdash; manual or Google &mdash; is capped at
+                <strong>30 per hour</strong> per connection as a general safeguard against automated
+                abuse; a real person pricing a bid, tweaking assumptions, and re-running it will never come
+                close to that number.
+            </p>
+            <p class="small text-muted">
+                <strong>Related freight tools:</strong> Price a single load with the
+                <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Margin &amp; Gross Profit Calculator</a>
+                or the <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Lane Rate-Per-Mile Analyzer</a>.
+                Check your fuel surcharge assumption with the
+                <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="related-tool-link">Fuel Surcharge Calculator</a>,
+                or your carrier cost basis with the
+                <a href="{% url 'projects:cost_per_mile_calculator' %}" class="related-tool-link">Cost Per Mile (CPM) Calculator</a>.
+                Need a customer-facing quote for one of these lanes instead of the full bid? Use the
+                <a href="{% url 'projects:freight_quote_builder' %}" class="related-tool-link">Freight Quote Builder &amp; Max Buy Rate Calculator</a>.
+            </p>
+        </div>
+    </div>
+    <div class="mt-5 text-center d-print-none">
+        {% include 'includes/attribution.html' %}
+    </div>
+</div>
+{% if results %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const resultsDiv = document.getElementById("results-section");
+                if (resultsDiv) {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                // GA4: flag submissions that used the Google mileage lookup.
+                // Presence of this hidden marker div is the server-side flag
+                // (rendered only when used_google was true) — checking the
+                // DOM instead of a template conditional keeps this block
+                // pure JavaScript, matching the site convention that no
+                // Django template tags belong inside <script> blocks.
+                if (document.getElementById("google-mode-used-marker")) {
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        event: "tool_feature_use",
+                        tool_name: "Freight Bid Sheet Builder",
+                        feature: "google_distance_lookup"
+                    });
+                }
+
+                const printBtn = document.getElementById("print-bid-sheet-btn");
+                if (printBtn) {
+                    printBtn.addEventListener("click", function() {
+                        window.print();
+                    });
+                }
+
+                // Show/hide the per-lane cost-breakdown rows (Carrier LH,
+                // FSC, Cost Floor, Sell LH) as one wrapped text line each,
+                // instead of 4 more table columns. Print always shows
+                // these regardless of this toggle — see
+                // freight_bid_sheet_builder.css's @media print block.
+                const breakdownToggle = document.getElementById("cost-breakdown-toggle");
+                if (breakdownToggle) {
+                    breakdownToggle.addEventListener("change", function() {
+                        document.querySelectorAll(".cost-breakdown-row").forEach(function(row) {
+                            row.classList.toggle("d-none", !breakdownToggle.checked);
+                        });
+                    });
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock content %}

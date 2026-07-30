@@ -23,3 +23,81 @@
         width: 100%;
     }
 }
+
+/* ===== Hub reorganization — appended 2026-07-27 ===== */
+
+/* Enables the jump nav's #anchor links to scroll smoothly instead of jumping instantly. */
+html { scroll-behavior: smooth; }
+
+/* Clears the fixed navbar when a jump-nav link (or any deep link) lands on a section.
+   base.css compensates the fixed navbar with body { padding-top: 100px; } at all
+   breakpoints, so 112px (7rem) leaves a little breathing room below the navbar. */
+section.hub-section { scroll-margin-top: 7rem; }
+
+/* Vertical rhythm between the four stacked sections. */
+.hub-section + .hub-section {
+    margin-top: 4rem;
+}
+
+/* Section heading spacing — sits directly under the jump nav / previous section's
+   iframe row, so it only needs bottom margin before its intro paragraph. */
+.hub-section-title {
+    margin-bottom: 0.75rem;
+}
+
+/* Intro paragraph spacing below the heading, above the card row. Width is handled by
+   the u-container-narrow mx-auto utility classes already in the markup — not duplicated here. */
+.hub-section-intro {
+    margin-bottom: 2rem;
+}
+
+/* Space between the jump nav and the first section. */
+.hub-jump-nav {
+    margin-bottom: 3rem;
+}
+
+/* ===== Back-to-top button — appended 2026-07-30 ===== */
+/* Fixed bottom-right control, hidden until JS adds .is-visible (see the
+   inline script at the end of freight_tools.html's content block) once the
+   page has scrolled past its SHOW_AFTER_PX threshold. The click handler
+   does a JS-driven smooth scroll (window.scrollTo), so this works whether
+   or not the html { scroll-behavior: smooth; } rule above is present. */
+#back-to-top {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 1040; /* above Bootstrap's fixed-top navbar (1030), below its modals (1055) */
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(0.5rem);
+    transition: opacity 0.2s ease, transform 0.2s ease, filter 0.15s ease;
+}
+#back-to-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+#back-to-top:hover,
+#back-to-top:focus-visible {
+    filter: brightness(1.15);
+}
+
+/* Desktop: the footer is fixed and ~150px tall (see base.css's
+   main { padding-bottom: 150px; } rule), so the button needs to clear it
+   rather than sit on top of it. Mobile's footer flows in-document, so no
+   equivalent offset is needed there. */
+@media (min-width: 768px) {
+    #back-to-top {
+        bottom: calc(150px + 1.5rem);
+    }
+}

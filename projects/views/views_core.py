@@ -487,6 +487,53 @@ def all_projects(request):
                     "8-day cycle to produce per-stop ETAs and exactly when "
                     "the driver is free for the next load."
         },
+        {
+            "title": "Freight Quote Builder & Max Buy Rate Calculator",
+            "url_name": "projects:freight_quote_builder",
+            "image": "freight-quote-builder.webp",
+            "description": "Build an all-in customer quote from linehaul, fuel "
+                    "surcharge, and accessorials, then solve for the maximum "
+                    "buy rate that protects your target margin. Generates a "
+                    "full margin-tier negotiating ladder with a walk-away "
+                    "floor, plus a ready-to-copy customer quote with your "
+                    "internal numbers hidden from the printed copy."
+        },
+        {
+            "title": "Spot Market Pricing Stance Calculator",
+            "url_name": "projects:spot_market_pricing_stance",
+            "image": "spot-market-pricing-stance.webp",
+            "description": "Turn the load board signals you already read — "
+                    "load-to-truck ratio, posting age, calls received, "
+                    "deadhead depth, and diesel trend — into a clear pricing "
+                    "stance: hold firm, price to cover, or cover now. "
+                    "Suggests a contingency cushion for your quote, with "
+                    "every weight and threshold shown transparently on the "
+                    "page."
+        },
+        {
+            "title": "Roundtrip & Repositioning Rate Calculator",
+            "url_name": "projects:freight_repositioning_calculator",
+            "image": "freight-repositioning-calculator.webp",
+            "description": "See what a carrier actually earns after deadhead "
+                    "by modeling the full roundtrip, including the reload or "
+                    "repositioning leg. Calculates the real buy-rate floor "
+                    "for any spot load, the negotiation zone between "
+                    "this-load and roundtrip pricing, and the dead-market "
+                    "premium or reload-market discount as a single dollar "
+                    "figure."
+        },
+        {
+            "title": "Freight Bid Sheet Builder",
+            "url_name": "projects:freight_bid_sheet_builder",
+            "image": "freight-bid-sheet-builder.webp",
+            "description": "Price an entire shipper lane RFP or mini-bid "
+                    "from a pasted lane list of up to 25 lanes. Get per-lane "
+                    "all-in rates, RPM, and gross profit, a portfolio "
+                    "roll-up with and without do-not-bid lanes, short-haul "
+                    "and margin-squeeze flags, a headhaul/backhaul balance "
+                    "by state, and a one-click CSV export formatted for a "
+                    "shipper's bid template."
+        },
     ]
 
     context = {

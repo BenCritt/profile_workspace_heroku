@@ -11,6 +11,10 @@ handler404 = "projects.views.view_404"
 #    double-slash destination ("/projects//").
 # ---------------------------------------------------------------------------
 mappings = [
+    ("freight_bid_sheet_builder","freight-bid-sheet-builder"),
+    ("freight_quote_builder","freight-quote-builder"),
+    ("freight_repositioning_calculator","freight-repositioning-calculator"),
+    ("spot_market_pricing_stance","spot-market-pricing-stance"),
     ("hos_multi_stop_trip_planner","hos-multi-stop-trip-planner"),
     ("pm_tools","pm-tools"),
     ("evm_calculator","evm-calculator"),

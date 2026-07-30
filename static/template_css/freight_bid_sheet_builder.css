@@ -1,0 +1,359 @@
+/*
+ * freight_bid_sheet_builder.css
+ * ==============================
+ * Dark-theme readability overrides for the per-lane pricing table, plus
+ * print rules.
+ *
+ * TABLE LAYOUT (updated) — the per-lane table used to render all 16
+ * pricing columns at once, which forced a horizontal scroll on almost
+ * any screen and got cut off on paper (with the Flags column — the
+ * single most decision-critical one — the first thing to disappear
+ * off both the viewport and the printed page). Fixed by splitting the
+ * columns into two tiers:
+ *   - 12 "decision" columns, always visible: Flags, Origin, Destination,
+ *     Equip, Miles, Loads/Yr, All-In Rate, RPM, GP/Load, Annual GP,
+ *     Incumbent, vs. Inc. Flags moved to the FIRST column (was last) and
+ *     is now `position: sticky` so it never scrolls out of view.
+ *   - 4 "cost build-up" columns (Carrier LH, FSC, Cost Floor, Sell LH)
+ *     collapsed by default into a single wrapped text line rendered in
+ *     an extra row under each lane, toggled by the "Show cost
+ *     breakdown" switch above the table. This avoids re-introducing a
+ *     16th-column-wide table — it's still only ever 12 columns, with
+ *     an optional text line, never more columns.
+ *   - Print ALWAYS shows the cost-breakdown line regardless of the
+ *     on-screen toggle state, since this is a broker-internal working
+ *     document and the full math belongs on paper.
+ *
+ * WHY THIS FILE HAS CONTENT (site convention — see hos_multi_stop_trip_planner.css):
+ * Bootstrap's contextual table row classes (.table-danger, .table-warning,
+ * .table-secondary) hardcode LIGHT tint backgrounds and dark text. They do
+ * not adapt to [data-bs-theme="dark"]. This tool uses three of them:
+ *   .table-danger    — DO_NOT_BID lanes
+ *   .table-warning    — MARGIN_SQUEEZE lanes
+ *   .table-secondary  — DISTANCE_UNAVAILABLE lanes (Google lookup failed)
+ * Each gets its Bootstrap CSS variables re-declared with a dark,
+ * translucent tint plus a solid left accent border, exactly mirroring the
+ * pattern documented in hos_multi_stop_trip_planner.css.
+ *
+ * PRINT NOTE — DELIBERATE DIFFERENCE FROM THE FREIGHT QUOTE BUILDER:
+ * this bid sheet is broker-internal (it's the working document a broker
+ * uses to decide what to submit), NOT a customer-facing quote. Unlike the
+ * Freight Quote Builder's print rules, which deliberately hide GP/margin
+ * columns from a customer print copy, this stylesheet keeps every figure
+ * — including GP, margin, and the full cost build-up — fully visible in
+ * print (the cost build-up just moves from columns to a per-row text
+ * line — see the cost-breakdown-row rules below).
+ *
+ * Scoped to #results-section so nothing leaks if this stylesheet is ever
+ * loaded alongside other content (e.g. inside the freight hub iframes).
+ */
+
+
+/* ── CONTEXTUAL ROWS: dark translucent tints ──────────────────────────── */
+
+/* DO_NOT_BID — red */
+#results-section tr.table-danger {
+    --bs-table-bg: rgba(220, 53, 69, 0.20);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(220, 53, 69, 0.50);
+    --bs-table-hover-bg: rgba(220, 53, 69, 0.32);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* MARGIN_SQUEEZE — amber */
+#results-section tr.table-warning {
+    --bs-table-bg: rgba(255, 193, 7, 0.15);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(255, 193, 7, 0.40);
+    --bs-table-hover-bg: rgba(255, 193, 7, 0.25);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* DISTANCE_UNAVAILABLE — muted gray, dimmer text since these rows carry
+   no pricing (the row's own italic "Distance unavailable" note already
+   signals this, so the tint just needs to be visually distinct, not
+   alarming — no red/amber implies fault). */
+#results-section tr.table-secondary {
+    --bs-table-bg: rgba(108, 117, 125, 0.16);
+    --bs-table-color: #ced4da;
+    --bs-table-border-color: rgba(108, 117, 125, 0.45);
+    --bs-table-hover-bg: rgba(108, 117, 125, 0.28);
+    --bs-table-hover-color: #ffffff;
+}
+
+/* ── CONTEXTUAL ROWS: left accent borders ─────────────────────────────── */
+/* NOTE: first-child is now the (sticky) Flags column instead of Origin —
+   the accent border moves with it, which is correct: it's still the
+   leading edge of the row either way. */
+#results-section tr.table-danger    > td:first-child { border-left: 3px solid var(--bs-danger); }
+#results-section tr.table-warning   > td:first-child { border-left: 3px solid var(--bs-warning); }
+#results-section tr.table-secondary > td:first-child { border-left: 3px dashed var(--bs-secondary); }
+
+
+/* ── PER-LANE TABLE: column behavior ──────────────────────────────────── */
+/* 12 columns now (down from 16) — still keep money/RPM columns from
+   wrapping so the table stays scannable; horizontal overflow (now rare —
+   see file header) is still handled by the .table-responsive wrapper as
+   a fallback for narrow viewports or lanes with multiple stacked flags. */
+#results-section .table th,
+#results-section .table td {
+    white-space: nowrap;
+}
+
+/* Flags is now the FIRST column (was last) — it's the one column that
+   legitimately needs to wrap (badges) and grow with content. */
+#results-section .table th:first-child,
+#results-section .table td:first-child {
+    white-space: normal;
+    min-width: 150px;
+}
+
+/* Sticky Flags column: keeps the single most decision-critical column
+   (do you even care about this lane?) visible no matter how far right
+   the table scrolls. Each cell already gets its own background-color
+   from Bootstrap's --bs-table-bg mechanism (including the contextual
+   tints above and the hover state), so no extra background override is
+   needed here for the sticky cell to correctly occlude scrolled content
+   behind it. Scoped to the per-lane table only — the state balance
+   table is short enough that it never needs this. */
+#results-section .table-responsive:first-of-type th:first-child,
+#results-section .table-responsive:first-of-type td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+#results-section .table-responsive:first-of-type thead th:first-child {
+    z-index: 2; /* header's sticky cell sits above sticky body cells */
+}
+
+#results-section .table {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Flag badges: small vertical gap when a lane carries more than one. */
+#results-section .table td:first-child .badge {
+    display: inline-block;
+    margin: 0.1rem 0.2rem 0.1rem 0;
+    white-space: normal;
+    text-align: left;
+}
+
+
+/* ── COST BREAKDOWN ROW (collapsible) ───────────────────────────────────
+   One extra <tr> per priced lane holding Carrier LH / FSC / Cost Floor /
+   Sell LH as a single wrapped text line — not more columns. Hidden by
+   default via Bootstrap's .d-none on the row itself (toggled by JS in
+   the template); ALWAYS shown in print regardless of that class — see
+   the print block below. */
+#results-section .cost-breakdown-row td {
+    white-space: normal;
+    font-size: 0.85em;
+    padding-top: 0.25rem;
+    padding-bottom: 0.5rem;
+}
+/* The toggle switch above the table. */
+#cost-breakdown-toggle-wrap {
+    font-size: 0.85rem;
+}
+
+
+/* ── STATE BALANCE TABLE ───────────────────────────────────────────────── */
+#results-section .table-sm {
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* Print-only advisory line — hidden on screen, shown via @media print
+   (see the print block below). */
+.print-landscape-hint {
+    display: none;
+}
+
+/* On-screen hint next to the Print button (see file header note on why
+   the print default alone isn't fully relied on). */
+#print-landscape-onscreen-hint {
+    font-size: 0.8rem;
+}
+
+
+/* ── PRINT ──────────────────────────────────────────────────────────────
+   Whitelist strategy (see hos_multi_stop_trip_planner.css rationale):
+   hide every direct child of <body> except <main>, rather than trying to
+   enumerate site chrome to hide. Inside <main>, the form card and export
+   buttons are hidden via d-print-none in the template. */
+@media print {
+    /* Defaults the print dialog to landscape — verified in an actual
+       Chromium print engine to correctly flip the output page dimensions.
+       This is a DEFAULT, not a hard force: no CSS can override a user's
+       explicit orientation choice in their own print dialog (browsers
+       deliberately disallow that), but anyone who prints without
+       changing anything gets landscape. The advisory text below (see
+       .print-landscape-hint) is the backup for browsers/OS print
+       policies that don't honor this. Landscape matters here because
+       even the reduced 12-column table needs the extra ~180pt of width
+       — in portrait the last column (vs. Inc.) still gets cut off. */
+    @page {
+        size: landscape;
+        margin: 0.5in;
+    }
+
+    html, body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    body { padding-top: 0 !important; }
+    main { padding: 0 !important; }
+
+    /* FIX (2026-07-29): asymmetric print margins — wide gap on the left,
+       none on the right. Root cause, confirmed by pixel-measuring a
+       rendered print page: the on-screen layout centers content in a
+       `.col-lg-10`/`.col-md-11` column inside a `.row.justify-content-
+       center` inside `.container` — sized and centered correctly for a
+       desktop browser viewport. In print, `.table-responsive`'s
+       `overflow: visible` (needed so columns don't clip at a page break)
+       let the per-lane table's actual rendered width exceed that
+       column's width, so it overflowed past the column's RIGHT edge
+       while the column's own (large, screen-oriented) LEFT offset stayed
+       exactly where centering put it — a wide left margin, zero right
+       margin. Verified fix: give the outer container/row/column chain
+       the full page width in print, so there's no offset for the table
+       to overflow past (measured before/after with the same test: table
+       border lines went from left_inset=417px/right_inset=0px to
+       left_inset=0px/right_inset=0px — symmetric). Scoped with `main >`
+       child combinators to hit ONLY the outermost wrapper (the
+       template's real DOM is exactly <main><div class="container">
+       <div class="row justify-content-center"><div class="col-md-11
+       col-lg-10">...) — NOT the roll-up stat cards' or state-balance
+       table's own .row/[class*="col-"] elements nested deeper inside
+       #results-section, which keep their existing print rules further
+       down this file untouched. */
+    main > .container,
+    main > .container > .row,
+    main > .container > .row > [class*="col-"] {
+        max-width: 100% !important;
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    body > :not(main) {
+        display: none !important;
+    }
+
+    /* Backup for the @page size:landscape default above, for browsers
+       or OS/printer policies that don't honor it. Shown unconditionally
+       rather than only-when-portrait: tested `@media print and
+       (orientation: portrait)` in an actual Chromium print engine and
+       found it does NOT reliably reflect the final print orientation
+       (it still matched even with @page size:landscape forced), so a
+       conditional version would be unreliable. Unconditional costs one
+       harmless line even when already landscape. */
+    .print-landscape-hint {
+        display: block !important;
+        text-align: center;
+        font-size: 9pt;
+        margin-bottom: 0.5rem;
+        color: #000 !important;
+    }
+
+    .related-tools-block {
+        display: none !important;
+    }
+
+    #results-section,
+    #results-section .card-header,
+    #results-section .card-body,
+    #results-section .card-footer {
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+    #results-section .card-header {
+        border-bottom: 2px solid #000;
+    }
+
+    /* All text dark — outranks base.css's dark-mode .text-muted
+       brightening (#id + class specificity beats [data-bs-theme] + class). */
+    #results-section,
+    #results-section * {
+        color: #000 !important;
+    }
+
+    /* Neutralize the dark-theme row tints; keep the accent borders so the
+       DO_NOT_BID / MARGIN_SQUEEZE / DISTANCE_UNAVAILABLE categorization
+       still reads on paper. DELIBERATELY does NOT hide any pricing figure
+       — see the file header note on why this differs from the Freight
+       Quote Builder's customer-facing print rules. */
+    #results-section tr.table-danger,
+    #results-section tr.table-warning,
+    #results-section tr.table-secondary {
+        --bs-table-bg: #fff;
+        --bs-table-color: #000;
+        --bs-table-hover-bg: #fff;
+        --bs-table-hover-color: #000;
+        --bs-table-border-color: #666;
+    }
+
+    /* Sticky positioning is meaningless on paper (no scrolling) and the
+       fixed z-index can interfere with the print engine's own page-break
+       layout in some browsers — turn it off for print specifically. */
+    #results-section .table-responsive:first-of-type th:first-child,
+    #results-section .table-responsive:first-of-type td:first-child {
+        position: static;
+    }
+
+    /* The cost-breakdown row is hidden on screen by default via
+       Bootstrap's .d-none (display: none !important). This selector's
+       higher specificity (ID + two classes) wins over that regardless of
+       the toggle state, so the full cost build-up always prints. */
+    #results-section .cost-breakdown-row.d-none {
+        display: table-row !important;
+    }
+    /* Keep a lane row and its breakdown line together across a page
+       break where possible. "avoid" is a hint, not a guarantee — some
+       print engines may still split an unusually long-flagged row from
+       its breakdown line, but this covers the normal case. */
+    #results-section tr:not(.cost-breakdown-row) {
+        break-after: avoid;
+    }
+
+    #results-section .table th,
+    #results-section .table td {
+        border-color: #666 !important;
+        padding: 0.25rem 0.35rem;
+        font-size: 9.5pt; /* was 8.5pt at 16 columns; 12 columns buys room back */
+    }
+
+    #results-section .badge {
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    /* Table can overflow onto multiple printed pages; a scroll container
+       clipped to its visible portion on paper amputates columns, so
+       overflow must be visible and the header should repeat per page. */
+    #results-section .table-responsive {
+        overflow: visible !important;
+    }
+    #results-section thead {
+        display: table-header-group;
+    }
+    #results-section tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Roll-up stat cards: force the 4-across desktop layout since the
+       print viewport sits below Bootstrap's md breakpoint. */
+    #results-section .row > [class*="col-"] {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+    #results-section .row small {
+        font-size: 7pt;
+    }
+}

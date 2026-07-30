@@ -1,0 +1,515 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block scripts %}
+    {% include "includes/schemas/freight_repositioning_calculator_schema.html" %}
+{% endblock scripts %}
+
+{% block meta_tags %}
+    {% include "includes/meta_tags/freight_repositioning_calculator_meta.html" %}
+{% endblock meta_tags %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/freight-repositioning-calculator/">
+{% endblock link_tags %}
+
+{% block page_stylesheets %}
+    <link href="{% static 'template_css/freight_repositioning_calculator.css' %}" rel="stylesheet">
+{% endblock page_stylesheets %}
+
+{% block title %}Freight Roundtrip & Repositioning Rate Calculator | Broker Pricing Tool{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <h1 class="text-center mb-3"><i class="bi bi-arrow-repeat me-2"></i>Roundtrip &amp; Repositioning Rate Calculator</h1>
+            <p class="text-muted text-center mb-5">
+                A spot load isn't origin to destination in isolation &mdash; it's the carrier's current position, the
+                deadhead-in, the delivery, and wherever the truck goes next. See the rate this offer actually pays
+                once deadhead dilutes it, the real buy-rate floor for the whole trip, and the dead-market premium or
+                reload-market discount hiding in the reload leg.
+            </p>
+
+            <form method="post" class="card shadow-sm mb-5" data-gtm-tool="Roundtrip / Repositioning Rate Calculator" data-gtm-category="Freight Tools">
+                <div class="card-body">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <h2 class="h5 mb-3">Lane &amp; Legs</h2>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="{{ form.origin_zip.id_for_label }}" class="form-label">Origin ZIP</label>
+                            {{ form.origin_zip }}
+                            {% if form.origin_zip.errors %}<div class="text-danger small mt-1">{{ form.origin_zip.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.destination_zip.id_for_label }}" class="form-label">Destination ZIP</label>
+                            {{ form.destination_zip }}
+                            {% if form.destination_zip.errors %}<div class="text-danger small mt-1">{{ form.destination_zip.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.loaded_manual_miles.id_for_label }}" class="form-label">{{ form.loaded_manual_miles.label }}</label>
+                            {{ form.loaded_manual_miles }}
+                            <div class="form-text">{{ form.loaded_manual_miles.help_text }}</div>
+                            {% if form.loaded_manual_miles.errors %}<div class="text-danger small mt-1">{{ form.loaded_manual_miles.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.equipment_type.id_for_label }}" class="form-label">Equipment</label>
+                            {{ form.equipment_type }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.dh_origin.id_for_label }}" class="form-label">{{ form.dh_origin.label }}</label>
+                            {{ form.dh_origin }}
+                            <div class="form-text">{{ form.dh_origin.help_text }}</div>
+                            {% if form.dh_origin.errors %}<div class="text-danger small mt-1">{{ form.dh_origin.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h2 class="h5 mb-3">Post-Delivery Leg <span class="fw-normal text-muted small">(optional &mdash; models the reload or repositioning trip)</span></h2>
+                    <div class="row g-3 mb-2">
+                        <div class="col-md-4">
+                            <label for="{{ form.destination_market_strength.id_for_label }}" class="form-label">{{ form.destination_market_strength.label }}</label>
+                            {{ form.destination_market_strength }}
+                            <div class="form-text">{{ form.destination_market_strength.help_text }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.dh_reload.id_for_label }}" class="form-label">{{ form.dh_reload.label }}</label>
+                            {{ form.dh_reload }}
+                            <div class="form-text">{{ form.dh_reload.help_text }}</div>
+                            {% if form.dh_reload.errors %}<div class="text-danger small mt-1">{{ form.dh_reload.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.reload_loaded_miles.id_for_label }}" class="form-label">{{ form.reload_loaded_miles.label }}</label>
+                            {{ form.reload_loaded_miles }}
+                            {% if form.reload_loaded_miles.errors %}<div class="text-danger small mt-1">{{ form.reload_loaded_miles.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <label for="{{ form.reload_rpm.id_for_label }}" class="form-label">{{ form.reload_rpm.label }}</label>
+                            {{ form.reload_rpm }}
+                            {% if form.reload_rpm.errors %}<div class="text-danger small mt-1">{{ form.reload_rpm.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <div class="form-text">{{ form.reload_rpm.help_text }}</div>
+                        </div>
+                    </div>
+
+                    <h2 class="h5 mb-3 mt-4">Carrier Economics</h2>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="{{ form.carrier_cost_per_mile.id_for_label }}" class="form-label">Carrier cost per mile</label>
+                            {{ form.carrier_cost_per_mile }}
+                            <div class="form-text">{{ form.carrier_cost_per_mile.help_text }}</div>
+                            {% if form.carrier_cost_per_mile.errors %}<div class="text-danger small mt-1">{{ form.carrier_cost_per_mile.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.required_carrier_profit_per_mile.id_for_label }}" class="form-label">{{ form.required_carrier_profit_per_mile.label }}</label>
+                            {{ form.required_carrier_profit_per_mile }}
+                            <div class="form-text">{{ form.required_carrier_profit_per_mile.help_text }}</div>
+                            {% if form.required_carrier_profit_per_mile.errors %}<div class="text-danger small mt-1">{{ form.required_carrier_profit_per_mile.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h2 class="h5 mb-3 mt-4">The Deal <span class="fw-normal text-muted small">(optional &mdash; evaluate a carrier's ask and/or your broker margin)</span></h2>
+                    <div class="row g-3 mb-2">
+                        <div class="col-md-3">
+                            <label for="{{ form.carrier_ask_basis.id_for_label }}" class="form-label">{{ form.carrier_ask_basis.label }}</label>
+                            {{ form.carrier_ask_basis }}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.carrier_ask_amount.id_for_label }}" class="form-label">{{ form.carrier_ask_amount.label }}</label>
+                            {{ form.carrier_ask_amount }}
+                            {% if form.carrier_ask_amount.errors %}<div class="text-danger small mt-1">{{ form.carrier_ask_amount.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.sell_basis.id_for_label }}" class="form-label">{{ form.sell_basis.label }}</label>
+                            {{ form.sell_basis }}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.sell_amount.id_for_label }}" class="form-label">{{ form.sell_amount.label }}</label>
+                            {{ form.sell_amount }}
+                            {% if form.sell_amount.errors %}<div class="text-danger small mt-1">{{ form.sell_amount.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="{{ form.target_margin_pct.id_for_label }}" class="form-label">{{ form.target_margin_pct.label }}</label>
+                            {{ form.target_margin_pct }}
+                            <div class="form-text">{{ form.target_margin_pct.help_text }}</div>
+                            {% if form.target_margin_pct.errors %}<div class="text-danger small mt-1">{{ form.target_margin_pct.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Calculate</button>
+                </div>
+            </form>
+
+            {% if result and not result.error %}
+            <div id="results-section">
+
+                {% if result.same_zip_low_miles %}
+                    <div class="alert alert-warning" role="alert">
+                        Origin and destination ZIPs match and resolved to under a mile &mdash; treating this as local drayage. Double-check the lane if that wasn't intended.
+                    </div>
+                {% endif %}
+
+                <div class="card bg-body-tertiary mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 mb-3">This Load, On Its Own</h2>
+
+                        {% if result.has_ask %}
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-6 col-md-3">
+                                <div class="small text-muted">Loaded RPM</div>
+                                <div class="fs-4">${{ result.ask.loaded_rpm }}</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="small text-muted">Effective RPM</div>
+                                <div class="fs-4">${{ result.ask.effective_rpm }}</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="small text-muted">Deadhead dilution</div>
+                                <div class="fs-4">{{ result.this_load.deadhead_dilution_pct }}%</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="small text-muted">Carrier net at ask</div>
+                                <div class="fs-4 {% if result.ask.carrier_net_this < 0 %}text-danger{% endif %}">${{ result.ask.carrier_net_this }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p>{{ result.this_load.deadhead_dilution_pct }}% of the carrier's miles on this move are unpaid deadhead-in.</p>
+                        {% endif %}
+
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr><th scope="row">Carrier cost, this load</th><td>${{ result.this_load.carrier_cost_this }}</td></tr>
+                                <tr><th scope="row">Breakeven</th><td>${{ result.this_load.breakeven_this }}</td></tr>
+                                <tr><th scope="row">This-load floor</th><td>${{ result.this_load.floor_this }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if result.has_roundtrip %}
+                <div class="card bg-body-tertiary mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 mb-3">The Full Roundtrip</h2>
+                        <p class="small text-muted mb-3">
+                            Deadhead-in {{ result.this_load.dh_origin }} mi &rarr; loaded {{ result.this_load.loaded_miles }} mi &rarr;
+                            deadhead-to-reload {{ result.roundtrip.dh_reload }} mi &rarr; next load {{ result.roundtrip.reload_loaded_miles }} mi
+                            = <strong>{{ result.roundtrip.roundtrip_miles }} total miles</strong>.
+                        </p>
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr><th scope="row">Roundtrip cost</th><td>${{ result.roundtrip.roundtrip_cost }}</td></tr>
+                                <tr>
+                                    <th scope="row">Roundtrip breakeven</th>
+                                    <td>{% if result.roundtrip.breakeven_roundtrip <= 0 %}$0.00{% else %}${{ result.roundtrip.breakeven_roundtrip }}{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Roundtrip floor</th>
+                                    <td>{% if result.roundtrip.floor_roundtrip <= 0 %}$0.00{% else %}${{ result.roundtrip.floor_roundtrip }}{% endif %}</td>
+                                </tr>
+                                {% if result.has_ask %}
+                                <tr><th scope="row">Roundtrip revenue at ask</th><td>${{ result.ask.roundtrip_revenue }}</td></tr>
+                                <tr><th scope="row">Roundtrip RPM at ask</th><td>${{ result.ask.roundtrip_rpm }}</td></tr>
+                                <tr>
+                                    <th scope="row">Roundtrip net at ask</th>
+                                    <td class="{% if result.ask.roundtrip_net < 0 %}text-danger{% endif %}">${{ result.ask.roundtrip_net }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        {% if result.roundtrip.breakeven_roundtrip <= 0 %}
+                        <p class="small fst-italic mt-3 mb-0">
+                            The expected reload alone makes this roundtrip profitable &mdash; carriers may take this load at a nominal rate just to get repositioned.
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card zone-callout mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 mb-3">Negotiation Zone</h2>
+
+                        {% if result.has_roundtrip %}
+                            <p class="zone-range mb-3">${{ result.floors.zone_low }} &ndash; ${{ result.floors.zone_high }}</p>
+                            {% if result.floors.reposition_adjustment != 0 %}
+                            <table class="table table-sm zone-highlight-table mb-0">
+                                <tbody>
+                                    <tr class="{% if result.floors.reposition_adjustment > 0 %}table-warning{% else %}table-info{% endif %}">
+                                        <td>
+                                            {% if result.floors.reposition_adjustment > 0 %}
+                                                <strong>Dead-market premium.</strong> The full trip demands <strong>${{ result.floors.reposition_adjustment_abs }} more</strong>
+                                                than this load alone appears to. Expect asks to climb toward the roundtrip floor; budget the premium or expect coverage friction.
+                                            {% else %}
+                                                <strong>Reload-market discount.</strong> The expected reload subsidizes this leg by <strong>${{ result.floors.reposition_adjustment_abs }}</strong>.
+                                                Carriers pricing the full trip can rationally accept below the naive floor &mdash; negotiate toward the roundtrip figure.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {% endif %}
+                        {% else %}
+                            <p class="zone-range mb-1">${{ result.floors.floor_this }}</p>
+                            <p class="small text-muted mb-0">No reload modeled &mdash; this is the this-load floor on its own, not a zone.</p>
+                        {% endif %}
+
+                        {% if result.has_ask %}
+                            {# Verdict rendered as an actual Bootstrap contextual table row (not a plain div) --
+                               table-danger/table-warning/table-success/table-info hardcode LIGHT tints that need
+                               the dark-theme CSS variable overrides in freight_repositioning_calculator.css;
+                               see that file's header comment for why. #}
+                            <table class="table table-sm verdict-table mb-0 mt-3">
+                                <tbody>
+                                    <tr class="{% if result.ask.verdict == 'below_cost' %}table-danger{% elif result.ask.verdict == 'below_zone' %}table-warning{% elif result.ask.verdict == 'in_zone' %}table-success{% elif result.ask.verdict == 'above_zone' %}table-info{% endif %}">
+                                        <td>
+                                            {% if result.ask.verdict == "below_cost" %}
+                                                <strong>Below carrier cost.</strong> No rational carrier profits at this number on this move alone. Expect refusals or a fall-through.
+                                            {% elif result.ask.verdict == "below_zone" %}
+                                                <strong>Below the zone</strong> by ${{ result.ask.zone_delta }}. Covers cost but not the profit requirement &mdash; coverable only by a desperate or repositioning-motivated truck.
+                                            {% elif result.ask.verdict == "in_zone" %}
+                                                <strong>In the negotiation zone.</strong>
+                                                {% if result.ask.nearer_floor == "this_load" %}Nearer the this-load floor.{% elif result.ask.nearer_floor == "roundtrip" %}Nearer the roundtrip floor.{% endif %}
+                                            {% elif result.ask.verdict == "above_zone" %}
+                                                <strong>Above the zone</strong> by ${{ result.ask.zone_delta }} &mdash; squeeze room exists.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if result.has_overlay %}
+                <div class="card bg-body-tertiary mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 mb-3">Broker Margin Overlay</h2>
+                        <table class="table table-sm mb-3">
+                            <thead>
+                                <tr><th scope="col">At</th><th scope="col">Gross profit</th><th scope="col">Margin</th></tr>
+                            </thead>
+                            <tbody>
+                                {% if result.overlay.gp_at_ask %}
+                                <tr>
+                                    <th scope="row">Carrier's ask</th>
+                                    <td class="{% if result.overlay.gp_at_ask < 0 %}text-danger{% endif %}">${{ result.overlay.gp_at_ask }}</td>
+                                    <td class="{% if result.overlay.margin_at_ask < 0 %}text-danger{% endif %}">{{ result.overlay.margin_at_ask }}%</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th scope="row">This-load floor</th>
+                                    <td class="{% if result.overlay.gp_at_floor_this < 0 %}text-danger{% endif %}">${{ result.overlay.gp_at_floor_this }}</td>
+                                    <td class="{% if result.overlay.margin_at_floor_this < 0 %}text-danger{% endif %}">{{ result.overlay.margin_at_floor_this }}%</td>
+                                </tr>
+                                {% if result.overlay.gp_at_floor_roundtrip %}
+                                <tr>
+                                    <th scope="row">Roundtrip floor</th>
+                                    <td class="{% if result.overlay.gp_at_floor_roundtrip < 0 %}text-danger{% endif %}">${{ result.overlay.gp_at_floor_roundtrip }}</td>
+                                    <td class="{% if result.overlay.margin_at_floor_roundtrip < 0 %}text-danger{% endif %}">{{ result.overlay.margin_at_floor_roundtrip }}%</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        <p class="mb-0">
+                            Your {{ result.overlay.target_margin_pct }}% target margin caps your buy at <strong>${{ result.overlay.max_buy_at_target }}</strong> &mdash;
+                            {% if result.overlay.target_reachable %}
+                                that clears the {% if result.overlay.reachability_floor_used == "roundtrip" %}roundtrip{% else %}this-load{% endif %} floor by <strong>${{ result.overlay.reachability_gap }}</strong>.
+                            {% else %}
+                                your target margin is unreachable: the {% if result.overlay.reachability_floor_used == "roundtrip" %}roundtrip{% else %}this-load{% endif %} floor exceeds your max buy by <strong>${{ result.overlay.reachability_gap_abs }}</strong>.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card bg-body-tertiary mb-4">
+                    <div class="card-body small text-muted">
+                        <h2 class="h6 mb-2">Assumptions</h2>
+                        <p class="mb-0">
+                            Carrier cost ${{ result.this_load.cost_per_mile }}/mi, required profit ${{ result.this_load.profit_per_mile }}/mi &mdash;
+                            all amounts treated as all-in; no FSC breakdown on spot buys.
+                            {% if result.destination_market_strength and result.destination_market_strength != "custom" %}
+                                Reload rate seeded from a "{{ result.destination_market_strength|title }}" market assumption.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hidden GTM signal element -- read by the script block below rather than branching on Django tags inside a <script> (the HOS replan-banner pattern). -->
+                <div id="reposition-gtm-signal"
+                     data-has-roundtrip="{{ result.has_roundtrip|yesno:'true,false' }}"
+                     data-has-ask="{{ result.has_ask|yesno:'true,false' }}"
+                     data-has-overlay="{{ result.has_overlay|yesno:'true,false' }}"
+                     data-used-manual-miles="{{ result.used_manual_miles|yesno:'true,false' }}"
+                     style="display:none;" aria-hidden="true"></div>
+
+            </div>
+            {% endif %}
+
+            <div class="mt-5 related-tools-block">
+                <h2 class="h5">How This Tool Works</h2>
+                <p class="small text-muted mb-2">
+                    <strong>Effective rate:</strong> a posted linehaul only pays the loaded miles, but the carrier
+                    drives the deadhead-in too. Effective RPM spreads the same revenue over every mile of the move,
+                    and the roundtrip view extends that math through the reload leg &mdash; deadhead-to-reload plus
+                    the next load &mdash; so the whole trip gets priced, not just the visible one.
+                </p>
+                <p class="small text-muted mb-2">
+                    <strong>Two floors, one zone:</strong> each floor is carrier cost plus required profit per mile
+                    &mdash; the this-load floor over just this move's miles, the roundtrip floor over all miles net
+                    of expected reload revenue. The negotiation zone runs between them: a positive gap is the
+                    dead-market premium a carrier needs to haul into a weak reload market, a negative gap is the
+                    reload-market discount a strong destination lets you capture, and the verdict places an actual
+                    ask against that zone.
+                </p>
+                <p class="small text-muted">
+                    <strong>Related tools:</strong> Already know your empty miles? Cost them first with the
+                    <a href="{% url 'projects:deadhead_calculator' %}" class="related-tool-link">Deadhead Mileage Calculator</a> &mdash; this tool prices what
+                    those miles mean for the buy rate. Once a load is booked, run it back through the
+                    <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Freight Margin &amp; Gross Profit Calculator</a> to confirm
+                    the margin held. For lane-level rate benchmarking beyond a single load, see the
+                    <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Freight Lane Rate-Per-Mile Analyzer</a>, and pair any of these
+                    with the <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="related-tool-link">Fuel Surcharge Calculator</a> when a lane's FSC
+                    needs to be broken out separately from the all-in buy rate used here.
+                </p>
+                <p class="small text-muted fst-italic mt-3">
+                    Estimates are computed entirely from the assumptions you enter above; no live market data is sourced or implied.
+                    Carrier operating costs vary widely &mdash; the defaults are editable placeholders, not benchmarks. Actual rates
+                    depend on market conditions, capacity, and the governing broker-carrier agreement.
+                </p>
+            </div>
+
+            <div class="mt-5 text-center">
+                {% include 'includes/attribution.html' %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    /*
+     * Section 4.1 market-strength picker -- client-side seed only, the
+     * server never branches on destination_market_strength. Pure JS, no
+     * Django template tags inside this block (multi-line {# #} comments
+     * don't span newlines in Django's tokenizer and silently corrupt the
+     * parse if mixed in here -- keep server-side logic entirely out of
+     * <script> blocks on this site).
+     */
+    document.addEventListener("DOMContentLoaded", function () {
+        var strengthSelect = document.getElementById("id_destination_market_strength");
+        var reloadRpmInput = document.getElementById("id_reload_rpm");
+        var costInput = document.getElementById("id_carrier_cost_per_mile");
+        var profitInput = document.getElementById("id_required_carrier_profit_per_mile");
+
+        if (!strengthSelect || !reloadRpmInput || !costInput || !profitInput) {
+            return;
+        }
+
+        var MULTIPLIERS = { hot: 1.10, balanced: 0.95, soft: 0.75, dead: 0.50 };
+        var reloadRpmSeeded = false;
+
+        function roundTwoPlaces(value) {
+            return Math.round(value * 100) / 100;
+        }
+
+        // Any manual edit un-marks the field as seeded, so a later strength
+        // change won't clobber what the user just typed by hand.
+        reloadRpmInput.addEventListener("input", function () {
+            reloadRpmSeeded = false;
+        });
+
+        strengthSelect.addEventListener("change", function () {
+            var strength = strengthSelect.value;
+
+            if (strength === "custom" || !(strength in MULTIPLIERS)) {
+                return; // Selecting Custom seeds nothing.
+            }
+
+            var fieldIsEmpty = reloadRpmInput.value.trim() === "";
+            if (!fieldIsEmpty && !reloadRpmSeeded) {
+                return; // Never overwrite a value the user typed by hand.
+            }
+
+            var cost = parseFloat(costInput.value);
+            var profit = parseFloat(profitInput.value);
+            if (isNaN(cost)) { cost = 1.95; }
+            if (isNaN(profit)) { profit = 0.30; }
+
+            var seed = roundTwoPlaces(MULTIPLIERS[strength] * (cost + profit));
+            reloadRpmInput.value = seed.toFixed(2);
+            reloadRpmSeeded = true;
+
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: "market_strength_seed",
+                    market_strength_label: strengthSelect.options[strengthSelect.selectedIndex].text
+                });
+            }
+        });
+    });
+</script>
+
+<script>
+    /*
+     * GTM result-state events -- reads the hidden signal div's data
+     * attributes rather than branching on Django tags inside this block.
+     * No-ops entirely when there's no result to report (signal div absent
+     * on a fresh GET or a failed/invalid submission).
+     */
+    document.addEventListener("DOMContentLoaded", function () {
+        var signal = document.getElementById("reposition-gtm-signal");
+        if (!signal || !window.dataLayer) {
+            return;
+        }
+
+        window.dataLayer.push({ event: "reposition_calculated" });
+
+        if (signal.getAttribute("data-has-roundtrip") === "true") {
+            window.dataLayer.push({ event: "roundtrip_modeled" });
+        }
+        if (signal.getAttribute("data-has-ask") === "true") {
+            window.dataLayer.push({ event: "ask_evaluated" });
+        }
+        if (signal.getAttribute("data-has-overlay") === "true") {
+            window.dataLayer.push({ event: "sell_overlay_used" });
+        }
+        if (signal.getAttribute("data-used-manual-miles") === "true") {
+            window.dataLayer.push({ event: "manual_miles_used" });
+        }
+    });
+</script>
+
+<script>
+    /*
+     * Smooth-scroll to the results after a successful submission -- same
+     * pattern as the Job Fit Analyzer / Cron Builder / Timestamp Converter.
+     * No Django tags in this block: getElementById() already returns null
+     * on a fresh GET or a failed/invalid submission (results-section isn't
+     * in the DOM at all in that case), so plain JS handles the "is there
+     * anything to scroll to" check at runtime instead of a server-side
+     * conditional wrapping the whole block -- that also avoids the VS Code
+     * JS linter false-positive that Django template tags inside <script>
+     * blocks trigger.
+     * Skipped when embedded in the freight hub's iframe (window.self !==
+     * window.top) so this tool doesn't scroll-jack the parent hub page.
+     */
+    document.addEventListener("DOMContentLoaded", function () {
+        var resultsEl = document.getElementById("results-section");
+        if (resultsEl && window.self === window.top) {
+            setTimeout(function () {
+                resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+        }
+    });
+</script>
+{% endblock content %}

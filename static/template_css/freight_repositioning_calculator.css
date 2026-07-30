@@ -1,0 +1,115 @@
+/*
+ * freight_repositioning_calculator.css
+ * ======================================
+ * Roundtrip / Repositioning Rate Calculator.
+ *
+ * DARK-THEME TABLE OVERRIDES: this tool's verdict row (below cost / below
+ * zone / in zone / above zone) and zone-highlight row (dead-market premium
+ * / reload-market discount) use Bootstrap's contextual table row classes
+ * (.table-danger, .table-warning, .table-success, .table-info). Those
+ * classes hardcode LIGHT tint backgrounds and dark text -- they do not
+ * adapt to [data-bs-theme="dark"], a known Bootstrap limitation documented
+ * sitewide (see hos_multi_stop_trip_planner.css). The fix: re-declare each
+ * contextual row's CSS variables with dark, translucent tints plus a solid
+ * left accent border, scoped to this tool's own tables so nothing leaks if
+ * this stylesheet is ever loaded alongside other content (e.g. inside a
+ * hub iframe).
+ *
+ * PRINT: unlike the Quote Builder, this tool has no print-hide requirement
+ * -- the whole page is internal broker math with no customer-facing
+ * artifact, so everything prints. The @media print block below only
+ * neutralizes the dark translucent tints back to plain printable colors;
+ * the left accent border stays as the print categorization cue.
+ */
+
+.verdict-table .table-danger,
+.zone-highlight-table .table-danger {
+    --bs-table-bg: rgba(220, 53, 69, 0.18);
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: rgba(220, 53, 69, 0.35);
+    --bs-table-striped-bg: rgba(220, 53, 69, 0.22);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-hover-bg: rgba(220, 53, 69, 0.25);
+    --bs-table-hover-color: var(--bs-body-color);
+    border-left: 4px solid #dc3545;
+}
+
+.verdict-table .table-warning,
+.zone-highlight-table .table-warning {
+    --bs-table-bg: rgba(255, 193, 7, 0.16);
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: rgba(255, 193, 7, 0.32);
+    --bs-table-striped-bg: rgba(255, 193, 7, 0.20);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-hover-bg: rgba(255, 193, 7, 0.22);
+    --bs-table-hover-color: var(--bs-body-color);
+    border-left: 4px solid #ffc107;
+}
+
+.verdict-table .table-success,
+.zone-highlight-table .table-success {
+    --bs-table-bg: rgba(25, 135, 84, 0.18);
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: rgba(25, 135, 84, 0.35);
+    --bs-table-striped-bg: rgba(25, 135, 84, 0.22);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-hover-bg: rgba(25, 135, 84, 0.25);
+    --bs-table-hover-color: var(--bs-body-color);
+    border-left: 4px solid #198754;
+}
+
+.verdict-table .table-info,
+.zone-highlight-table .table-info {
+    --bs-table-bg: rgba(13, 202, 240, 0.16);
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: rgba(13, 202, 240, 0.32);
+    --bs-table-striped-bg: rgba(13, 202, 240, 0.20);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-hover-bg: rgba(13, 202, 240, 0.22);
+    --bs-table-hover-color: var(--bs-body-color);
+    border-left: 4px solid #0dcaf0;
+}
+
+/* Negotiation-zone callout card -- the centerpiece of the results (per the
+   build spec: "give this the visual prominence the Quote Builder spec
+   gives the walk-away line"), so it gets a visible accent border and a
+   larger figure for the zone range itself. */
+.zone-callout {
+    border: 2px solid var(--bs-primary);
+}
+
+.zone-range {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+/* Django's default field-error markup (ul.errorlist) is unstyled and
+   bulleted; this tool shows errors as plain small red text instead. */
+.errorlist {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+@media print {
+    /* Neutralize the translucent dark-theme tints for print -- keep the
+       left accent border as the categorization cue, drop the backgrounds
+       so nothing prints as a muddy dark rectangle on white paper. */
+    .verdict-table .table-danger,
+    .verdict-table .table-warning,
+    .verdict-table .table-success,
+    .verdict-table .table-info,
+    .zone-highlight-table .table-danger,
+    .zone-highlight-table .table-warning,
+    .zone-highlight-table .table-success,
+    .zone-highlight-table .table-info {
+        --bs-table-bg: transparent !important;
+        --bs-table-color: #000 !important;
+        --bs-table-striped-bg: transparent !important;
+        --bs-table-hover-bg: transparent !important;
+    }
+
+    .zone-callout {
+        border-color: #000 !important;
+    }
+}

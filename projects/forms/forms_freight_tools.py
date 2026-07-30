@@ -1865,3 +1865,630 @@ class FreightQuoteBuilderForm(forms.Form):
         cleaned_data["accessorial_rows"] = accessorial_rows
 
         return cleaned_data
+
+# ============================================================================
+# DROP-IN ADDITION for forms/forms_freight_tools.py
+# ============================================================================
+# WHERE: append to the bottom of forms/forms_freight_tools.py (after
+# FreightMarginForm), and add a line to the module's docstring/comment
+# table at the top:
+#     FreightBidSheetForm    → views_freight_tools.freight_bid_sheet_builder
+#
+# CLASS NAME VERIFIED UNIQUE against every class in the forms_freight_tools.py
+# you shared (CarrierSearchForm, FreightClassForm, FuelSurchargeForm,
+# HOSTripPlannerForm, TieDownForm, CPMCalculatorForm, LinearFootForm,
+# DetentionFeeForm, WarehouseStorageForm, PartialRateForm,
+# DeadheadCalculatorForm, MultiStopSplitterForm, HOSMultiStopPlannerForm,
+# LaneRateAnalyzerForm, FreightMarginForm) — re-check if the file has grown
+# new classes since you shared it.
+#
+# No new imports needed beyond what forms_freight_tools.py already has
+# (forms, MinValueValidator, MaxValueValidator) — this form deliberately
+# does NOT import Decimal or the utils module at module scope; the utils
+# import in clean() is lazy, matching the lazy-import convention used
+# throughout this codebase (see views_freight_tools.py's per-view
+# `from .. import freight_calculator_utils` pattern, and the JFA
+# ratelimit fix's rationale for why module-level imports of things that
+# might not always be installed/available are avoided here).
+# ============================================================================
+
+# --- Lane RFP / Bid Sheet Pricing Builder ---
+class FreightBidSheetForm(forms.Form):
+    """
+    Global pricing assumptions + the pasted lane list for the Lane RFP /
+    Bid Sheet Pricing Builder.
+
+    clean() parses and validates the lane CSV via
+    freight_bid_sheet_builder_utils.parse_lanes(), storing the parsed
+    lane list in cleaned_data["parsed_lanes"] so the view stays thin.
+    Row-level parse errors are attached to the lanes_csv field (Django
+    renders a list of errors under that field automatically), mirroring
+    how HOSMultiStopPlannerForm.clean() does its own cross-field
+    validation and error attachment.
+
+    NOTE: this form intentionally has NO field for the CSV-export
+    marker. The view reads request.POST.get("export") directly and,
+    when it's "csv", makes a mutable copy of POST data with use_google
+    forced off BEFORE binding this form — that guarantees the export
+    branch always runs manual-mode semantics server-side, not just via
+    a hidden input the client could in principle tamper with.
+
+    Money/percentage fields use FloatField, matching every other form
+    in this module — the view converts to Decimal via Decimal(str(x))
+    immediately after validation (never Decimal(x) on a float, which
+    inherits binary floating-point imprecision). This form has no
+    opinion on Decimal; that conversion is the view's job.
+    """
+
+    lanes_csv = forms.CharField(
+        label="Lane List",
+        max_length=4000,
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 10,
+            "style": "font-family: monospace;",
+            "placeholder": (
+                "origin_zip,dest_zip,equipment,annual_loads,incumbent_rate,miles\n"
+                "60601,30301,V,100,1900,716\n"
+                "53511,60441,R,26,,92"
+            ),
+        }),
+        help_text=(
+            "Columns, in this order: origin ZIP, destination ZIP, equipment "
+            "(V/R/F), annual loads, incumbent rate (optional — leave blank "
+            "for a fresh RFP with no incumbent), miles (required unless "
+            "using the Google lookup below). Column position is all that "
+            "matters — a header row is fine and gets skipped automatically, "
+            "but its wording is never read, so your own shipper's labels "
+            "don't need to match this example. Excel paste (tab-separated) "
+            "works. ZIPs missing a leading zero (e.g. 6010) are repaired to "
+            "06010 automatically. Up to 25 lanes per submission."
+        ),
+    )
+    use_google = forms.BooleanField(
+        label="Look up road miles via Google (limited daily quota)",
+        required=False,
+        initial=False,
+        help_text="Leave unchecked and supply a miles column for unlimited use.",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+
+    # --- Pricing assumptions ---------------------------------------------
+    # PLACEHOLDER DEFAULTS: the three RPM bases and the FSC default below
+    # are inferred market placeholders, per the build spec. Ben: tune all
+    # four to current market before launch — search "PLACEHOLDER" in this
+    # file for every field that needs a look before go-live.
+    target_margin_pct = forms.FloatField(
+        label="Target Margin (%)",
+        initial=15,
+        help_text="Gross margin target as a % of linehaul revenue.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.1", "min": "0", "max": "60",
+        }),
+        validators=[
+            MinValueValidator(0, message="Margin cannot be negative."),
+            MaxValueValidator(60, message="Margin cannot exceed 60%."),
+        ],
+    )
+    fsc_per_mile = forms.FloatField(
+        label="Fuel Surcharge ($/mi)",
+        initial=0.40,
+        help_text="PLACEHOLDER — tune to current market before launch. Zero-margin passthrough on both sides.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.01", "min": "0", "max": "3",
+        }),
+        validators=[
+            MinValueValidator(0, message="FSC cannot be negative."),
+            MaxValueValidator(3, message="FSC cannot exceed $3.00/mi."),
+        ],
+    )
+    contingency_pct = forms.FloatField(
+        label="Contingency (%)",
+        initial=5,
+        help_text="Buffer applied to carrier cost.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.1", "min": "0", "max": "50",
+        }),
+        validators=[
+            MinValueValidator(0, message="Contingency cannot be negative."),
+            MaxValueValidator(50, message="Contingency cannot exceed 50%."),
+        ],
+    )
+    min_linehaul_charge = forms.FloatField(
+        label="Minimum Linehaul Charge ($)",
+        initial=400,
+        help_text="Floor on sell linehaul — the mechanism that makes short-haul RPM rise to cover fixed cost.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "1", "min": "0", "max": "5000",
+        }),
+        validators=[
+            MinValueValidator(0, message="Minimum charge cannot be negative."),
+            MaxValueValidator(5000, message="Minimum charge cannot exceed $5,000."),
+        ],
+    )
+    rpm_van = forms.FloatField(
+        label="Van RPM Basis ($/mi, ex-fuel)",
+        initial=1.60,
+        help_text="PLACEHOLDER — tune to current market before launch.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.01", "min": "0.25", "max": "10",
+        }),
+        validators=[
+            MinValueValidator(0.25, message="RPM basis must be at least $0.25/mi."),
+            MaxValueValidator(10, message="RPM basis cannot exceed $10/mi."),
+        ],
+    )
+    rpm_reefer = forms.FloatField(
+        label="Reefer RPM Basis ($/mi, ex-fuel)",
+        initial=1.95,
+        help_text="PLACEHOLDER — tune to current market before launch.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.01", "min": "0.25", "max": "10",
+        }),
+        validators=[
+            MinValueValidator(0.25, message="RPM basis must be at least $0.25/mi."),
+            MaxValueValidator(10, message="RPM basis cannot exceed $10/mi."),
+        ],
+    )
+    rpm_flatbed = forms.FloatField(
+        label="Flatbed RPM Basis ($/mi, ex-fuel)",
+        initial=1.85,
+        help_text="PLACEHOLDER — tune to current market before launch.",
+        widget=forms.NumberInput(attrs={
+            "class": "form-control", "inputmode": "decimal",
+            "step": "0.01", "min": "0.25", "max": "10",
+        }),
+        validators=[
+            MinValueValidator(0.25, message="RPM basis must be at least $0.25/mi."),
+            MaxValueValidator(10, message="RPM basis cannot exceed $10/mi."),
+        ],
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lanes_csv = cleaned_data.get("lanes_csv", "")
+        use_google = cleaned_data.get("use_google", False)
+
+        if not lanes_csv.strip():
+            # The field's own required-error already covers a blank
+            # textarea; don't pile on a second, redundant error.
+            return cleaned_data
+
+        # Lazy import: parse_lanes() is pure/synchronous (no I/O, no
+        # cache, no network), so doing it here in clean() keeps the view
+        # thin and matches the HOSMultiStopPlannerForm precedent of
+        # cross-field prep living in the form. Distance RESOLUTION
+        # (Section 4 — the part that touches the cache/budget/API) stays
+        # out of the form and lives in the view, same as every other
+        # Google-Maps-calling tool on this site keeps HTTP logic out of
+        # the form layer.
+        from .. import freight_bid_sheet_builder_utils as fbs_utils
+
+        mode = "google" if use_google else "manual"
+        lanes, errors, warnings = fbs_utils.parse_lanes(lanes_csv, mode)
+
+        if errors:
+            for msg in errors:
+                self.add_error("lanes_csv", msg)
+        else:
+            cleaned_data["parsed_lanes"] = lanes
+
+        cleaned_data["parse_warnings"] = warnings
+        return cleaned_data
+
+# --- Additive block: add alongside the other freight forms in this
+# module. Does not replace existing content. Requires:
+#   from decimal import Decimal
+# at the top of this file if not already imported. ---
+
+
+class SpotPricingStanceForm(forms.Form):
+    """Market-Signal to Pricing Stance Calculator input form.
+
+    Stateless: every field is either a board signal the broker read off
+    their own screen or a piece of urgency context. No field here ever
+    triggers a network call -- see spot_pricing_stance_utils.py docstring.
+    """
+
+    EQUIPMENT_CHOICES = [
+        ("", "---------"),
+        ("dry_van", "Dry Van"),
+        ("reefer", "Reefer"),
+        ("flatbed", "Flatbed"),
+        ("step_deck", "Step Deck"),
+        ("power_only", "Power Only"),
+        ("box_truck", "Box Truck"),
+        ("sprinter", "Sprinter/Cargo Van"),
+    ]
+
+    DIESEL_CHOICES = [
+        ("", "---------"),
+        ("rising_fast", "Rising fast"),
+        ("rising", "Rising"),
+        ("flat", "Flat"),
+        ("falling", "Falling"),
+    ]
+
+    COMMITMENT_CHOICES = [
+        ("quoted_only", "Quoted — not yet won"),
+        ("booked", "Booked — must cover"),
+    ]
+
+    # -- Context: display/GTM only, no math --
+    lane_label = forms.CharField(
+        max_length=80, required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. CHI → ATL", "class": "form-control"}),
+        help_text="Optional label for your own reference.",
+    )
+    equipment_type = forms.ChoiceField(
+        choices=EQUIPMENT_CHOICES, required=False,
+        label="Equipment type",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    # -- Market signals: each optional; at least 2 required (see clean()) --
+    load_to_truck_ratio = forms.DecimalField(
+        required=False, min_value=Decimal("0"), max_value=Decimal("50"),
+        label="Load-to-truck ratio",
+        help_text="Loads per truck at origin, from your board's market view.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
+    )
+    days_posted_comparable = forms.DecimalField(
+        required=False, min_value=Decimal("0"), max_value=Decimal("14"),
+        label="Days comparable postings have sat",
+        help_text="How long comparable postings have sat uncovered, in days.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
+    )
+    calls_received = forms.IntegerField(
+        required=False, min_value=0, max_value=200,
+        label="Calls received on your posting",
+        help_text="Pairs with hours posted below.",
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+    hours_posted = forms.DecimalField(
+        required=False, min_value=Decimal("0.25"), max_value=Decimal("168"),
+        label="Hours your posting has been up",
+        help_text="How long your posting has been up.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.25"}),
+    )
+    diesel_trend = forms.ChoiceField(
+        choices=DIESEL_CHOICES, required=False,
+        label="Diesel trend",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    nearest_trucks_dh = forms.DecimalField(
+        required=False, min_value=Decimal("0"), max_value=Decimal("500"),
+        label="Nearest trucks' deadhead (mi)",
+        help_text="Typical deadhead of trucks showing on your truck search, miles.",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1"}),
+    )
+
+    # -- Urgency: both required --
+    hours_to_pickup = forms.DecimalField(
+        required=True, min_value=Decimal("0"), max_value=Decimal("168"),
+        label="Hours to pickup",
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.5"}),
+    )
+    commitment_level = forms.ChoiceField(
+        choices=COMMITMENT_CHOICES, required=True,
+        label="Commitment level",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+
+        calls = cleaned.get("calls_received")
+        hours = cleaned.get("hours_posted")
+
+        # Guard: the calls/hours pair is meaningless alone -- a call count
+        # with no time window (or vice versa) can't produce a rate. Using
+        # a single if/elif (not two independent ifs) so each field gets
+        # the error added at most once -- a sibling form shipped a
+        # double-message bug from two branches both calling add_error on
+        # the same field.
+        pair_message = "Enter both calls received and hours posted, or neither."
+        if calls is not None and hours is None:
+            self.add_error("hours_posted", pair_message)
+        elif hours is not None and calls is None:
+            self.add_error("calls_received", pair_message)
+
+        # Count provided market signals. The calls/hours pair counts as
+        # ONE signal (call rate), not two, and only counts when both
+        # halves are present (no pairing error above for this pair).
+        signal_count = 0
+        if cleaned.get("load_to_truck_ratio") is not None:
+            signal_count += 1
+        if cleaned.get("days_posted_comparable") is not None:
+            signal_count += 1
+        if calls is not None and hours is not None:
+            signal_count += 1
+        if cleaned.get("diesel_trend"):
+            signal_count += 1
+        if cleaned.get("nearest_trucks_dh") is not None:
+            signal_count += 1
+
+        if signal_count < 2:
+            # Single raise -> exactly one form-level error, never
+            # duplicated (clean() runs once per is_valid() call).
+            raise forms.ValidationError(
+                "Enter at least two market signals — a stance from a "
+                "single signal isn't a read, it's a guess."
+            )
+
+        return cleaned
+
+# ============================================================================
+# ADDITIVE BLOCK -- append to projects/forms/forms_freight_tools.py
+# ============================================================================
+# WHERE: add near the other freight-tool forms (alongside CPMCalculatorForm
+# and the rest). Named FreightRepositioningForm -- not e.g.
+# RepositioningCalculatorForm -- because the freight package already owns
+# CPMCalculatorForm and (pending merge) FreightQuoteBuilderForm; don't
+# shadow either.
+#
+# IMPORT CHECK: this block uses `from decimal import Decimal` and Django's
+# `forms`. Both are near-certainly already imported at the top of
+# forms_freight_tools.py (every sibling freight form is Decimal-based) --
+# remove the two import lines below if so, to avoid a duplicate import.
+# ============================================================================
+
+from decimal import Decimal
+from django import forms
+
+
+class FreightRepositioningForm(forms.Form):
+    """
+    Roundtrip / Repositioning Rate Calculator input form.
+
+    Models a full spot-load decision: carrier's current position ->
+    deadhead-in -> loaded delivery -> deadhead-to-reload -> next loaded leg.
+    See freight_repositioning_utils.py's module docstring for the
+    calculation spec this form's cleaned_data feeds into.
+
+    Numeric fields with a spec'd default (dh_origin, dh_reload,
+    reload_loaded_miles, carrier_cost_per_mile, required_carrier_profit_per_mile,
+    target_margin_pct) are `required=False` with a matching `initial` --
+    this pre-fills the widget for a fresh GET without making Django reject
+    an honestly-blank POST. build_result() in freight_repositioning_utils.py
+    coalesces a blank submission back to the same default via an explicit
+    `is None` check (not `value or default`, since an explicit 0 is a valid
+    value for e.g. required_carrier_profit_per_mile and must not be
+    silently overwritten).
+    """
+
+    EQUIPMENT_CHOICES = [
+        ("dry_van", "Dry Van"),
+        ("reefer", "Reefer"),
+        ("flatbed", "Flatbed"),
+        ("step_deck", "Step Deck"),
+        ("power_only", "Power Only"),
+        ("box_truck", "Box Truck"),
+        ("sprinter", "Sprinter/Cargo Van"),
+    ]
+
+    MARKET_STRENGTH_CHOICES = [
+        ("custom", "Custom"),
+        ("hot", "Hot"),
+        ("balanced", "Balanced"),
+        ("soft", "Soft"),
+        ("dead", "Dead"),
+    ]
+
+    BASIS_CHOICES = [
+        ("flat", "Flat total"),
+        ("per_loaded_mile", "Per loaded mile"),
+    ]
+
+    # ----------------------------------------------------------------
+    # Lane & legs
+    # ----------------------------------------------------------------
+    origin_zip = forms.CharField(
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "e.g. 60601",
+            "inputmode": "numeric",
+            "data-gtm-field": "origin_zip",
+        }),
+        help_text="Required unless you enter loaded miles manually below.",
+    )
+    destination_zip = forms.CharField(
+        max_length=5,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "e.g. 30301",
+            "inputmode": "numeric",
+            "data-gtm-field": "destination_zip",
+        }),
+    )
+    loaded_manual_miles = forms.DecimalField(
+        required=False,
+        min_value=Decimal("1"),
+        max_value=Decimal("5000"),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "1",
+            "placeholder": "Optional -- skips the ZIP lookup entirely",
+        }),
+        label="Loaded miles (manual override)",
+        help_text="Enter this to skip the automatic distance lookup entirely.",
+    )
+    dh_origin = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_value=Decimal("3000"),
+        initial=Decimal("0"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1", "id": "id_dh_origin"}),
+        label="Deadhead-in miles",
+        help_text="Carrier's current position to pickup. 0 if the truck is already at the shipper.",
+    )
+    equipment_type = forms.ChoiceField(
+        choices=EQUIPMENT_CHOICES,
+        required=True,
+        initial="dry_van",
+        widget=forms.Select(attrs={"class": "form-select", "data-gtm-field": "equipment_type"}),
+        help_text="Display and analytics only -- does not affect the calculation.",
+    )
+
+    # ----------------------------------------------------------------
+    # Post-delivery leg (all optional; any subset)
+    # ----------------------------------------------------------------
+    dh_reload = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_value=Decimal("3000"),
+        initial=Decimal("0"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1"}),
+        label="Deadhead-to-reload miles",
+        help_text="Empty miles after delivery -- to the next pickup, or just to get home/out of a dead market.",
+    )
+    reload_loaded_miles = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_value=Decimal("5000"),
+        initial=Decimal("0"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1"}),
+        label="Next load's loaded miles",
+    )
+    reload_rpm = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_reload_rpm"}),
+        label="Expected reload rate per mile",
+        help_text=(
+            "Seed this from the market-strength picker, or type your own. With the "
+            "defaults below (1.95 + 0.30 = 2.25 base), the seeds are: Hot 2.48, "
+            "Balanced 2.14, Soft 1.69, Dead 1.13 -- derived from your cost inputs, "
+            "not from market data."
+        ),
+    )
+    destination_market_strength = forms.ChoiceField(
+        choices=MARKET_STRENGTH_CHOICES,
+        required=False,
+        initial="custom",
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_destination_market_strength"}),
+        label="Destination market strength",
+        help_text="Client-side convenience only: seeds the reload rate above. Submitted for GTM labeling and result-page display only -- never changes the math.",
+    )
+
+    # ----------------------------------------------------------------
+    # Carrier economics
+    # ----------------------------------------------------------------
+    carrier_cost_per_mile = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0.50"),
+        max_value=Decimal("5.00"),
+        initial=Decimal("1.95"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_carrier_cost_per_mile"}),
+        help_text=(
+            "Editable assumption -- commonly cited all-in operating costs run "
+            "roughly $1.80-$2.10/mi; adjust to the carrier profile. This tool "
+            "sources no market data."
+        ),
+    )
+    required_carrier_profit_per_mile = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_value=Decimal("2.00"),
+        initial=Decimal("0.30"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_required_carrier_profit_per_mile"}),
+        label="Required carrier profit per mile",
+        help_text="Profit per mile driven the carrier needs to say yes.",
+    )
+
+    # ----------------------------------------------------------------
+    # Deal (optional)
+    # ----------------------------------------------------------------
+    carrier_ask_basis = forms.ChoiceField(
+        choices=BASIS_CHOICES, required=False, initial="flat",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Carrier ask is",
+    )
+    carrier_ask_amount = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0.01"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "Optional"}),
+        label="Carrier's ask",
+    )
+    sell_basis = forms.ChoiceField(
+        choices=BASIS_CHOICES, required=False, initial="flat",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Your sell rate is",
+    )
+    sell_amount = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0.01"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "Optional"}),
+        label="Your sell rate",
+    )
+    target_margin_pct = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_value=Decimal("99.99"),
+        initial=Decimal("15.0"),
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.1"}),
+        label="Target margin %",
+        help_text="Used only when a sell rate is entered above.",
+    )
+
+    def clean_origin_zip(self):
+        """Strip whitespace; if present at all, must be exactly 5 digits."""
+        value = self.cleaned_data.get("origin_zip", "")
+        value = value.strip() if value else value
+        if value and (not value.isdigit() or len(value) != 5):
+            raise forms.ValidationError("Enter a 5-digit ZIP code.")
+        return value
+
+    def clean_destination_zip(self):
+        """Strip whitespace; if present at all, must be exactly 5 digits."""
+        value = self.cleaned_data.get("destination_zip", "")
+        value = value.strip() if value else value
+        if value and (not value.isdigit() or len(value) != 5):
+            raise forms.ValidationError("Enter a 5-digit ZIP code.")
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # --- Lane resolution: ZIPs are required unless manual miles override
+        # the lookup entirely (§4). Same origin/destination ZIP is allowed
+        # (local drayage) -- no error added for that case; freight_repositioning_utils
+        # .build_result() decides at the resolved-mileage stage whether the
+        # result is a genuine local-drayage warning or an unresolvable-miles
+        # error, since that depends on the actual distance returned.
+        manual_miles = cleaned_data.get("loaded_manual_miles")
+        origin_zip = cleaned_data.get("origin_zip")
+        destination_zip = cleaned_data.get("destination_zip")
+
+        # Skip the "required unless manual miles" message on a field that
+        # already failed its own format check (clean_origin_zip / clean_
+        # destination_zip) -- otherwise a malformed ZIP shows two errors
+        # ("not 5 digits" + "required") instead of just the useful one.
+        if manual_miles is None:
+            if not origin_zip and "origin_zip" not in self.errors:
+                self.add_error("origin_zip", "Enter an origin ZIP, or enter loaded miles manually below.")
+            if not destination_zip and "destination_zip" not in self.errors:
+                self.add_error("destination_zip", "Enter a destination ZIP, or enter loaded miles manually below.")
+
+        # --- Reload cross-validation, both directions (§4 cross-rule):
+        # loaded miles on the reload with no rate silently zeroes reload
+        # revenue and misleads the roundtrip figures; a rate with no miles
+        # is meaningless. Make the user resolve either direction.
+        reload_loaded_miles = cleaned_data.get("reload_loaded_miles") or Decimal("0")
+        reload_rpm = cleaned_data.get("reload_rpm")
+
+        if reload_loaded_miles > 0 and reload_rpm is None:
+            self.add_error("reload_rpm", "Enter an expected rate for the reload, or clear the reload's loaded miles.")
+        if reload_rpm is not None and reload_rpm > 0 and reload_loaded_miles <= 0:
+            self.add_error("reload_loaded_miles", "Enter the reload's loaded miles, or clear the expected reload rate.")
+
+        return cleaned_data

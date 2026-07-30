@@ -455,4 +455,15 @@ urlpatterns = [
         views.freight_quote_builder,
         name="freight_quote_builder",
     ),
+    path("projects/freight-bid-sheet-builder/", views.freight_bid_sheet_builder, name="freight_bid_sheet_builder"),
+    path(
+    "projects/spot-market-pricing-stance/",
+    views.spot_market_pricing_stance,
+    name="spot_market_pricing_stance",
+),
+    path(
+        "projects/freight-repositioning-calculator/",
+        views.freight_repositioning_calculator,
+        name="freight_repositioning_calculator",
+    ),
 ]

@@ -1,0 +1,133 @@
+/*
+ * spot_market_pricing_stance.css
+ * ================================
+ * Spot Market Pricing Stance Calculator.
+ *
+ * DARK THEME TABLE OVERRIDES: the stance matrix reuses `.table-info`
+ * (Hold Firm cells) and `.table-warning` (Cover Now cells) exactly as
+ * documented in freight_bid_sheet_builder.css and freight_quote_builder.css
+ * - Bootstrap's contextual row classes hardcode light tints that don't
+ * adapt to [data-bs-theme="dark"], so both get their CSS variables
+ * re-declared here with dark, translucent tints. Price to Cover cells get
+ * no contextual class (they're the neutral middle stance) and just
+ * inherit the table's default row styling.
+ *
+ * Badges for the heat/urgency bands and the meter fills use plain
+ * Bootstrap semantic classes/variables (bg-success/bg-warning/bg-danger,
+ * var(--bs-warning), var(--bs-info)) rather than bespoke colors, so they
+ * stay in sync with the rest of the site's dark theme automatically.
+ *
+ * Scoped to #stance-results so nothing leaks if this stylesheet is ever
+ * loaded alongside other content.
+ */
+
+/* ── Stance banner ───────────────────────────────────────────────────────
+   Three verdict tones via CSS variables on the per-stance class, same
+   technique as freight_quote_builder.css's .broker-panel/.walkaway-callout.
+   Hold Firm = steady/info tone, Price to Cover = neutral, Cover Now =
+   warning tone, per spec. */
+#stance-results .stance-banner {
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    border-left: 6px solid var(--stance-border, var(--bs-secondary));
+    background: var(--stance-bg, rgba(108, 117, 125, 0.08));
+}
+#stance-results .stance-hold_firm {
+    --stance-bg: rgba(13, 202, 240, 0.10);
+    --stance-border: var(--bs-info);
+}
+#stance-results .stance-price_to_cover {
+    --stance-bg: rgba(108, 117, 125, 0.10);
+    --stance-border: var(--bs-secondary);
+}
+#stance-results .stance-cover_now {
+    --stance-bg: rgba(255, 193, 7, 0.10);
+    --stance-border: var(--bs-warning);
+}
+
+/* ── Score meters ────────────────────────────────────────────────────────
+   Plain CSS bar meters, no chart library. Width set via JS reading
+   data-fill-pct (see template) rather than an inline style="width: {{ }}"
+   attribute, which parses as invalid CSS to style-attribute linters. */
+#stance-results .meter-label { font-weight: 600; margin-bottom: 0.25rem; }
+#stance-results .meter-track {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.25rem;
+    height: 1.25rem;
+    overflow: hidden;
+}
+#stance-results .meter-fill { height: 100%; transition: width 0.3s ease; }
+#stance-results .heat-fill { background-color: var(--bs-warning); }
+#stance-results .urgency-fill { background-color: var(--bs-info); }
+
+/* ── Cushion callout ─────────────────────────────────────────────────────
+   The number that leaves the page - kept visually prominent, same info
+   tone as the Hold Firm banner state since it's the actionable output. */
+#stance-results .cushion-callout {
+    background: rgba(13, 202, 240, 0.06);
+    border: 1px solid rgba(13, 202, 240, 0.35);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+}
+
+/* ── Signal breakdown + stance matrix + config tables ───────────────────── */
+#stance-results .table {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Stance matrix contextual cells - same variable set/values as the
+   sibling freight tools' dark-theme table overrides. */
+#stance-results tr .table-info {
+    --bs-table-bg: rgba(13, 202, 240, 0.14);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(13, 202, 240, 0.40);
+}
+#stance-results tr .table-warning {
+    --bs-table-bg: rgba(255, 193, 7, 0.15);
+    --bs-table-color: #f8f9fa;
+    --bs-table-border-color: rgba(255, 193, 7, 0.40);
+}
+
+/* Active matrix cell - the one the current read landed on. Uses an inset
+   box-shadow rather than a border so it doesn't shift table layout. */
+#stance-results .matrix-active {
+    font-weight: 700;
+    box-shadow: inset 0 0 0 2px var(--bs-info);
+}
+
+
+/* ── PRINT ────────────────────────────────────────────────────────────────
+   Flattens every verdict/contextual color back to black-on-white, and
+   hides the input form and educational copy - only the computed stance
+   belongs on paper. Same "keep the numbers, drop the color" approach as
+   the sibling freight tools' print blocks. */
+@media print {
+    form,
+    .related-tools-block {
+        display: none !important;
+    }
+
+    #stance-results,
+    #stance-results * {
+        color: #000 !important;
+        background: #fff !important;
+        border-color: #666 !important;
+        box-shadow: none !important;
+    }
+
+    #stance-results .meter-track,
+    #stance-results .meter-fill {
+        background-color: #fff !important;
+        border: 1px solid #000 !important;
+    }
+
+    #stance-results .matrix-active {
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
+    }
+
+    #stance-results .badge {
+        border: 1px solid #000 !important;
+    }
+}

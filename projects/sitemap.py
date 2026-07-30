@@ -94,6 +94,10 @@ class StaticViewSitemap(Sitemap):
             "projects:evm_calculator",
             "projects:pert_calculator",
             "projects:critical_path_calculator",
+            "projects:freight_quote_builder",
+            "projects:spot_market_pricing_stance",
+            "projects:freight_repositioning_calculator",
+            "projects:freight_bid_sheet_builder",
         ]
 
     def location(self, item):

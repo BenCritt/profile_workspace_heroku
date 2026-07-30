@@ -1,0 +1,383 @@
+{% extends "projects/base.html" %}
+{% load static %}
+
+{% block title %}Freight Spot Market Pricing Stance Calculator | Broker Pricing Tool{% endblock %}
+
+{% block meta %}
+  {% include "includes/spot_market_pricing_stance_meta.html" %}
+{% endblock %}
+
+{% block schema %}
+  {% include "includes/spot_market_pricing_stance_schema.html" %}
+{% endblock %}
+
+{% block link_tags %}
+    {{ block.super }}
+    <link rel="canonical" href="https://www.bencritt.net/projects/spot-market-pricing-stance/">
+{% endblock link_tags %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'template_css/spot_market_pricing_stance.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-9">
+      <h1 class="text-center mb-4"><i class="bi bi-signpost-split me-2"></i>Spot Market Pricing Stance Calculator</h1>
+      <p class="text-muted text-center mb-5">
+        Turn the signals already on your load board into a clear pricing stance. This tool structures
+        <strong>your own</strong> read of the market &mdash; it sources no market data and implies none.
+        Enter what you're seeing; the model is fully shown below so you can see exactly how it got there.
+      </p>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+          {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <fieldset class="mb-4">
+          <legend class="h5">Lane Context <span class="text-muted small">(optional, for your reference)</span></legend>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="{{ form.lane_label.id_for_label }}" class="form-label">{{ form.lane_label.label }}</label>
+              {{ form.lane_label }}
+              {% if form.lane_label.help_text %}<div class="form-text">{{ form.lane_label.help_text }}</div>{% endif %}
+              {% for error in form.lane_label.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ form.equipment_type.id_for_label }}" class="form-label">{{ form.equipment_type.label }}</label>
+              {{ form.equipment_type }}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="h5">Market Signals <span class="text-muted small">(enter at least two)</span></legend>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="{{ form.load_to_truck_ratio.id_for_label }}" class="form-label">{{ form.load_to_truck_ratio.label }}</label>
+              {{ form.load_to_truck_ratio }}
+              {% if form.load_to_truck_ratio.help_text %}<div class="form-text">{{ form.load_to_truck_ratio.help_text }}</div>{% endif %}
+              {% for error in form.load_to_truck_ratio.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ form.days_posted_comparable.id_for_label }}" class="form-label">{{ form.days_posted_comparable.label }}</label>
+              {{ form.days_posted_comparable }}
+              {% if form.days_posted_comparable.help_text %}<div class="form-text">{{ form.days_posted_comparable.help_text }}</div>{% endif %}
+              {% for error in form.days_posted_comparable.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-3">
+              <label for="{{ form.calls_received.id_for_label }}" class="form-label">{{ form.calls_received.label }}</label>
+              {{ form.calls_received }}
+              {% for error in form.calls_received.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-3">
+              <label for="{{ form.hours_posted.id_for_label }}" class="form-label">{{ form.hours_posted.label }}</label>
+              {{ form.hours_posted }}
+              {% if form.hours_posted.help_text %}<div class="form-text">{{ form.hours_posted.help_text }}</div>{% endif %}
+              {% for error in form.hours_posted.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-3">
+              <label for="{{ form.diesel_trend.id_for_label }}" class="form-label">{{ form.diesel_trend.label }}</label>
+              {{ form.diesel_trend }}
+            </div>
+            <div class="col-sm-3">
+              <label for="{{ form.nearest_trucks_dh.id_for_label }}" class="form-label">{{ form.nearest_trucks_dh.label }}</label>
+              {{ form.nearest_trucks_dh }}
+              {% if form.nearest_trucks_dh.help_text %}<div class="form-text">{{ form.nearest_trucks_dh.help_text }}</div>{% endif %}
+              {% for error in form.nearest_trucks_dh.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="h5">Your Clock</legend>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="{{ form.hours_to_pickup.id_for_label }}" class="form-label">{{ form.hours_to_pickup.label }}</label>
+              {{ form.hours_to_pickup }}
+              {% for error in form.hours_to_pickup.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label for="{{ form.commitment_level.id_for_label }}" class="form-label">{{ form.commitment_level.label }}</label>
+              {{ form.commitment_level }}
+              {% for error in form.commitment_level.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="d-grid mb-5">
+          <button type="submit" class="btn btn-primary btn-lg" data-gtm-event="stance_form_submit" data-gtm-category="Freight Tools">
+            Get My Stance
+          </button>
+        </div>
+      </form>
+
+      {% if result %}
+      <div id="stance-results"
+           data-gtm-stance="{{ result.stance.stance }}"
+           data-gtm-heat-band="{{ result.stance.heat_band }}"
+           data-gtm-urgency-band="{{ result.stance.urgency_band }}"
+           data-gtm-cushion-pct="{{ result.cushion.cushion_pct }}"
+           {% if result.excluded_count > 0 %}data-gtm-signals-excluded="{{ result.excluded_count }}"{% endif %}>
+
+        <h2 class="h4 mb-3">Your Pricing Stance</h2>
+
+        {% if form.cleaned_data.lane_label or form.cleaned_data.equipment_type %}
+        <p class="small text-muted mb-2">
+          {% if form.cleaned_data.lane_label %}{{ form.cleaned_data.lane_label }}{% endif %}
+          {% if form.cleaned_data.equipment_type %} &middot; {{ form.get_equipment_type_display }}{% endif %}
+        </p>
+        {% endif %}
+
+        <!-- 1. Stance banner -->
+        <div class="stance-banner stance-{{ result.stance.stance }} mb-4">
+          <h3 class="h4 mb-1">{{ result.stance.stance_label }}</h3>
+          <p class="mb-0">{{ result.stance.stance_description }}</p>
+        </div>
+
+        <!-- 2. Score meters -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <div class="meter-label">
+              Market Heat: {{ result.heat_display }}/100
+              <span class="badge
+                {% if result.stance.heat_band == 'soft' %}bg-success
+                {% elif result.stance.heat_band == 'balanced' %}bg-warning text-dark
+                {% else %}bg-danger{% endif %}">{{ result.stance.heat_band|capfirst }}</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill heat-fill" data-fill-pct="{{ result.heat_display }}"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="meter-label">
+              Urgency: {{ result.urgency_display }}/100
+              <span class="badge
+                {% if result.stance.urgency_band == 'low' %}bg-success
+                {% elif result.stance.urgency_band == 'med' %}bg-warning text-dark
+                {% else %}bg-danger{% endif %}">{{ result.stance.urgency_band|capfirst }}</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-fill urgency-fill" data-fill-pct="{{ result.urgency_display }}"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Cushion callout -->
+        <div class="cushion-callout mb-4">
+          <h3 class="h5">Suggested contingency: +{{ result.cushion.cushion_pct }}%</h3>
+          <p class="mb-1">
+            {{ result.cushion.base }}% for market heat{% if result.cushion.bonus > 0 %}, +{{ result.cushion.bonus }}% for window pressure{% endif %}.
+          </p>
+          <p class="mb-0">
+            <!-- NOTE: Freight Quote Builder isn't merged/live yet - swap in
+                 "Carry this into the contingency field of the Freight Quote
+                 Builder — {% url 'projects:freight_quote_builder' %}" plus
+                 data-gtm-event="quote_builder_handoff" once it is. -->
+            Carry this into the contingency buffer of your customer quote.
+          </p>
+        </div>
+
+        <!-- 4. Signal breakdown table -->
+        <h3 class="h5 mt-4">Signal Breakdown</h3>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Signal</th>
+                <th scope="col">Input</th>
+                <th scope="col">Sub-score</th>
+                <th scope="col">Weight Used</th>
+                <th scope="col">Contribution</th>
+                <th scope="col">What It Means</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in breakdown_rows %}
+              <tr>
+                <th scope="row" class="fw-normal">{{ row.label }}</th>
+                {% if row.provided %}
+                  <td>{{ row.display_raw }}</td>
+                  <td>{{ row.subscore|floatformat:1 }}</td>
+                  <td>{{ row.weight_used|floatformat:2 }}</td>
+                  <td>{{ row.contribution|floatformat:1 }}</td>
+                  <td>{{ row.interpretation }}</td>
+                {% else %}
+                  <td colspan="5" class="text-muted fst-italic">Not provided &mdash; excluded, remaining weights renormalized.</td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted">
+            Contribution values are rounded for display and may not visibly sum to the Market Heat figure
+            above &mdash; that's rounding, not an error.
+          </p>
+        </div>
+
+        <!-- 5. Stance matrix -->
+        <h3 class="h5 mt-4">The Stance Matrix</h3>
+        <div class="table-responsive" data-gtm-matrix-table>
+          <table class="table table-sm text-center align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Heat \ Urgency</th>
+                <th scope="col">Low</th>
+                <th scope="col">Med</th>
+                <th scope="col">High</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in matrix_rows %}
+              <tr>
+                <th scope="row">{{ row.heat_band|capfirst }}</th>
+                {% for cell in row.cells %}
+                  <td class="
+                    {% if cell.stance_key == 'hold_firm' %}table-info
+                    {% elif cell.stance_key == 'cover_now' %}table-warning{% endif %}
+                    {% if row.heat_band == result.stance.heat_band and cell.urgency_band == result.stance.urgency_band %} matrix-active{% endif %}">
+                    {{ cell.stance_label }}
+                  </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 6. How this is computed -->
+        <div class="mt-4">
+          <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#howComputed" aria-expanded="false" aria-controls="howComputed">
+            How This Score Is Computed
+          </button>
+          <div class="collapse mt-3" id="howComputed">
+            <p class="small text-muted">
+              Market Heat is a weighted blend of the signals you provided, each mapped to a 0&ndash;100
+              sub-score and renormalized over whatever you entered. Urgency comes from your pickup window
+              and whether the load is booked. The two scores are looked up in the 3&times;3 matrix above to
+              get your stance &mdash; nothing here is a single blended "pressure" number.
+            </p>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr><th scope="col">Signal</th><th scope="col">Weight</th><th scope="col">Anchors (0 / 50 / 100)</th></tr>
+                </thead>
+                <tbody>
+                  {% for row in config_summary_rows %}
+                  <tr>
+                    <td>{{ row.label }}</td>
+                    <td>{{ row.weight_pct|floatformat:0 }}%</td>
+                    <td>{{ row.anchor_display }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <ul class="small text-muted">
+              <li>Heat bands: soft &lt; {{ heat_bands_config.soft_max }}, balanced {{ heat_bands_config.soft_max }}&ndash;{{ heat_bands_config.tight_min }}, tight &ge; {{ heat_bands_config.tight_min }}</li>
+              <li>Urgency bands: low &lt; {{ urgency_bands_config.low_max }}, med {{ urgency_bands_config.low_max }}&ndash;{{ urgency_bands_config.high_min }}, high &ge; {{ urgency_bands_config.high_min }}</li>
+              <li>Urgency anchors (hours to pickup, descending): {{ urgency_config.anchors.0 }} / {{ urgency_config.anchors.1 }} / {{ urgency_config.anchors.2 }}; booked commitment adds +{{ urgency_config.commitment_bonus.booked }}</li>
+              <li>Cushion: 0% below {{ cushion_config.base_bands.0.0 }} heat, stepping up to {{ cushion_config.base_ceiling }}% at heat &ge; 80, plus +{{ cushion_config.bonus_high_urgency }}% when urgency is high, capped at {{ cushion_config.cap }}%</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mt-5 related-tools-block">
+        <h2 class="h5">How This Tool Works</h2>
+        <p class="small text-muted mb-2">
+          <strong>Market Heat</strong> is a weighted blend of whichever signals you provide, each mapped to
+          a 0&ndash;100 sub-score and renormalized over the ones you entered &mdash; a missing signal is
+          never guessed at, its weight simply drops out and the rest carry more. <strong>Urgency</strong>
+          comes from your pickup window and whether the load is already booked, kept on a deliberately
+          separate axis: a tight market with two days of runway and a soft market with three hours left call
+          for different moves, even though a single blended "pressure" number might rate them the same.
+        </p>
+        <p class="small text-muted mb-2">
+          Your stance is a straight lookup in the 3&times;3 matrix above &mdash; never a further blend of
+          the two scores &mdash; and the suggested cushion steps up with market heat, with an extra point
+          added whenever urgency is high.
+        </p>
+        <p class="small text-muted">
+          <strong>Related tools:</strong> the stance above protects the margin measured by the
+          <a href="{% url 'projects:freight_margin_calculator' %}" class="related-tool-link">Freight Margin &amp; Gross Profit Calculator</a>.
+          Benchmark your linehaul rate against the lane with the
+          <a href="{% url 'projects:lane_rate_analyzer' %}" class="related-tool-link">Freight Lane Rate-Per-Mile Analyzer</a>,
+          or sanity-check your diesel-trend read with the
+          <a href="{% url 'projects:fuel_surcharge_calculator' %}" class="related-tool-link">Fuel Surcharge Calculator</a>.
+        </p>
+        <p class="small text-muted fst-italic mt-3">
+          This tool computes entirely from the signals you observe and enter above. It sources no market
+          data and implies none. The anchors and weights shown here are editable heuristics that formalize
+          common broker reasoning &mdash; not benchmarks or advice. Pricing decisions remain your judgment,
+          under your own market knowledge and customer commitments.
+        </p>
+      </div>
+
+      <div class="mt-5 text-center">
+        {% include 'includes/attribution.html' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if result %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const resultsDiv = document.getElementById("stance-results");
+        if (resultsDiv) {
+            resultsDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: "stance_calculated",
+                    stance: resultsDiv.dataset.gtmStance,
+                    heat_band: resultsDiv.dataset.gtmHeatBand,
+                    urgency_band: resultsDiv.dataset.gtmUrgencyBand,
+                    cushion_pct: resultsDiv.dataset.gtmCushionPct
+                });
+                if (resultsDiv.dataset.gtmSignalsExcluded) {
+                    window.dataLayer.push({
+                        event: "signals_excluded",
+                        excluded_count: resultsDiv.dataset.gtmSignalsExcluded
+                    });
+                }
+            }
+        }
+
+        // Meter widths are set here instead of inline styles
+        // that pattern parses as broken CSS to any linter that inspects style
+        // attributes, even though it renders correctly at request time.
+        // Reading from a plain data attribute avoids the false positive and
+        // matches the no-template-tags-in-script convention used elsewhere
+        // on this site.
+        document.querySelectorAll(".meter-fill[data-fill-pct]").forEach(function (el) {
+            var pct = parseFloat(el.getAttribute("data-fill-pct"));
+            if (!isNaN(pct)) { el.style.width = pct + "%"; }
+        });
+
+        // Stance matrix scroll-into-view GTM event (fires once) - mirrors
+        // the Freight Quote Builder's margin-ladder observer pattern.
+        const matrixBlock = document.querySelector("[data-gtm-matrix-table]");
+        if (matrixBlock && "IntersectionObserver" in window) {
+            const observer = new IntersectionObserver(function (entries, obs) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        if (window.dataLayer) window.dataLayer.push({ event: "stance_matrix_view" });
+                        obs.disconnect();
+                    }
+                });
+            }, { threshold: 0.3 });
+            observer.observe(matrixBlock);
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1008,3 +1008,385 @@ def freight_quote_builder(request):
         )
 
     return render(request, "projects/freight_quote_builder.html", context)
+
+# ============================================================================
+# DROP-IN ADDITION for views/views_freight_tools.py
+# ============================================================================
+# WHERE: append this function to the bottom of views_freight_tools.py, and
+# add one line to the module's tool-list comment near the top of the file:
+#     freight_bid_sheet_builder         — Lane RFP / bid-sheet pricing from a pasted lane list
+#
+# NO NEW MODULE-LEVEL IMPORTS ARE NEEDED. This view follows the file's
+# existing conventions exactly:
+#   - @trim_memory_after + @cache_control(...) decorator pair, same as
+#     every other view in this file.
+#   - Lazy per-view imports inside the function body (`from .. import
+#     freight_bid_sheet_builder_utils`, `from ..forms import
+#     FreightBidSheetForm`), matching every sibling view.
+#
+# RATE LIMITING — IMPORTANT DEVIATION FROM THE BUILD SPEC'S SUGGESTED
+# SYNTAX: the build spec's Section 7.3 shows `@ratelimit(...)` as a
+# decorator. This codebase already hit a real production bug from a
+# MODULE-LEVEL `from django_ratelimit.decorators import ratelimit` import
+# in views_misc.py (job_fit_analyzer): when django-ratelimit wasn't
+# installed in one environment, the whole views_misc module failed to
+# import, and Django's error-recovery path returned None from the view,
+# which crashed @cache_control's .get() call. The fix adopted then — and
+# followed here — is to call `django_ratelimit.core.is_ratelimited()`
+# directly, LAZILY, inside the POST branch, instead of using the
+# decorator at all. No @ratelimit decorator appears anywhere in this
+# view. django-ratelimit==4.1.0 confirms the `django_ratelimit.core`
+# import path (the package renamed from `ratelimit` to `django_ratelimit`
+# at 4.0).
+#
+# SETTINGS DEPENDENCY: this view reads settings.FREIGHT_BID_DM_DAILY_BUDGET
+# — see the settings.py addition file for that constant.
+# ============================================================================
+
+
+# ===========================================================================
+# Lane RFP / Bid Sheet Pricing Builder
+# ===========================================================================
+# Prices a whole shipper RFP/mini-bid at once from a pasted lane list (CSV
+# or Excel tab-paste), applying the broker's cost/margin assumptions to
+# every lane: per-lane rate + RPM + GP, a portfolio roll-up (all lanes and
+# excluding DO_NOT_BID lanes), short-haul/floor/do-not-bid/margin-squeeze
+# flags, a headhaul/backhaul balance table by state, and a CSV download
+# that drops into a shipper's bid template.
+#
+# Manual-miles mode is the default and has no quota. The Google Distance
+# Matrix lookup is opt-in, guarded three ways: pair dedupe (Section 4),
+# a daily element sub-budget in the dedicated `freightbid` cache
+# namespace (Section 7), and its own tighter django-ratelimit wall on top
+# of the view's generous outer wall — because the GCP "Profile Website
+# Maps API" project's 333-element/day cap is shared across every freight
+# tool on the site; one enthusiastic bid-sheet user must not be able to
+# starve the HOS Multi-Stop Trip Planner or the Freight Quote Builder.
+#
+# Stateless: no models, no migrations, no session storage of results.
+# The CSV download works by re-POSTing a second, hidden form to this same
+# view with `export=csv` and the lane CSV re-written with resolved miles
+# in column 6 — see build_export_lanes_csv_text() in the utils module.
+# That re-post ALWAYS re-prices in pure manual semantics (use_google is
+# forced off server-side, not just via the hidden input, before the form
+# is even bound — see below), so the export can never burn Google quota
+# and always matches the on-screen table byte-for-byte even if the
+# distance cache cycles between render and click.
+#
+# GET  → empty FreightBidSheetForm.
+# POST → outer 30/h/IP wall (all submissions) → form validation (which
+#        also parses + validates the lane CSV via
+#        FreightBidSheetForm.clean(), Section 3) → CSV-export branch (if
+#        requested, prices in forced-manual semantics and returns the
+#        file, no API calls) → Google-mode's own 6/h/IP wall + daily
+#        element budget (Section 4/7, only when use_google is checked) →
+#        price every lane (Section 5/6) → roll-ups + state balance
+#        (Section 8/9) → render results.
+# ===========================================================================
+
+@trim_memory_after
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def freight_bid_sheet_builder(request):
+    import csv as csv_module
+    from datetime import date
+    from decimal import Decimal
+
+    from django.conf import settings
+    from django.http import HttpResponse
+    from django_ratelimit.core import is_ratelimited
+
+    from .. import freight_bid_sheet_builder_utils as fbs_utils
+    from ..forms import FreightBidSheetForm
+
+    context = {}
+
+    if request.method == "POST":
+        # --- Outer wall: generous 30/h/IP for every POST, so a manual-
+        # mode user iterating on margin assumptions never gets locked
+        # out chasing the right numbers (Section 7.3.1).
+        if is_ratelimited(request, group="freight_bid_sheet_builder", key="ip",
+                           rate="30/h", method="POST", increment=True):
+            form = FreightBidSheetForm(request.POST)
+            form.add_error(None, "Too many submissions from this connection — please wait a bit and try again.")
+            context["form"] = form
+            return render(request, "projects/freight_bid_sheet_builder.html", context)
+
+        # --- CSV export always runs forced-manual, server-side, no
+        # matter what the re-post form's hidden inputs say (Section 10).
+        # Copying POST data (mutable) and stripping use_google BEFORE
+        # binding the form is stronger than trusting a hidden input.
+        export_requested = request.POST.get("export") == "csv"
+        post_data = request.POST
+        if export_requested:
+            post_data = request.POST.copy()
+            post_data["use_google"] = ""  # falsy for BooleanField
+
+        form = FreightBidSheetForm(post_data)
+        context["form"] = form
+
+        if form.is_valid():
+            d = form.cleaned_data
+            lanes = d.get("parsed_lanes")
+
+            if not lanes:
+                # Defensive: parse_lanes() only returns an empty list
+                # alongside a non-empty errors list on failure (which
+                # form.clean() already turned into field errors above),
+                # but a genuinely empty-but-"valid" submission shouldn't
+                # silently render a blank results section.
+                form.add_error("lanes_csv", "Enter at least one lane.")
+                return render(request, "projects/freight_bid_sheet_builder.html", context)
+
+            # Convert every FloatField value to Decimal via str() — NEVER
+            # Decimal(float) directly, which inherits binary floating-
+            # point imprecision (Decimal(str(0.4)) == Decimal('0.4')
+            # exactly; Decimal(0.4) does not).
+            rpm_by_equipment = {
+                "V": Decimal(str(d["rpm_van"])),
+                "R": Decimal(str(d["rpm_reefer"])),
+                "F": Decimal(str(d["rpm_flatbed"])),
+            }
+            pricing_globals = dict(
+                target_margin_pct=Decimal(str(d["target_margin_pct"])),
+                fsc_per_mile=Decimal(str(d["fsc_per_mile"])),
+                contingency_pct=Decimal(str(d["contingency_pct"])),
+                min_linehaul_charge=Decimal(str(d["min_linehaul_charge"])),
+                rpm_by_equipment=rpm_by_equipment,
+            )
+
+            warnings = list(d.get("parse_warnings") or [])
+
+            # --- CSV export branch: manual semantics, zero API calls. ---
+            if export_requested:
+                priced = [fbs_utils.price_lane(l, **pricing_globals) for l in lanes]
+
+                response = HttpResponse(content_type="text/csv")
+                response["Content-Disposition"] = (
+                    f'attachment; filename="bid_sheet_{date.today():%Y%m%d}.csv"'
+                )
+                writer = csv_module.writer(response)
+                writer.writerows(fbs_utils.build_csv_rows(priced))
+                return response
+
+            # --- Google mode: its own tighter wall BEFORE any budget or
+            # API work (Section 7.3 ordering note), and only when the
+            # user actually asked for it. Submissions where every lane
+            # already carries miles never reach this block at all, since
+            # d["use_google"] gates it — matching the "only increment on
+            # submissions that actually attempt API resolution" choice
+            # documented in Section 7.3.
+            if d["use_google"]:
+                if is_ratelimited(request, group="freight_bid_google", key="ip",
+                                   rate="6/h", method="POST", increment=True):
+                    form.add_error(
+                        None,
+                        "Google lookups are limited to 6 submissions per hour. "
+                        "Add a miles column and use manual mode, which has no limit."
+                    )
+                    return render(request, "projects/freight_bid_sheet_builder.html", context)
+
+                lanes, dm_warnings, rejected = fbs_utils.resolve_distances(
+                    lanes, daily_budget=settings.FREIGHT_BID_DM_DAILY_BUDGET
+                )
+                if rejected:
+                    form.add_error(None, rejected)
+                    return render(request, "projects/freight_bid_sheet_builder.html", context)
+                warnings.extend(dm_warnings)
+
+            priced = [fbs_utils.price_lane(l, **pricing_globals) for l in lanes]
+
+            context["results"] = {
+                "lanes": priced,
+                "rollups": fbs_utils.build_rollups(priced),
+                "state_balance": fbs_utils.build_state_balance(priced),
+                "export_lanes_csv_text": fbs_utils.build_export_lanes_csv_text(priced),
+            }
+            context["warnings"] = warnings
+            context["used_google"] = bool(d["use_google"])
+
+    else:
+        context["form"] = FreightBidSheetForm()
+
+    return render(request, "projects/freight_bid_sheet_builder.html", context)
+
+# --- Additive imports for the top of views_freight_tools.py ---
+from django.shortcuts import render
+
+from projects.forms.forms_freight_tools import SpotPricingStanceForm
+from projects.spot_pricing_stance_utils import (
+    build_result,
+    STANCE_CONFIG,
+    STANCE_MATRIX,
+)
+
+
+# --- Additive helper functions + view. Place alongside the other
+# freight views in this module. ---
+
+def _build_breakdown_rows(result, config):
+    """Flatten the per-signal result data into template-ready rows, in
+    STANCE_CONFIG's own signal order. Doing this merge here (not in the
+    template) avoids needing a custom `get_item` template filter for
+    dynamic dict lookups -- Django's template dot-lookup only resolves
+    literal keys, not a loop variable."""
+    rows = []
+    for key, sig_cfg in config["signals"].items():
+        data = result["subscores"][key]
+        rows.append({
+            "key": key,
+            "label": sig_cfg["label"],
+            "provided": data["provided"],
+            "display_raw": data["display_raw"],
+            "subscore": data["subscore"],
+            "weight_used": result["heat"]["weights_used"][key],
+            "contribution": result["heat"]["contributions"][key],
+            "interpretation": data["interpretation"],
+        })
+    return rows
+
+
+def _build_matrix_rows(config):
+    """Assemble the 3x3 stance matrix as template-ready rows. Independent
+    of any one request's result -- the active cell is highlighted in the
+    template by comparing against the current result's bands."""
+    heat_bands = ["soft", "balanced", "tight"]
+    urgency_bands = ["low", "med", "high"]
+    rows = []
+    for hb in heat_bands:
+        cells = []
+        for ub in urgency_bands:
+            stance_key = STANCE_MATRIX[(hb, ub)]
+            cells.append({
+                "urgency_band": ub,
+                "stance_key": stance_key,
+                "stance_label": config["stance_labels"][stance_key],
+            })
+        rows.append({"heat_band": hb, "cells": cells})
+    return rows
+
+
+def _build_config_summary_rows(config):
+    """Flatten STANCE_CONFIG's weights/anchors into template-ready rows
+    for the "How this score is computed" panel, so that panel always
+    reflects the live config instead of hand-copied numbers."""
+    rows = []
+    for key, sig_cfg in config["signals"].items():
+        if "anchors" in sig_cfg:
+            a0, a50, a100 = sig_cfg["anchors"]
+            anchor_display = f"{a0} / {a50} / {a100}"
+        else:
+            cats = sig_cfg["categorical"]
+            anchor_display = ", ".join(f"{k}={v}" for k, v in cats.items())
+        rows.append({
+            "label": sig_cfg["label"],
+            "weight_pct": sig_cfg["weight"] * 100,
+            "anchor_display": anchor_display,
+        })
+    return rows
+
+
+def spot_market_pricing_stance(request):
+    """Render the Market-Signal to Pricing Stance Calculator.
+
+    Stateless GET/POST cycle. No persistence, no external calls: every
+    input is a broker-observed board signal. STANCE_CONFIG is passed into
+    the context (via the three helpers above) so the "How this is
+    computed" panel renders from the same dict the scoring functions use
+    -- display and computation can never drift apart.
+    """
+    result = None
+    breakdown_rows = None
+
+    if request.method == "POST":
+        form = SpotPricingStanceForm(request.POST)
+        if form.is_valid():
+            result = build_result(form.cleaned_data)
+            breakdown_rows = _build_breakdown_rows(result, STANCE_CONFIG)
+    else:
+        form = SpotPricingStanceForm()
+
+    context = {
+        "form": form,
+        "result": result,
+        "breakdown_rows": breakdown_rows,
+        "matrix_rows": _build_matrix_rows(STANCE_CONFIG),
+        "config_summary_rows": _build_config_summary_rows(STANCE_CONFIG),
+        "urgency_config": STANCE_CONFIG["urgency"],
+        "cushion_config": STANCE_CONFIG["cushion"],
+        "heat_bands_config": STANCE_CONFIG["heat_bands"],
+        "urgency_bands_config": STANCE_CONFIG["urgency_bands"],
+    }
+    return render(request, "projects/spot_market_pricing_stance.html", context)
+
+# ============================================================================
+# ADDITIVE BLOCK -- append to projects/views/views_freight_tools.py
+# ============================================================================
+# WHERE: add near the other freight-tool view functions.
+#
+# IMPORT CHECK -- this file almost certainly already has most of these at
+# the top (every sibling freight view needs render + its own form), but
+# confirm each is present, and add whichever aren't:
+#
+#   from django.shortcuts import render
+#   from ..forms.forms_freight_tools import FreightRepositioningForm
+#   from ..utils.freight_repositioning_utils import build_result
+#
+# The last import path is inferred per BUILD PROMPT §1 (utils module at
+# projects/utils/freight_repositioning_utils.py) -- adjust if your actual
+# utils package layout differs.
+#
+# WIRING NOTE: if views/__init__.py re-exports names from views_freight_tools
+# individually (rather than `from .views_freight_tools import *`), add
+# `freight_repositioning_calculator` to that existing import line so
+# `views.freight_repositioning_calculator` resolves the same way your other
+# freight tools do in urls.py (see the urls.py addition). Same check applies
+# to forms/__init__.py for FreightRepositioningForm if it re-exports
+# individually rather than via `import *`.
+# ============================================================================
+
+
+def freight_repositioning_calculator(request):
+    from ..forms import FreightRepositioningForm
+    from .. import freight_repositioning_utils
+    """
+    Roundtrip / Repositioning Rate Calculator.
+
+    Stateless -- no database, no models, no migrations. All computation
+    happens in the POST request cycle via freight_repositioning_utils.
+    build_result(). See that module's docstring for the full calculation
+    spec (this-load economics, roundtrip economics, negotiation zone,
+    ask evaluation, broker margin overlay).
+    """
+    if request.method == "POST":
+        form = FreightRepositioningForm(request.POST)
+
+        if form.is_valid():
+            result = freight_repositioning_utils.build_result(form.cleaned_data)
+
+            if result.get("error"):
+                # resolve_loaded_miles() came back empty: either the
+                # Distance Matrix call failed (no retry, per the site's
+                # API-cost discipline) or there was no manual-miles
+                # override for an unresolvable or zero-mile lane. Surface
+                # a form-level message directing to manual miles -- input
+                # stays preserved because we re-render this same bound form.
+                form.add_error(
+                    None,
+                    "Could not resolve the loaded-leg distance. Enter loaded miles manually below and resubmit.",
+                )
+                result = None
+        else:
+            # Validation failed (missing lane info, reload cross-field
+            # rule, out-of-bounds value, etc.) -- re-render with the
+            # bound form so every field's error and every already-typed
+            # value is preserved.
+            result = None
+    else:
+        form = FreightRepositioningForm()
+        result = None
+
+    return render(
+        request,
+        "projects/freight_repositioning_calculator.html",
+        {"form": form, "result": result},
+    )

@@ -22,8 +22,9 @@
 #                          LinearFootForm, DetentionFeeForm, WarehouseStorageForm,
 #                          PartialRateForm, DeadheadCalculatorForm,
 #                          MultiStopSplitterForm, LaneRateAnalyzerForm,
-#                          FreightMarginForm, HOSMultiStopPlannerForm
-#                          FreightQuoteBuilderForm
+#                          FreightMarginForm, HOSMultiStopPlannerForm,
+#                          FreightQuoteBuilderForm, FreightBidSheetForm,
+#                          SpotPricingStanceForm, FreightRepositioningForm
 #   forms_glass_tools.py   GlassVolumeForm, KilnScheduleForm, StainedGlassCostForm,
 #                          TempConverterForm, RampCalculatorForm,
 #                          StainedGlassMaterialsForm, LampworkMaterialForm,
@@ -88,6 +89,9 @@ from .forms_freight_tools import (
     FreightMarginForm,
     HOSMultiStopPlannerForm,
     FreightQuoteBuilderForm,
+    FreightBidSheetForm,
+    SpotPricingStanceForm,
+    FreightRepositioningForm,
 )
 
 from .forms_glass_tools import (
@@ -146,13 +150,14 @@ __all__ = [
     "RobotsAnalyzerForm", "CronBuilderForm", "EpochToHumanForm", "HumanToEpochForm",
     # SEO Tools
     "SitemapForm", "OGPreviewerForm",
-    # Freight Tools
+# Freight Tools
     "CarrierSearchForm", "FreightClassForm", "FuelSurchargeForm",
     "HOSTripPlannerForm", "TieDownForm", "CPMCalculatorForm",
     "LinearFootForm", "DetentionFeeForm", "WarehouseStorageForm",
     "PartialRateForm", "DeadheadCalculatorForm", "MultiStopSplitterForm",
     "LaneRateAnalyzerForm", "FreightMarginForm", "HOSMultiStopPlannerForm",
-    "FreightQuoteBuilderForm",
+    "FreightQuoteBuilderForm", "FreightBidSheetForm", "SpotPricingStanceForm",
+    "FreightRepositioningForm",
     # Glass Tools
     "GlassVolumeForm", "KilnScheduleForm", "StainedGlassCostForm",
     "TempConverterForm", "RampCalculatorForm", "StainedGlassMaterialsForm",

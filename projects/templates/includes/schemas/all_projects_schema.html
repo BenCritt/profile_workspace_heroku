@@ -91,7 +91,11 @@
           { "@type": "ListItem", "position": 57, "item": { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" } },
           { "@type": "ListItem", "position": 58, "item": { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" } },
           { "@type": "ListItem", "position": 59, "item": { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" } },
-          { "@type": "ListItem", "position": 60, "item": { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" } }
+          { "@type": "ListItem", "position": 60, "item": { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" } },
+          { "@type": "ListItem", "position": 61, "item": { "@id": "https://www.bencritt.net/projects/freight-quote-builder/#app" } },
+          { "@type": "ListItem", "position": 62, "item": { "@id": "https://www.bencritt.net/projects/spot-market-pricing-stance/#app" } },
+          { "@type": "ListItem", "position": 63, "item": { "@id": "https://www.bencritt.net/projects/freight-repositioning-calculator/#app" } },
+          { "@type": "ListItem", "position": 64, "item": { "@id": "https://www.bencritt.net/projects/freight-bid-sheet-builder/#app" } }
         ]
       },
       "hasPart": [
@@ -154,7 +158,11 @@
         { "@id": "https://www.bencritt.net/projects/evm-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/pert-calculator/#app" },
         { "@id": "https://www.bencritt.net/projects/critical-path-calculator/#app" },
-        { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" }
+        { "@id": "https://www.bencritt.net/projects/hos-multi-stop-trip-planner/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-quote-builder/#app" },
+        { "@id": "https://www.bencritt.net/projects/spot-market-pricing-stance/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-repositioning-calculator/#app" },
+        { "@id": "https://www.bencritt.net/projects/freight-bid-sheet-builder/#app" }
       ]
     },
 
@@ -1379,6 +1387,88 @@
         "70-hour/8-day cycle tracking with per-stop arrival ETAs.",
         "Driver-free time, next-load availability, and a chronological duty timeline.",
         "Mid-shift replanning from the driver's current clocks, plus a next-load lookahead over estimated deadhead miles."
+      ]
+    },
+    
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-quote-builder/#app",
+      "name": "Freight Quote Builder & Max Buy Rate Calculator",
+      "description": "Build all-in freight quotes with linehaul, fuel surcharge, and accessorials, then solve for the maximum buy rate that protects your margin. Free tool for freight brokers.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-quote-builder/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-quote-builder.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Build a customer-facing all-in freight quote from linehaul, fuel surcharge, and accessorials",
+        "Solve for the maximum buy rate that protects a target profit margin",
+        "Generate a full margin ladder across negotiating tiers with a walk-away floor",
+        "Copy a ready-to-send customer quote with margin data hidden from the printed copy"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/spot-market-pricing-stance/#app",
+      "name": "Spot Market Pricing Stance Calculator",
+      "description": "Turns the load-board signals a freight broker already reads -- load-to-truck ratio, posting age, calls received, deadhead depth, diesel trend -- into a transparent pricing stance. Structures your own market read; sources no market data.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/spot-market-pricing-stance/",
+      "image": "https://www.bencritt.net/static/img/all-projects/spot-market-pricing-stance.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Market heat scoring from broker-observed board signals",
+        "Separate urgency axis from pickup window and commitment level",
+        "3x3 stance matrix: Hold Firm, Price to Cover, Cover Now / Build Cushion",
+        "Suggested contingency cushion percentage for your customer quote",
+        "Fully transparent weights, anchors, and band thresholds shown on the page"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-repositioning-calculator/#app",
+      "name": "Roundtrip & Repositioning Rate Calculator",
+      "description": "See the rate a carrier actually earns after deadhead, model the full roundtrip with the reload leg, and find the real buy-rate floor for any spot load. Free broker tool.",
+      "applicationCategory": "Business Application",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-repositioning-calculator/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-repositioning-calculator.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Calculate effective rate per mile after deadhead-in dilution",
+        "Model full roundtrip economics including the post-delivery reload or repositioning leg",
+        "Compute carrier breakeven and this-load vs. roundtrip buy-rate floors",
+        "See the negotiation zone between the two floors with a signed premium/discount figure",
+        "Quantify the dead-market premium or reload-market discount as a single dollar amount",
+        "Evaluate a carrier's actual ask and overlay broker margin against a sell rate"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://www.bencritt.net/projects/freight-bid-sheet-builder/#app",
+      "name": "Freight Bid Sheet Builder",
+      "description": "Price a full shipper lane RFP or mini-bid from a pasted lane list, with per-lane rates, a portfolio roll-up, do-not-bid flags, and a shipper-ready CSV export.",
+      "applicationCategory": "Transportation Utility",
+      "operatingSystem": "Web-based",
+      "isAccessibleForFree": true,
+      "url": "https://www.bencritt.net/projects/freight-bid-sheet-builder/",
+      "image": "https://www.bencritt.net/static/img/all-projects/freight-bid-sheet-builder.webp",
+      "creator": { "@type": "Person", "@id": "https://www.bencritt.net/#person" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Price up to 25 lanes at once from a pasted CSV or Excel tab-paste.",
+        "Per-lane all-in rate, RPM, gross profit, and delta vs. the incumbent rate.",
+        "Portfolio roll-up with and without do-not-bid lanes included.",
+        "Short-haul, minimum-charge, do-not-bid, and margin-squeeze flags.",
+        "Headhaul/backhaul balance table by state.",
+        "One-click CSV export formatted for a shipper's bid template."
       ]
     }
 
