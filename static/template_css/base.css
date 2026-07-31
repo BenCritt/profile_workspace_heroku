@@ -122,6 +122,39 @@ html.embedded .container {
 }
 
 
+/* ── MOBILE NAV: cap dropdown-menu height ────────────────────────────────────
+   Below navbar-expand-xl's breakpoint (1200px), the navbar collapses into
+   the hamburger panel and each toggle's .dropdown-menu opens with no height
+   limit — it grows to fit every item. That was fine when the longest hub
+   (Freight Pro) had 15 flat items, but grouping it into 4 labeled sections
+   (Spot Pricing & Quoting, Rate & Cost Analysis, Safety/Compliance/Trip
+   Planning, Load & Warehousing) pushed it to 19 tools + 4 headers + the
+   divider + "View All" — roughly 25 rows.
+
+   This matters more than it would on a normal in-flow page because the
+   navbar itself is .fixed-top (position: fixed), which establishes the
+   containing block for the dropdown-menu's default position: absolute
+   (Bootstrap/Popper's default — nothing in this codebase overrides it to
+   static). So the open dropdown is anchored to a fixed element, not to the
+   normally-scrolling page; if it grows taller than the remaining viewport
+   below its toggle, that overflow is the same kind mobile browsers handle
+   inconsistently for fixed-position content — sometimes reachable by
+   scrolling, sometimes just clipped and stuck. And since Freight Pro isn't
+   the first item (it opens below "All Projects" and "Glass Artist"), its
+   available headroom is already reduced before it even starts growing.
+
+   Fix: cap height and scroll internally — whichever is smaller of 60% of
+   the viewport or 420px, so it stays reachable regardless of viewport size
+   or how far down the list a given hub's toggle sits. This protects every
+   hub, not just Freight Pro, if any of them grows this long later. */
+@media (max-width: 1199.98px) {
+    .navbar-nav .dropdown-menu {
+        max-height: min(60vh, 420px);
+        overflow-y: auto;
+    }
+}
+
+
 /* ── UTILITIES ──────────────────────────────────────────────────────────────
    General-purpose classes available across all templates. */
 
