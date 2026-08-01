@@ -11,6 +11,24 @@
 #       Background thread worker. Calls Gemini, renders markdown → HTML,
 #       writes result to the "jobfit" cache under key "jfa:<job_id>".
 #
+# Changes (2026-08-01, hero-consistency canonicalizer):
+#   - The free-form Gemini call below is untouched — same prompt, same
+#     config, same ~31s production profile. The only functional change is
+#     one post-processing step: canonicalize_report_markdown() rebuilds
+#     whatever markdown the model produced into the exact five-section
+#     shape the frontend keys on, synthesizing the "NN% — rationale"
+#     score line from any score wording ("45%", "72 percent",
+#     "score ... 58", folded into a heading, bold pseudo-headings, any
+#     heading level). Result: the Match Score hero card renders whenever
+#     the model states any numeric score, in any format.
+#   - Guaranteed no-worse floor: the canonicalizer is wrapped so any
+#     internal failure returns the model's text unchanged — the worst
+#     case is exactly the previous behavior.
+#   - Self-contained: the canonicalizer lives in this file (module-level
+#     section below), so this single file is the complete change. If a
+#     separate projects/jfa_canonicalize.py exists from an earlier
+#     hand-off, it is unused and can be deleted.
+#
 # Changes (2026-07-03), from ceiling-test calibration (jfa-test-jd-01):
 #   - Inject today's date into the prompt so the model can compute tenure
 #     durations ("November 2023 to present") and verify certification
@@ -30,6 +48,173 @@
 #     ("- **Requirement from JD:** explanation") so each bullet is
 #     scannable in the rendered output. Formatting-only change; does not
 #     affect classification or scoring behavior.
+
+# ════════════════════════════════════════════════════════════════════════
+# Server-side canonicalizer (embedded — see 2026-08-01 changelog entry)
+# ════════════════════════════════════════════════════════════════════════
+
+import re
+
+# Canonical section names, in display order. Matching is case-insensitive
+# prefix matching so "Match Score: 45% — ..." still resolves.
+_SECTION_ORDER = [
+    "match score",
+    "direct alignments",
+    "transferable skills",
+    "notable gaps",
+    "the verdict",
+]
+
+_CANONICAL_HEADING = {
+    "match score": "## Match Score",
+    "direct alignments": "## Direct Alignments",
+    "transferable skills": "## Transferable Skills",
+    "notable gaps": "## Notable Gaps",
+    "the verdict": "## The Verdict",
+}
+
+
+def canonicalize_report_markdown(raw_md: str) -> str:
+    """Normalize free-form report markdown to the canonical five-section
+    shape. On ANY internal failure, returns raw_md unchanged."""
+    try:
+        return _canonicalize(raw_md)
+    except Exception:
+        return raw_md
+
+
+# ── Heading recognition ──────────────────────────────────────────────────
+
+def _heading_text(line: str):
+    """Return the heading text if this line looks like a section heading,
+    else None. Recognizes markdown headings of any level, bold-only lines,
+    and short bare label lines that exactly name a known section."""
+    s = line.strip()
+    if not s:
+        return None
+
+    m = re.match(r"^#{1,6}\s*(.+?)\s*#*\s*$", s)
+    if m:
+        return m.group(1)
+
+    m = re.match(r"^(?:\*\*|__)\s*(.+?)\s*(?:\*\*|__)\s*:?\s*$", s)
+    if m:
+        return m.group(1)
+
+    # Bare standalone label ("Match Score:") — exact name only, kept short
+    # so ordinary prose can never match.
+    if len(s) <= 40:
+        low = s.rstrip(":").strip().lower()
+        if low in _SECTION_ORDER:
+            return s.rstrip(":").strip()
+
+    return None
+
+
+def _match_section(heading_text: str):
+    """Map heading text to a known section by case-insensitive prefix.
+    Returns (section_name, folded_remainder) or (None, None)."""
+    low = heading_text.lower().strip()
+    for name in _SECTION_ORDER:
+        if low.startswith(name):
+            remainder = heading_text[len(name):].strip()
+            remainder = re.sub(r"^[\s:–—-]+", "", remainder).strip()
+            return name, remainder
+    return None, None
+
+
+# ── Score extraction ─────────────────────────────────────────────────────
+
+def _extract_score(section_text: str, full_text: str):
+    """Find a 0-100 score in the Match Score section, or failing that in
+    the opening of the document. Returns (score:int|None, rationale:str|None)."""
+    for source, is_section in ((section_text, True), (full_text[:600], False)):
+        if not source:
+            continue
+        m = re.search(r"\b(\d{1,3})\s*%", source)
+        if not m:
+            m = re.search(r"\b(\d{1,3})\s*percent\b", source, re.IGNORECASE)
+        if not m:
+            m = re.search(r"\bscore\b[^0-9%]{0,20}?(\d{1,3})\b", source, re.IGNORECASE)
+        if not m:
+            continue
+
+        score = max(0, min(100, int(m.group(1))))
+
+        rationale = None
+        if is_section:
+            # First non-empty line of the section, minus any leading
+            # "Match Score" label / number / percent / separator tokens.
+            first_line = next(
+                (ln.strip() for ln in section_text.split("\n") if ln.strip()), ""
+            )
+            rationale = re.sub(
+                r"^\s*(?:match\s*score\b\s*:?\s*)?(?:\d{1,3}\s*(?:%|percent\b)?)?\s*[-–—:.]*\s*",
+                "",
+                first_line,
+                flags=re.IGNORECASE,
+            ).strip() or None
+        return score, rationale
+    return None, None
+
+
+# ── Core ─────────────────────────────────────────────────────────────────
+
+def _canonicalize(raw_md: str) -> str:
+    text = raw_md.replace("\r\n", "\n").replace("\r", "\n")
+    lines = text.split("\n")
+
+    buckets = {}
+    current = None
+    recognized = 0
+
+    for line in lines:
+        ht = _heading_text(line)
+        if ht is not None:
+            name, remainder = _match_section(ht)
+            if name is not None:
+                if name not in buckets:
+                    recognized += 1
+                current = name
+                buckets.setdefault(name, [])
+                if remainder:
+                    buckets[name].append(remainder)
+                continue
+            # Unknown markdown heading ends the current section (same
+            # behavior as the frontend enhancer); unknown bold/bare lines
+            # are treated as ordinary content.
+            if line.lstrip().startswith("#"):
+                current = None
+                continue
+        if current is not None:
+            buckets[current].append(line)
+
+    # Not recognizably our report — leave it alone.
+    if recognized < 2:
+        return raw_md
+
+    def body(name: str) -> str:
+        content = "\n".join(buckets.get(name, [])).strip()
+        return content if content else "- None identified."
+
+    parts = []
+
+    ms_text = "\n".join(buckets.get("match score", [])).strip()
+    score, rationale = _extract_score(ms_text, text)
+    if score is not None:
+        parts.append(_CANONICAL_HEADING["match score"])
+        parts.append(f"{score}% — {rationale or 'See the detailed sections below.'}")
+
+    for name in ("direct alignments", "transferable skills", "notable gaps"):
+        parts.append(_CANONICAL_HEADING[name])
+        parts.append(body(name))
+
+    parts.append(_CANONICAL_HEADING["the verdict"])
+    verdict = "\n".join(buckets.get("the verdict", [])).strip()
+    parts.append(verdict if verdict else "See the sections above.")
+
+    return "\n\n".join(parts)
+
 
 def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
     """
@@ -265,6 +450,13 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
         raw_md = response.text or ""
         if not raw_md.strip():
             raise ValueError("Gemini returned an empty response.")
+
+        # Deterministic post-processing (2026-08-01): rebuild the model's
+        # free-form markdown into the canonical five-section shape and
+        # synthesize the "NN% — rationale" score line from any score
+        # wording. No-worse floor — any internal failure inside the
+        # canonicalizer returns raw_md unchanged.
+        raw_md = canonicalize_report_markdown(raw_md)
 
         html = md_lib.markdown(
             raw_md,
