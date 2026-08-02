@@ -385,7 +385,7 @@ def ai_api_cost_estimator(request):
 # ---------------------------------------------------------------------------
 # To change the policy, change these two constants. Nothing else needs to be
 # touched — the enforcement code reads them at request time.
-JFA_RATE_LIMIT_MAX_REQUESTS   = 5      # POSTs allowed per client IP...
+JFA_RATE_LIMIT_MAX_REQUESTS   = 10     # POSTs allowed per client IP...
 JFA_RATE_LIMIT_WINDOW_SECONDS = 3600   # ...per this many seconds (1 hour)
 
 

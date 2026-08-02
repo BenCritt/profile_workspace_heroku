@@ -11,6 +11,26 @@
 #       Background thread worker. Calls Gemini, renders markdown → HTML,
 #       writes result to the "jobfit" cache under key "jfa:<job_id>".
 #
+# Changes (2026-08-02, JD-tested gap fills):
+#   - Prompt-only changes driven by real JD runs: seven recurring "Notable
+#     Gaps" closed with facts supplied by Ben.
+#   - Work Authorization added to Logistics: U.S. citizen, no employment
+#     visa sponsorship required now or in the future.
+#   - Driving & Transportation added to Logistics: valid driver's license
+#     and reliable transportation.
+#   - Client & Stakeholder Service now includes routine follow-up with
+#     clients to gather missing information (covers sales-information /
+#     order-entry follow-up requirements).
+#   - Five years of retail experience at Kmart added to Professional
+#     Background (retail domain knowledge).
+#   - International scope added to project leadership: projects involving
+#     third-party partners located in different countries.
+#   - UW-Madison bullet expanded: IT Support Specialist title, plus
+#     accountability for hardware and technology asset management
+#     (tracking and maintaining physical inventory of over 300 assets).
+#   - Productivity Applications line added to Technical Skills: proficient
+#     in Microsoft Office — Word, Excel, Outlook, and PowerPoint.
+#
 # Changes (2026-08-01, experience-counting prompt pass):
 #   - Prompt-only changes: the canonicalizer, Gemini config, cache
 #     pipeline, and five-section output contract are untouched.
@@ -326,7 +346,9 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       environments.
     - Leads cross-functional projects from initiation through delivery,
       coordinating internal teams and external client stakeholders, applying
-      Agile, predictive, and hybrid project management methodologies.
+      Agile, predictive, and hybrid project management methodologies. Project
+      leadership includes projects involving third-party partners located in
+      different countries.
     - Owns project budgets at Foremost Media: as project manager, responsible
       for resource allocation within budget constraints and directly
       accountable for project budget performance.
@@ -339,11 +361,15 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       rule development, rate limiting, and threat analysis.
     - Implements GA4 and Google Tag Manager analytics across production web
       properties, including custom event tracking.
-    - Earlier IT support experience in higher education at the University of
-      Wisconsin–Madison Biochemistry Department (1 year, 8 months), where he
-      provided technical support for and helped manage a network of 300+
-      computers. This is professional technical experience and counts toward
-      Ben's total years of IT experience.
+    - Earlier IT support experience as an IT Support Specialist in higher
+      education at the University of Wisconsin–Madison Biochemistry Department
+      (1 year, 8 months), where he provided technical support for and helped
+      manage a network of 300+ computers, with accountability for hardware
+      and technology asset management — tracking and maintaining physical
+      inventory of over 300 assets. This is professional technical experience
+      and counts toward Ben's total years of IT experience.
+    - Five years of retail experience at Kmart, providing direct working
+      knowledge of the retail domain and the processes that support it.
     - Seven years of secondary-education classroom experience (grades 7–8 social
       studies, plus K–12 substitute coverage), including Building Leadership
       Team service at Milton Middle School coordinating cross-departmental
@@ -362,6 +388,8 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       Bootstrap, SQL
     - Systems & Platforms: Windows, Linux (Ubuntu), macOS, Heroku, Azure,
       WP Engine, Cloudflare, Microsoft 365, Google Workspace
+    - Productivity Applications: Proficient in Microsoft Office, including
+      Word, Excel, Outlook, and PowerPoint
     - Infrastructure: DNS management, WAF configuration, CDN, web hosting,
       server administration, networking
     - Tools & Practices: Git / GitHub, VS Code, REST APIs, GA4 / GTM
@@ -375,12 +403,17 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       stakeholder management; process improvement; risk and scope management
 
     **Logistics & Behavioral Competencies:**
+    - Work Authorization: U.S. citizen — legally authorized to work in the
+      United States. No employment visa sponsorship (H-1B, O-1, TN, CPT,
+      OPT, etc.) is required now or in the future.
     - Working Environment: Experienced working in screen-intensive
       environments with sustained computer and typing work comprising the
       majority of the workday, via full-stack development and IT operations
       management.
     - Travel: Available for work-related travel including overnight and
       weekend trips as required by the role.
+    - Driving & Transportation: Holds a valid driver's license and has
+      reliable transportation.
     - Reliability & Attendance: Consistent record of reliable attendance and
       independent time management across both classroom and IT operations
       environments.
@@ -407,8 +440,9 @@ def run_gemini_job(job_id: str, job_desc: str, gemini_key: str) -> None:
       critical deployments or outages.
     - Client & Stakeholder Service: Experienced managing technical support
       for hundreds of external clients across web development and digital
-      marketing engagements, including direct client communication,
-      expectation management, and escalation resolution.
+      marketing engagements, including direct client communication, routine
+      follow-up with clients to gather missing information required to move
+      work forward, expectation management, and escalation resolution.
     - Attention to Detail: Demonstrated through production code quality,
       structured data implementation, security configuration management, and
       formal documentation standards maintained across 50+ deployed tools.

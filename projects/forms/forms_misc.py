@@ -172,6 +172,6 @@ class JobFitForm(forms.Form):
             MinLengthValidator(50,  message="Please paste the full job description (at least 50 characters)."),
             MaxLengthValidator(20000, message="Job description exceeds the 20,000-character limit. Please trim and try again."),
         ],
-        help_text="Paste the complete job posting for the most accurate analysis. There is a rate limit of 5 requests per hour per IP address to limit my API costs.",
+        help_text="Paste the complete job posting for the most accurate analysis. There is a rate limit of 10 requests per hour per IP address to limit my API costs.",
         required=True,
     )
