@@ -531,7 +531,7 @@ def job_fit_analyzer(request):
         client_ip = _jfa_client_ip(request)
         if _jfa_rate_limited(client_ip):
             return JsonResponse(
-                {"error": "Thank you for your interest in my profile. This tool is rate-limited to 5 requests per hour per IP address due to API costs. Please try again shortly."},
+                {"error": "Thank you for your interest in my profile. This tool is rate-limited to 10 requests per hour per IP address due to API costs. Please try again shortly."},
                 status=429,
             )
 
