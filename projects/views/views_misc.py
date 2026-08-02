@@ -15,6 +15,8 @@
 #                          via the OpenWeatherMap One Call 3.0 API
 #   ai_api_cost_estimator— Estimates token count and per-provider API cost
 #                          for a given input text + task type
+#   job_fit_analyzer     — AI recruiter fit report (async two-phase flow,
+#                          rate-limited to 5 POSTs per hour per client IP)
 #
 # All views follow the same decorator conventions used throughout the project:
 #   @trim_memory_after          — gc.collect() + malloc_trim() post-response
@@ -356,7 +358,145 @@ def ai_api_cost_estimator(request):
 # Cache keys: "jfa:<job_id>" — TTL 10 minutes. Uses the "jobfit"
 # FileBasedCache backend (/tmp/django_cache_jfa). No createcachetable
 # required. See CACHES in settings.py.
+#
+# Rate limiting (restored 2026-08-02): 5 POSTs per hour per client IP.
+#   - The POLICY (the numbers) is SET in the JFA_RATE_LIMIT_* constants
+#     directly below this banner.
+#   - ENFORCEMENT happens at the top of the POST branch inside
+#     job_fit_analyzer(), marked "RATE LIMIT ENFORCED HERE".
+#   - Counters live in the same "jobfit" FileBasedCache as the job results,
+#     under keys "jfa-rl:<ip>:<window>".
+#
+# Why django-ratelimit was removed (2026-08-02): is_ratelimited(key="ip")
+# keys its counter on request.META["REMOTE_ADDR"]. In production, requests
+# reach the dyno through Cloudflare and then Heroku's router, so REMOTE_ADDR
+# holds the router's address for that hop — not the visitor's — and it varies
+# from request to request. Every POST therefore landed in its own fresh
+# bucket, no bucket ever reached 5, and the limiter silently never fired.
+# (Locally REMOTE_ADDR is a stable 127.0.0.1, which is why the limit always
+# appeared to work in dev testing.) The replacement resolves the real client
+# address from Cloudflare's CF-Connecting-IP header and counts in a cache
+# this feature already depends on, with no django-ratelimit settings, cache
+# aliases, or middleware involved.
 # ===========================================================================
+
+# ---------------------------------------------------------------------------
+# JFA RATE LIMIT POLICY  <<< THIS IS WHERE THE LIMIT IS SET >>>
+# ---------------------------------------------------------------------------
+# To change the policy, change these two constants. Nothing else needs to be
+# touched — the enforcement code reads them at request time.
+JFA_RATE_LIMIT_MAX_REQUESTS   = 5      # POSTs allowed per client IP...
+JFA_RATE_LIMIT_WINDOW_SECONDS = 3600   # ...per this many seconds (1 hour)
+
+
+def _jfa_client_ip(request):
+    """
+    Resolve the real visitor IP behind Cloudflare + Heroku.
+
+    request.META["REMOTE_ADDR"] is useless for rate limiting in production
+    here: it holds the address of the last network hop (Heroku's router),
+    not the visitor. The real address must come from proxy headers, tried
+    in trust order:
+
+      1. CF-Connecting-IP — set authoritatively by Cloudflare on every
+         proxied request; a visitor cannot forge it through Cloudflare.
+         (Caveat: a client that reaches the Heroku origin directly,
+         bypassing Cloudflare, could forge it. Restricting the origin to
+         Cloudflare's published IP ranges would close that hole; separate
+         hardening task.)
+      2. X-Forwarded-For — the first entry is the original client by
+         convention. Spoofable by clients that send their own XFF header,
+         so it is only a fallback for non-Cloudflare paths.
+      3. REMOTE_ADDR — correct in local dev (127.0.0.1), where neither
+         proxy header exists.
+
+    Every candidate is validated with ipaddress.ip_address() (accepts IPv4
+    and IPv6, raises ValueError on garbage), so a forged nonsense header
+    falls through to the next candidate instead of poisoning cache keys.
+    If nothing validates, all such requests share a single "unknown"
+    bucket — unidentifiable traffic is collectively limited rather than
+    unlimited.
+    """
+    import ipaddress
+
+    candidates = []
+
+    cf_ip = request.META.get("HTTP_CF_CONNECTING_IP")   # CF-Connecting-IP
+    if cf_ip:
+        candidates.append(cf_ip.strip())
+
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")      # X-Forwarded-For
+    if xff:
+        candidates.append(xff.split(",")[0].strip())    # first hop = client
+
+    remote_addr = request.META.get("REMOTE_ADDR")
+    if remote_addr:
+        candidates.append(remote_addr.strip())
+
+    for candidate in candidates:
+        try:
+            ipaddress.ip_address(candidate)
+            return candidate
+        except ValueError:
+            continue
+
+    return "unknown"
+
+
+def _jfa_rate_limited(client_ip):
+    """
+    Fixed-window rate limiter for the Job Fit Analyzer.
+
+    Returns True when this request EXCEEDS the policy set in the
+    JFA_RATE_LIMIT_* constants above — requests 1 through MAX in a window
+    are allowed; request MAX+1 and beyond are blocked.
+
+    Mechanics:
+      - The current window is identified by epoch_seconds // WINDOW, so all
+        requests between e.g. 14:00:00 and 14:59:59 UTC share one window id.
+      - Each (ip, window) pair gets its own counter key,
+        "jfa-rl:<ip>:<window>", stored in the SAME "jobfit" FileBasedCache
+        the job results use (/tmp/django_cache_jfa). That cache is shared by
+        every Gunicorn worker on the dyno, so counts aggregate correctly
+        across workers — unlike a per-process store. FileBasedCache hashes
+        keys internally, so IPv6 colons in the key are safe.
+      - add() creates the counter at 0 with a one-window TTL (add is a no-op
+        when the key exists, so the TTL is set exactly once per window),
+        then incr() bumps it and returns the new count. FileBasedCache's
+        incr is not strictly atomic across workers; a photo-finish race can
+        undercount by one, an acceptable margin for an abuse limit.
+      - Counters die with the window TTL (and with dyno restarts — /tmp is
+        ephemeral), so a restart at worst grants a fresh window; it never
+        blocks a legitimate user.
+
+    Failure policy — FAIL OPEN: if the cache itself errors, allow the
+    request and log the error. If /tmp caching is broken, the analyzer as a
+    whole is already broken (results are delivered through this same cache),
+    so blocking on top of that would only mask the real problem.
+    """
+    import time
+    from django.core.cache import caches
+
+    try:
+        cache       = caches["jobfit"]
+        window_id   = int(time.time() // JFA_RATE_LIMIT_WINDOW_SECONDS)
+        counter_key = f"jfa-rl:{client_ip}:{window_id}"
+
+        cache.add(counter_key, 0, timeout=JFA_RATE_LIMIT_WINDOW_SECONDS)
+        try:
+            request_count = cache.incr(counter_key)
+        except ValueError:
+            # Rare race: the key expired or was culled between add() and
+            # incr(). Recreate it, counting this request.
+            cache.set(counter_key, 1, timeout=JFA_RATE_LIMIT_WINDOW_SECONDS)
+            request_count = 1
+
+        return request_count > JFA_RATE_LIMIT_MAX_REQUESTS
+
+    except Exception as e:
+        print(f"JFA rate limiter cache error — failing open: {e}")
+        return False
+
 
 @trim_memory_after
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -371,24 +511,34 @@ def job_fit_analyzer(request):
         import threading
         from django.core.cache import caches
         from django.http import JsonResponse
-        from django_ratelimit.core import is_ratelimited
         from ..job_fit_analyzer_utils import run_gemini_job
 
-        # Rate limit: 5 POSTs per hour per IP
-        '''
-        When testing locally, these are the PowerShell commands to clear cache:
-        Remove-Item -Recurse -Force "$env:TEMP\django_cache_jfa"
-        Remove-Item -Recurse -Force "$env:TEMP\django_cache_default"
-        '''
-        if is_ratelimited(request, group="job_fit_analyzer", key="ip", rate="5/h", method="POST", increment=True):
+        # ------------------------------------------------------------------
+        # RATE LIMIT ENFORCED HERE — 5 POSTs per hour per client IP.
+        #   Policy values:  JFA_RATE_LIMIT_* constants above this view.
+        #   IP resolution:  _jfa_client_ip()  (CF-Connecting-IP → first
+        #                   X-Forwarded-For hop → REMOTE_ADDR).
+        #   Counting:       _jfa_rate_limited() in the "jobfit" cache.
+        # This runs before the honeypot check on purpose: bots burn their
+        # own budget, and nothing below this line executes for a limited IP.
+        #
+        # When testing locally, this PowerShell command clears the cache
+        # that now holds BOTH job results and rate-limit counters:
+        #   Remove-Item -Recurse -Force "$env:TEMP\django_cache_jfa"
+        # (django_cache_default is no longer involved — the old
+        # django-ratelimit counters lived there; this limiter does not.)
+        # ------------------------------------------------------------------
+        client_ip = _jfa_client_ip(request)
+        if _jfa_rate_limited(client_ip):
             return JsonResponse(
                 {"error": "Thank you for your interest in my profile. This tool is rate-limited to 5 requests per hour per IP address due to API costs. Please try again shortly."},
                 status=429,
             )
 
-        # Honeypot check
+        # Honeypot check — logs the resolved client IP (REMOTE_ADDR would
+        # log Heroku's router here, for the reason described above).
         if form.cleaned_data.get("company_website"):
-            print(f"Honeypot triggered — IP: {request.META.get('REMOTE_ADDR', 'unknown')}")
+            print(f"Honeypot triggered — IP: {client_ip}")
             return JsonResponse({"job_id": str(uuid.uuid4())})
 
         job_desc   = form.cleaned_data["job_description"]
