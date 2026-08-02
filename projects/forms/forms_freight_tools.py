@@ -1974,7 +1974,7 @@ class FreightBidSheetForm(forms.Form):
     fsc_per_mile = forms.FloatField(
         label="Fuel Surcharge ($/mi)",
         initial=0.40,
-        help_text="PLACEHOLDER — tune to current market before launch. Zero-margin passthrough on both sides.",
+        help_text="PLACEHOLDER — tune to current market before building your bid sheet. Zero-margin passthrough on both sides.",
         widget=forms.NumberInput(attrs={
             "class": "form-control", "inputmode": "decimal",
             "step": "0.01", "min": "0", "max": "3",
@@ -2013,7 +2013,7 @@ class FreightBidSheetForm(forms.Form):
     rpm_van = forms.FloatField(
         label="Van RPM Basis ($/mi, ex-fuel)",
         initial=1.60,
-        help_text="PLACEHOLDER — tune to current market before launch.",
+        help_text="PLACEHOLDER — tune to current market before building your bid sheet.",
         widget=forms.NumberInput(attrs={
             "class": "form-control", "inputmode": "decimal",
             "step": "0.01", "min": "0.25", "max": "10",
@@ -2026,7 +2026,7 @@ class FreightBidSheetForm(forms.Form):
     rpm_reefer = forms.FloatField(
         label="Reefer RPM Basis ($/mi, ex-fuel)",
         initial=1.95,
-        help_text="PLACEHOLDER — tune to current market before launch.",
+        help_text="PLACEHOLDER — tune to current market before building your bid sheet.",
         widget=forms.NumberInput(attrs={
             "class": "form-control", "inputmode": "decimal",
             "step": "0.01", "min": "0.25", "max": "10",
@@ -2039,7 +2039,7 @@ class FreightBidSheetForm(forms.Form):
     rpm_flatbed = forms.FloatField(
         label="Flatbed RPM Basis ($/mi, ex-fuel)",
         initial=1.85,
-        help_text="PLACEHOLDER — tune to current market before launch.",
+        help_text="PLACEHOLDER — tune to current market before building your bid sheet.",
         widget=forms.NumberInput(attrs={
             "class": "form-control", "inputmode": "decimal",
             "step": "0.01", "min": "0.25", "max": "10",
