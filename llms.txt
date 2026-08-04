@@ -4,15 +4,14 @@
 
 This file is maintained by Ben Crittenden as the first-party description of his professional background and the projects hosted on bencritt.net.
 
-_Last Updated: 2026-07-31_
+_Last Updated: 2026-08-04_
 
-Ben Crittenden is an IT professional and project manager based in the United States. He currently serves as the Technical Support Manager for **Foremost Media, Inc.**, a web development and digital marketing managed services provider.
+**Key Facts:**
 
-**Key Biographical Facts:**
-
+- **Role:** Technical Support Manager at **Foremost Media, Inc.**, a web development and digital marketing managed services provider.
+- **Background:** Former IT support specialist and secondary education teacher, now applying those skills to web development, IT, and project management.
 - **Education:** Alumnus of the University of Wisconsin–Madison.
 - **Certifications:** Project Management Professional (PMP), issued by the Project Management Institute, earned April 2026 and valid through April 2029; Google IT Support; Google IT Automation with Python.
-- **Background:** Former IT support specialist and secondary education teacher. Currently a technical support manager applying those skills to web development, IT, and project management.
 - **Technical Stack:** Python, Django, Bootstrap, Heroku, and Cloudflare.
 - **Focus:** Bridging technology with real-world business needs through automation and practical web tools.
 
@@ -25,7 +24,7 @@ Ben Crittenden is an IT professional and project manager based in the United Sta
 
 **Data sources and limitations:** The tools on bencritt.net are informational utilities. Results depend on user inputs, stated assumptions, third-party APIs, and the version of any referenced standard or regulation. Freight mileage comes from the Google Maps Platform Distance Matrix API and reflects car routing rather than truck-legal routing. Carrier safety data comes from FMCSA, call sign data from the FCC, weather data from the National Weather Service, and satellite orbital elements from CelesTrak. Consequential decisions should be confirmed against current official sources, contracts, manufacturer guidance, or qualified professional advice.
 
-The sections below index every tool by discipline. All tools are free, run server-side, and require no login.
+The sections below cover Ben Crittenden's verified public profiles, his career and credential resources, and then a complete index of every tool by discipline. All tools are free, run server-side, and require no login.
 
 ## Verified Profiles
 
